@@ -68,6 +68,8 @@ changelog: |
 
   - Custom modifiers can now be placed before any declaration.
     For example: async place func(x) { ... }
+    This includes within map declarations as well, though `fn` is required
+    in order to use modifiers.
   - Added keywords temp, prop, actor, realm, style, script, intern, extern,
     assert, check, given, using.
   - Fixed empty generics: T<> is now highlighted properly.
@@ -6583,41 +6585,42 @@ repository:
           x = def()
         match: |
           (?x)
-
           \s*
-
-          (?<=[?!:]:|\b\.|[?!]\.)
-
+          (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
           \s*
-
-          # Label
-          \b([\p{Pc}\p{L}]\w*)\b\s+
-
-          # Assignment operator
-          (:?=)\s+
+          \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
+          (:?=)\s+ # Assignment operator
 
           (
-            (?:
-              \s*
-              \b
-              (?: # Modifier keywords
-                pub|priv|prot|final|read|write|over
-                |global|local|intern|extern|mut|immut
-                |post|[gs]et|put|del|req|opt
-                |(?:un)?safe|virt|seal|abst|friend|enemy
-                |pure|impure|early|late|covar|contra
-                |in|out|inout|inplace|ref|defer|a?sync
-                |stat|dyn|lazy|eager|bound|free|unique
-                |union|open|closed?|rec|oper|curry|opaque
-                |inline|prefix|infix|suffix|unary|left|right
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|new|del|old
+                |unset|ref|and|x?or|not
+                |const|let|mut|dyn
+                |va[rl]|use|given|state
+                |func|proc|prop|type|class|actor
+                |impl|enum|module|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|trait|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
               )
               \b
-              \s*
-            )*
+            )
+            [\p{Pc}\p{L}]\w* # identifier
           )
 
+          \b\s*
           (?=
-            \s*
             \b
             (?: # Function types
               function|proc|method|type
@@ -6634,38 +6637,42 @@ repository:
           3: {patterns: [include: '#modifiers']}
       - begin: |
           (?x)
-
-          (?<=[?!:]:|\b\.|[?!]\.)
-
           \s*
-
-          # Label
-          \b([\p{Pc}\p{L}]\w*)\b\s+
-
-          # Assignment operator
-          (:?=)\s+
+          (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
+          \s*
+          \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
+          (:?=)\s+ # Assignment operator
 
           (
-            (?:
-              \s*
-              \b
-              (?: # Modifier keywords
-                pub|priv|prot|final|read|write|over
-                |global|local|intern|extern|mut|immut
-                |post|[gs]et|put|del|req|opt
-                |(?:un)?safe|virt|seal|abst|friend|enemy
-                |pure|impure|early|late|covar|contra
-                |in|out|inout|inplace|ref|defer|a?sync
-                |stat|dyn|lazy|eager|bound|free|unique
-                |union|open|closed?|rec|oper|curry|opaque
-                |inline|prefix|infix|suffix|unary|left|right
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|new|del|old
+                |unset|ref|and|x?or|not
+                |const|let|mut|dyn
+                |va[rl]|use|given|state
+                |func|proc|prop|type|class|actor
+                |impl|enum|module|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|trait|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
               )
               \b
-              \s*
-            )*
+            )
+            [\p{Pc}\p{L}]\w* # identifier
           )
 
-          \s*
+          \b\s*
+          \b(fn)\b\s* # function keyword
           (\|)(?!\|)
         end: (?<!\|)(\|)(?!\|)
         name: meta.function.declaration.ruko
@@ -6673,7 +6680,8 @@ repository:
           1: {name: entity.name.method.ruko}
           2: {name: keyword.operator.assignment.ruko}
           3: {patterns: [include: '#modifiers']}
-          4: {name: punctuation.separator.arguments.ruko}
+          4: {name: storage.type.function.ruko}
+          5: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
         patterns:
@@ -6683,43 +6691,46 @@ repository:
           x = def()
         match: |
           (?x)
-
           \s*
-
-          # Label
-          \b([\p{Pc}\p{L}]\w*)\b\s+
-
-          # Assignment operator
-          (:?=)\s+
+          \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
+          (:?=)\s+ # Assignment operator
 
           (
-            (?:
-              \s*
-              \b
-              (?: # Modifier keywords
-                pub|priv|prot|final|read|write|over
-                |global|local|intern|extern|mut|immut
-                |post|[gs]et|put|del|req|opt
-                |(?:un)?safe|virt|seal|abst|friend|enemy
-                |pure|impure|early|late|covar|contra
-                |in|out|inout|inplace|ref|defer|a?sync
-                |stat|dyn|lazy|eager|bound|free|unique
-                |union|open|closed?|rec|oper|curry|opaque
-                |inline|prefix|infix|suffix|unary|left|right
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|new|del|old
+                |unset|ref|and|x?or|not
+                |const|let|mut|dyn
+                |va[rl]|use|given|state
+                |func|proc|prop|type|class|actor
+                |impl|enum|module|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|trait|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
               )
               \b
-              \s*
-            )*
+            )
+            [\p{Pc}\p{L}]\w* # identifier
           )
 
+          \b\s*
           (?=
-            \s*
             \b
             (?: # Function types
-              function|proc|method|type
-              |class|impl|enum|module|struct|record|union
-              |iter|macro|query|object|realm
-              |trait|style|script|elem|record|model|actor
+              func|proc|prop|type|class|actor
+              |impl|enum|module|struct|record
+              |union|iter|macro|query|elem|temp
+              |object|realm|trait|style|script|quote
             )
             \b
           )
@@ -6732,36 +6743,40 @@ repository:
           (?x)
 
           \s*
-
-          # Label
-          \b([\p{Pc}\p{L}]\w*)\b\s+
-
-          # Assignment operator
-          (:?=)\s+
-
+          \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
+          (:?=)\s+ # Assignment operator
           \s*
 
           (
-            (?:
-              \s*
-              \b
-              (?: # Modifier keywords
-                pub|priv|prot|final|read|write|over
-                |global|local|intern|extern|mut|immut
-                |post|[gs]et|put|del|req|opt
-                |(?:un)?safe|virt|seal|abst|friend|enemy
-                |pure|impure|early|late|covar|contra
-                |in|out|inout|inplace|ref|defer|a?sync
-                |stat|dyn|lazy|eager|bound|free|unique
-                |union|open|closed?|rec|oper|curry|opaque
-                |inline|prefix|infix|suffix|unary|left|right
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|new|del|old
+                |unset|ref|and|x?or|not
+                |const|let|mut|dyn
+                |va[rl]|use|given|state
+                |func|proc|prop|type|class|actor
+                |impl|enum|module|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|trait|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
               )
               \b
-              \s*
-            )*
+            )
+            [\p{Pc}\p{L}]\w* # identifier
           )
 
           \s*
+          \b(fn)\b\s* # function keyword
           (\|)(?!\|)
         end: (?<!\|)(\|)(?!\|)
         name: meta.function.declaration.ruko
@@ -6769,7 +6784,8 @@ repository:
           1: {name: entity.name.ruko}
           2: {name: keyword.operator.assignment.ruko}
           3: {patterns: [include: '#modifiers']}
-          4: {name: punctuation.separator.arguments.ruko}
+          4: {name: storage.type.function.ruko}
+          5: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
         patterns:
@@ -7191,42 +7207,48 @@ repository:
         match: |
           (?x)
           (?<=^\s*|[{;,]\s*)
-
           \s*
 
-          # Label
-          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b)
-          # Key value separator
-          (:)\s*
+          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
+          (:) # Key value separator
+          \s*\b
 
           (
-            (?:
-              \s*
-              \b
-              (?: # Modifier keywords
-                pub|priv|prot|final|read|write|over
-                |global|local|intern|extern|mut|immut
-                |post|[gs]et|put|del|req|opt
-                |(?:un)?safe|virt|seal|abst|friend|enemy
-                |pure|impure|early|late|covar|contra
-                |in|out|inout|inplace|ref|defer|a?sync
-                |stat|dyn|lazy|eager|bound|free|unique
-                |union|open|closed?|rec|oper|curry|opaque
-                |inline|prefix|infix|suffix|unary|left|right
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|new|del|old
+                |unset|ref|and|x?or|not
+                |const|let|mut|dyn
+                |va[rl]|use|given|state
+                |func|proc|prop|type|class|actor
+                |impl|enum|module|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|trait|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
               )
               \b
-              \s*
-            )*
-          )
+            )
+            [\p{Pc}\p{L}]\w* # identifier
+          )?
+          \b\s*
 
           (?=
-            \s*
             \b
             (?: # Function types
-              function|proc|method|type
-              |class|impl|enum|module|struct|record|union
-              |iter|macro|query|object|realm
-              |trait|style|script|elem|record|model|actor
+              func|proc|prop|type|class|actor
+              |impl|enum|module|struct|record
+              |union|iter|macro|query|elem|temp
+              |object|realm|trait|style|script|quote
             )
             \b
           )
@@ -7238,37 +7260,42 @@ repository:
       - begin: |
           (?x)
           (?<=^\s*|[{;,]\s*)
-
           \s*
 
-          # Label
-          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b)
-          # Key value separator
-          (:)
-
-          \s*
+          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
+          (:) # Key value separator
+          \s*\b
 
           (
-            (?:
-              \s*
-              \b
-              (?: # Modifier keywords
-                pub|priv|prot|final|read|write|over
-                |global|local|intern|extern|mut|immut
-                |post|[gs]et|put|del|req|opt
-                |(?:un)?safe|virt|seal|abst|friend|enemy
-                |pure|impure|early|late|covar|contra
-                |in|out|inout|inplace|ref|defer|a?sync
-                |stat|dyn|lazy|eager|bound|free|unique
-                |union|open|closed?|rec|oper|curry|opaque
-                |inline|prefix|infix|suffix|unary|left|right
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|new|del|old
+                |unset|ref|and|x?or|not
+                |const|let|mut|dyn
+                |va[rl]|use|given|state
+                |func|proc|prop|type|class|actor
+                |impl|enum|module|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|trait|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
               )
               \b
-              \s*
-            )*
-          )
+            )
+            [\p{Pc}\p{L}]\w* # identifier
+          )?
 
-          \s*
+          \b\s*
+          \b(fn)\b\s* # function keyword
           (\|)(?!\|)
         end: (?<!\|)(\|)(?!\|)
         name: meta.object-literal.key.ruko
@@ -7276,7 +7303,8 @@ repository:
           1: {name: entity.name.ruko}
           2: {name: punctuation.separator.key-value.ruko}
           3: {patterns: [include: '#modifiers']}
-          4: {name: punctuation.separator.arguments.ruko}
+          4: {name: storage.type.function.ruko}
+          5: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
         patterns:
@@ -7284,12 +7312,8 @@ repository:
       - match: |
           (?x)
           (?<=^\s*|[{;,]\s*)
-
           \s*
-
-          # label
-          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b)
-
+          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # label
           (?=: ['"`({\[)}\]\w\s])
         name: meta.object-literal.key.ruko
         captures:
@@ -7300,6 +7324,7 @@ repository:
               - include: '#numbers'
               - include: '#symbols'
               - include: '#string-content'
+      - include: '#type-signature'
 
   # Punctuation
 
