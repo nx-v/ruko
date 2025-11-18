@@ -16,10 +16,9 @@ information: |
   In the meantime, please be patient and report any issues you encounter.
 
 todo: |
-  - [x] An initial backslash will strop keywords. A majority of keywords
-    can be escaped by prefixing them with a backslash (\).
-    This is useful when you want to use a keyword as an identifier.
-    For example: \if, \for, \func, etc.
+  - [x] Backslashes are allowed only in the start of identifiers.
+        This allows keywords to be used as identifiers by prefixing
+        them with a backslash.
   - [ ] Rework inline Markdown syntax. Refer to Texy, Textile, AsciiDoc
     and cousins for inspiration. Reimplement with these extensions:
     - [ ] Citations 
@@ -2083,6 +2082,51 @@ repository:
               )
                 (?![0-5])
             name: constant.character.escape.senary.ruko
+          - include: '#illegal'
+
+      - comment: Tetradecimal escape sequences (0 to 210035)
+        match: |
+          (?x)
+          \\t # prefix
+            0* # leading zeroes
+          (?: # numbers leading to 0001 0000 1111 1111 1111 1111 (in tetradecimal)
+              21003[0-5]
+            | 2100[0-3][0-9a-d]
+            | 210[0-9a-d]{2}
+            | 21[0-9a-d]{3}
+            | 2[0-9a-d]{4}
+            | [1-9a-d][0-9a-d]{1,5}
+            | [0-9a-d]
+          )
+            (?![0-9a-d])
+        name: constant.character.escape.tetradecimal.ruko
+      - comment: Invalid tetradecimal escape sequences
+        match: |
+          (?x)
+          \\t # prefix
+            [0-9a-d]+
+            (?![0-9a-d])
+        name: invalid.illegal.escape.tetradecimal.ruko
+      - begin: \\t{
+        end: \s*}
+        name: constant.character.escape.tetradecimal.ruko
+        patterns:
+          - include: '#punctuation'
+          - match: |
+              (?x)
+                \b
+              0* # leading zeroes
+              (?: # numbers leading to 0001 0000 1111 1111 1111 1111 (in tetradecimal)
+                  21003[0-5]
+                | 2100[0-3][0-9a-d]
+                | 210[0-9a-d]{2}
+                | 21[0-9a-d]{3}
+                | 2[0-9a-d]{4}
+                | [1-9a-d][0-9a-d]{1,5}
+                | [0-9a-d]
+              )
+                (?![0-9a-d])
+            name: constant.character.escape.tetradecimal.ruko
           - include: '#illegal'
 
       - comment: Octal escape sequences (0 to 4177777)
