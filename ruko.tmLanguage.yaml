@@ -446,6 +446,7 @@ repository:
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \s*
           )
+          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\#?\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -471,6 +472,7 @@ repository:
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \s*
           )
+          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\#\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -494,6 +496,7 @@ repository:
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \s*
           )
+          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -515,6 +518,7 @@ repository:
             )
             \s*
           )
+          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\#\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -536,6 +540,7 @@ repository:
             )
             \s*
           )
+          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -2956,7 +2961,7 @@ repository:
             beginCaptures:
               1: {name: punctuation.separator.key-value.ruko}
             end: (?=[,;}]|)|$
-            patterns: &regexp-patterns
+            patterns:
               - include: '#regexp-patterns'
           - include: '#fuzzy-expression'
       - match: \\[abefrntv]
@@ -3013,16 +3018,15 @@ repository:
         end: \s*(\))
         name: meta.group.negative-look-ahead.ruko
         captures:
-          1:
-            name: punctuation.definition.group.negative-look-ahead.ruko
-        patterns: *regexp-patterns
+          1: {name: punctuation.definition.group.negative-look-ahead.ruko}
+        patterns:
+          - include: '#regexp-patterns'
       - comment: Negative lookbehind assertion
         begin: (\(\?<!)
         end: \s*(\))
         name: meta.group.negative-look-behind.ruko
         captures:
-          1:
-            name: punctuation.definition.group.negative-look-behind.ruko
+          1: {name: punctuation.definition.group.negative-look-behind.ruko}
         patterns:
           - include: '#regexp-patterns'
       - comment: Match directive Oniguruma supports only 20 levels of recursion
@@ -4302,16 +4306,393 @@ repository:
         name: entity.name.tag.ruko
         patterns: *html-tag-names
 
-  script-block:
-    begin: \s*(\{)\s*
-    end: \s*(\})\s*
-    name: meta.brace.script.ruko
-    captures:
-      1: {name: punctuation.definition.block.script.ruko}
+  script-blocks:
     patterns:
-      - include: '#interpolated-code'
-      - include: source.js
-      - include: $self
+      - begin: \b((?i:js))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.js
+      - begin: \b((?i:jsx))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.jsx
+      - begin: \b((?i:ts))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.ts
+      - begin: \b((?i:tsx))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.tsx
+      - begin: \b((?i:py))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.python
+      - begin: \b((?i:rb))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.ruby
+      - begin: \b((?i:php))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.php
+      - begin: \b((?i:java))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.java
+      - begin: \b((?i:cpp))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.cpp
+      - begin: \b((?i:c))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.c
+      - begin: \b((?i:cs))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.cs
+      - begin: \b((?i:go))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.go
+      - begin: \b((?i:rs))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.rust
+      - begin: \b((?i:swift))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.swift
+      - begin: \b((?i:kt))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.kotlin
+      - begin: \b((?i:scala))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.scala
+      - begin: \b((?i:hs))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.haskell
+      - begin: \b((?i:lua))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.lua
+      - begin: \b((?i:dart))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.dart
+      - begin: \b((?i:objc))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.objc
+      - begin: \b((?i:objcpp))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.objcpp
+      - begin: \b((?i:perl))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.perl
+      - begin: \b((?i:r))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.r
+      - begin: \b((?i:sh))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.shell
+      - begin: \b((?i:sql))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.sql
+      - begin: \b((?i:html))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: text.html.basic
+      - begin: \b((?i:css))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.css
+      - begin: \b((?i:json))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.json
+      - begin: \b((?i:xml))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: text.xml
+      - begin: \b((?i:yaml|yml))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.yaml
+      - begin: \b((?i:markdown|md))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: text.html.markdown
+      - begin: \b((?i:latex|tex))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: text.tex.latex
+      - begin: \b((?i:was[imt]|wasm|wat))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.wat
+      - begin: \b((?i:cljs?))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.clojure
+      - begin: \b((?i:makefile|make))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#interpolated-code'
+          - include: source.makefile
 
   style-block:
     begin: \s*(\{)\s*
@@ -5170,7 +5551,7 @@ repository:
       (?<=^|[\s({\[]) # opening
       (?:
         ( # 1: optional access/unwrap
-        \?[.:>]=?
+          \?[.:>]=?
         ) |
         ( # 2: assert/unwrap operator
           ![.:>]=?
@@ -5345,7 +5726,7 @@ repository:
       (?<=['"`)}\]\w]|\\.) # closing
       (?:
         ( # 1: optional access/unwrap
-        \?[.:>]=?
+          \?[.:>]=?
         ) |
         ( # 2: assert/unwrap operator
           ![.:>]=?
@@ -6192,7 +6573,7 @@ repository:
           1: {name: storage.type.script.ruko}
         name: meta.script.ruko
         patterns:
-          - include: '#script-block'
+          - include: '#script-blocks'
           - include: '#declaration-clause'
           - include: '#namespace-separators'
           - match: *entity-name
@@ -6897,8 +7278,12 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.ruko}
         patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of)\b\s*
+          - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of)\b\s*
+            beginCaptures:
+              1: {name: keyword.control.loop.ruko}
+            end: (?=[,;)}\]])|$
             name: keyword.control.loop.ruko
+            patterns: [include: $self]
           - include: $self
 
       if-clause:
@@ -7809,9 +8194,9 @@ repository:
                 \b
               )
               | \s[({\[] # opening brackets
-              | <[\p{Pc}\p{L}]\w* # XML tags
+              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # prefix ops, JSX, regex, lambda, etc.
+                [\p{Pc}\p{L}]\w* # identifier
               | (?:\w*|[\\$#%]*)['"] | `\s*(?=\N) # string literals 
-              | :[\p{Pc}\p{L}]\w* # symbol literals
               | $ # end of line
             )
           )
@@ -7827,7 +8212,6 @@ repository:
   message:
     patterns:
       - include: '#constants'
-      - include: '#function-calls'
       - applyEndPatternLast: true
         begin: |
           (?x)
@@ -7883,13 +8267,13 @@ repository:
                   (?x)
                   (?:
                     ( # 1: optional access/unwrap
-                      \?:?
+                      \?[.:>]=?
                     ) |
                     ( # 2: assert/unwrap operator
-                      !:?
+                      ![.:>]=?
                     ) |
                     ( # 3: access operator
-                      ::
+                      (?:::|\.|->)=?
                     )
                   )
                 captures:
@@ -8102,6 +8486,8 @@ repository:
                   2: {name: variable.other.constant.property.ruko}
                   3: {name: variable.other.property.stat.ruko}
                   4: {name: variable.other.property.ruko}
+      - include: '#function-calls'
+      - include: '#type-signature'
 
   # Support
 
