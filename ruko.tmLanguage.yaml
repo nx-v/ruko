@@ -13,7 +13,11 @@ information: |
   Please note that this grammar is still a work in progress, and is not yet
   complete. Features and syntax will change frequently as the language evolves.
 
-  In the meantime, please be patient and report any issues you encounter.
+  In the meantime, please be patient and report any issues you may find. 
+  I may not be able to respond to every issue or PR, but I will do my best
+  to keep the grammar up to date with the latest changes in the language.
+
+  Last updated: November 18, 2025
 
 todo: |
   - [ ] Backslashes may begin identifiers to strop them to avoid keyword conflicts.
@@ -38,8 +42,8 @@ todo: |
   - [ ] Multi-base numeric literals (up to base 64). Digits will be 0-9, a-z, 
     lowercase Icelandic thorn, lowercase eth, A-Z, uppercase Icelandic thorn.
   - [ ] Add new parameter binding/destructuring syntax for:
-    - [ ] Strings
-    - [ ] Regular expressions
+    - [ ] Strings (yes, strings are meant to be destructured)
+    - [ ] Regular expressions (yes, regex captures should be destructured)
     - [ ] Arrays
     - [ ] Sets
     - [ ] Maps and objects
@@ -47,7 +51,7 @@ todo: |
     - [ ] Function arguments
     - [ ] Variables
   - [ ] Rework function call syntax to be more consistent and terser.
-    Inspired by Haskell.
+    Inspired by Haskell. For example: f x y => f(x, y)
   - [x] Rework import/export/module syntax to be terse, drawing inspiration 
     from JavaScript ES6 modules, with changes such as:
       - glob file path matching: import path/**/*.ruko
@@ -56,56 +60,64 @@ todo: |
       - renaming imports/exports: import module{a:x,b:y}
       - show/hide mechanism: import module{a,b-c,d}
       - glob-style pattern matching: import module{a*,b?,c{1,2}}
-  - [ ] Fix and expand regex syntax and highlighting:
-    - [ ] Add and expand quantifiers and range highlighting
-    - [ ] Add support for fuzzy matching (edits, insertions, deletions, etc.)
-    - [ ] Improve highlighting for regexes with flags
+  - [x] Fix and expand regex syntax and highlighting:
+    - [x] Add support for fuzzy matching (edits, insertions, deletions, etc.)
+    - [x] Improve highlighting for regexes with flags
+    - [x] Add and expand quantifiers and range highlighting
 
 changelog: |
   New changes:
+  - Overall syntax has been reworked to be terser and more consistent.
+    Inspired by Rust, Zig, Flix, Jai, Odin, D, Reason and Motoko.
 
   - Added x->y syntax for C++-style pointer dereferencing.
     object->method(arg1, arg2)
     object->property
-  - Custom modifiers can now be placed before any declaration, including
-    in lamdba functions, for example: async inplace func(x) { ... }
-    This includes within map declarations and function parameters
-    as well, though 'fn' is required in order to use modifiers.
-  - Reworked function parameter binding/destructuring syntax. Might
-    still need some work. For example:
+  - Custom modifiers can now be placed before any declaration or binding, including
+    in lambda functions, for example: async inplace func sort(x: []int) { ... }
+    This includes within map declarations and function parameters, though the 
+    contextual keyword 'fn' is required in order to use those modifiers. 
+  - Reworked function parameter binding/destructuring syntax. For example:
     func f(const (a, b), let {c, d}, mut [e, f], dyn g) { ... }
-  - Reworked function call syntax. Function calls are now
-    triggered beside ( and {. a space is no longer required, and
-    the function call must be bracketed.
-  - Added s-expression and message passing syntax, resembling
-    Lisp, Clojure, Elixir and Smalltalk. For example:
+  - Function calls are highlighted more consistently, triggering beside ( and { only,
+    and in s-expressions right after an opening (. When a function call is assigned
+    to a variable, or used in an expression, the call is highlighted more consistently
+    and the function call must be bracketed.
+  - Added s-expression and message passing syntax, resembling Lisp, Clojure, Elixir 
+    and Smalltalk/Objectvie C syntax, but must be placed within square and round 
+    brackets respectively. These may not conflict with normal function calls.
     [object message: arg1, arg2 message2: arg3]
     (function arg1 arg2 arg3)
   - Added keywords temp, prop, actor, realm, style, script, intern, extern,
-    assert, check, given, using.
-  - Fixed empty generics: T<> is now highlighted properly.
-  - Fixed style k-v pairs.
+    assert, check, given, using, state, decl, and debug.
+    These are used for various purposes such as temporary variables, properties,
+    actors (concurrency), realms (namespaces), styles (CSS), scripts (JS),
+    internal/external linkage, assertions, context parameters, state variables,
+    declarations, and debugging.
+  - Fixed empty generics: T<> is now highlighted properly in calls and annotations.
+  - Fixed style k-v pairs in style blocks which highlight until a semicolon, comma
+    or closing brace.
   - All control structures do not need to be bracketed. If the body of a
     control structure is a single statement, the braces can be omitted,
     and is replaced by a colon (:). This includes if, for, while, switch,
     match, try, catch, etc.
   - Fixed syntax highlighting of code blocks beside lambda pipes.
   - Added base 4, 6, 12 and 14 numeric literals. All even bases up to 16 are now supported.
-  - Overall syntax has been reworked to be terser and more consistent.
-    Inspired by Rust, Zig and D.
-  - Added s-expressions and message passing, which intentionally
-    resembles Lisp, Clojure, Elixir and Smalltalk.
+    Base 12 (0z, \z in strings and character classes) uses digits 0-9,
+    A, X, T, or turned 2 for digit 10, and B, E or turned 3 for digit 11.
   - Numbers and escape sequences have been reworked, and will no longer accept
-  - Most keywords should have a max of 6 characters.
-  - Range keywords to, till and by have been removed in favor of range operators.
-  - Generics now capture properly before and after function names
+    invalid digits for their respective bases beyond 0x10FFFF, or decimal 1114111.
+  - Most keywords should have a max of 6 characters. Longer keywords have been
+    shortened or removed. For example, 'function' is 'func', 'property' is 'prop',
+    'template' is 'temp', 'iterator' is 'iter', etc.
+  - Range keywords to, till and by have been removed in favor of Swift-like
+    range operators '>..', '...', '..<' and '>.<', and the step operator '..''.
+  - Generics now capture properly before and after function and type names.
     For example, T.<x>, T?.<x>, T!.<x>, T::<x>, T?:<x>, T!:<x>.
     They can even be curried: x<T><U>(y), x<T><U><V>(y).
   - Generic type parameters now work for prefix operators as well. i.e. T<&x>, etc.
   - Fixed a bug where escape sequences for literals would accept integers bigger than 
     decimal 1114111 which now are highlighted as an error.
-  - Base 12 (0z, \z in strings and character classes) is added back,
-    with A, X, T, or turned 2 for digit 10, and B, E or turned 3 for digit 11.
   - Bases 4 and 6 have been removed, though a multi-base (up to base 64)
     numeric literal is still in the works.
   - Interpolation and formatting syntax have been reworked and fixed, and can now
@@ -116,7 +128,16 @@ changelog: |
     - Added and expanded quantifiers and range highlighting
     - Add support for fuzzy matching (edits, insertions, deletions, etc.)
     - Improved highlighting for regexes with flags
-  - Added prefixes to strings.
+  - Added prefixes to strings, with those prefixes being the symbols used to 
+    enable those features. 
+    - Prefix \ makes a string raw (i.e. no escape sequences),
+    - Prefix % makes a string formatted (i.e. with interpolation and format specifiers),
+    - Prefix $ allows interpolation without formatting (i.e. simple variable/expression
+      substitution). 
+    - Prefix # makes a string a #template string, which supports all features
+      and is used specifically to mark arguments inside template strings. 
+    These prefixes can be combined in any order, including multiple times.
+    These will be added to regular expressions later on.
   - Added Python negation syntax: is not, if not, not in, not of. 
     - Removed unless/until keywords. Replaced by if not, while not.
   - Switched around regular expressions and unquoted strings:
@@ -126,10 +147,11 @@ changelog: |
     triggers a replacement string instead of a normal regular expression literal.
   - Changed up syntax highlighting of switch and match statements to be more
     consistent with JavaScript.
-  - Function calls now trigger beside ( and {.
-  - Added Perl/Ruby's unless and until keywords.
+  - Function calls now trigger beside '(' and '{'.
+  - Removed Perl/Ruby's unless and until keywords. Use 'if!' and 'while!' instead.
+    for! is not supported due to the way for-loops are structured.
   - Fixed module syntax to be more consistent with JavaScript.
-  - Dashes will no longer allowed in identifiers.
+  - Dashes will no longer be allowed in identifiers. Use underscores instead.
   - Fixed XML highlighting and attributes, inspired by Svelte, Angular (TS), HAML
     - @directive
     - #id and .class
@@ -137,77 +159,16 @@ changelog: |
     - %directive
     - &reference and *spread
     - ?boolean and @property (from Lit)
-  - Added script blocks for injection of raw JavaScript.
-  - Fixed keys in literal objects
-  - Fixed modifier keywords beside function literals
+  - Added script blocks for injection of raw JS, C++, Rust, Zig, etc. 
+    If no language is specified, C++ is assumed, because of Ruko's compiler target.
+  - Fixed keys in literal objects. They will now highlight until a colon, comma
+    or closing brace.
+  - Fixed modifier keywords beside lambda functions. Modifiers can now be placed
+    before lambda functions in addition to normal function declarations.
   - Fixed default values in function arguments, thus no longer requiring trailing
     commas. 'from' and 'where' statements, the string `\| and the operator | have to
     be bracketed.
   - Slightly changed attribute selectors to allow for regexp matches.
-  - Added Scala's 'given'/'using' syntax to function arguments
-
-  Fixes:
-
-  - Fix a bug where interpolated syntax would not be
-  - Add multiline \\ syntax for interpolated JS.
-  - Large regexps scattered throughout this document also have been
-    rewritten with the (?x) syntax to be more readable for editors.
-    - [x] Markdown syntax
-    - [x] function parameters
-    - [x] function calls
-    - [x] identifiers and variables
-    - [x] operators
-    - [x] object literals
-    - [x] object labels
-    - [x] pipeline functions
-    - [x] modifier keywords
-    - [x] function assignments
-    - [x] anonymous functions
-    - [x] embedded content
-    - [x] rounded and square brackets
-    - [x] LINQ, inline SQL and constraint syntax (more to come later)
-  - Fix syntax of type annotations inside generics to avoid being parsed 
-    as custom operators.
-  - Fix syntax of generic type parameters and constraints.
-  - Match unquoted globs in routes
-  - Fix syntax for JavaScript ES5 module import and export statements
-  - Reimplement Markdown syntax with these extensions:
-    - [ ] Citations
-    - [ ] Strike-through
-    - [ ] Deleted and inserted text
-    - [ ] Superscript
-    - [ ] Subscript
-    - [ ] Spans
-    - [ ] Selectors and anchors
-    - [ ] Code blocks
-    - [ ] Definition blocks
-    - [ ] Tables
-    - [ ] Headings and subheadings
-  - Rework inline "Markdown" syntax. Refer to Texy, Textile, AsciiDoc and cousins.
-  - Plan and implement all the built-in objects, constants and
-    functions for Ruko's standard library.
-    This would all be done in a separate PR and once the grammar is completely
-    finished.
-    - A handful of built-in properties and constants are part of this grammar
-      and are used to highlight CSS properties, constants and HTML tags. Other
-      than that, nothing else is present...
-      at least not in the moment
-    - This features would include:
-      - Type, interface, module/namespace and class names
-      - Functions and methods
-      - Constants and properties
-      - Special variables
-      - Various UI elements and color names
-      - Character names (LaTeX/HTML/AGLFN)
-  - Add new parameter binding/destructuring syntax for:
-    - [ ] Strings
-    - [ ] Regular expressions
-    - [ ] Arrays
-    - [ ] Sets
-    - [ ] Maps and objects
-    - [ ] Tuples
-    - [ ] Function arguments
-    - [ ] Variables
 
 define:
   entity-name: &entity-name |
