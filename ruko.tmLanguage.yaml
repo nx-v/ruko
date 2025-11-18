@@ -16,6 +16,10 @@ information: |
   In the meantime, please be patient and report any issues you encounter.
 
 todo: |
+  - [x] An initial backslash will strop keywords. A majority of keywords
+    can be escaped by prefixing them with a backslash (\).
+    This is useful when you want to use a keyword as an identifier.
+    For example: \if, \for, \func, etc.
   - [ ] Rework inline Markdown syntax. Refer to Texy, Textile, AsciiDoc
     and cousins for inspiration. Reimplement with these extensions:
     - [ ] Citations 
@@ -61,15 +65,15 @@ todo: |
     - [ ] Improve highlighting for regexes with flags
 
 changelog: |
-  A major rewrite is underway. This language's syntax would be terser
-  and thus inspired by Rust, Zig and D.
-
   New changes:
 
-  - Custom modifiers can now be placed before any declaration.
-    For example: async place func(x) { ... }
+  - Added x->y syntax for C++-style pointer dereferencing.
+    object->method(arg1, arg2)
+    object->property
+  - Custom modifiers can now be placed before any declaration, including
+    in lamdba functions, for example: async inplace func(x) { ... }
     This includes within map declarations and function parameters
-    as well, though fn is required in order to use modifiers.
+    as well, though 'fn' is required in order to use modifiers.
   - Reworked function parameter binding/destructuring syntax. Might
     still need some work. For example:
     func f(const (a, b), let {c, d}, mut [e, f], dyn g) { ... }
@@ -89,11 +93,9 @@ changelog: |
     and is replaced by a colon (:). This includes if, for, while, switch,
     match, try, catch, etc.
   - Fixed syntax highlighting of code blocks beside lambda pipes.
-  - Added base 4, 6 and 12 numeric literals. Except for base 14, all even
-    bases up to 16 are now supported.
-  - Overall now closely resembles Rust's. This includes keywords, comments,
-    literals, strings etc. Only thing I need to do is to rework how code blocks
-    (i.e. clauses) are highlighted to be more consistent with Rust's own grammar.
+  - Added base 4, 6, 12 and 14 numeric literals. All even bases up to 16 are now supported.
+  - Overall syntax has been reworked to be terser and more consistent.
+    Inspired by Rust, Zig and D.
   - Added s-expressions and message passing, which intentionally
     resembles Lisp, Clojure, Elixir and Smalltalk.
   - Numbers and escape sequences have been reworked, and will no longer accept
@@ -113,9 +115,6 @@ changelog: |
     span multiple lines and beyond 20 nested layers thanks to applyEndPatternLast.
     Because of this, spacing around most of the patterns here have also been removed;
     a separate 'space' scope is added to join everything together.
-  - Function call syntax is heavily standardized and would need a later fix in
-    the long run. This is if a more terser variant of Ruko is in the need,
-    and if so would be inspired by Haskell.
   - Fixed some bugs with regular expressions:
     - Added and expanded quantifiers and range highlighting
     - Add support for fuzzy matching (edits, insertions, deletions, etc.)
@@ -123,8 +122,9 @@ changelog: |
   - Added prefixes to strings.
   - Added Python negation syntax: is not, if not, not in, not of. 
     - Removed unless/until keywords. Replaced by if not, while not.
-  - Switched around regular expressions: / triggers a regex when it begins an
-    expression. ` is now used to begin unquoted strings.
+  - Switched around regular expressions and unquoted strings:
+    / triggers a regex when it begins an expression. ` is now used to begin
+    unquoted strings.
   - Two (or more) regular expressions in a row on the same line without a comma
     triggers a replacement string instead of a normal regular expression literal.
   - Changed up syntax highlighting of switch and match statements to be more
@@ -1041,6 +1041,28 @@ repository:
           4: {name: keyword.operator.exponent.sign.ruko}
           5: {name: constant.numeric.decimal.exponent.mantissa.ruko}
           6: {name: keyword.other.unit.ruko}
+      - comment: tetradecimal integer literal
+        name: constant.numeric.tetradecimal.ruko
+        match: |
+          (?ix) \b
+            (0t) # prefix
+            [0-9a-d] [0-9a-d_]* # integer part
+            (\.)? # decimal point
+            [0-9a-d_]* # fractional part
+            (?: # exponent part
+              (p) # delimiter
+              ([+-])? # sign
+              ([\d_]+) # mantissa
+            )?
+            ([\p{Pc}\p{L}]\w*)? # type suffix
+          \b
+        captures:
+          1: {name: storage.type.numeric.ruko}
+          2: {name: keyword.other.unit.ruko}
+          3: {name: keyword.operator.expression.exponent.ruko}
+          4: {name: keyword.operator.exponent.sign.ruko}
+          5: {name: constant.numeric.decimal.exponent.mantissa.ruko}
+          6: {name: keyword.other.unit.ruko}
       - comment: decimal (no prefix)
         name: constant.numeric.decimal.ruko
         match: |
@@ -1139,7 +1161,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$|%%|##"
+          - match: '""|\$\$|%%|##'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
           - include: '#embedded-format'
@@ -1165,7 +1187,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$|%%|##"
+          - match: '""|\$\$|%%|##'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
           - include: '#embedded-format'
@@ -1190,7 +1212,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$|%%"
+          - match: '""|\$\$|%%'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
           - include: '#embedded-format'
@@ -1214,7 +1236,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$|%%"
+          - match: '""|\$\$|%%'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
           - include: '#embedded-format'
@@ -1238,7 +1260,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$|##"
+          - match: '""|\$\$|##'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
           - include: '#embedded-placeholder'
@@ -1262,7 +1284,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$|##"
+          - match: '""|\$\$|##'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
           - include: '#embedded-placeholder'
@@ -1381,7 +1403,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$"
+          - match: '""|\$\$'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
       - comment: single-quoted verbatim and interpolated string
@@ -1403,7 +1425,7 @@ repository:
           1: {name: storage.type.string.ruko}
           2: {name: punctuation.definition.string.ruko}
         patterns:
-          - match: "\"\"|\\$\\$"
+          - match: '""|\$\$'
             name: constant.character.escape.ruko
           - include: '#embedded-expression'
       - comment: multi- single-quoted verbatim and format string
