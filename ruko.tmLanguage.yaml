@@ -70,8 +70,51 @@ changelog: |
   - Overall syntax has been reworked to be terser and more consistent.
     Inspired by Rust, Zig, Flix, Jai, Odin, D, Reason and Motoko.
 
-  - Fixed the final > in an implicit closing tag not being highlighted properly.
-    <MyComponent></> now highlights the final > properly.
+  - Fixed many JSX/XML bugs with tags and attributes:
+    - Fixed attributes not highlighting properly in self-closing tags.
+      <MyComponent prop="value" />
+    - Fixed attributes with no values not highlighting properly.
+      <MyComponent disabled />
+    - Fixed nested tags not highlighting properly.
+      <Parent><Child></Child></Parent>
+    - Fixed the final '>' in an implicit closing tag '</>' not being highlighted properly.
+      <MyComponent></> now highlights the final > properly.
+    - Fixed comments within tags not highlighting properly.
+    - __New inline Markdown-like syntax:__
+      - **bold** __bold__
+      - _italic_ *italic*
+      - ~~deleted~~ ++inserted++
+      - ==highlighted==
+      - ||redacted||
+      - ^superscript^
+      - ~subscript~
+      - ``code``
+      - imported links: [text](url)
+    - A line starting with '>' starts a code block until the end of the line.  Use
+      brackets, braces or strings to span multiple lines.
+      <div>
+        > let x = 10
+        Normal text here.
+      </>
+    - Same for headings, which start with '# ## ### #### ##### ######' etc.
+      <div>
+        ### This is a heading
+        > let y = 20
+        More normal text.
+      </>
+    - Blockquotes now start with '*' rather than '>', to avoid conflicts with code blocks.
+      <div>
+        * This is a blockquote.
+          It can span multiple lines.
+      </>
+    - '+' and '-' indicate ordered and unordered list items respectively.
+      <div>
+        + Item 1
+        + Item 2
+          - Subitem 2.1
+          - Subitem 2.2
+        + Item 3
+      </>
   - Added x->y syntax for C++-style pointer dereferencing.
     object->method(arg1, arg2)
     object->property
@@ -232,7 +275,7 @@ define:
     \b
 
   html-tag-names: &html-tag-names
-    - match: (?x)([?!:]:|[?!]?\.)
+    - match: (?x)([?!:]:|[?!]?\.|[?!-]>)
       captures:
         1: {name: punctuation.separator.namespace.ruko}
     - match: \b([\p{Pc}\p{L}]\w*)\b(?=[:.])
@@ -1066,7 +1109,7 @@ repository:
     patterns:
       - include: '#function-calls'
       - include: '#sigil-function-calls'
-      - match: '[?!:]:|[?!]?\.'
+      - match: '[?!:]:|[?!]?\.|[?!-]>'
         name: punctuation.separator.namespace.ruko
       - include: '#brackets'
       - include: '#strings'
@@ -3430,7 +3473,7 @@ repository:
               \b
               [\p{Pc}\p{L}]\w* # identifier
               \b
-              (?:[?!:]:|[?!]?\.|[?!-]>) # qualified name separator
+              (?:[?!:]:|[?!]?\.|[?!-]>|[?!-]>) # qualified name separator
             )*
             [\p{Pc}\p{L}]\w* # last part of identifier
             \b
@@ -3623,7 +3666,7 @@ repository:
       - include: '#strikethrough'
       - include: '#superscript'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -3696,7 +3739,7 @@ repository:
       - include: '#strikethrough'
       - include: '#superscript'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -3764,7 +3807,7 @@ repository:
       - include: '#strikethrough'
       - include: '#superscript'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -3792,7 +3835,7 @@ repository:
       - include: '#underline'
       - include: '#superscript'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -3820,7 +3863,7 @@ repository:
       - include: '#strikethrough'
       - include: '#superscript'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -3834,12 +3877,12 @@ repository:
       - include: '#link-ref-literal'
       - include: '#link-ref-shortcut'
 
-  spoiler:
+  redacted:
     begin: (\|\|)(?=\S)
     captures:
-      1: {name: punctuation.definition.spoiler.markdown}
+      1: {name: punctuation.definition.redacted.markdown}
     end: (?<=\S)(\|\|)
-    name: markup.spoiler.markdown
+    name: markup.redacted.markdown
     patterns:
       - include: '#ampersand'
       - include: '#bracket'
@@ -3877,7 +3920,7 @@ repository:
       - include: '#strikethrough'
       - include: '#superscript'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#string-content'
       - include: '#raw'
       - include: '#escape'
@@ -3904,7 +3947,7 @@ repository:
       - include: '#underline'
       - include: '#strikethrough'
       - include: '#subscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -3932,7 +3975,7 @@ repository:
       - include: '#underline'
       - include: '#strikethrough'
       - include: '#superscript'
-      - include: '#spoiler'
+      - include: '#redacted'
       - include: '#highlight'
       - include: '#string-content'
       - include: '#raw'
@@ -4112,17 +4155,58 @@ repository:
       - include: '#html-tag'
       - include: '#string-content'
       - include: '#evaluated-code'
-      - include: '#executed-code'
       - include: '#inline-styles'
+      - include: '#headings'
       - include: '#blockquote'
       - include: '#unordered-list'
       - include: '#ordered-list'
       - include: '#inline-markdown'
 
     repository:
+      headings:
+        comment: '### Headings'
+        begin: ^\s*(#{1,6})\s+(.*)\n*
+        end: ^(?=\S)|(?!\G)
+        beginCaptures:
+          1: {name: punctuation.definition.heading.markdown}
+          2:
+            patterns:
+              - applyEndPatternLast: true
+                begin: (?<=######\s*)
+                end: (?=|$)
+                name: heading.6.markdown entity.name.section.markdown
+                patterns: [include: '#markdown']
+              - applyEndPatternLast: true
+                begin: (?<=#####\s*)
+                end: (?=|$)
+                name: heading.5.markdown entity.name.section.markdown
+                patterns: [include: '#markdown']
+              - applyEndPatternLast: true
+                begin: (?<=####\s*)
+                end: (?=|$)
+                name: heading.4.markdown entity.name.section.markdown
+                patterns: [include: '#markdown']
+              - applyEndPatternLast: true
+                begin: (?<=###\s*)
+                end: (?=|$)
+                name: heading.3.markdown entity.name.section.markdown
+                patterns: [include: '#markdown']
+              - applyEndPatternLast: true
+                begin: (?<=##\s*)
+                end: (?=|$)
+                name: heading.2.markdown entity.name.section.markdown
+                patterns: [include: '#markdown']
+              - applyEndPatternLast: true
+                begin: (?<=#\s*)
+                end: (?=|$)
+                name: heading.1.markdown entity.name.section.markdown
+                patterns: [include: '#markdown']
+        name: markup.heading.markdown
+        patterns: [include: '#markdown']
+
       blockquote:
-        comment: '> blockquote'
-        begin: ^\s*(\>)(\s+.*)\n*
+        comment: '* blockquote'
+        begin: ^\s*(\*)(\s+.*)\n*
         end: ^(?=\S)|(?!\G)
         beginCaptures:
           1: {name: punctuation.definition.quote.begin.markdown}
@@ -4130,11 +4214,7 @@ repository:
             name: markup.quote.markdown
             patterns: [include: '#markdown']
         name: markup.quote.markdown
-        patterns:
-          - begin: ^(\s+)(?!\s)
-            end: ^(?!\1|\s*$)
-            name: markup.quote.markdown
-            patterns: [include: '#markdown']
+        patterns: [include: '#markdown']
 
       unordered-list:
         comment: '- unordered list'
@@ -4146,11 +4226,7 @@ repository:
             name: markup.list.unnumbered.markdown
             patterns: [include: '#markdown']
         name: markup.list.unnumbered.markdown
-        patterns:
-          - begin: ^(\s+)(?!\s)
-            end: ^(?!\1|\s*$)
-            name: markup.list.unnumbered.markdown
-            patterns: [include: '#markdown']
+        patterns: [include: '#markdown']
 
       ordered-list:
         comment: '+ ordered list'
@@ -4162,29 +4238,16 @@ repository:
             name: markup.list.numbered.markdown
             patterns: [include: '#markdown']
         name: markup.list.numbered.markdown
-        patterns:
-          - begin: ^(\s+)(?!\s)
-            end: ^(?!\1|\s*$)
-            name: markup.list.numbered.markdown
-            patterns: [include: '#markdown']
+        patterns: [include: '#markdown']
 
       evaluated-code:
         applyEndPatternLast: true
         comment: Evaluated code
-        begin: (?<=^|[\w\s'"`])(=>)
+        begin: (?<=^|[\w\s'"`])(>)
         end: (?=|$)
         captures:
-          1: {name: storage.type.method.ruko}
-        patterns:
-          - include: $self
-
-      executed-code:
-        applyEndPatternLast: true
-        comment: Executed code
-        begin: (?<=^|[\w\s'"`])(->)
-        end: (?=|$)
-        captures:
-          1: {name: storage.type.subroutine.ruko}
+          1: {name: punctuation.definition.markdown}
+        name: meta.evaluated-code.markdown
         patterns:
           - include: $self
 
@@ -4198,7 +4261,7 @@ repository:
           1: {name: punctuation.definition.tag.ruko}
         patterns:
           - comment: Tag name
-            match: (?<=<)\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)[\p{Pc}\p{L}]\w*)*)\b
+            match: (?<=<)\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>|[?!-]>)[\p{Pc}\p{L}]\w*)*)\b
             captures:
               1:
                 name: entity.name.tag.ruko
@@ -4265,7 +4328,7 @@ repository:
       - include: source.css.scss#constant_optional
 
   property-name:
-    match: \b([\p{Pc}\p{L}]\w*\b(?:(?:(?:[?!:]:|[?!]?\.|[?!-]>)?[\p{Pc}\p{L}]\w*)*)\b
+    match: \b([\p{Pc}\p{L}]\w*\b(?:(?:(?:[?!:]:|[?!]?\.|[?!-]>|[?!-]>)?[\p{Pc}\p{L}]\w*)*)\b
     name: meta.property-name.ruko
     captures:
       1:
@@ -4275,7 +4338,7 @@ repository:
             name: constant.other.ruko
           - match: ([\p{Pc}\p{L}]\w*)\b
             name: constant.language.ruko
-          - match: '[?!:]:|[?!]?\.'
+          - match: '[?!:]:|[?!]?\.|[?!-]>'
             name: punctuation.separator.namespace.ruko
 
   style-list:
@@ -4299,13 +4362,27 @@ repository:
       - include: $self
 
   hex-colors:
-    match: \s*(#)\b(?:\h{3,4}|\h{6}|\h{8})\b\s*
-    name: constant.other.color.rgb-value.hex.css
+    match: \s*(#)\b(\h{3,4}|\h{6}|\h{8})\b\s*
     captures:
       1: {name: punctuation.definition.constant.css}
+      2:
+        name: constant.other.color.rgb-value.hex.css
+        patterns:
+          - match: (\h{2})(\h{2})(\h{2})(\h{2})?
+            captures:
+              1: {name: constant.other.color.red-value.hex.css}
+              2: {name: constant.other.color.green-value.hex.css}
+              3: {name: constant.other.color.blue-value.hex.css}
+              4: {name: constant.other.color.alpha-value.hex.css}
+          - match: (\h)(\h)(\h)(\h)?
+            captures:
+              1: {name: constant.other.color.red-value.hex.css}
+              2: {name: constant.other.color.green-value.hex.css}
+              3: {name: constant.other.color.blue-value.hex.css}
+              4: {name: constant.other.color.alpha-value.hex.css}
 
   tag-names:
-    match: \s*\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)?[\p{Pc}\p{L}]\w*)*)\b\s*
+    match: \s*\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>|[?!-]>)?[\p{Pc}\p{L}]\w*)*)\b\s*
     name: entity.name.tag.ruko
     captures:
       1:
@@ -7682,7 +7759,7 @@ repository:
           1: {name: punctuation.type.arguments.ruko}
       - comment: Support for Turbofish syntax
         name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])([?!:]:|[?!]?\.)(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*['"`({\[\w])
+        begin: (?<=^|['"`)}\]>\w\s])([?!:]:|[?!]?\.|[?!-]>)(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*['"`({\[\w])
         end: (?<=^|['"`)}\]>\w])()(>)(!\b)?
         captures:
           1:
