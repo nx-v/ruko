@@ -17,7 +17,7 @@ information: |
   I may not be able to respond to every issue or PR, but I will do my best
   to keep the grammar up to date with the latest changes in the language.
 
-  Last updated: November 18, 2025
+  Last updated: November 19, 2025
 
 todo: |
   - [ ] Backslashes may begin identifiers to strop them to avoid keyword conflicts.
@@ -6284,7 +6284,7 @@ repository:
     patterns:
       - match: &constraint-keyword |
           (?x)
-          (?<=^|{|;|,)\s*
+          (?<=^|[,;(\[{])\s*
           (
             \b
             # ignore all keywords
@@ -7405,8 +7405,8 @@ repository:
   # Binding patterns
 
   object-key:
-    begin: (?<=^|{|;|,)\s*
-    end: \s*(?=,|;|}|$)|\s*(:)
+    begin: (?<=^|[,;(\[{])\s*
+    end: \s*(?=[,;)\]}]|$)|\s*(:)
     name: meta.object-key.ruko
     endCaptures:
       1: {name: punctuation.separator.key-value.ruko}
@@ -7414,7 +7414,7 @@ repository:
       - include: '#literals'
       - include: '#embedded-expression'
       - include: '#brackets'
-      - match: (?<=^|{|;|,)\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=,|;|}|:|$)
+      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}:]|$)
         name: constant.other.object.key.ruko
       - include: '#space'
       - include: '#comments'
@@ -7423,16 +7423,16 @@ repository:
 
   object-value:
     patterns:
-      - match: (?<=(?:^|{|;|,)\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:,|;|}|=['"`({\[\w\s]|$))
+      - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=['"`({\[\w\s]|$))
         name: variable.other.constant.ruko
-      - match: (?<=^|{|;|,)\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=,|;|}|=['"`({\[\w\s]|$)
+      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=['"`({\[\w\s]|$)
         name: variable.other.constant.ruko
 
   object-argument:
     patterns:
-      - match: (?<=(?:^|{|;|,)\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:,|;|}|=['"`({\[\w\s]|$))
+      - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=['"`({\[\w\s]|$))
         name: variable.parameter.ruko
-      - match: (?<=^|{|;|,)\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=,|;|}|=['"`({\[\w\s]|$)
+      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=['"`({\[\w\s]|$)
         name: variable.parameter.ruko
 
   as-keyword:
@@ -7518,9 +7518,8 @@ repository:
           x = def()
         match: |
           (?x)
-          (?<=^\s*|[{;,]\s*)
+          (?<=^|[,;(\[{])\s*
 
-          \s*
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
           (:) # Key value separator
           \s*\b
@@ -7572,9 +7571,8 @@ repository:
           3: {patterns: [include: '#modifiers']}
       - begin: |
           (?x)
-          (?<=^\s*|[{;,]\s*)
+          (?<=^|[,;(\[{])\s*
 
-          \s*
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
           (:) # Key value separator
           \s*\b
@@ -7625,7 +7623,7 @@ repository:
           - include: '#argument-list-content'
       - match: |
           (?x)
-          (?<=^\s*|[{;,]\s*)
+          (?<=^|[,;(\[{])\s*
           \s*
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # label
           (?=: ['"`({\[)}\]\w\s])
