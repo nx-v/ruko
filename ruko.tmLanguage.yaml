@@ -95,6 +95,8 @@ changelog: |
     internal/external linkage, assertions, context parameters, state variables,
     declarations, and debugging.
   - Fixed empty generics: T<> is now highlighted properly in calls and annotations.
+    Fixed generics before curly braces. T<C> { x } does not trigger another type
+    annotation and highlights a regular block.
   - Fixed style k-v pairs in style blocks which highlight until a semicolon, comma
     or closing brace.
   - All control structures do not need to be bracketed. If the body of a
@@ -409,7 +411,7 @@ repository:
   type-signature:
     applyEndPatternLast: true
     name: meta.type.ruko
-    begin: (?<=(?:[)}\]\w\s'"`]|\\.)\|?|^\|?)(:)(?=$|[\w\s'"`({\[])
+    begin: (?<=(?:[)}\]\w\s'"`]|\\.)>*\|?|^\|?)(:)(?=$|[\w\s'"`({\[])
     end: (?=)|$
     beginCaptures:
       1: {name: punctuation.definition.annotation.ruko}
@@ -444,9 +446,9 @@ repository:
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            >* # after generics
             \s*
           )
-          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\#?\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -470,9 +472,9 @@ repository:
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            >* # after generics
             \s*
           )
-          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\#\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -494,9 +496,9 @@ repository:
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            >* # after generics
             \s*
           )
-          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
           (\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -518,7 +520,7 @@ repository:
             )
             \s*
           )
-          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
+          (?<! (?: [\w'"`)}\]] | \\.) >* \s* ) # not after generics
           (\#\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -540,7 +542,7 @@ repository:
             )
             \s*
           )
-          (?<!(?:^|[,;({\[)}\]\w'"`]|\\.)>+)\s* # not after generics
+          (?<! (?: [\w'"`)}\]] | \\.) >* \s* ) # not after generics
           (\{)\s*
         end: \s*(\})
         name: meta.brace.curly.ruko
@@ -3428,7 +3430,7 @@ repository:
               \b
               [\p{Pc}\p{L}]\w* # identifier
               \b
-              (?:[?!:]:|[?!]?\.) # qualified name separator
+              (?:[?!:]:|[?!]?\.|[?!-]>) # qualified name separator
             )*
             [\p{Pc}\p{L}]\w* # last part of identifier
             \b
@@ -3438,7 +3440,8 @@ repository:
           (?x) \s*
           (?:
               (?<=</)(\2)(>)
-            | (<?/>)
+            | (</>)
+            | (/>)
             | ((?<=</).*?)>
           )
         beginCaptures:
@@ -3448,10 +3451,13 @@ repository:
           1: {patterns: [include: '#tag-names']}
           2: {name: punctuation.definition.tag.ruko}
           3: {name: punctuation.definition.tag.ruko}
-          4: {name: invalid.illegal.termination.ruko}
+          4: {name: punctuation.definition.tag.ruko}
+          5: {name: invalid.illegal.termination.ruko}
         patterns:
           - include: '#tag-attributes'
           - include: '#tag-termination'
+          - match: (?<=</)>
+            name: punctuation.definition.tag.ruko
 
   xml-comments:
     begin: (<!--)
@@ -4192,7 +4198,7 @@ repository:
           1: {name: punctuation.definition.tag.ruko}
         patterns:
           - comment: Tag name
-            match: (?<=<)\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.)[\p{Pc}\p{L}]\w*)*)\b
+            match: (?<=<)\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)[\p{Pc}\p{L}]\w*)*)\b
             captures:
               1:
                 name: entity.name.tag.ruko
@@ -4259,7 +4265,7 @@ repository:
       - include: source.css.scss#constant_optional
 
   property-name:
-    match: \b([\p{Pc}\p{L}]\w*\b(?:(?:(?:[?!:]:|[?!]?\.)?[\p{Pc}\p{L}]\w*)*)\b
+    match: \b([\p{Pc}\p{L}]\w*\b(?:(?:(?:[?!:]:|[?!]?\.|[?!-]>)?[\p{Pc}\p{L}]\w*)*)\b
     name: meta.property-name.ruko
     captures:
       1:
@@ -4299,7 +4305,7 @@ repository:
       1: {name: punctuation.definition.constant.css}
 
   tag-names:
-    match: \s*\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.)?[\p{Pc}\p{L}]\w*)*)\b\s*
+    match: \s*\b([\p{Pc}\p{L}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)?[\p{Pc}\p{L}]\w*)*)\b\s*
     name: entity.name.tag.ruko
     captures:
       1:
@@ -8245,7 +8251,7 @@ repository:
             \s*
           )
           \s*
-          ([?!:]:|[?!])?
+          ([?!][:>]?=?|[:>])? # message access operator
           ( # Message name
             \b
             # ignore all keywords
@@ -8286,13 +8292,13 @@ repository:
                   (?x)
                   (?:
                     ( # 1: optional access/unwrap
-                      \?[.:>]=?
+                      \?[:>]?=?
                     ) |
                     ( # 2: assert/unwrap operator
-                      ![.:>]=?
+                      ![:>]?=?
                     ) |
                     ( # 3: access operator
-                      (?:::|\.|->)=?
+                      [:>]?=?
                     )
                   )
                 captures:
@@ -8365,6 +8371,7 @@ repository:
           )
           \s*
           (?= 
+            (?:[?!][:>]?=?|[:>])? # message access operator
             (?: # function name
               \b
               # ignore all keywords
@@ -8395,7 +8402,6 @@ repository:
               [\p{Pc}\p{L}]\w* # identifier
               \b
             ) 
-            (?:[?!]:?|::)? # qualified name separator
           )
         name: meta.message.ruko
         captures:
@@ -8426,15 +8432,14 @@ repository:
               | [?!:]:[\p{Pc}\p{L}]\w* # identifiers
               | [?!][\p{Pc}\p{L}]\w* # identifiers
               | \\. # escape sequences
-              | !:?\s+\b # assert/unwrap operator
-              | \?:?\s+\b # optional access/unwrap
-              | (?:::|\.)\s+\b # access operator
+              | [!?][:>]?=?\s+\b # force/optional unwrap
+              | [:>]?=?\s+\b # access operator
               | \b\s+\b # identifiers
             ) 
             \s*
           )
           \s*
-          ([?!:]:|[?!])?
+          ([?!][:>]?=?|[:>])? # message access operator
           ( # Message name
             \b
             # ignore all keywords
@@ -8473,13 +8478,13 @@ repository:
                   (?x)
                   (?:
                     ( # 1: optional access/unwrap
-                      \?:?
+                      \?[:>]?=?
                     ) |
                     ( # 2: assert/unwrap operator
-                      !:?
+                      ![:>]?=?
                     ) |
                     ( # 3: access operator
-                      ::
+                      [:>]?=?
                     )
                   )
                 captures:
