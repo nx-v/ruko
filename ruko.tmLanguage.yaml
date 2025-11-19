@@ -70,6 +70,8 @@ changelog: |
   - Overall syntax has been reworked to be terser and more consistent.
     Inspired by Rust, Zig, Flix, Jai, Odin, D, Reason and Motoko.
 
+  - Fixed the final > in an implicit closing tag not being highlighted properly.
+    <MyComponent></> now highlights the final > properly.
   - Added x->y syntax for C++-style pointer dereferencing.
     object->method(arg1, arg2)
     object->property
@@ -84,7 +86,7 @@ changelog: |
     to a variable, or used in an expression, the call is highlighted more consistently
     and the function call must be bracketed.
   - Added s-expression and message passing syntax, resembling Lisp, Clojure, Elixir 
-    and Smalltalk/Objectvie C syntax, but must be placed within square and round 
+    and Smalltalk/Objective C syntax, but must be placed within square and round 
     brackets respectively. These may not conflict with normal function calls.
     [object message: arg1, arg2 message2: arg3]
     (function arg1 arg2 arg3)
@@ -3414,9 +3416,7 @@ repository:
         contentName: text.html.fragment.ruko
         begin: (<)(?=>)
         end: (?<=</)(>)
-        beginCaptures:
-          1: {name: punctuation.definition.tag.ruko}
-        endCaptures:
+        captures:
           1: {name: punctuation.definition.tag.ruko}
         patterns:
           - include: '#tag-termination'
@@ -3439,24 +3439,24 @@ repository:
         end: |
           (?x) \s*
           (?:
-              (?<=</)(\2)(>)
-            | (</>)
-            | (/>)
-            | ((?<=</).*?)>
-          )
+              (?<=</)(\2)?(>) # explicit end tag
+            | (/>) # self-closing tag
+            | ((?<=</).*?)(>)
+          ) \s*
         beginCaptures:
           1: {name: punctuation.definition.tag.ruko}
           2: {patterns: [include: '#tag-names']}
         endCaptures:
+          0: {name: meta.tag.ruko}
           1: {patterns: [include: '#tag-names']}
           2: {name: punctuation.definition.tag.ruko}
           3: {name: punctuation.definition.tag.ruko}
-          4: {name: punctuation.definition.tag.ruko}
-          5: {name: invalid.illegal.termination.ruko}
+          4: {name: invalid.illegal.termination.ruko}
+          5: {name: punctuation.definition.tag.ruko}
         patterns:
           - include: '#tag-attributes'
           - include: '#tag-termination'
-          - match: (?<=</)>
+          - match: (?<=</)(>)
             name: punctuation.definition.tag.ruko
 
   xml-comments:
@@ -3472,9 +3472,9 @@ repository:
     comment: uses non consuming search for </ in </tag>
     contentName: meta.xml.children.ruko
     begin: (>)
-    end: (</)
+    end: (</(?=\b|>))
     captures:
-      0: {name: punctuation.definition.tag.ruko}
+      1: {name: punctuation.definition.tag.ruko}
     patterns:
       - include: '#evaluated-code'
       - include: '#xml-entities'
@@ -8429,12 +8429,8 @@ repository:
           (?<= # literal
             (?: 
                 [\w'"`)}\]] # literals and closing brackets
-              | [?!:]:[\p{Pc}\p{L}]\w* # identifiers
-              | [?!][\p{Pc}\p{L}]\w* # identifiers
+              | (?:[?!][:>]?=?|[:>])?[\p{Pc}\p{L}]\w* # identifiers
               | \\. # escape sequences
-              | [!?][:>]?=?\s+\b # force/optional unwrap
-              | [:>]?=?\s+\b # access operator
-              | \b\s+\b # identifiers
             ) 
             \s*
           )
@@ -8512,7 +8508,6 @@ repository:
                   4: {name: variable.other.property.ruko}
       - include: '#function-calls'
       - include: '#type-signature'
-
   # Support
 
   css-property-names:
