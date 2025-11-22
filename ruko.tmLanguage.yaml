@@ -302,9 +302,9 @@ repository:
       - include: '#symbols'
       - include: '#decorators'
       - include: '#type-signature'
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
       - include: '#xml'
       - include: '#generics'
       - include: '#literals'
@@ -357,9 +357,9 @@ repository:
     patterns:
       - include: '#comments'
       - include: '#type-brackets'
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
       - include: '#angle-brackets'
       - include: '#type-modifiers'
       - include: '#type-keywords'
@@ -892,7 +892,7 @@ repository:
           (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (?:
             (it|this|super|self) # special arguments
-            |(params) # arguments
+            |(args) # arguments
             |(ctor) # constructor
             |(proto) # prototype
           )
@@ -1338,9 +1338,9 @@ repository:
         patterns:
           - match: '''''|\$\$|%%|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: multi- double-quoted verbatim, interpolated, format, and template string
         begin: \s*([\\\$%#]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1351,9 +1351,9 @@ repository:
         patterns:
           - match: '""|\$\$|%%|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: single-quoted verbatim, interpolated, format, and template string
         begin: \s*([\\\$%#]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1364,9 +1364,9 @@ repository:
         patterns:
           - match: '''''|\$\$|%%|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: double-quoted verbatim, interpolated, format, and template string
         begin: \s*([\\\$%#]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1377,9 +1377,57 @@ repository:
         patterns:
           - match: '""|\$\$|%%|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: multi- single-quoted interpolated, format, and template string
+        begin: \s*([\$%#]+)('''+)\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: multi- double-quoted interpolated, format, and template string
+        begin: \s*([\$%#]+)("""+)\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: single-quoted interpolated, format, and template string
+        begin: \s*([\$%#]+)(')\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: double-quoted interpolated, format, and template string
+        begin: \s*([\$%#]+)(")\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: multi- single-quoted verbatim, interpolated, and format string
         begin: \s*([\\\$%]+)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1390,8 +1438,8 @@ repository:
         patterns:
           - match: '''''|\$\$|%%'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
       - comment: multi- double-quoted verbatim, interpolated, and format string
         begin: \s*([\\\$%]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1402,8 +1450,8 @@ repository:
         patterns:
           - match: '""|\$\$|%%'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
       - comment: single-quoted verbatim, interpolated, and format string
         begin: \s*([\\\$%]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1414,8 +1462,8 @@ repository:
         patterns:
           - match: '''''|\$\$|%%'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
       - comment: double-quoted verbatim, interpolated, and format string
         begin: \s*([\\\$%]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1426,8 +1474,8 @@ repository:
         patterns:
           - match: '""|\$\$|%%'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
       - comment: multi- single-quoted verbatim, interpolated, and template string
         begin: \s*([\\\$#]+)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1438,8 +1486,8 @@ repository:
         patterns:
           - match: '''''|\$\$|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
       - comment: multi- double-quoted verbatim, interpolated, and template string
         begin: \s*([\\\$#]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1450,8 +1498,8 @@ repository:
         patterns:
           - match: '""|\$\$|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
       - comment: single-quoted verbatim, interpolated, and template string
         begin: \s*([\\\$#]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1462,8 +1510,8 @@ repository:
         patterns:
           - match: '''''|\$\$|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
       - comment: double-quoted verbatim, interpolated, and template string
         begin: \s*([\\\$#]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1474,8 +1522,8 @@ repository:
         patterns:
           - match: '""|\$\$|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
       - comment: multi- single-quoted verbatim, format, and template string
         begin: \s*([\\%#]+)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1486,8 +1534,8 @@ repository:
         patterns:
           - match: "''|%%|##"
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: multi- double-quoted verbatim, format, and template string
         begin: \s*([\\%#]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1498,8 +1546,8 @@ repository:
         patterns:
           - match: '""|%%|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: single-quoted verbatim, format, and template string
         begin: \s*([\\%#]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1510,8 +1558,8 @@ repository:
         patterns:
           - match: "''|%%|##"
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: double-quoted verbatim, format, and template string
         begin: \s*([\\%#]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1522,10 +1570,10 @@ repository:
         patterns:
           - match: '""|%%|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: multi- single-quoted interpolated, format, and template string
-        begin: \s*([\$%#]+)('''+)\s*
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: multi- single-quoted interpolated and format string
+        begin: \s*([\$%]+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
         captures:
@@ -1533,11 +1581,10 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: multi- double-quoted interpolated, format, and template string
-        begin: \s*([\$%#]+)("""+)\s*
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+      - comment: multi- double-quoted interpolated and format string
+        begin: \s*([\$%]+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
         captures:
@@ -1545,11 +1592,10 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: single-quoted interpolated, format, and template string
-        begin: \s*([\$%#]+)(')\s*
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+      - comment: single-quoted interpolated and format string
+        begin: \s*([\$%]+)(')\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
         captures:
@@ -1557,11 +1603,10 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: double-quoted interpolated, format, and template string
-        begin: \s*([\$%#]+)(")\s*
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+      - comment: double-quoted interpolated and format string
+        begin: \s*([\$%]+)(")\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
         captures:
@@ -1569,9 +1614,96 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+      - comment: multi- single-quoted interpolated and template string
+        begin: \s*([\$#]+)('''+)\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
+      - comment: multi- double-quoted interpolated and template string
+        begin: \s*([\$#]+)("""+)\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
+      - comment: single-quoted interpolated and template string
+        begin: \s*([\$#]+)(')\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
+      - comment: double-quoted interpolated and template string
+        begin: \s*([\$#]+)(")\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-expressions'
+          - include: '#embedded-arguments'
+      - comment: multi- single-quoted format and template string
+        begin: \s*([%#]+)('''+)\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: multi- double-quoted format and template string
+        begin: \s*([%#]+)("""+)\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: single-quoted format and template string
+        begin: \s*([%#]+)(')\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
+      - comment: double-quoted format and template string
+        begin: \s*([%#]+)(")\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
       - comment: multi- single-quoted verbatim and interpolated string
         begin: \s*([\\\$]+)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1582,7 +1714,7 @@ repository:
         patterns:
           - match: '''''|\$\$'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
+          - include: '#embedded-expressions'
       - comment: multi- double-quoted verbatim and interpolated string
         begin: \s*([\\\$]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1593,7 +1725,7 @@ repository:
         patterns:
           - match: '""|\$\$'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
+          - include: '#embedded-expressions'
       - comment: single-quoted verbatim and interpolated string
         begin: \s*([\\\$]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1604,7 +1736,7 @@ repository:
         patterns:
           - match: '''''|\$\$'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
+          - include: '#embedded-expressions'
       - comment: double-quoted verbatim and interpolated string
         begin: \s*([\\\$]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1615,7 +1747,7 @@ repository:
         patterns:
           - match: '""|\$\$'
             name: constant.character.escape.ruko
-          - include: '#embedded-expression'
+          - include: '#embedded-expressions'
       - comment: multi- single-quoted verbatim and format string
         begin: \s*([\\%]+)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1626,7 +1758,7 @@ repository:
         patterns:
           - match: "''|%%"
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
+          - include: '#embedded-formatting'
       - comment: multi- double-quoted verbatim and format string
         begin: \s*([\\%]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1637,7 +1769,7 @@ repository:
         patterns:
           - match: '""|%%'
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
+          - include: '#embedded-formatting'
       - comment: single-quoted verbatim and format string
         begin: \s*([\\%]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1648,7 +1780,7 @@ repository:
         patterns:
           - match: "''|%%"
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
+          - include: '#embedded-formatting'
       - comment: double-quoted verbatim and format string
         begin: \s*([\\%]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1659,51 +1791,7 @@ repository:
         patterns:
           - match: '""|%%'
             name: constant.character.escape.ruko
-          - include: '#embedded-format'
-      - comment: multi- single-quoted interpolated and format string
-        begin: \s*([\$%]+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-      - comment: multi- double-quoted interpolated and format string
-        begin: \s*([\$%]+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-      - comment: single-quoted interpolated and format string
-        begin: \s*([\$%]+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-      - comment: double-quoted interpolated and format string
-        begin: \s*([\$%]+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
+          - include: '#embedded-formatting'
       - comment: multi- single-quoted verbatim and template string
         begin: \s*([\\#]+)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1714,7 +1802,7 @@ repository:
         patterns:
           - match: "''|##"
             name: constant.character.escape.ruko
-          - include: '#embedded-placeholder'
+          - include: '#embedded-arguments'
       - comment: multi- double-quoted verbatim and template string
         begin: \s*([\\#]+)("""+)\s*
         contentName: string.quoted.double.ruko
@@ -1725,7 +1813,7 @@ repository:
         patterns:
           - match: '""|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-placeholder'
+          - include: '#embedded-arguments'
       - comment: single-quoted verbatim and template string
         begin: \s*([\\#]+)(')\s*
         contentName: string.quoted.single.ruko
@@ -1736,7 +1824,7 @@ repository:
         patterns:
           - match: "''|##"
             name: constant.character.escape.ruko
-          - include: '#embedded-placeholder'
+          - include: '#embedded-arguments'
       - comment: double-quoted verbatim and template string
         begin: \s*([\\#]+)(")\s*
         contentName: string.quoted.double.ruko
@@ -1747,9 +1835,9 @@ repository:
         patterns:
           - match: '""|##'
             name: constant.character.escape.ruko
-          - include: '#embedded-placeholder'
-      - comment: multi- single-quoted interpolated and template string
-        begin: \s*([\$#]+)('''+)\s*
+          - include: '#embedded-arguments'
+      - comment: multi- single-quoted interpolated string
+        begin: \s*(\$)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
         captures:
@@ -1757,10 +1845,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
-      - comment: multi- double-quoted interpolated and template string
-        begin: \s*([\$#]+)("""+)\s*
+          - include: '#embedded-expressions'
+      - comment: multi- double-quoted interpolated string
+        begin: \s*(\$)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
         captures:
@@ -1768,10 +1855,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
-      - comment: single-quoted interpolated and template string
-        begin: \s*([\$#]+)(')\s*
+          - include: '#embedded-expressions'
+      - comment: single-quoted interpolated string
+        begin: \s*(\$)(')\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
         captures:
@@ -1779,10 +1865,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
-      - comment: double-quoted interpolated and template string
-        begin: \s*([\$#]+)(")\s*
+          - include: '#embedded-expressions'
+      - comment: double-quoted interpolated string
+        begin: \s*(\$)(")\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
         captures:
@@ -1790,10 +1875,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-expression'
-          - include: '#embedded-placeholder'
-      - comment: multi- single-quoted format and template string
-        begin: \s*([%#]+)('''+)\s*
+          - include: '#embedded-expressions'
+      - comment: multi- single-quoted format string
+        begin: \s*(%)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
         captures:
@@ -1801,10 +1885,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: multi- double-quoted format and template string
-        begin: \s*([%#]+)("""+)\s*
+          - include: '#embedded-formatting'
+      - comment: multi- double-quoted format string
+        begin: \s*(%)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
         captures:
@@ -1812,10 +1895,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: single-quoted format and template string
-        begin: \s*([%#]+)(')\s*
+          - include: '#embedded-formatting'
+      - comment: single-quoted format string
+        begin: \s*(%)(')\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
         captures:
@@ -1823,10 +1905,9 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
-      - comment: double-quoted format and template string
-        begin: \s*([%#]+)(")\s*
+          - include: '#embedded-formatting'
+      - comment: double-quoted format string
+        begin: \s*(%)(")\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
         captures:
@@ -1834,8 +1915,47 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-formatting'
+      - comment: multi- single-quoted template string
+        begin: \s*(#)('''+)\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-arguments'
+      - comment: multi- double-quoted template string
+        begin: \s*(#)("""+)\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-arguments'
+      - comment: single-quoted template string
+        begin: \s*(#)(')\s*
+        contentName: string.quoted.single.ruko
+        end: \s*((\2)(?!'+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-arguments'
+      - comment: double-quoted template string
+        begin: \s*(#)(")\s*
+        contentName: string.quoted.double.ruko
+        end: \s*((\2)(?!"+))
+        captures:
+          1: {name: storage.type.string.ruko}
+          2: {name: punctuation.definition.string.ruko}
+        patterns:
+          - include: '#string-escapes'
+          - include: '#embedded-arguments'
       - comment: multi- single-quoted verbatim string
         begin: \s*(\\)('''+)\s*
         contentName: string.quoted.single.ruko
@@ -1876,126 +1996,6 @@ repository:
         patterns:
           - match: '""'
             name: constant.character.escape.ruko
-      - comment: multi- single-quoted interpolated string
-        begin: \s*(\$)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-      - comment: multi- double-quoted interpolated string
-        begin: \s*(\$)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-      - comment: single-quoted interpolated string
-        begin: \s*(\$)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-      - comment: double-quoted interpolated string
-        begin: \s*(\$)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-expression'
-      - comment: multi- single-quoted format string
-        begin: \s*(%)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-format'
-      - comment: multi- double-quoted format string
-        begin: \s*(%)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-format'
-      - comment: single-quoted format string
-        begin: \s*(%)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-format'
-      - comment: double-quoted format string
-        begin: \s*(%)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-format'
-      - comment: multi- single-quoted template string
-        begin: \s*(#)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-placeholder'
-      - comment: multi- double-quoted template string
-        begin: \s*(#)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-placeholder'
-      - comment: single-quoted template string
-        begin: \s*(#)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-placeholder'
-      - comment: double-quoted template string
-        begin: \s*(#)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: '#string-escapes'
-          - include: '#embedded-placeholder'
       - comment: multi- single-quoted plain string
         begin: \s*()('''+)\s*
         contentName: string.quoted.single.ruko
@@ -2032,11 +2032,6 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-
-  string-content:
-    patterns:
-      - include: '#string-escapes'
-      - include: '#embedded'
 
   string-escapes:
     patterns:
@@ -2984,19 +2979,19 @@ repository:
 
   embedded:
     patterns:
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
 
   embedded-verbatim:
     patterns:
       - match: \#\#|\$\$|\%\%
         name: constant.character.escape.ruko
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
 
-  embedded-expression:
+  embedded-expressions:
     patterns:
       - comment: Interpolated expression
         begin: (\${)\s*
@@ -3052,60 +3047,7 @@ repository:
           - include: '#numbers'
           - *qualified-name-separators
 
-  interpolated-code:
-    patterns:
-      - comment: Interpolated expression
-        begin: (\#{)\s*
-        end: \s*(})
-        name: meta.embedded.expression.ruko
-        captures:
-          1: {name: punctuation.definition.variable.ruko}
-        patterns:
-          - include: $self
-      - comment: Interpolated expression
-        applyEndPatternLast: true
-        name: meta.embedded.expression.ruko
-        begin: |
-          (?x)
-          (\#) # beginning of identifier
-          # ignore all keywords
-          (?!
-            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-            (?: # keywords
-              [io]n|of|[ai]s|has|old|new|del
-              |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]
-              |use|given|track|state
-              |func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
-              |object|realm|style|script|quote
-              |go|defer|do|with|from|where
-              |if|else|then|guard|when
-              |for|loop|while|goto|move
-              |try|throw|catch|switch
-              |match|case|pass|def(?:er)?
-              |break|skip|redo|retry
-              |return|yield|await|scope
-              |import|export|intern|extern
-              |debug|assert|check|decl
-            )
-            \b
-          )
-          (?=[\p{Pc}\p{L}]) # next to a word
-        end: (?=)|$
-        captures:
-          1: {name: punctuation.definition.variable.ruko}
-        patterns:
-          - include: '#constants'
-          - include: '#generics'
-          - include: '#brackets'
-          - include: '#embedded-function-calls'
-          - include: '#variables'
-          - include: '#numbers'
-          - *qualified-name-separators
-
-  embedded-placeholder:
+  embedded-arguments:
     patterns:
       - name: meta.embedded.placeholder.ruko
         match: |
@@ -3190,34 +3132,7 @@ repository:
 
   # Format and flag specifiers
 
-  format-switch-clause:
-    patterns:
-      - comment: // for multiple flags at once with single-character aliases
-        applyEndPatternLast: true
-        begin: (?:(?<=%)|(//))([\p{Pc}\p{L}]\w*)\b
-        end: (?=)|$
-        captures:
-          1: {name: punctuation.definition.flag.ruko}
-          2: {name: storage.type.format.ruko}
-        patterns:
-          - comment: Format switch without value
-            match: ([\p{Pc}\p{L}]\w*)
-            captures:
-              1: {name: keyword.other.flag.ruko}
-      - comment: / for a single flag, with optional arguments
-        applyEndPatternLast: true
-        begin: (?:(?<=%)|(/))([\p{Pc}\p{L}]\w*)\b
-        end: (?=)|$
-        captures:
-          1: {name: punctuation.definition.flag.ruko}
-          2: {name: storage.type.format.ruko}
-        patterns:
-          - comment: Format switch without value
-            match: ([\p{Pc}\p{L}]\w*)
-            captures:
-              1: {name: keyword.modifier.ruko}
-
-  embedded-format:
+  embedded-formatting:
     comment: Oniguruma supports only 20 levels of recursion
     applyEndPatternLast: true
     name: meta.embedded.formatting.ruko
@@ -3272,6 +3187,33 @@ repository:
           1: {name: punctuation.definition.flag.ruko}
           2: {name: storage.type.format.ruko}
       - include: '#format-switch-clause'
+
+  format-switch-clause:
+    patterns:
+      - comment: // for multiple flags at once with single-character aliases
+        applyEndPatternLast: true
+        begin: (?:(?<=%)|(//))([\p{Pc}\p{L}]\w*)\b
+        end: (?=)|$
+        captures:
+          1: {name: punctuation.definition.flag.ruko}
+          2: {name: storage.type.format.ruko}
+        patterns:
+          - comment: Format switch without value
+            match: ([\p{Pc}\p{L}]\w*)
+            captures:
+              1: {name: keyword.other.flag.ruko}
+      - comment: / for a single flag, with optional arguments
+        applyEndPatternLast: true
+        begin: (?:(?<=%)|(/))([\p{Pc}\p{L}]\w*)\b
+        end: (?=)|$
+        captures:
+          1: {name: punctuation.definition.flag.ruko}
+          2: {name: storage.type.format.ruko}
+        patterns:
+          - comment: Format switch without value
+            match: ([\p{Pc}\p{L}]\w*)
+            captures:
+              1: {name: keyword.modifier.ruko}
 
   # Regular expressions
 
@@ -4061,9 +4003,9 @@ repository:
       - include: '#attribute-names'
       - include: '#literals'
       - include: '#hex-colors'
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
       - include: '#function-calls'
       - include: '#variables'
       - include: '#brackets'
@@ -4133,7 +4075,7 @@ repository:
   attribute-values:
     patterns:
       - include: '#literals'
-      - include: '#embedded-expression'
+      - include: '#embedded-expressions'
       - include: '#brackets'
 
   attribute-names:
@@ -4881,9 +4823,9 @@ repository:
   style-property-values:
     patterns:
       - include: '#hex-colors'
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
       - include: '#css-value-names'
       - include: $self
 
@@ -4926,7 +4868,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.js
       - begin: \b((?i:jsx))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -4937,7 +4879,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.jsx
       - begin: \b((?i:ts))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -4948,7 +4890,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.ts
       - begin: \b((?i:tsx))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -4959,7 +4901,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.tsx
       - begin: \b((?i:py))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -4970,7 +4912,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.python
       - begin: \b((?i:rb))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -4981,7 +4923,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.ruby
       - begin: \b((?i:php))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -4992,7 +4934,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.php
       - begin: \b((?i:java))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5003,7 +4945,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.java
       - begin: \b((?i:cpp))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5014,7 +4956,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.cpp
       - begin: \b((?i:c))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5025,7 +4967,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.c
       - begin: \b((?i:cs))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5036,7 +4978,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.cs
       - begin: \b((?i:go))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5047,7 +4989,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.go
       - begin: \b((?i:rs))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5058,7 +5000,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.rust
       - begin: \b((?i:swift))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5069,7 +5011,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.swift
       - begin: \b((?i:kt))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5080,7 +5022,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.kotlin
       - begin: \b((?i:scala))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5091,7 +5033,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.scala
       - begin: \b((?i:hs))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5102,7 +5044,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.haskell
       - begin: \b((?i:lua))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5113,7 +5055,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.lua
       - begin: \b((?i:dart))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5124,7 +5066,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.dart
       - begin: \b((?i:objc))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5135,7 +5077,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.objc
       - begin: \b((?i:objcpp))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5146,7 +5088,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.objcpp
       - begin: \b((?i:perl))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5157,7 +5099,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.perl
       - begin: \b((?i:r))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5168,7 +5110,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.r
       - begin: \b((?i:sh))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5179,7 +5121,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.shell
       - begin: \b((?i:sql))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5190,7 +5132,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.sql
       - begin: \b((?i:html))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5201,7 +5143,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: text.html.basic
       - begin: \b((?i:css))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5212,7 +5154,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.css
       - begin: \b((?i:json))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5223,7 +5165,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.json
       - begin: \b((?i:xml))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5234,7 +5176,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: text.xml
       - begin: \b((?i:yaml|yml))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5245,7 +5187,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.yaml
       - begin: \b((?i:markdown|md))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5256,7 +5198,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: text.html.markdown
       - begin: \b((?i:latex|tex))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5267,7 +5209,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: text.tex.latex
       - begin: \b((?i:was[imt]|wasm|wat))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5278,7 +5220,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.wat
       - begin: \b((?i:cljs?))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5289,7 +5231,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.clojure
       - begin: \b((?i:makefile|make))\b\s*('(?:'')*|"(?:"")*)\s*
         end: \s*(\2)\s*
@@ -5300,7 +5242,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.block.script.ruko}
         patterns:
-          - include: '#interpolated-code'
+          - include: '#template-expression'
           - include: source.makefile
 
   style-block:
@@ -5707,6 +5649,40 @@ repository:
       - name: meta.function.arguments.ruko
         match: |
           (?x)
+          (?<=
+            (?:
+                ^ # beginning of line
+              | [,;] | ['"`)}\]\s\w]: # separator or postfix colon
+              | [({\[] # opening bracket
+              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s # postfix or infix operator
+            ) \s*
+            | (?:[!?]?\.=?|[?!:]:=?|[?!-]>=?) # accessor or qualified name separator
+            | # a keyword
+            (?:
+              (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
+              \b
+                (?: # keywords
+                  [io]n|of|[ai]s|has|old|new|del
+                  |unset|(?:de)?ref|and|x?or|not
+                  |const|let|mut|dyn|va[rl]
+                  |use|given|track|state
+                  |func|pro[pc]|type|class|actor|trait
+                  |impl|enum|mod(?:el|ule)|struct|record
+                  |union|iter|macro|query|elem|temp
+                  |object|realm|style|script|quote
+                  |go|defer|do|with|from|where
+                  |if|else|then|guard|when
+                  |for|loop|while|goto|move
+                  |try|throw|catch|switch
+                  |match|case|pass|def(?:er)?
+                  |break|skip|redo|retry
+                  |return|yield|await|scope
+                  |import|export|intern|extern
+                  |debug|assert|check|decl
+                )
+              \b
+            ) \s*
+          ) \s*
           \b
           (
             # ignore all keywords
@@ -5743,16 +5719,54 @@ repository:
           )
           \b
           (?=
-            (?: # function application, composition and piping
-                \s (?: [$@] | <\|+ | <!+ | <[-+]) ['"`({\[\w\s]
-              | # C-style function call
-                (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({]
-              | # generics
-                (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* ['"`({\[\w]
-              | # macro calls
-                ! \#? [({]
-              | # strings
-                (?:\w*|[\\$#%]*)['"] | `\s*(?=\N) | :[\p{Pc}\p{L}]\w*
+            (?:
+              \s* (?: # function name
+                \b
+                # ignore all keywords
+                (?!
+                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                  (?: # keywords
+                    [io]n|of|[ai]s|has|old|new|del
+                    |unset|(?:de)?ref|and|x?or|not
+                    |const|let|mut|dyn|va[rl]
+                    |use|given|track|state
+                    |func|pro[pc]|type|class|actor|trait
+                    |impl|enum|mod(?:el|ule)|struct|record
+                    |union|iter|macro|query|elem|temp
+                    |object|realm|style|script|quote
+                    |go|defer|do|with|from|where
+                    |if|else|then|guard|when
+                    |for|loop|while|goto|move
+                    |try|throw|catch|switch
+                    |match|case|pass|def(?:er)?
+                    |break|skip|redo|retry
+                    |return|yield|await|scope
+                    |import|export|intern|extern
+                    |debug|assert|check|decl
+                  )
+                  \b
+                )
+                \b
+                [\p{Pc}\p{L}]\w* # identifier
+                \b
+              )(?! : # avoid matching labels/message passing here
+                (?:
+                    (?:\w*|[\\$#%]*)['"] # quoted string literals
+                  | `\s*(?=\N) # unquoted string literals 
+                  | :[\p{Pc}\p{L}]\w* # symbols
+                  | ['"`({\[\w\s] # brackets and literals
+                )
+              )
+              | \s (?: [$@] | <\|+ | <!+ | <[-+]) ['"`({\[\w\s] # function application, composition and piping
+              | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({] # C-style function call
+              | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* ['"`({\[\w] # generics
+              | ! \#? [({] # macro calls
+              | \s* (?:
+                  (?:\w*|[\\$#%]*)['"] # quoted string literals
+                | `\s*(?=\N) # unquoted string literals 
+                | :[\p{Pc}\p{L}]\w* # symbols
+                | \s+ [(\[] # brackets
+              )
             )
           )
         captures:
@@ -7149,9 +7163,9 @@ repository:
             captures:
               1: {name: punctuation.definition.block.ruko}
             patterns:
-              - include: '#embedded-expression'
-              - include: '#embedded-format'
-              - include: '#embedded-placeholder'
+              - include: '#embedded-expressions'
+              - include: '#embedded-formatting'
+              - include: '#embedded-arguments'
               - include: $self
           - include: '#declaration-clause'
           - include: '#namespace-separators'
@@ -7480,9 +7494,9 @@ repository:
           1: {name: punctuation.definition.block.ruko}
         patterns:
           - include: $self
-      - include: '#embedded-expression'
-      - include: '#embedded-format'
-      - include: '#embedded-placeholder'
+      - include: '#embedded-expressions'
+      - include: '#embedded-formatting'
+      - include: '#embedded-arguments'
       - include: '#brackets'
       - include: '#literals'
       - match: ::|\.|\\
@@ -8016,7 +8030,7 @@ repository:
       1: {name: punctuation.separator.key-value.ruko}
     patterns:
       - include: '#literals'
-      - include: '#embedded-expression'
+      - include: '#embedded-expressions'
       - include: '#brackets'
       - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}:]|$)
         name: constant.other.object.key.ruko
@@ -8299,9 +8313,9 @@ repository:
           - include: '#brackets'
           - include: '#types'
           - include: '#type-signature'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
 
   generic-operators:
     name: punctuation.type.arguments.ruko
@@ -8362,9 +8376,9 @@ repository:
           - include: '#brackets'
           - include: '#types'
           - include: '#type-signature'
-          - include: '#embedded-expression'
-          - include: '#embedded-format'
-          - include: '#embedded-placeholder'
+          - include: '#embedded-expressions'
+          - include: '#embedded-formatting'
+          - include: '#embedded-arguments'
 
   curly-brackets:
     repository:
@@ -8599,7 +8613,6 @@ repository:
         captures:
           1: {name: punctuation.definition.tuple.ruko}
         patterns:
-          - include: '#s-expression'
           - include: $self
       - begin: (\()\s*
         end: \s*(\))
@@ -8607,7 +8620,6 @@ repository:
         captures:
           1: {name: punctuation.definition.expression.ruko}
         patterns:
-          - include: '#s-expression'
           - include: $self
 
   square-brackets:
@@ -8725,92 +8737,6 @@ repository:
       - include: '#function-calls'
       - include: '#literals'
       - include: '#constants'
-      - match: |
-          (?x)
-          (?<=\()
-          \s*
-          ( # Function name
-            \b
-            # ignore all keywords
-            (?!
-              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-              (?: # keywords
-                [io]n|of|[ai]s|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
-                |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
-                |object|realm|style|script|quote
-                |go|defer|do|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
-                |break|skip|redo|retry
-                |return|yield|await|scope
-                |import|export|intern|extern
-                |debug|assert|check|decl
-              )
-              \b
-            )
-            (?:
-              \b
-              [\p{Pc}\p{L}]\w* # identifier
-              \b
-              (?:[!?]?\.=?|[?!:]:=?|[?!-]>=?) # qualified name separator
-            )*
-            [\p{Pc}\p{L}]\w* # last part of identifier
-            \b
-          )
-          \s*
-          (?= 
-            (?:
-              (?: # function name
-                \b
-                # ignore all keywords
-                (?!
-                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                  (?: # keywords
-                    [io]n|of|[ai]s|has|old|new|del
-                    |unset|(?:de)?ref|and|x?or|not
-                    |const|let|mut|dyn|va[rl]
-                    |use|given|track|state
-                    |func|pro[pc]|type|class|actor|trait
-                    |impl|enum|mod(?:el|ule)|struct|record
-                    |union|iter|macro|query|elem|temp
-                    |object|realm|style|script|quote
-                    |go|defer|do|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def(?:er)?
-                    |break|skip|redo|retry
-                    |return|yield|await|scope
-                    |import|export|intern|extern
-                    |debug|assert|check|decl
-                  )
-                  \b
-                )
-                \b
-                [\p{Pc}\p{L}]\w* # identifier
-                \b
-              )
-              | \s+[({\[] # opening brackets
-              | \s+[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # prefix ops, JSX, regex, lambda, etc.
-                [\p{Pc}\p{L}]\w* # identifier
-              | (?:\w*|[\\$#%]*)['"] | `\s*(?=\N) # string literals 
-              | $ # end of line
-            )
-          )
-        name: meta.function-call.ruko
-        captures:
-          1:
-            patterns:
-              - include: '#function-names'
-              - include: '#accessor-operators'
-      - include: $self
 
   # Objective-C-style messages
   message:
