@@ -145,6 +145,8 @@ changelog: |
   - Fixed empty generics: T<> is now highlighted properly in calls and annotations.
     Fixed generics before curly braces. T<C> { x } does not trigger another type
     annotation and highlights a regular block.
+  - Added syntax for macro `x!()` and destructor `x~()` calls. These are placed
+    after the generics if any. For example: Vec<int>!(), MyType~().
   - Fixed style k-v pairs in style blocks which highlight until a semicolon, comma
     or closing brace.
   - All control structures do not need to be bracketed. If the body of a
@@ -788,6 +790,10 @@ repository:
           1: {name: keyword.operator.reference.ruko}
           2: {name: keyword.operator.reference.ruko}
           3: {name: keyword.operator.reference.ruko}
+      - comment: destructor
+        match: (~)(?=\s*[\p{Pc}\p{L}])
+        captures:
+          1: {name: keyword.operator.destructor.ruko}
       - comment: type operators
         match: |
           (?x)
@@ -3042,8 +3048,9 @@ repository:
           - include: '#brackets'
           - include: '#embedded-function-calls'
           - match: (?<=>|\w)(!)(?=#?[({])
-            captures:
-              1: {name: keyword.operator.macro.ruko}
+            captures: {1: {name: keyword.operator.macro.ruko}}
+          - match: (?<=>|\w)(~)(?=#?[({])
+            captures: {1: {name: keyword.operator.destructor.ruko}}
           - include: '#variables'
           - include: '#numbers'
           - *qualified-name-separators
@@ -3162,8 +3169,9 @@ repository:
           - include: '#brackets'
           - include: '#embedded-function-calls'
           - match: (?<=>|\w)(!)(?=#?[({])
-            captures:
-              1: {name: keyword.operator.macro.ruko}
+            captures: {1: {name: keyword.operator.macro.ruko}}
+          - match: (?<=>|\w)(~)(?=#?[({])
+            captures: {1: {name: keyword.operator.destructor.ruko}}
           - include: '#variables'
           - include: '#numbers'
           - include: '#regexps'
@@ -5589,8 +5597,8 @@ repository:
             (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({]
           | # generics
             (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{])
-          | # macro calls
-            ! \#? [({]
+          | # macro and destructor calls
+            [!~] \#? [({]
           | # strings and symbols
             (?:\w*|[\\$#%]*)['"] | `\s*(?=\N) | :[\p{Pc}\p{L}]\w*
         )
@@ -5716,7 +5724,7 @@ repository:
               | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
               | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({] # C-style function call
               | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-              | ! \#? [({] # macro calls
+              | [!~] \#? [({] # macro and destructor calls
               | \s* (?:
                   (?:\w*|[\\$#%]*)['"] # quoted string literals
                 | `\s*(?=\N) # unquoted string literals 
@@ -5820,8 +5828,8 @@ repository:
               \#? [({]
             | generics
               [?!:]: < | [?!]?\. < | <
-            | # macro calls
-              ! \#? [({]
+            | # macro and destructor calls
+              [!~] \#? [({]
           )
       )
     captures:
@@ -6105,8 +6113,9 @@ repository:
   special-operators:
     patterns:
       - match: (?<=>|\w)(!)(?=#?[({])
-        captures:
-          1: {name: keyword.operator.macro.ruko}
+        captures: {1: {name: keyword.operator.macro.ruko}}
+      - match: (?<=>|\w)(~)(?=#?[({])
+        captures: {1: {name: keyword.operator.destructor.ruko}}
       - comment: '? ternary operator'
         begin: (?<=^|[\s({\[])(\?)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\?)(?=(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=(?:['"`\w]|\#?[(\[{]))
@@ -7424,9 +7433,12 @@ repository:
       - include: '#type-square-brackets'
       - include: '#type-signature'
       - include: '#decorators'
+      - include: '#embedded-verbatim'
       - include: '#type-keywords'
       - match: \s*(?<!\*)\*(?!\*)\s*
         name: keyword.generator.asterisk.ruko
+      - include: '#type-operators'
+      - include: '#operators'
       - include: '#comments'
       - include: '#comma'
       - include: '#line-continuation'
@@ -7786,7 +7798,7 @@ repository:
       - include: '#switch-clause'
       - include: '#catch-clause'
       - include: '#with-clause'
-      - include: '#do-clause'
+      - include: '#try-clause'
       - include: '#type-clause'
       - include: '#new-clause'
 
@@ -7833,6 +7845,19 @@ repository:
               - match: \s*([:!=</>.^$%?*+|&~]?=)\s*
                 captures:
                   1: {name: keyword.operator.assignment.ruko}
+
+      try-clause:
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(try|then)\b\s*
+        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
+        name: meta.try.ruko
+        beginCaptures:
+          1: {name: keyword.control.error.ruko}
+        endCaptures:
+          1: {name: punctuation.separator.colon.ruko}
+        patterns:
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
+            name: keyword.control.error.ruko
+          - include: $self
 
       catch-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(catch)\b\s*
@@ -8255,17 +8280,14 @@ repository:
     end: ^\s*(?=\S)
     captures:
       1: {name: punctuation.separator.continuation.line.ruko}
-    patterns:
-      - include: '#comments'
+    patterns: [include: '#comments']
 
   comma:
     match: \s*(,)
     name: punctuation.separator.expression.ruko
-
   double-semicolon:
     match: \s*(;;)
     name: punctuation.terminator.expression.ruko
-
   semicolon:
     match: \s*(;)
     name: punctuation.terminator.statement.ruko
@@ -8286,13 +8308,17 @@ repository:
       - comment: Support for Turbofish syntax
         name: meta.type-arguments
         begin: (?<=^|['"`)}\]>\w\s])([?!:]:|[?!]?\.|[?!-]>)(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
-        end: (?<=^|['"`)}\]>\w])()(>)(!\b)?
-        captures:
+        end: (?<=^|['"`)}\]>\w])(>)(?:(!)|(~))?
+        beginCaptures:
           1:
             name: punctuation.type.arguments.ruko
-            patterns: [include: '#generic-operators']
-          2: {name: punctuation.type.arguments.ruko}
-          3: {name: keyword.operator.macro.ruko}
+            patterns: [include: '#accessor-operators']
+          2:
+            name: punctuation.type.arguments.ruko
+        endCaptures:
+          1: {name: punctuation.type.arguments.ruko}
+          2: {name: keyword.operator.macro.ruko}
+          3: {name: keyword.operator.destructor.ruko}
         patterns:
           - include: '#punctuation'
           - include: '#brackets'
@@ -8301,26 +8327,6 @@ repository:
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-
-  generic-operators:
-    name: punctuation.type.arguments.ruko
-    match: |
-      (?x)
-      (?:
-        ( # 1: optional access/unwrap
-          \?[.:>]=?
-        ) |
-        ( # 2: assert/unwrap operator
-          ![.:>]=?
-        ) |
-        ( # 3: access operator
-          (?:::|\.|->)=?
-        )
-      )
-    captures:
-      1: {name: keyword.operator.optional.ruko}
-      2: {name: keyword.operator.assert.ruko}
-      3: {name: keyword.operator.accessor.ruko}
 
   accessor-operators:
     name: punctuation.type.arguments.ruko
