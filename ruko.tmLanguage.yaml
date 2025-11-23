@@ -29,6 +29,7 @@ todo: |
     - [x] Subscript ~sub~
     - [x] Highlighted text ==highlight==
     - [x] Redacted text ||redacted||
+    - [ ] Inline math $$math$$
     - [ ] Spans !!.custom.classes span!!
     - [ ] Selectors and anchors #anchor .class
     - [ ] Code blocks 
@@ -3217,38 +3218,6 @@ repository:
 
   # Regular expressions
 
-  old-regexp-patterns:
-    patterns:
-      - applyEndPatternLast: true
-        comment: Pattern section
-        begin: (/>)\s*
-        end: \s*(</)(\p{L}*)
-        name: string.regexp.pattern.ruko
-        captures:
-          1: {name: punctuation.definition.regexp.ruko}
-          2: {name: keyword.other.flag.ruko}
-        patterns:
-          - include: '#comments'
-          - include: '#regexp-patterns'
-          - comment: Replacement section
-            begin: (</>)\s*
-            end: \s*(?=</)
-            name: string.regexp.replace.ruko
-            captures:
-              1: {name: punctuation.definition.regexp.ruko}
-            patterns:
-              - include: '#back-references'
-              - include: '#xml-regex-content'
-      - comment: Pattern section
-        begin: (/)\s*
-        end: \s*(/)(\p{L}*)
-        name: string.regexp.pattern.ruko
-        captures:
-          1: {name: punctuation.definition.regexp.ruko}
-          2: {name: keyword.other.flag.ruko}
-        patterns:
-          - include: '#regexp-patterns'
-
   regexps:
     applyEndPatternLast: true
     begin: |
@@ -3295,28 +3264,8 @@ repository:
     name: meta.regexp.ruko
     patterns:
       - applyEndPatternLast: true
-        comment: Multi-line pattern section
-        begin: (/>)\s*
-        end: \s*(</)(\p{L}*)
-        name: string.regexp.pattern.ruko
-        captures:
-          1: {name: punctuation.definition.regexp.ruko}
-          2: {name: keyword.other.flag.ruko}
-        patterns:
-          - include: '#comments'
-          - include: '#regexp-patterns'
-          - comment: Multi-line replacement section
-            begin: (:)\s*
-            end: \s*(\|)|\s*(?=</)
-            name: string.regexp.replace.ruko
-            captures:
-              1: {name: punctuation.definition.regexp.ruko}
-            patterns:
-              - include: '#back-references'
-              - include: '#xml-regex-content'
-      - applyEndPatternLast: true
         comment: Single-line pattern section
-        begin: (/)(?![/>])\s*
+        begin: (/)(?!/)\s*
         end: \s*(/)(\p{L}*)
         name: string.regexp.pattern.ruko
         captures:
@@ -6957,7 +6906,7 @@ repository:
       - include: '#sort-clause'
       - include: '#select-clause'
       - include: '#group-clause'
-      - include: '#limit-clause'
+      - include: '#take-clause'
       - include: '#reduce-clause'
 
     repository:
@@ -7059,7 +7008,7 @@ repository:
           - include: '#query-body'
           - include: $self
 
-      limit-clause:
+      take-clause:
         begin: |
           (?x)
           \s*
@@ -8677,7 +8626,7 @@ repository:
         captures:
           1: {name: punctuation.definition.sequence.ruko}
         patterns:
-          - include: '#message'
+          - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
       - begin: |
@@ -8699,7 +8648,7 @@ repository:
         captures:
           1: {name: punctuation.definition.array.ruko}
         patterns:
-          - include: '#message'
+          - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
       - begin: |
@@ -8714,7 +8663,7 @@ repository:
         captures:
           1: {name: punctuation.definition.attribute-selector.ruko}
         patterns:
-          - include: '#message'
+          - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
       - begin: (\#\[)\s*
@@ -8723,7 +8672,7 @@ repository:
         captures:
           1: {name: punctuation.definition.sequence.ruko}
         patterns:
-          - include: '#message'
+          - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
       - begin: (\[)\s*
@@ -8732,20 +8681,14 @@ repository:
         captures:
           1: {name: punctuation.definition.array.ruko}
         patterns:
-          - include: '#message'
+          - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
 
-  # Sub-expressions
-  s-expression:
-    patterns:
-      - include: '#function-calls'
-      - include: '#literals'
-      - include: '#constants'
-
   # Objective-C-style messages
-  message:
+  message-passing:
     patterns:
+      - include: '#literals'
       - include: '#constants'
       - applyEndPatternLast: true
         begin: |
@@ -9018,6 +8961,7 @@ repository:
                   4: {name: variable.other.property.ruko}
       - include: '#function-calls'
       - include: '#type-signature'
+
   # Support
 
   css-property-names:
