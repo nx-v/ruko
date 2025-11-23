@@ -478,7 +478,7 @@ repository:
         patterns:
           - match: ','
             name: punctuation.separator.mapping.ruko
-          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*):(?=['"`({\[\w\s]|$)
+          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*):(?=(?:['"`\w\s]|\#?[(\[{])|$)
             name: punctuation.separator.key-value.ruko
 
     patterns:
@@ -752,7 +752,7 @@ repository:
   type-operators:
     unused:
       - comment: Function types
-        match: (?:^|\s+)(?:(\|)|(>))(?=['"`({\[\w])|(?<=['"`)}\]\w])(?:(\|)|(<))(?:$|\s+)
+        match: (?:^|\s+)(?:(\|)|(>))(?=(?:['"`\w]|\#?[(\[{]))|(?<=['"`)}\]\w])(?:(\|)|(<))(?:$|\s+)
         captures:
           1: {name: keyword.operator.type.function.ruko}
           2: {name: keyword.operator.type.channel.ruko}
@@ -772,7 +772,7 @@ repository:
       - match: \s*(<--?|<~~?|<==?)
         name: keyword.operator.type.channel.ruko
       - comment: type unions
-        match: (?<=^|[\s({\[])(\|)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\|)(?=['"`({\[\w])
+        match: (?<=^|[\s({\[])(\|)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\|)(?=(?:['"`\w]|\#?[(\[{]))
         captures:
           1: {name: keyword.operator.union.ruko}
           2: {name: keyword.operator.union.ruko}
@@ -5584,11 +5584,11 @@ repository:
       (?=
         \s*
         (?: # function application, composition and piping
-            (?: [$@] | <\|+ | <!+ | <[-+]) ['"`({\[\w\s]
+            (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{])
           | # C-style function call
             (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({]
           | # generics
-            (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* ['"`({\[\w]
+            (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{])
           | # macro calls
             ! \#? [({]
           | # strings and symbols
@@ -5713,9 +5713,9 @@ repository:
                   | \#? [(\[{] # opening brackets
                 )
               )
-              | \s (?: [$@] | <\|+ | <!+ | <[-+]) ['"`({\[\w\s] # function application, composition and piping
+              | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
               | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({] # C-style function call
-              | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* ['"`({\[\w] # generics
+              | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | ! \#? [({] # macro calls
               | \s* (?:
                   (?:\w*|[\\$#%]*)['"] # quoted string literals
@@ -6108,16 +6108,16 @@ repository:
         captures:
           1: {name: keyword.operator.macro.ruko}
       - comment: '? ternary operator'
-        begin: (?<=^|[\s({\[])(\?)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\?)(?=['"`({\[\w])
-        end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=['"`({\[\w])
+        begin: (?<=^|[\s({\[])(\?)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\?)(?=(?:['"`\w]|\#?[(\[{]))
+        end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=(?:['"`\w]|\#?[(\[{]))
         captures:
           1: {name: keyword.operator.conditional.ruko}
           2: {name: keyword.operator.conditional.ruko}
         patterns:
           - include: $self
       - comment: '! ternary operator'
-        begin: (?<=^|[\s({\[])(\!)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\!)(?=['"`({\[\w])
-        end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=['"`({\[\w])
+        begin: (?<=^|[\s({\[])(\!)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\!)(?=(?:['"`\w]|\#?[(\[{]))
+        end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=(?:['"`\w]|\#?[(\[{]))
         captures:
           1: {name: keyword.operator.ternary.ruko}
           2: {name: keyword.operator.ternary.ruko}
@@ -6434,7 +6434,7 @@ repository:
           [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
         )
       )
-      (?=['"`({\[\w]) # opening
+      (?=(?:['"`\w]|\#?[(\[{])) # opening
     captures:
       1: {name: keyword.operator.optional.ruko}
       2: {name: keyword.operator.assert.ruko}
@@ -6500,7 +6500,7 @@ repository:
         |[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]
       ) # 19
       (?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*
-      ['"`({\[\w])
+      (?:['"`\w]|\#?[(\[{]))
     name: keyword.operator.prefix.ruko
     captures:
       1: {name: keyword.operator.pointer.ruko}
@@ -8026,16 +8026,16 @@ repository:
 
   object-value:
     patterns:
-      - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=['"`({\[\w\s]|$))
+      - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
         name: variable.other.constant.ruko
-      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=['"`({\[\w\s]|$)
+      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
         name: variable.other.constant.ruko
 
   object-argument:
     patterns:
-      - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=['"`({\[\w\s]|$))
+      - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
         name: variable.parameter.ruko
-      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=['"`({\[\w\s]|$)
+      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
         name: variable.parameter.ruko
 
   as-keyword:
@@ -8088,7 +8088,7 @@ repository:
       - include: '#illegal'
 
   default-value:
-    begin: (?<=^|[\s({\[])(\=)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\=)(?=['"`({\[\w])
+    begin: (?<=^|[\s({\[])(\=)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\=)(?=(?:['"`\w]|\#?[(\[{]))
     captures:
       1: {name: keyword.operator.assignment.ruko}
       2: {name: keyword.operator.assignment.ruko}
@@ -8285,7 +8285,7 @@ repository:
           1: {name: punctuation.type.arguments.ruko}
       - comment: Support for Turbofish syntax
         name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])([?!:]:|[?!]?\.|[?!-]>)(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*['"`({\[\w])
+        begin: (?<=^|['"`)}\]>\w\s])([?!:]:|[?!]?\.|[?!-]>)(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|['"`)}\]>\w])()(>)(!\b)?
         captures:
           1:
@@ -8352,7 +8352,7 @@ repository:
           1: {name: punctuation.type.arguments.ruko}
       - comment: Type arguments. This is complicated since we don't want to match things like foo < 123 || bar > baz
         name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*['"`({\[\w])
+        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|['"`)}\]>\w]?)(>)
         captures:
           1: {name: punctuation.type.arguments.ruko}
@@ -8371,7 +8371,7 @@ repository:
         patterns:
           - match: ','
             name: punctuation.separator.mapping.ruko
-          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*):(?=['"`({\[\w\s]|$)
+          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*):(?=(?:['"`\w\s]|\#?[(\[{])|$)
             name: punctuation.separator.key-value.ruko
 
     patterns:
