@@ -5708,7 +5708,8 @@ repository:
                     (?:\w*|[\\$#%]*)['"] # quoted string literals
                   | `\s*(?=\N) # unquoted string literals 
                   | :[\p{Pc}\p{L}]\w* # symbols
-                  | ['"`({\[\w\s] # brackets and literals
+                  | ['"`\w] # literals
+                  | \#? [(\[{] # brackets
                 )
               )
               | \s (?: [$@] | <\|+ | <!+ | <[-+]) ['"`({\[\w\s] # function application, composition and piping
@@ -5719,7 +5720,8 @@ repository:
                   (?:\w*|[\\$#%]*)['"] # quoted string literals
                 | `\s*(?=\N) # unquoted string literals 
                 | :[\p{Pc}\p{L}]\w* # symbols
-                | \s+ [(\[] # brackets
+                | ['"`\w] # literals
+                | \s+ \#? [(\[] # brackets
               )
             )
           )
@@ -6707,7 +6709,7 @@ repository:
       - include: '#expression-keywords'
       - comment: Custom modifiers
         match: \s*\b([\p{Pc}\p{L}]\w*)\b\s*
-        name: storage.type.property.ruko
+        name: storage.modifier.specifier.ruko
 
   declaration-keywords:
     patterns:
@@ -7416,7 +7418,7 @@ repository:
       - include: '#line-continuation'
       - match: *constraint-keyword
         name: keyword.other.$1.ruko
-      - match: \b([\p{Pc}\p{L}]\w*)\b(?=::|\.)
+      - match: \b([\p{Pc}\p{L}]\w*)\b(?=::|\.|->|\\)
         name: entity.name.namespace.ruko
       - include: '#type-square-brackets'
       - include: '#type-signature'
@@ -7447,16 +7449,58 @@ repository:
         captures:
           1: {name: punctuation.definition.block.ruko}
         patterns:
+          - include: '#modifier-clause'
           - include: $self
       - include: '#embedded-expressions'
       - include: '#embedded-formatting'
       - include: '#embedded-arguments'
       - include: '#brackets'
       - include: '#literals'
-      - match: ::|\.|\\
+      - match: ::|\.|->|\\
         name: punctuation.separator.namespace.ruko
       - match: \s+
         name: meta.block.ruko
+
+  modifier-clause:
+    comment: |
+      Modifiers for declarations in classes, objects, traits, etc.
+    patterns:
+      - match: |
+          (?x)
+          ^\s*\b((?:
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|has|old|new|del
+                |unset|(?:de)?ref|and|x?or|not
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
+                |func|pro[pc]|type|class|actor|trait
+                |impl|enum|mod(?:el|ule)|struct|record
+                |union|iter|macro|query|elem|temp
+                |object|realm|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def(?:er)?
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
+              )
+              \b
+            )
+            [\p{Pc}\p{L}]\w* # identifier
+            \b\s*
+          )+)(:)\s*
+        captures:
+          1:
+            name: storage.modifier.specifier.ruko
+            patterns: [include: '#modifiers']
+          2:
+            name: punctuation.separator.colon.ruko
 
   function-clause:
     patterns:
@@ -7739,7 +7783,6 @@ repository:
       - include: '#if-clause'
       - include: '#match-clause'
       - include: '#switch-clause'
-      - include: '#try-clause'
       - include: '#catch-clause'
       - include: '#with-clause'
       - include: '#do-clause'
@@ -7790,19 +7833,6 @@ repository:
                 captures:
                   1: {name: keyword.operator.assignment.ruko}
 
-      try-clause:
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(try|then)\b\s*
-        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
-        name: meta.try.ruko
-        beginCaptures:
-          1: {name: keyword.control.error.ruko}
-        endCaptures:
-          1: {name: punctuation.definition.section.ruko}
-        patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
-            name: keyword.control.error.ruko
-          - include: $self
-
       catch-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(catch)\b\s*
         end: \s*(?=[,;)}\]])|$
@@ -7842,7 +7872,7 @@ repository:
                   1: {name: keyword.control.error.ruko}
                 patterns:
                   - include: '#types'
-              - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|guard|when|as)\b\s*
+              - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|when\s+not|when|guard|as)\b\s*
                 name: keyword.control.error.ruko
               - include: '#type-keywords'
               - include: $self
@@ -7854,20 +7884,20 @@ repository:
         beginCaptures:
           1: {name: keyword.control.loop.ruko}
         endCaptures:
-          1: {name: punctuation.definition.block.ruko}
+          1: {name: punctuation.separator.colon.ruko}
         patterns:
           - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
             name: keyword.control.loop.ruko
           - include: $self
 
       if-clause:
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|guard|when)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|when\s+not|when|guard)\b\s*
         end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
         name: meta.if.ruko
         beginCaptures:
           1: {name: keyword.control.conditional.ruko}
         endCaptures:
-          1: {name: punctuation.definition.block.ruko}
+          1: {name: punctuation.separator.colon.ruko}
         patterns:
           - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
             name: keyword.control.conditional.ruko
@@ -7912,7 +7942,7 @@ repository:
                   1: {name: keyword.control.match.ruko}
                 patterns:
                   - include: '#types'
-              - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|guard|when|as)\b\s*
+              - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|when\s+not|when|guard|as)\b\s*
                 name: keyword.control.match.ruko
               - include: '#type-keywords'
               - include: $self
@@ -7956,7 +7986,7 @@ repository:
                   1: {name: keyword.control.switch.ruko}
                 patterns:
                   - include: '#types'
-              - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|guard|when|as)\b\s*
+              - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|when\s+not|when|guard|as)\b\s*
                 name: keyword.control.switch.ruko
               - include: '#type-keywords'
               - include: $self
@@ -7968,7 +7998,7 @@ repository:
         beginCaptures:
           1: {name: keyword.control.with.ruko}
         endCaptures:
-          1: {name: punctuation.definition.block.ruko}
+          1: {name: punctuation.separator.colon.ruko}
         patterns:
           - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
             name: keyword.control.with.ruko
