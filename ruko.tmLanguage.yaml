@@ -236,7 +236,8 @@ define:
       (?: # keywords
         [io]n|of|[ai]s|has|old|new|del
         |unset|(?:de)?ref|and|x?or|not
-        |const|let|mut|dyn|va[rl]|use
+        |const|let|mut|dyn|va[rl]
+        |use|given|track|state
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
         |union|iter|macro|query|elem|temp
@@ -265,7 +266,8 @@ define:
       (?: # keywords
         [io]n|of|[ai]s|has|old|new|del
         |unset|(?:de)?ref|and|x?or|not
-        |const|let|mut|dyn|va[rl]|use
+        |const|let|mut|dyn|va[rl]
+        |use|given|track|state
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
         |union|iter|macro|query|elem|temp
@@ -323,9 +325,6 @@ repository:
       - include: '#illegal'
       - include: '#space'
 
-# Directives
-
-directives:
   # Ignore Patterns
 
   ignore-long-lines:
@@ -393,7 +392,8 @@ directives:
         (?: # keywords
           [io]n|of|[ai]s|has|old|new|del
           |unset|(?:de)?ref|and|x?or|not
-          |const|let|mut|dyn|va[rl]|use
+          |const|let|mut|dyn|va[rl]
+          |use|given|track|state
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
           |union|iter|macro|query|elem|temp
@@ -495,7 +495,8 @@ directives:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]|use
+                const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |case
               )
             \b
@@ -639,7 +640,8 @@ directives:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]|use
+                const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |case
               )
             \b
@@ -699,7 +701,8 @@ directives:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]|use
+                const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |case
               )
             \b
@@ -775,7 +778,8 @@ directives:
         name: keyword.operator.type.function.ruko
       - match: \s*(<--?|<~~?|<==?)
         name: keyword.operator.type.channel.ruko
-      - comment: prefix type operators
+      - &prefix-type-operators
+        comment: prefix type operators
         match: |
           (?x)
           \s*
@@ -788,10 +792,10 @@ directives:
             |(\^)       # borrow 
             |(\!)       # negation
             |(\~)       # destructor
-            |(\?)       # optional/existential
+            |(\?)       # optional
             |(\\)       # lifetime
           ) # 19
-          \B
+          (?=[\w'"`]|\#?[(\[{])
         captures:
           1: {name: keyword.operator.pointer.ruko}
           2: {name: keyword.operator.reference.ruko}
@@ -803,21 +807,24 @@ directives:
           8: {name: keyword.operator.destructor.ruko}
           9: {name: keyword.operator.optional.ruko}
           10: {name: keyword.operator.lifetime.ruko}
-      - comment: binary type operators
+      - &infix-type-operators
+        comment: infix type operators
         match: |
           (?x)
           \s*
           (?<=^|[,;'"`({\[)}\]\w\s]|\\.)
             (?:
-               (\+)         # sum
+               (\+)         # sum (i.e. implements)
               |(\-)         # difference
               |(\|)         # union
               |(\&)         # intersection
               |(\^)         # exclusion 
-              |(<:|>:)      # strict super/subtype
+              |(<:|>:)      # strict super/subtype (i.e. extends)
               |(<=|>=)      # super/subtype
               |(!=|==)      # inequality/equality
-              |(<<|>>)      # variance
+              |(<<|>>)      # variance (i.e. covariant/contravariant)
+              |(===|!==)    # identity/non-identity
+              |(=~|!~)      # pattern match/non-pattern match
             )
           (?=$|[,;'"`({\[)}\]\w\s])
         captures:
@@ -830,53 +837,27 @@ directives:
           7: {name: keyword.operator.relation.ruko}
           8: {name: keyword.operator.comparison.ruko}
           9: {name: keyword.operator.variant.ruko}
+      - &suffix-type-operators
+        comment: suffix type operators
+        match: |
+          (?x)
+          \s*
+          (?<=[\w'"`)\]}]|\\.)
+          (?:
+             (\!)       # negation
+            |(\?)       # existential
+          ) # 19
+          \B
+        captures:
+          1: {name: keyword.operator.assertion.ruko}
+          2: {name: keyword.operator.existential.ruko}
 
   parameter-type-operators:
     patterns:
-      - match: \&
-        name: keyword.operator.reference.ruko
-      - match: \b\?\B
-        name: keyword.operator.spread.ruko
-      - match: \*
-        name: keyword.operator.pointer.ruko
-      - match: \b\?\B
-        name: keyword.operator.existential.ruko
-      - match: \?
-        name: keyword.operator.optional.ruko
-      - match: \#
-        name: keyword.operator.macro.ruko
-      - match: \^
-        name: keyword.operator.borrow.ruko
-      - match: \@
-        name: keyword.operator.decorator.ruko
-      - match: \+
-        name: keyword.operator.increment.ruko
-      - match: \-
-        name: keyword.operator.decrement.ruko
-      - match: \\
-        name: keyword.operator.escape.ruko
-      - match: \%
-        name: keyword.operator.format.ruko
-      - match: \b\!\B
-        name: keyword.operator.assert.ruko
-      - match: \!
-        name: keyword.operator.logical.ruko
-      - match: \/
-        name: keyword.operator.match.ruko
-      - match: \.
-        name: keyword.operator.accessor.ruko
-      - match: \b\~\B
-        name: keyword.operator.negation.ruko
-      - match: \~
-        name: keyword.operator.bitwise.ruko
-      - match: \$
-        name: keyword.operator.macro.dollar.ruko
-      - match: \<|\>
-        name: keyword.operator.channel.ruko
-      - match: \=
-        name: keyword.operator.match.ruko
-      - match: '[\p{P}\p{S}&&[^,;''"`({\[|)}\]\p{Pc}]]*'
-        name: keyword.operator.ruko
+      - *prefix-type-operators
+      - *infix-type-operators
+      - *suffix-type-operators
+      - include: '#illegal'
 
   # Literals and Constants
 
@@ -3031,7 +3012,8 @@ directives:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
+              |const|let|mut|dyn|va[rl]
+              |use|given|track|state
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -3114,7 +3096,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -3257,7 +3240,8 @@ directives:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
+              |const|let|mut|dyn|va[rl]
+              |use|given|track|state
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -3861,7 +3845,8 @@ directives:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
+              |const|let|mut|dyn|va[rl]
+              |use|given|track|state
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -5633,7 +5618,8 @@ directives:
                 (?: # keywords
                   [io]n|of|[ai]s|has|old|new|del
                   |unset|(?:de)?ref|and|x?or|not
-                  |const|let|mut|dyn|va[rl]|use
+                  |const|let|mut|dyn|va[rl]
+                  |use|given|track|state
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -5659,7 +5645,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -5695,7 +5682,8 @@ directives:
                   (?: # keywords
                     [io]n|of|[ai]s|has|old|new|del
                     |unset|(?:de)?ref|and|x?or|not
-                    |const|let|mut|dyn|va[rl]|use
+                    |const|let|mut|dyn|va[rl]
+                    |use|given|track|state
                     |func|pro[pc]|type|class|actor|trait
                     |impl|enum|mod(?:el|ule)|struct|record
                     |union|iter|macro|query|elem|temp
@@ -5756,7 +5744,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -5956,7 +5945,8 @@ directives:
               | [(|]\. \s # uncurried function
               | (?:^|[,;'"({\[)}\]|\s])
                 \b (?:
-                  const|let|mut|dyn|va[rl]|use
+                  const|let|mut|dyn|va[rl]
+                  |use|given|track|state
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -6609,7 +6599,8 @@ directives:
       (?=
         \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?:
-          const|let|mut|dyn|va[rl]|use
+          const|let|mut|dyn|va[rl]
+          |use|given|track|state
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
           |union|iter|macro|query|elem|temp
@@ -6634,7 +6625,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -6660,7 +6652,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -6723,7 +6716,8 @@ directives:
       - match: |
           (?x)
           \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(
-            const|let|mut|dyn|va[rl]|use
+            const|let|mut|dyn|va[rl]
+            |use|given|track|state
           )\b\s*
         name: storage.type.ruko
       - match: |
@@ -6870,7 +6864,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7176,7 +7171,7 @@ directives:
 
       variable:
         applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(const|let|mut|dyn|va[rl]|use|use|given)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(const|let|mut|dyn|va[rl]|use|given|track|state)\b\s*
         end: (?=)|$
         beginCaptures:
           1: {name: storage.type.variable.ruko}
@@ -7479,7 +7474,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7526,7 +7522,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7578,7 +7575,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7630,7 +7628,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7682,7 +7681,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7741,7 +7741,8 @@ directives:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
+              |const|let|mut|dyn|va[rl]
+              |use|given|track|state
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -8145,7 +8146,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8197,7 +8199,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8407,7 +8410,8 @@ directives:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]|use
+                const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |case
               )
             \b
@@ -8550,7 +8554,8 @@ directives:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]|use
+                const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |case
               )
             \b
@@ -8609,7 +8614,8 @@ directives:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]|use
+                const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |case
               )
             \b
@@ -8731,7 +8737,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8817,7 +8824,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8849,7 +8857,8 @@ directives:
                 (?: # keywords
                   [io]n|of|[ai]s|has|old|new|del
                   |unset|(?:de)?ref|and|x?or|not
-                  |const|let|mut|dyn|va[rl]|use
+                  |const|let|mut|dyn|va[rl]
+                  |use|given|track|state
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -8912,7 +8921,8 @@ directives:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
+                |const|let|mut|dyn|va[rl]
+                |use|given|track|state
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
