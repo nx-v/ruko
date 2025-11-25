@@ -20,6 +20,11 @@ information: |
   Last updated: November 22, 2025
 
 todo: |
+  - Add support for reflection and meta-programming syntax.
+    Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
+    for inspiration.
+    https://safecpp.org/draft.html
+    https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
   - [ ] Backslashes may begin identifiers to strop them to avoid keyword conflicts.
   - [ ] Rework inline Markdown syntax. Refer to Texy, Textile, AsciiDoc
     and cousins for inspiration. Reimplement with these extensions:
@@ -231,8 +236,7 @@ define:
       (?: # keywords
         [io]n|of|[ai]s|has|old|new|del
         |unset|(?:de)?ref|and|x?or|not
-        |const|let|mut|dyn|va[rl]
-        |use|given|track|state
+        |const|let|mut|dyn|va[rl]|use
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
         |union|iter|macro|query|elem|temp
@@ -261,8 +265,7 @@ define:
       (?: # keywords
         [io]n|of|[ai]s|has|old|new|del
         |unset|(?:de)?ref|and|x?or|not
-        |const|let|mut|dyn|va[rl]
-        |use|given|track|state
+        |const|let|mut|dyn|va[rl]|use
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
         |union|iter|macro|query|elem|temp
@@ -320,6 +323,9 @@ repository:
       - include: '#illegal'
       - include: '#space'
 
+# Directives
+
+directives:
   # Ignore Patterns
 
   ignore-long-lines:
@@ -387,8 +393,7 @@ repository:
         (?: # keywords
           [io]n|of|[ai]s|has|old|new|del
           |unset|(?:de)?ref|and|x?or|not
-          |const|let|mut|dyn|va[rl]
-          |use|given|track|state
+          |const|let|mut|dyn|va[rl]|use
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
           |union|iter|macro|query|elem|temp
@@ -490,8 +495,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                const|let|mut|dyn|va[rl]|use
                 |case
               )
             \b
@@ -635,8 +639,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                const|let|mut|dyn|va[rl]|use
                 |case
               )
             \b
@@ -696,8 +699,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                const|let|mut|dyn|va[rl]|use
                 |case
               )
             \b
@@ -773,52 +775,61 @@ repository:
         name: keyword.operator.type.function.ruko
       - match: \s*(<--?|<~~?|<==?)
         name: keyword.operator.type.channel.ruko
-      - comment: type unions
-        match: (?<=^|[\s({\[])(\|)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\|)(?=(?:['"`\w]|\#?[(\[{]))
-        captures:
-          1: {name: keyword.operator.union.ruko}
-          2: {name: keyword.operator.union.ruko}
-      - comment: pointers
-        match: (?<=^|[,;'"`({\[)}\]\w\s*&]|\\.)(\*)(?=['"`({\[\w*&])|(?<=['"`)}\]\w*&]|\\.)(\*)(?=$|[,;'"`({\[)}\]\w\s*&])|(?<=[(\[{*&]\s*)(\*)(?=\s*[*&)\]}])
-        captures:
-          1: {name: keyword.operator.pointer.ruko}
-          2: {name: keyword.operator.pointer.ruko}
-          3: {name: keyword.operator.pointer.ruko}
-      - comment: references
-        match: (?<=^|[,;'"`({\[)}\]\w\s*&]|\\.)(\&)(?=['"`({\[\w*&])|(?<=['"`)}\]\w*&]|\\.)(\&)(?=$|[,;'"`({\[)}\]\w\s*&])|(?<=[(\[{*&]\s*)(\&)(?=\s*[*&)\]}])
-        captures:
-          1: {name: keyword.operator.reference.ruko}
-          2: {name: keyword.operator.reference.ruko}
-          3: {name: keyword.operator.reference.ruko}
-      - comment: destructor
-        match: (~)(?=\s*[\p{Pc}\p{L}])
-        captures:
-          1: {name: keyword.operator.destructor.ruko}
-      - comment: type operators
+      - comment: prefix type operators
         match: |
           (?x)
+          \s*
+          (?:
+             (\*)       # pointer
+            |(\&)       # reference
+            |(\%)       # format
+            |(\#)       # macro
+            |(\@)       # decorator
+            |(\^)       # borrow 
+            |(\!)       # negation
+            |(\~)       # destructor
+            |(\?)       # optional/existential
+            |(\\)       # lifetime
+          ) # 19
+          \B
+        captures:
+          1: {name: keyword.operator.pointer.ruko}
+          2: {name: keyword.operator.reference.ruko}
+          3: {name: keyword.operator.format.ruko}
+          4: {name: keyword.operator.macro.ruko}
+          5: {name: keyword.operator.decorator.ruko}
+          6: {name: keyword.operator.borrow.ruko}
+          7: {name: keyword.operator.negation.ruko}
+          8: {name: keyword.operator.destructor.ruko}
+          9: {name: keyword.operator.optional.ruko}
+          10: {name: keyword.operator.lifetime.ruko}
+      - comment: binary type operators
+        match: |
+          (?x)
+          \s*
           (?<=^|[,;'"`({\[)}\]\w\s]|\\.)
             (?:
-               (\+)|(\-)|(\*)|(\/)|(\%)|(\!)
-              |(\?)|(\&)|(\^)|(\~)|(\$)|(\\)
-              |(:[<>]|[<>]:)|(\#)
+               (\+)         # sum
+              |(\-)         # difference
+              |(\|)         # union
+              |(\&)         # intersection
+              |(\^)         # exclusion 
+              |(<:|>:)      # strict super/subtype
+              |(<=|>=)      # super/subtype
+              |(!=|==)      # inequality/equality
+              |(<<|>>)      # variance
             )
           (?=$|[,;'"`({\[)}\]\w\s])
         captures:
           1: {name: keyword.operator.sum.ruko}
           2: {name: keyword.operator.difference.ruko}
-          3: {name: keyword.operator.product.ruko}
-          4: {name: keyword.operator.quotient.ruko}
-          5: {name: keyword.operator.remainder.ruko}
-          6: {name: keyword.operator.only.ruko}
-          7: {name: keyword.operator.maybe.ruko}
-          8: {name: keyword.operator.intersection.ruko}
-          9: {name: keyword.operator.symmetric.ruko}
-          10: {name: keyword.operator.negation.ruko}
-          11: {name: keyword.operator.macro.dollar.ruko}
-          12: {name: keyword.operator.successor.ruko}
-          13: {name: keyword.operator.class.ruko}
-          14: {name: keyword.operator.typeid.ruko}
+          3: {name: keyword.operator.union.ruko}
+          4: {name: keyword.operator.intersection.ruko}
+          5: {name: keyword.operator.exclusion.ruko}
+          6: {name: keyword.operator.relation.ruko}
+          7: {name: keyword.operator.relation.ruko}
+          8: {name: keyword.operator.comparison.ruko}
+          9: {name: keyword.operator.variant.ruko}
 
   parameter-type-operators:
     patterns:
@@ -835,7 +846,7 @@ repository:
       - match: \#
         name: keyword.operator.macro.ruko
       - match: \^
-        name: keyword.operator.function.ruko
+        name: keyword.operator.borrow.ruko
       - match: \@
         name: keyword.operator.decorator.ruko
       - match: \+
@@ -3020,8 +3031,7 @@ repository:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]
-              |use|given|track|state
+              |const|let|mut|dyn|va[rl]|use
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -3104,8 +3114,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -3248,8 +3257,7 @@ repository:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]
-              |use|given|track|state
+              |const|let|mut|dyn|va[rl]|use
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -3853,8 +3861,7 @@ repository:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]
-              |use|given|track|state
+              |const|let|mut|dyn|va[rl]|use
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -5626,8 +5633,7 @@ repository:
                 (?: # keywords
                   [io]n|of|[ai]s|has|old|new|del
                   |unset|(?:de)?ref|and|x?or|not
-                  |const|let|mut|dyn|va[rl]
-                  |use|given|track|state
+                  |const|let|mut|dyn|va[rl]|use
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -5653,8 +5659,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -5690,8 +5695,7 @@ repository:
                   (?: # keywords
                     [io]n|of|[ai]s|has|old|new|del
                     |unset|(?:de)?ref|and|x?or|not
-                    |const|let|mut|dyn|va[rl]
-                    |use|given|track|state
+                    |const|let|mut|dyn|va[rl]|use
                     |func|pro[pc]|type|class|actor|trait
                     |impl|enum|mod(?:el|ule)|struct|record
                     |union|iter|macro|query|elem|temp
@@ -5752,8 +5756,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -5799,12 +5802,10 @@ repository:
             ([\p{Pc}\p{L}]\w*)
           )
         \b
-          (?= # opening bracket
-              \#? [({]
+          (?= # opening macro, destructor, or function call
+              [!~]? \#? [({]
             | generics
-              [?!:]: < | [?!]?\. < | <
-            | # macro calls
-              ! \#? [({]
+              [?!:]: < | [?!]?\. < | [?!-]> < | <
           )
         |
         (?<= ^ # beginning of line
@@ -5824,12 +5825,10 @@ repository:
             ([\p{Pc}\p{L}]\w*)
           )
         \b
-          (?= # opening bracket
-              \#? [({]
+          (?= # opening macro, destructor, or function call
+              [!~]? \#? [({]
             | generics
-              [?!:]: < | [?!]?\. < | <
-            | # macro and destructor calls
-              [!~] \#? [({]
+              [?!:]: < | [?!]?\. < | [?!-]> < | <
           )
       )
     captures:
@@ -5957,8 +5956,7 @@ repository:
               | [(|]\. \s # uncurried function
               | (?:^|[,;'"({\[)}\]|\s])
                 \b (?:
-                  const|let|mut|dyn|va[rl]
-                  |use|given|track|state
+                  const|let|mut|dyn|va[rl]|use
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -6488,7 +6486,7 @@ repository:
     match: |
       (?x)
       (?:
-        (\*) # 1
+         (\*) # 1
         |(\/) # 2
         |(\+) # 3
         |(\-) # 4
@@ -6518,7 +6516,7 @@ repository:
       4: {name: keyword.operator.decrement.ruko}
       5: {name: keyword.operator.reference.ruko}
       6: {name: keyword.operator.union.ruko}
-      7: {name: keyword.operator.symmetric.ruko}
+      7: {name: keyword.operator.borrow.ruko}
       8: {name: keyword.operator.logical.ruko}
       9: {name: keyword.operator.private.ruko}
       10: {name: keyword.operator.decorator.ruko}
@@ -6539,7 +6537,7 @@ repository:
       (?<=(?:['"`)}\]\w]|\\.)
         [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*)
       (?:
-        (\*) # 1
+         (\*) # 1
         |(\/) # 2
         |(\+) # 3
         |(\-) # 4
@@ -6567,7 +6565,7 @@ repository:
       4: {name: keyword.operator.decrement.ruko}
       5: {name: keyword.operator.reference.ruko}
       6: {name: keyword.operator.union.ruko}
-      7: {name: keyword.operator.symmetric.ruko}
+      7: {name: keyword.operator.borrow.ruko}
       8: {name: keyword.operator.logical.ruko}
       9: {name: keyword.operator.private.ruko}
       10: {name: keyword.operator.decorator.ruko}
@@ -6611,8 +6609,7 @@ repository:
       (?=
         \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?:
-          const|let|mut|dyn|va[rl]
-          |use|given|track|state
+          const|let|mut|dyn|va[rl]|use
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
           |union|iter|macro|query|elem|temp
@@ -6637,8 +6634,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -6664,8 +6660,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -6728,8 +6723,7 @@ repository:
       - match: |
           (?x)
           \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(
-            const|let|mut|dyn|va[rl]
-            |use|given|track|state
+            const|let|mut|dyn|va[rl]|use
           )\b\s*
         name: storage.type.ruko
       - match: |
@@ -6876,8 +6870,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7183,7 +7176,7 @@ repository:
 
       variable:
         applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(const|let|mut|dyn|va[rl]|use|given|track|state)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(const|let|mut|dyn|va[rl]|use|use|given)\b\s*
         end: (?=)|$
         beginCaptures:
           1: {name: storage.type.variable.ruko}
@@ -7438,7 +7431,6 @@ repository:
       - match: \s*(?<!\*)\*(?!\*)\s*
         name: keyword.generator.asterisk.ruko
       - include: '#type-operators'
-      - include: '#operators'
       - include: '#comments'
       - include: '#comma'
       - include: '#line-continuation'
@@ -7487,8 +7479,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7535,8 +7526,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7588,8 +7578,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7641,8 +7630,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7694,8 +7682,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7754,8 +7741,7 @@ repository:
             (?: # keywords
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
-              |const|let|mut|dyn|va[rl]
-              |use|given|track|state
+              |const|let|mut|dyn|va[rl]|use
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -8159,8 +8145,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8212,8 +8197,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8423,8 +8407,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                const|let|mut|dyn|va[rl]|use
                 |case
               )
             \b
@@ -8567,8 +8550,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                const|let|mut|dyn|va[rl]|use
                 |case
               )
             \b
@@ -8627,8 +8609,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                const|let|mut|dyn|va[rl]|use
                 |case
               )
             \b
@@ -8750,8 +8731,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8837,8 +8817,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8870,8 +8849,7 @@ repository:
                 (?: # keywords
                   [io]n|of|[ai]s|has|old|new|del
                   |unset|(?:de)?ref|and|x?or|not
-                  |const|let|mut|dyn|va[rl]
-                  |use|given|track|state
+                  |const|let|mut|dyn|va[rl]|use
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -8934,8 +8912,7 @@ repository:
               (?: # keywords
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]
-                |use|given|track|state
+                |const|let|mut|dyn|va[rl]|use
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -9388,8 +9365,50 @@ repository:
         match: \b(Vertex|Normal|Tangent|TexCoord0|TexCoord1)\b
       - name: support.type.property-value.blendoperations.shaderlab
         match: \b(Add|Sub|RevSub|Min|Max|LogicalClear|LogicalSet|LogicalCopyInverted|LogicalCopy|LogicalNoop|LogicalInvert|LogicalAnd|LogicalNand|LogicalOr|LogicalNor|LogicalXor|LogicalEquiv|LogicalAndReverse|LogicalAndInverted|LogicalOrReverse|LogicalOrInverted)\b
-      - name: support.constant.property-value.blendfactors.shaderlab
+      - name: support.type.property-value.blendfactors.shaderlab
         match: \b(One|Zero|SrcColor|SrcAlpha|DstColor|DstAlpha|OneMinusSrcColor|OneMinusSrcAlpha|OneMinusDstColor|OneMinusDstAlpha)\b
+
+      # HLSL
+      - name: support.type.basic.hlsl
+        match: \b(bool([1-4](x[1-4])?)?|double([1-4](x[1-4])?)?|dword|float([1-4](x[1-4])?)?|half([1-4](x[1-4])?)?|int([1-4](x[1-4])?)?|matrix|min10float([1-4](x[1-4])?)?|min12int([1-4](x[1-4])?)?|min16float([1-4](x[1-4])?)?|min16int([1-4](x[1-4])?)?|min16uint([1-4](x[1-4])?)?|unsigned|uint([1-4](x[1-4])?)?|vector|void)\b
+      - name: support.modifier.hlsl
+        match: \b(column_major|const|export|extern|globallycoherent|groupshared|inline|inout|in|out|precise|row_major|shared|static|uniform|volatile)\b
+      - name: support.modifier.float.hlsl
+        match: \b(snorm|unorm)\b
+      - name: support.modifier.postfix.hlsl
+        match: \b(packoffset|register)\b
+      - name: support.modifier.interpolation.hlsl
+        match: \b(centroid|linear|nointerpolation|noperspective|sample)\b
+      - name: support.modifier.geometryshader.hlsl
+        match: \b(lineadj|line|point|triangle|triangleadj)\b
+      - name: support.type.other.hlsl
+        match: \b(string)\b
+      - name: support.type.object.hlsl
+        match: \b(AppendStructuredBuffer|Buffer|ByteAddressBuffer|ConstantBuffer|ConsumeStructuredBuffer|InputPatch|OutputPatch)\b
+      - name: support.type.object.rasterizerordered.hlsl
+        match: \b(RasterizerOrderedBuffer|RasterizerOrderedByteAddressBuffer|RasterizerOrderedStructuredBuffer|RasterizerOrderedTexture1D|RasterizerOrderedTexture1DArray|RasterizerOrderedTexture2D|RasterizerOrderedTexture2DArray|RasterizerOrderedTexture3D)\b
+      - name: support.type.object.rw.hlsl
+        match: \b(RWBuffer|RWByteAddressBuffer|RWStructuredBuffer|RWTexture1D|RWTexture1DArray|RWTexture2D|RWTexture2DArray|RWTexture3D)\b
+      - name: support.type.object.geometryshader.hlsl
+        match: \b(LineStream|PointStream|TriangleStream)\b
+      - name: support.type.sampler.legacy.hlsl
+        match: \b(sampler|sampler1D|sampler2D|sampler3D|samplerCUBE|sampler_state)\b
+      - name: support.type.sampler.hlsl
+        match: \b(SamplerState|SamplerComparisonState)\b
+      - name: support.type.texture.legacy.hlsl
+        match: \b(texture2D|textureCUBE)\b
+      - name: support.type.texture.hlsl
+        match: \b(Texture1D|Texture1DArray|Texture2D|Texture2DArray|Texture2DMS|Texture2DMSArray|Texture3D|TextureCube|TextureCubeArray)\b
+      - name: support.type.structured.hlsl
+        match: \b(cbuffer|class|interface|namespace|struct|tbuffer)\b
+      - name: support.type.fx.hlsl
+        match: \b(BlendState|DepthStencilState|RasterizerState)\b
+      - name: support.type.fx.technique.hlsl
+        match: \b(pass|technique|technique10|technique11)\b
+      - name: support.type.semantic.sm4.hlsl
+        match: \b(?i:SV_ClipDistance[0-9]*|SV_CullDistance[0-9]*|SV_Coverage|SV_Depth|SV_DepthGreaterEqual[0-9]*|SV_DepthLessEqual[0-9]*|SV_InstanceID|SV_IsFrontFace|SV_Position|SV_RenderTargetArrayIndex|SV_SampleIndex|SV_StencilRef|SV_Target[0-7]?|SV_VertexID|SV_ViewportArrayIndex)\b
+      - name: support.type.semantic.sm5.hlsl
+        match: \b(?i:SV_DispatchThreadID|SV_DomainLocation|SV_GroupID|SV_GroupIndex|SV_GroupThreadID|SV_GSInstanceID|SV_InsideTessFactor|SV_OutputControlPointID|SV_TessFactor)\b
 
       # Objective-C++
       - include: source.objcpp#anonymous_pattern_17
