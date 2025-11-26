@@ -19,15 +19,14 @@ information: |
   Last updated: November 26, 2025
 
 todo: |
-  - Fix bug where functions with prefix operators (including sigils) beginning a line are not highlighted.
   - Add support for reflection and meta-programming syntax.
     Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
     for inspiration.
     https://safecpp.org/draft.html
     https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
     - [ ] Unsafe by default, for the sake of performance. Use the 'safe' keyword to enable scoped 'safe' mode.
-    - [ ] Add splicing syntax <[ ]>.
-  - [ ] Add dynamic JSX/XML literals <(expr)> </>.
+    - [ ] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
+  - [x] Add dynamic JSX/XML literals <(expr)> </>.
   - [ ] Backslashes may begin identifiers to strop them to avoid keyword conflicts.
   - [ ] Rework inline Markdown syntax. Refer to Texy, Textile, AsciiDoc
     and cousins for inspiration. Reimplement with these extensions:
@@ -67,6 +66,12 @@ todo: |
 changelog: |
   New changes:
 
+  - Brought back Haskell-style function call syntax with 
+    space OR comma-separated arguments.
+      funcName arg1 arg2 { arg3: 10 }; or 
+      funcName arg1, arg2, { arg3: 10 }
+    This CANNOT be mixed and matched with normal function call syntax.
+      funcName(arg1, arg2, { arg3: 10 })
   - Add operator definition syntax for user-defined operators.
     oper param <suffix> -> return_type { ... }
     oper <prefix> param -> return_type { ... }
@@ -78,12 +83,6 @@ changelog: |
     string[start:end:step]
     tuple[start:end:step]
     Negative indices and arbitrary expressions are supported.
-  - Brought back Haskell-style function call syntax with 
-    space OR comma-separated arguments.
-      funcName arg1 arg2 { arg3: 10 }; or 
-      funcName arg1, arg2, { arg3: 10 }
-    This CANNOT be mixed and matched with normal function call syntax.
-      funcName(arg1, arg2, { arg3: 10 })
   - Added C(++) directives: #include, #define, #ifdef, #ifndef, #else,
     #elif, #endif, #pragma, #region, #endregion, #once, #error, #warning.
     These can be placed anywhere in the code, and will be processed before compilation.
@@ -269,7 +268,7 @@ define:
         |union|iter|macro|query|elem|temp|oper
         |object|realm|style|script|quote
         |go|defer|do|with|from|where
-        |if|else|then|guard|when
+        |if|else|then|guard|whenv
         |for|loop|while|goto|move
         |try|throw|catch|switch
         |match|case|pass|def(?:er)?
@@ -338,6 +337,7 @@ repository:
       - include: '#symbols'
       - include: '#decorators'
       - include: '#type-signature'
+      - include: '#splice-brackets'
       - include: '#xml'
       - include: '#generics'
       - include: '#literals'
@@ -349,14 +349,14 @@ repository:
       - include: '#illegal'
       - include: '#space'
 
-  # Ignore Patterns
+  # Ignore / illegal patterns
 
+  ignore-long-lines:
+    comment: avoid parsing files with long lines of code
+    match: ^\N{4097,}$
   space:
     match: \s+
     name: meta.var.expr.ruko
-  ignore-long-lines:
-    comment: avoid parsing files with long lines of code
-    match: ^.{4097,}$
   illegal:
     patterns:
       - match: \p{N}+
@@ -491,7 +491,7 @@ repository:
   type-signature:
     applyEndPatternLast: true
     name: meta.type.ruko
-    begin: (?<=(?:[)}\]\w\s'"`]|\\.)>*\|?|^\|?)(:)(?=$|['"`\w\s]|#?[(\[{])
+    begin: (?<=(?:[)}\]\w'"`]|\\.)>*\|?|^\|?)(:)(?=$|<*(?:['"`\w\s]|#?[(\[{]))
     end: (?=)|$
     beginCaptures:
       1: {name: punctuation.definition.annotation.ruko}
@@ -781,15 +781,6 @@ repository:
         name: storage.type.implements.ruko
 
   type-operators:
-    unused:
-      - comment: Function types
-        match: (?:^|\s+)(?:(\|)|(>))(?=(?:['"`\w]|\#?[(\[{]))|(?<=['"`)}\]\w])(?:(\|)|(<))(?:$|\s+)
-        captures:
-          1: {name: keyword.operator.type.function.ruko}
-          2: {name: keyword.operator.type.channel.ruko}
-          3: {name: keyword.operator.type.function.ruko}
-          4: {name: keyword.operator.type.channel.ruko}
-
     patterns:
       - &qualified-name-separators
         comment: Primary binary operators
@@ -836,17 +827,18 @@ repository:
           (?x)
           (?<=^|['"`)}\]\w\s]|\\.)
             (?:
-               (\+)         # sum (i.e. implements)
+               (\+)         # sum
               |(\-)         # difference
               |(\|)         # union
               |(\&)         # intersection
               |(\^)         # exclusion 
-              |(<:|>:)      # strict super/subtype (i.e. extends)
+              |(<:|>:)      # strict super/subtype
               |(<=|>=)      # super/subtype
               |(!=|==)      # inequality/equality
               |(<<|>>)      # variance (i.e. covariant/contravariant)
               |(===|!==)    # identity/non-identity
               |(=~|!~)      # pattern match/non-pattern match
+              |(:)          # extends/implements
             )
           (?=['"`\w\s]|\#?[(\[{])
         captures:
@@ -859,6 +851,9 @@ repository:
           7: {name: keyword.operator.relation.ruko}
           8: {name: keyword.operator.comparison.ruko}
           9: {name: keyword.operator.variant.ruko}
+          10: {name: keyword.operator.identity.ruko}
+          11: {name: keyword.operator.pattern-match.ruko}
+          12: {name: keyword.operator.prototype.ruko}
       - comment: suffix type operators
         match: |
           (?x)
@@ -3859,6 +3854,27 @@ repository:
       - include: '#comments'
       - include: '#operators'
 
+  # Splicing
+
+  splice-brackets:
+    patterns:
+      - begin: \s*(<\{)
+        end: (\}>)
+        name: meta.splicing.ruko
+        captures:
+          1: {name: punctuation.definition.splice.ruko}
+          2: {name: punctuation.definition.splice.ruko}
+        patterns:
+          - include: $self
+      - begin: \s*(<\[)
+        end: (\]>)
+        name: meta.splicing.ruko
+        captures:
+          1: {name: punctuation.definition.splice.ruko}
+          2: {name: punctuation.definition.splice.ruko}
+        patterns:
+          - include: $self
+
   # XML (JSX) and Markdown
 
   xml:
@@ -3905,7 +3921,7 @@ repository:
           \b
         ) \s*
       ) \s*
-      (?=<[>\p{Pc}\p{L}])
+      (?=<[>\p{Pc}\p{L}(])
     end: (?=)|$
     patterns:
       - include: '#tag-component-name'
@@ -3920,6 +3936,32 @@ repository:
           1: {name: punctuation.definition.tag.ruko}
         patterns:
           - include: '#tag-termination'
+      - comment: Expression tags like <( ... )>.
+        contentName: text.html.ruko
+        begin: (<)(\()
+        end: |
+          (?x) \s*
+          (?:
+              (/>) # Tags implicitly closed.
+            | ((?<=</).*?)(>)
+          ) \s*
+        beginCaptures:
+          1: {name: punctuation.definition.tag.ruko}
+          2: {name: punctuation.definition.expression.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.tag.ruko}
+          2: {name: punctuation.definition.expression.ruko}
+        patterns:
+          - begin: (?<=<\()\s*
+            end: \s*(\))
+            name: meta.expression.tag.ruko
+            captures:
+              1: {name: punctuation.definition.expression.ruko}
+            patterns: [include: $self]
+          - include: '#tag-attributes'
+          - include: '#tag-termination'
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
       - comment: Tags that end > are trapped in tag-termination
         contentName: text.html.ruko
         begin: |
@@ -5714,18 +5756,21 @@ repository:
 
   function-calls:
     patterns:
-      - name: meta.function.arguments.ruko
-        match: |
+      - comment: Normal (bracketed or bracketless) function calls
+        name: meta.function.arguments.ruko
+        applyEndPatternLast: true
+        begin: |
           (?x)
           (?<=
             (?:
-                ^ # beginning of line
+              ^
+              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # operator
               | [,;] # delimiter
               | (?: ['"`)}\]\w\s] | \\.): # postfix colon
               | #? [({\[] # opening bracket
-              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # operator
+              | ^ # beginning of line
             ) \s*
-            | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # operator
+            | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
             | (?:
               (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
               \b
@@ -5842,9 +5887,18 @@ repository:
               )
             )
           )
-        captures:
-          1: {patterns: [include: '#function-names']}
-      - name: meta.function.arguments.ruko
+        end: (?=)|$
+        beginCaptures:
+          1:
+            name: meta.function.name.ruko
+            patterns: [include: '#function-names']
+        patterns:
+          - include: '#angle-brackets'
+          - include: '#variables'
+          - include: '#prefix-operators'
+          - include: '#space'
+      - comment: Piped function calls
+        name: meta.function.arguments.ruko
         match: |
           (?x)
           (?<=
@@ -5888,7 +5942,9 @@ repository:
           )
           \b
         captures:
-          1: {patterns: [include: '#function-names']}
+          1:
+            name: meta.function.name.ruko
+            patterns: [include: '#function-names']
 
   embedded-function-calls:
     name: meta.function.name.ruko
@@ -6001,10 +6057,9 @@ repository:
             |
             (?<=
                ^ # beginning of line
+                [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # operators
               | (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
-              (?: # operators
-                [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-              )?
+                [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # operators
             ) \b
               (?: # Regular variables
                 # Leading underscore
@@ -6057,6 +6112,13 @@ repository:
 
   parameter-variables:
     patterns:
+      - applyEndPatternLast: true
+        name: meta.type.ruko
+        begin: (?<=(?:[)}\]\w'"`]|\\.)>*)(:)(?=$|<*(?:['"`\w\s]|#?[(\[{]))
+        end: (?=)|$
+        beginCaptures:
+          1: {name: punctuation.definition.annotation.ruko}
+        patterns: [include: '#types']
       - match: |
           (?x)
           (?<=
@@ -6066,8 +6128,8 @@ repository:
               | [({\[] # open bracket
               | [;,] # separator
               | [(|]\. \s # uncurried function
-              | (?:^|[,;'"({\[)}\]|\s])
-                \b (?:
+              | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
+                \b (?: # declaration keywords
                   const|let|mut|dyn|va[rl]|use
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
@@ -6076,7 +6138,7 @@ repository:
                   |object|realm|style|script|quote
                   |given|use|as
                 ) \b
-                (?:$|[,;'"({\[)}\]\s]) # var/val/as/given/using keyword
+                (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.) 
             ) \s*
           )
 
@@ -6170,11 +6232,12 @@ repository:
         match: |
           (?x) \b
 
-           (?:
+          (?:
             (?<=
-              (?: ^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space or beginning of line
+              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
             )
+            \b # methods
             (?: # Properties
                 # Leading underscore
                 (\p{Pc}+\w*\b(?!\p{Pc}+))
@@ -6197,8 +6260,8 @@ repository:
                 ([\p{Pc}\p{L}]\w*)
             )
             (?= 
-              (?: (?: [?!]?\. | [?!:]: | [?!-]> ) =? | <) # qualified name separator or generics
-              (?: $ | [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket, space or end of line
+                (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+              | \#?\[ # or array access
             )
             |
             (?: # Regular variables
@@ -6242,22 +6305,6 @@ repository:
         captures: {1: {name: keyword.operator.macro.ruko}}
       - match: (?<=>|\w)(~)(?=#?[({])
         captures: {1: {name: keyword.operator.destructor.ruko}}
-      - comment: '? ternary operator'
-        begin: (?<=^|[\s({\[])(\?)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\?)(?=(?:['"`\w]|\#?[(\[{]))
-        end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=(?:['"`\w]|\#?[(\[{]))
-        captures:
-          1: {name: keyword.operator.conditional.ruko}
-          2: {name: keyword.operator.conditional.ruko}
-        patterns:
-          - include: $self
-      - comment: '! ternary operator'
-        begin: (?<=^|[\s({\[])(\!)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\!)(?=(?:['"`\w]|\#?[(\[{]))
-        end: (?<=^|[\s({\[])(\:)(?=$|[)}\]\s])|(?<=['"`)}\]\w]|\\.)(\:)(?=(?:['"`\w]|\#?[(\[{]))
-        captures:
-          1: {name: keyword.operator.ternary.ruko}
-          2: {name: keyword.operator.ternary.ruko}
-        patterns:
-          - include: $self
 
   infix-operators:
     name: keyword.operator.infix.ruko
@@ -6318,21 +6365,21 @@ repository:
           <[/*|+$:]> | [/*|+$:]> | <[/*|+$:]
         ) |
         ( # 17: null coalescing
-          \?+
+          \?\?
         ) |
         ( # 18: non null coalescing
-          !+
+          !!
         ) |
         ( # 19: falsy coalescing
-          \?:
+          \?:?
         ) |
         ( # 20: truthy coalescing
-          !:
+          !:?
         ) |
         ( # 21: function application
-          [.$]
+          [.$] | :
         ) |
-        ( # 22: assignment
+        ( # 22: assignment / fallback
           :?=
         ) |
         ( # 23: range
@@ -6493,21 +6540,21 @@ repository:
           <[/*|+$:]> | [/*|+$:]> | <[/*|+$:]
         ) |
         ( # 17: null coalescing
-          \?+
+          \?\?
         ) |
         ( # 18: non null coalescing
-          !+
+          !!
         ) |
         ( # 19: falsy coalescing
-          \?:
+          \?:?
         ) |
         ( # 20: truthy coalescing
-          !:
+          !:?
         ) |
         ( # 21: function application
-          [.$]
+          [.$] | :
         ) |
-        ( # 22: assignment
+        ( # 22: assignment / fallback
           :?=
         ) |
         ( # 23: range
@@ -8409,7 +8456,6 @@ repository:
               - include: '#numbers'
               - include: '#symbols'
               - include: '#xml-regex-content'
-      - include: '#type-signature' # patch to allow type signatures
 
   # Punctuation
 
