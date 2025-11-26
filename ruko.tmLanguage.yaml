@@ -10,14 +10,13 @@ information: |
 
   https://github.com/nx-v/ruko
 
-  Please note that this grammar is still a work in progress, and is not yet
-  complete. Features and syntax will change frequently as the language evolves.
+  Note that this grammar is still actively being developed alongside
+  the compiler and spec itself, so frequent updates may be necessary. 
 
-  In the meantime, please be patient and report any issues you may find. 
-  I may not be able to respond to every issue or PR, but I will do my best
-  to keep the grammar up to date with the latest changes in the language.
+  If you find any bugs or want to suggest any new features, please
+  open an issue or a pull request on the repository above.
 
-  Last updated: November 22, 2025
+  Last updated: November 26, 2025
 
 todo: |
   - Add support for reflection and meta-programming syntax.
@@ -56,16 +55,6 @@ todo: |
     - [ ] Tuples
     - [ ] Function arguments
     - [ ] Variables
-  - [ ] Rework function call syntax to be more consistent and terser.
-    Inspired by Haskell. For example: f x y => f(x, y)
-  - [x] Rework import/export/module syntax to be terse, drawing inspiration 
-    from JavaScript ES6 modules, with changes such as:
-      - glob file path matching: import path/**/*.ruko
-      - named imports/exports: import module{a,b,c}
-      - default imports/exports: import module)
-      - renaming imports/exports: import module{a:x,b:y}
-      - show/hide mechanism: import module{a,b-c,d}
-      - glob-style pattern matching: import module{a*,b?,c{1,2}}
   - [x] Fix and expand regex syntax and highlighting:
     - [x] Add support for fuzzy matching (edits, insertions, deletions, etc.)
     - [x] Improve highlighting for regexes with flags
@@ -74,15 +63,33 @@ todo: |
 changelog: |
   New changes:
 
+  - Added Python slicing syntax for arrays, strings, tuples, etc.:
+    array[start:end:step]
+    string[start:end:step]
+    tuple[start:end:step]
+    Negative indices and arbitrary expressions are supported.
+  - Brought back Haskell-style function call syntax with 
+    space OR comma-separated arguments.
+      funcName arg1 arg2 { arg3: 10 }; or 
+      funcName arg1, arg2, { arg3: 10 }
+    This CANNOT be mixed and matched with normal function call syntax.
+      funcName(arg1, arg2, { arg3: 10 })
   - Added C(++) directives: #include, #define, #ifdef, #ifndef, #else,
     #elif, #endif, #pragma, #region, #endregion, #once, #error, #warning.
     These can be placed anywhere in the code, and will be processed before compilation.
-    A change to #define directvies is that they can support regex 
+    A change to #define directives is that they can support regex 
     replacements as well as normal text replacements. This is dangerous,
     so use with caution.
-  - Added new keywords: expr, eval, init (C++ static initialization)
+  - Added new keywords: expr, eval, init (C++ static init) and comp (Zig comptime).
   - Overall syntax has been reworked to be terser and more consistent.
     Inspired by Rust, Zig, Flix, Jai, Odin, D, Reason and Motoko.
+  - Import/export/module syntax inspired by JavaScript/TypeScript, Rust and Python:
+    - glob file path matching: import path/**/*.ruko
+    - named imports/exports: import module{a,b,c}
+    - default imports/exports: import module)
+    - renaming imports/exports: import module{a:x,b:y}
+    - show/hide mechanism: import module{a,b-c,d}
+    - glob-style pattern matching: import module{a*,b?,c{1,2}}
   - Fixed many JSX/XML bugs with tags and attributes:
     - Fixed attributes not highlighting properly in self-closing tags.
       <MyComponent prop="value" />
@@ -128,6 +135,8 @@ changelog: |
           - Subitem 2.2
         + Item 3
       </>
+  - Fix bug with highlighting of generics when followed by 
+    ! or ~ macro/destructor calls. For example: Vec<int>!(), MyType~().
   - Brought back train-case for CSS properties and HTML attributes.
     For example: background-color, font-size, border-radius, my-component, etc. 
   - Added x->y syntax for C++-style pointer dereferencing.
@@ -244,7 +253,7 @@ define:
         [io]n|of|[ai]s|has|old|new|del
         |unset|(?:de)?ref|and|x?or|not
         |const|let|mut|dyn|va[rl]|use
-        |given|expr|eval|init
+        |given|expr|eval|init|comp
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
         |union|iter|macro|query|elem|temp
@@ -274,7 +283,7 @@ define:
         [io]n|of|[ai]s|has|old|new|del
         |unset|(?:de)?ref|and|x?or|not
         |const|let|mut|dyn|va[rl]|use
-        |given|expr|eval|init
+        |given|expr|eval|init|comp
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
         |union|iter|macro|query|elem|temp
@@ -335,31 +344,24 @@ repository:
 
   # Ignore Patterns
 
-  ignore-long-lines:
-    comment: avoid parsing files with long lines of code
-    match: ^.{4097,}$
-
-  # Spaace
-
   space:
     match: \s+
     name: meta.var.expr.ruko
-
-  # Illegal Syntax
-
+  ignore-long-lines:
+    comment: avoid parsing files with long lines of code
+    match: ^.{4097,}$
   illegal:
     patterns:
-      - match: \p{N}[\w.+-/\\]*?
-        name: invalid.illegal.numeric.ruko
-      - match: '[\w]+?'
+      - match: \p{N}+
+        name: invalid.illegal.number.ruko
+      - match: \w+
         name: invalid.illegal.variable.ruko
-      - match: '[({\[)}\]]+?'
+      - match: '[({\[)}\]]+'
         name: invalid.illegal.missing-bracket.ruko
       - match: '[\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+'
         name: invalid.illegal.operator.ruko
-      - match: \S+?
+      - match: \S+
         name: invalid.illegal.uncaught.ruko
-
   illegal-identifier:
     applyEndPatternLast: true
     name: meta.type.ruko
@@ -403,7 +405,7 @@ repository:
           [io]n|of|[ai]s|has|old|new|del
           |unset|(?:de)?ref|and|x?or|not
           |const|let|mut|dyn|va[rl]|use
-          |given|expr|eval|init
+          |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
           |union|iter|macro|query|elem|temp
@@ -422,10 +424,13 @@ repository:
       )
 
       (?:
-        (?<=(?:^|[,;'"`(){}\[\]\w\s]|\\.)(?:[!?]?\.=?|[?!:]:=?|[?!-]>=?))
+        (?<=
+          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+          (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+        )
         (?: # Properties
             # Leading underscore
-            (\p{Pc}+\w*\b(?!\p{Pc}+))
+            (\p{Pc}+\w*(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -436,7 +441,7 @@ repository:
         |
         (?: # Objects
             # Leading underscore
-            (\p{Pc}+\w*\b(?!\p{Pc}+))
+            (\p{Pc}+\w*(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -444,11 +449,14 @@ repository:
           | # Camel or kebab case
             ([\p{Pc}\p{L}]\w*)
         )
-        (?=(?:[!?]?\.=?|[?!:]:=?|[?!-]>=?|<)(?:[,;'"`(){}\[\]\w\s]|$))
+        (?=
+          (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+        )
         |
         (?: # Regular variables
             # Leading underscore
-            (\p{Pc}+\w*\b(?!\p{Pc}+))
+            (\p{Pc}+\w*(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -476,7 +484,7 @@ repository:
   type-signature:
     applyEndPatternLast: true
     name: meta.type.ruko
-    begin: (?<=(?:[)}\]\w\s'"`]|\\.)>*\|?|^\|?)(:)(?=$|[\w\s'"`({\[])
+    begin: (?<=(?:[)}\]\w\s'"`]|\\.)>*\|?|^\|?)(:)(?=$|['"`\w\s]|#?[(\[{])
     end: (?=)|$
     beginCaptures:
       1: {name: punctuation.definition.annotation.ruko}
@@ -506,7 +514,7 @@ repository:
             \b
               (?: # destructuring keywords
                 const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |case
               )
             \b
@@ -651,7 +659,7 @@ repository:
             \b
               (?: # destructuring keywords
                 const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |case
               )
             \b
@@ -712,7 +720,7 @@ repository:
             \b
               (?: # destructuring keywords
                 const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |case
               )
             \b
@@ -803,8 +811,9 @@ repository:
             |(\~)       # destructor
             |(\?)       # optional
             |(\\)       # lifetime
-          ) # 19
-          (?=[\w'"`]|\#?[(\[{])
+            |(\-)       # negation
+          ) 
+          (?=[\w'"`]|\#?[(\[{<])
         captures:
           1: {name: keyword.operator.pointer.ruko}
           2: {name: keyword.operator.reference.ruko}
@@ -815,12 +824,13 @@ repository:
           7: {name: keyword.operator.destructor.ruko}
           8: {name: keyword.operator.optional.ruko}
           9: {name: keyword.operator.lifetime.ruko}
+          10: {name: keyword.operator.arithmetic.ruko}
       - &infix-type-operators
         comment: infix type operators
         match: |
           (?x)
           \s*
-          (?<=^|[,;'"`({\[)}\]\w\s]|\\.)
+          (?<=^|['"`)}\]\w\s]|\\.)
             (?:
                (\+)         # sum (i.e. implements)
               |(\-)         # difference
@@ -834,7 +844,7 @@ repository:
               |(===|!==)    # identity/non-identity
               |(=~|!~)      # pattern match/non-pattern match
             )
-          (?=$|[,;'"`({\[)}\]\w\s])
+          \s*(?=[\w'"`]|\#?[(\[{])
         captures:
           1: {name: keyword.operator.sum.ruko}
           2: {name: keyword.operator.difference.ruko}
@@ -850,11 +860,11 @@ repository:
         match: |
           (?x)
           \s*
-          (?<=[\w'"`)\]}]|\\.)
+          (?<=[\w'"`)\]}>]|\\.)
           (?:
              (\!)       # negation
             |(\?)       # existential
-          ) # 19
+          )
           \B
         captures:
           1: {name: keyword.operator.assert.ruko}
@@ -3021,7 +3031,7 @@ repository:
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init
+              |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -3064,7 +3074,7 @@ repository:
           (
             (?:
               (?:&|%|\$|~~?|\*\*?)? # sigil
-              [!?]? # required or optional
+              [?!]? # required or optional
             )?
             [+-]? \d+ # start of range
             (?:
@@ -3092,7 +3102,7 @@ repository:
           (
             (?:
               (?:&|%|\$|~~?|\*\*?) # sigil
-              [!?]? # required or optional
+              [?!]? # required or optional
             )
             \b
               [\p{Pc}\p{L}]\w*
@@ -3105,7 +3115,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -3249,7 +3259,7 @@ repository:
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init
+              |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -3854,7 +3864,7 @@ repository:
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init
+              |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -5584,7 +5594,7 @@ repository:
           \b
           [\p{Pc}\p{L}]\w* # identifier
           \b
-          (?:[!?]?\.=?|[?!:]:=?|[?!-]>=?) # qualified name separator
+          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
         )*
         [\p{Pc}\p{L}]\w* # last part of identifier
       )
@@ -5594,9 +5604,9 @@ repository:
         (?: # function application, composition and piping
             (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{])
           | # C-style function call
-            (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({]
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#? [({]
           | # generics
-            (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{])
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{])
           | # macro and destructor calls
             [!~] \#? [({]
           | # strings and symbols
@@ -5614,11 +5624,11 @@ repository:
           (?<=
             (?:
                 ^ # beginning of line
-              | [,;] | ['"`)}\]\s\w]: # separator or postfix colon
+              | [,;] | ['"`)}\]\w\s]: # separator or postfix colon
               | [({\[] # opening bracket
               | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s # postfix or infix operator
             ) \s*
-            | (?:[!?]?\.=?|[?!:]:=?|[?!-]>=?) # accessor or qualified name separator
+            | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor or qualified name separator
             | # a keyword
             (?:
               (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -5627,7 +5637,7 @@ repository:
                   [io]n|of|[ai]s|has|old|new|del
                   |unset|(?:de)?ref|and|x?or|not
                   |const|let|mut|dyn|va[rl]|use
-                  |given|expr|eval|init
+                  |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -5654,7 +5664,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -5675,7 +5685,7 @@ repository:
               \b
               [\p{Pc}\p{L}]\w* # identifier
               \b
-              (?:[!?]?\.=?|[?!:]:=?|[?!-]>=?) # qualified name separator
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
             )*
             [\p{Pc}\p{L}]\w* # last part of identifier
           )
@@ -5691,7 +5701,7 @@ repository:
                     [io]n|of|[ai]s|has|old|new|del
                     |unset|(?:de)?ref|and|x?or|not
                     |const|let|mut|dyn|va[rl]|use
-                    |given|expr|eval|init
+                    |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
                     |impl|enum|mod(?:el|ule)|struct|record
                     |union|iter|macro|query|elem|temp
@@ -5722,14 +5732,16 @@ repository:
                 )
               )
               | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
-              | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? \#? [({] # C-style function call
-              | (?:[?!:]:=?|[?!]?\.=?|[?!-]>=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+              | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
+              | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | [!~] \#? [({] # macro and destructor calls
               | \s* (?:
                   (?:\w*|[\\$#%]*)['"] # quoted string literals
                 | `\s*(?=\N) # unquoted string literals 
                 | :[\p{Pc}\p{L}]\w* # symbols
                 | \d # numbers
+                | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators
+                  (?: ['"`\w] | \#?[(\[{])
                 | \s+ [(\[] # brackets
               )
             )
@@ -5753,7 +5765,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -5774,7 +5786,7 @@ repository:
               \b
               [\p{Pc}\p{L}]\w* # identifier
               \b
-              (?:[!?]?\.=?|[?!:]:=?|[?!-]>=?) # qualified name separator
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
             )*
             [\p{Pc}\p{L}]\w* # last part of identifier
           )
@@ -5787,10 +5799,14 @@ repository:
     match: |
       (?x)
       (?:
-        (?<=(?:^|[,;'"`(){}\[\]\w\s]|\\.)(?:[!?]?\.=?|[?!:]:=?|[?!-]>=?)) \b
-          (?: # Properties
+        (?<=
+          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+          (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+        )
+        \b # methods
+          (?:
             # Leading underscore
-            (\p{Pc}+\w*\b(?!\p{Pc}+))
+            (\p{Pc}+\w*(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -5799,21 +5815,21 @@ repository:
             ([\p{Pc}\p{L}]\w*)
           )
         \b
-          (?= # opening macro, destructor, or function call
-              [!~]? \#? [({]
-            | generics
-              [?!:]: < | [?!]?\. < | [?!-]> < | <
-          )
+        (?= # opening macro, destructor, or function call
+            [!~]? \#? [({]
+          | generics
+            (?: [?!]?\. | [?!:]: | [?!-]> ) <
+        )
         |
         (?<= ^ # beginning of line
-          | ['"`({\[)}\]\w\s] # literal
+          | (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal
           (?: # operators
             [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
           )?
         ) \b
           (?: # Regular variables
             # Leading underscore
-            (\p{Pc}+\w*\b(?!\p{Pc}+))
+            (\p{Pc}+\w*(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -5825,7 +5841,7 @@ repository:
           (?= # opening macro, destructor, or function call
               [!~]? \#? [({]
             | generics
-              [?!:]: < | [?!]?\. < | [?!-]> < | <
+              (?: [?!]?\. | [?!:]: | [?!-]> ) <
           )
       )
     captures:
@@ -5863,10 +5879,14 @@ repository:
         match: |
           (?x)
           (?:
-            (?<=(?:^|[,;'"`(){}\[\]\w\s]|\\.)(?:[!?]?\.=?|[?!:]:=?|[?!-]>=?)) \b
-              (?: # Properties
+            (?<=
+              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+            )
+            \b # methods
+              (?:
                 # Leading underscore
-                (\p{Pc}+\w*\b(?!\p{Pc}+))
+                (\p{Pc}+\w*(?!\p{Pc}+))
               | # Train case
                 ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
               | # Pascal case
@@ -5875,23 +5895,24 @@ repository:
                 ([\p{Pc}\p{L}]\w*)
               )
             \b
-              (?=
-                  $ # end of line
-                | (?: # operators
-                    <\|{1,3} | <[-+] | \|{1,3}> | \+> | [$@]
-                  )?
-                  ['"`({\[)}\]\w\s]
-              )
+            (?=
+                $ # end of line
+              | (?: # operators
+                  <\|{1,3} | <[-+] | \|{1,3}> | \+> | [$@]
+                )?
+                (?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)
+            )
             |
             (?<=
-              (?: ^ | [,;'"`({\[)}\]\w\s] | \\. ) # literal
+               ^ # beginning of line
+              | (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
               (?: # operators
                 [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
               )?
             ) \b
               (?: # Regular variables
                 # Leading underscore
-                (\p{Pc}+\w*\b(?!\p{Pc}+))
+                (\p{Pc}+\w*(?!\p{Pc}+))
               | # Train case
                 ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
               | # Pascal case
@@ -5905,14 +5926,12 @@ repository:
                 | (?: # operators
                     <\|{1,3} | <[-+] | \|{1,3}> | \+> | [$@]
                   )?
-                  ['"`({\[)}\]\w\s]
+                  (?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)
               )
           )
         captures:
           1:
-            patterns: &builtin-names
-              - include: '#type-names'
-              - include: '#support-functions'
+            patterns: *builtin-names
             name: entity.name.tag.ruko
           2:
             patterns: *builtin-names
@@ -5954,7 +5973,7 @@ repository:
               | (?:^|[,;'"({\[)}\]|\s])
                 \b (?:
                   const|let|mut|dyn|va[rl]|use
-                  |given|expr|eval|init
+                  |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -6046,8 +6065,11 @@ repository:
         match: |
           (?x) \b
 
-          (?:
-            (?<=(?:^|[,;'"`(){}\[\]\w\s]|\\.)(?:[!?]?\.=?|[?!:]:=?|[?!-]>=?))
+           (?:
+            (?<=
+              (?: ^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space or beginning of line
+              (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+            )
             (?: # Properties
                 # Leading underscore
                 (\p{Pc}+\w*\b(?!\p{Pc}+))
@@ -6069,7 +6091,10 @@ repository:
               | # Camel or kebab case
                 ([\p{Pc}\p{L}]\w*)
             )
-            (?=(?:[!?]?\.=?|[?!:]:=?|[?!-]>=?|\s*\#?\[)(?:[,;'"`(){}\[\]\w\s]|$))
+            (?= 
+              (?: (?: [?!]?\. | [?!:]: | [?!-]> ) =? | <) # qualified name separator or generics
+              (?: $ | [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket, space or end of line
+            )
             |
             (?: # Regular variables
                 # Leading underscore
@@ -6081,7 +6106,7 @@ repository:
               | # Camel or kebab case
                 ([\p{Pc}\p{L}]\w*)
             )
-          ) \b
+          )\b
         captures:
           1: {name: variable.other.property.dynamic.ruko}
           2: {name: variable.other.constant.property.ruko}
@@ -6152,7 +6177,7 @@ repository:
           = # ending equal sign
         ) |
         ( # 5: arithmetic operator
-          [+-][\%\|]? | \*{1,3}[\%\|]? | ~?/ | %%?
+          [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%?
         ) |
         ( # 6: string/regex/array/set
           \+\+ | \-\-
@@ -6327,7 +6352,7 @@ repository:
           = # ending equal sign
         ) |
         ( # 5: arithmetic operator
-          [+-][\%\|]? | \*{1,3}[\%\|]? | ~?/ | %%?
+          [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%?
         ) |
         ( # 6: string/regex/array/set
           \+\+ | \-\-
@@ -6525,7 +6550,7 @@ repository:
       15: {name: keyword.operator.private.ruko}
       16: {name: keyword.operator.format.ruko}
       17: {name: keyword.operator.accessor.ruko}
-      18: {name: keyword.operator.namespace.ruko}
+      18: {name: keyword.operator.lifetime.ruko}
       19: {name: keyword.operator.prefix.ruko}
 
   suffix-operators:
@@ -6574,7 +6599,7 @@ repository:
       15: {name: keyword.operator.private.ruko}
       16: {name: keyword.operator.format.ruko}
       17: {name: keyword.operator.accessor.ruko}
-      18: {name: keyword.operator.namespace.ruko}
+      18: {name: keyword.operator.lifetime.ruko}
       19: {name: keyword.operator.suffix.ruko}
 
   # Clauses and Keywords
@@ -6608,12 +6633,13 @@ repository:
         \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?:
           const|let|mut|dyn|va[rl]|use
-          |given|expr|eval|init
+          |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
           |union|iter|macro|query|elem|temp
           |object|realm|style|script|quote
           |import|export|intern|extern
+          |do|scope
         )
         \b\s*
       )
@@ -6634,7 +6660,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -6661,7 +6687,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -6725,7 +6751,7 @@ repository:
           (?x)
           \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(
             const|let|mut|dyn|va[rl]|use
-            |given|expr|eval|init
+            |given|expr|eval|init|comp
           )\b\s*
         name: storage.type.ruko
       - match: |
@@ -6813,15 +6839,14 @@ repository:
         name: constant.other.label.ruko
 
   module-expression:
+    applyEndPatternLast: true
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(import|export)\b\s*
+    end: (?=)|$
+    beginCaptures:
+      1: {name: keyword.control.module.ruko}
     patterns:
-      - applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(import|export)\b\s*
-        end: (?=)|$
-        beginCaptures:
-          1: {name: keyword.control.module.ruko}
-        patterns:
-          - include: '#module-content'
-          - include: '#intern-extern-expression'
+      - include: '#module-content'
+      - include: '#intern-extern-expression'
 
   module-content:
     patterns:
@@ -6851,7 +6876,7 @@ repository:
       - include: '#comma'
       - include: '#line-continuation'
       - match: *entity-name
-        name: variable.other.readwrite.alias.ruko
+        name: string.unquoted.module.ruko
 
   constraint-expression:
     comment: most of the keywords come from Dafny
@@ -6872,7 +6897,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7178,7 +7203,7 @@ repository:
 
       variable:
         applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(const|let|mut|dyn|va[rl]|use|given|expr|eval|init)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(const|let|mut|dyn|va[rl]|use|given|expr|eval|init|comp)\b\s*
         end: (?=)|$
         beginCaptures:
           1: {name: storage.type.variable.ruko}
@@ -7482,7 +7507,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7507,7 +7532,7 @@ repository:
             name: storage.modifier.specifier.ruko
             patterns: [include: '#modifiers']
           2:
-            name: punctuation.separator.colon.ruko
+            name: punctuation.separator.section.ruko
 
   function-clause:
     patterns:
@@ -7530,7 +7555,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7583,7 +7608,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7636,7 +7661,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7689,7 +7714,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -7749,7 +7774,7 @@ repository:
               [io]n|of|[ai]s|has|old|new|del
               |unset|(?:de)?ref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init
+              |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
               |union|iter|macro|query|elem|temp
@@ -7842,7 +7867,7 @@ repository:
 
       try-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(try|then)\b\s*
-        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
         name: meta.try.ruko
         beginCaptures:
           1: {name: keyword.control.error.ruko}
@@ -7878,7 +7903,7 @@ repository:
               1: {name: keyword.control.error.ruko}
               2: {name: punctuation.definition.case-statement.ruko}
           - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
-            end: \s*(:)(?=['"`({\[)}\]\w\s])|$
+            end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
             beginCaptures:
               1: {name: keyword.control.error.ruko}
             endCaptures:
@@ -7899,7 +7924,7 @@ repository:
 
       for-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for|while\s+not|while)\b\s*
-        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
         name: meta.for.ruko
         beginCaptures:
           1: {name: keyword.control.loop.ruko}
@@ -7912,7 +7937,7 @@ repository:
 
       if-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if\s+not|if|when\s+not|when|guard)\b\s*
-        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
         name: meta.if.ruko
         beginCaptures:
           1: {name: keyword.control.conditional.ruko}
@@ -7948,7 +7973,7 @@ repository:
               1: {name: keyword.control.match.ruko}
               2: {name: punctuation.definition.case-statement.ruko}
           - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
-            end: \s*(:)(?=['"`({\[)}\]\w\s])|$
+            end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
             beginCaptures:
               1: {name: keyword.control.match.ruko}
             endCaptures:
@@ -7969,7 +7994,7 @@ repository:
 
       switch-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(switch)\b\s*
-        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
         name: meta.switch.ruko
         beginCaptures:
           1: {name: keyword.control.switch.ruko}
@@ -7992,7 +8017,7 @@ repository:
               1: {name: keyword.control.switch.ruko}
               2: {name: punctuation.definition.case-statement.ruko}
           - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
-            end: \s*(:)(?=['"`({\[)}\]\w\s])|$
+            end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
             beginCaptures:
               1: {name: keyword.control.switch.ruko}
             endCaptures:
@@ -8013,7 +8038,7 @@ repository:
 
       with-clause:
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(with)\b\s*
-        end: \s*(:)(?=['"`({\[)}\]\w\s])|(?=[,;)}\]])|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
         name: meta.if.ruko
         beginCaptures:
           1: {name: keyword.control.with.ruko}
@@ -8154,7 +8179,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8207,7 +8232,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8248,7 +8273,7 @@ repository:
           (?<=^|[,;(\[{])\s*
           \s*
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # label
-          (?=: ['"`({\[)}\]\w\s])
+          (?=: (?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))
         name: meta.object-literal.key.ruko
         captures:
           1:
@@ -8293,15 +8318,16 @@ repository:
       - include: '#square-brackets'
       - include: '#round-brackets'
 
-  generics:
+  generics: &generics
     patterns:
       - comment: <> exception.
-        match: (?<=^|['"`)}\]>\w\s])(<>)\s*
+        match: (?<=^|['"`)}\]>\w\s])(<)(>)(?=$|[!~]?(?:['"`\w<]|\#?[(\[{]))
         captures:
           1: {name: punctuation.type.arguments.ruko}
-      - comment: Support for Turbofish syntax
+          2: {name: punctuation.type.arguments.ruko}
+      - comment: <...> with content.
         name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])([?!:]:|[?!]?\.|[?!-]>)(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[!@#$%^&*_\-+=|\\/~`:;,.?<]*(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|['"`)}\]>\w])(>)(?:(!)|(~))?
         beginCaptures:
           1:
@@ -8344,26 +8370,7 @@ repository:
       2: {name: keyword.operator.assert.ruko}
       3: {name: keyword.operator.accessor.ruko}
 
-  angle-brackets:
-    patterns:
-      - comment: <> exception.
-        match: (?<=^|['"`)}\]>\w\s])(<>)\s*
-        captures:
-          1: {name: punctuation.type.arguments.ruko}
-      - comment: Type arguments. This is complicated since we don't want to match things like foo < 123 || bar > baz
-        name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
-        end: (?<=^|['"`)}\]>\w]?)(>)
-        captures:
-          1: {name: punctuation.type.arguments.ruko}
-        patterns:
-          - include: '#punctuation'
-          - include: '#brackets'
-          - include: '#types'
-          - include: '#type-signature'
-          - include: '#embedded-expressions'
-          - include: '#embedded-formatting'
-          - include: '#embedded-arguments'
+  angle-brackets: *generics
 
   curly-brackets:
     repository:
@@ -8418,7 +8425,7 @@ repository:
             \b
               (?: # destructuring keywords
                 const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |case
               )
             \b
@@ -8562,7 +8569,7 @@ repository:
             \b
               (?: # destructuring keywords
                 const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |case
               )
             \b
@@ -8622,7 +8629,7 @@ repository:
             \b
               (?: # destructuring keywords
                 const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |case
               )
             \b
@@ -8694,7 +8701,7 @@ repository:
         captures:
           1: {name: punctuation.definition.attribute-selector.ruko}
         patterns:
-          - include: '#message-passing'
+          - include: '#slice-syntax'
           - include: '#punctuation'
           - include: $self
       - begin: (\#\[)\s*
@@ -8716,7 +8723,19 @@ repository:
           - include: '#punctuation'
           - include: $self
 
+  # Slicing syntax
+
+  slice-syntax:
+    patterns:
+      - match: (?<=[:'"`\w\s]|\\.)(:)(?=[:'"`\w\s]|#?[(\[{]|$)
+        name: keyword.operator.slice.ruko
+      - include: '#numbers'
+      - include: '#space'
+      - include: '#comments'
+      - include: '#line-continuation'
+
   # Objective-C-style messages
+
   message-passing:
     patterns:
       - include: '#literals'
@@ -8745,7 +8764,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8795,7 +8814,7 @@ repository:
                   (?x)
                   (?: # Regular variables
                     # Leading underscore
-                    (\p{Pc}+\w*\b(?!\p{Pc}+))
+                    (\p{Pc}+\w*(?!\p{Pc}+))
                   | # Train case
                     ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
                   | # Pascal case
@@ -8832,7 +8851,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8865,7 +8884,7 @@ repository:
                   [io]n|of|[ai]s|has|old|new|del
                   |unset|(?:de)?ref|and|x?or|not
                   |const|let|mut|dyn|va[rl]|use
-                  |given|expr|eval|init
+                  |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
                   |union|iter|macro|query|elem|temp
@@ -8895,7 +8914,7 @@ repository:
                   (?x)
                   (?: # Regular variables
                     # Leading underscore
-                    (\p{Pc}+\w*\b(?!\p{Pc}+))
+                    (\p{Pc}+\w*(?!\p{Pc}+))
                   | # Train case
                     ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
                   | # Pascal case
@@ -8929,7 +8948,7 @@ repository:
                 [io]n|of|[ai]s|has|old|new|del
                 |unset|(?:de)?ref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init
+                |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
                 |union|iter|macro|query|elem|temp
@@ -8977,7 +8996,7 @@ repository:
                   (?x)
                   (?: # Regular variables
                     # Leading underscore
-                    (\p{Pc}+\w*\b(?!\p{Pc}+))
+                    (\p{Pc}+\w*(?!\p{Pc}+))
                   | # Train case
                     ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
                   | # Pascal case
@@ -9054,8 +9073,7 @@ repository:
         patterns:
           - include: $self
       - comment: null directive
-        begin: ^\s*(\#)\s*
-        end: $
+        match: ^\s*(\#)\s*$
         name: meta.directive.ruko
         captures:
           1: {name: punctuation.definition.directive.ruko}
@@ -9373,9 +9391,13 @@ repository:
             # lower flat case
             |bool|char|rune|str|sym|text|buf
             |(big)?(num|nat|u?int|float|frac|real|imag|complex)
-            # upper flat case
-            |[iucjfb](8|16|32|64|128|256|512|1024)
-            |[IUCJFB](8|16|32|64|128|256|512|1024)
+            # suffixed numeric types
+            # i: signed integer
+            # u: unsigned integer
+            # f: floating point
+            # j: imaginary float
+            # c: complex float (real+imaginary)
+            |(?i:[iufjc]\d+)
           )\b
         name: support.type.builtin.primitive.ruko
       - comment: Data query classes
