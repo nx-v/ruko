@@ -333,9 +333,6 @@ repository:
       - include: '#symbols'
       - include: '#decorators'
       - include: '#type-signature'
-      - include: '#embedded-expressions'
-      - include: '#embedded-formatting'
-      - include: '#embedded-arguments'
       - include: '#xml'
       - include: '#generics'
       - include: '#literals'
@@ -833,7 +830,6 @@ repository:
       - comment: infix type operators
         match: |
           (?x)
-          \s*
           (?<=^|['"`)}\]\w\s]|\\.)
             (?:
                (\+)         # sum (i.e. implements)
@@ -848,7 +844,7 @@ repository:
               |(===|!==)    # identity/non-identity
               |(=~|!~)      # pattern match/non-pattern match
             )
-          \s*(?=[\w'"`]|\#?[(\[{])
+          (?=['"`\w\s]|\#?[(\[{])
         captures:
           1: {name: keyword.operator.sum.ruko}
           2: {name: keyword.operator.difference.ruko}
@@ -862,7 +858,6 @@ repository:
       - comment: suffix type operators
         match: |
           (?x)
-          \s*
           (?<=[\w'"`)\]}>]|\\.)
           (?:
              (\!)       # negation
@@ -958,8 +953,8 @@ repository:
 
   numbers:
     applyEndPatternLast: true
-    begin: (?<!\.)(?=\d)
-    end: \b
+    begin: (?=\d)
+    end: \b\s*
     name: meta.number.ruko
     patterns:
       - comment: binary integer literal
@@ -4855,8 +4850,8 @@ repository:
 
   script-blocks:
     patterns:
-      - begin: \b((?i:js))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:js))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4866,8 +4861,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.js
-      - begin: \b((?i:jsx))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:jsx))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4877,8 +4872,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.jsx
-      - begin: \b((?i:ts))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:ts))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4888,8 +4883,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.ts
-      - begin: \b((?i:tsx))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:tsx))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4899,8 +4894,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.tsx
-      - begin: \b((?i:py))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:py))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4910,8 +4905,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.python
-      - begin: \b((?i:rb))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:rb))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4921,8 +4916,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.ruby
-      - begin: \b((?i:php))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:php))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4932,8 +4927,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.php
-      - begin: \b((?i:java))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:java))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4943,8 +4938,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.java
-      - begin: \b((?i:cpp))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:cpp))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4954,8 +4949,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.cpp
-      - begin: \b((?i:c))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:c))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4965,8 +4960,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.c
-      - begin: \b((?i:cs))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:cs))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4976,8 +4971,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.cs
-      - begin: \b((?i:go))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:go))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4987,8 +4982,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.go
-      - begin: \b((?i:rs))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:rs))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -4998,8 +4993,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.rust
-      - begin: \b((?i:swift))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:swift))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5009,8 +5004,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.swift
-      - begin: \b((?i:kt))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:kt))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5020,8 +5015,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.kotlin
-      - begin: \b((?i:scala))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:scala))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5031,8 +5026,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.scala
-      - begin: \b((?i:hs))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:hs))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5042,8 +5037,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.haskell
-      - begin: \b((?i:lua))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:lua))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5053,8 +5048,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.lua
-      - begin: \b((?i:dart))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:dart))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5064,8 +5059,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.dart
-      - begin: \b((?i:objc))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:objc))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5075,8 +5070,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.objc
-      - begin: \b((?i:objcpp))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:objcpp))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5086,8 +5081,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.objcpp
-      - begin: \b((?i:perl))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:perl))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5097,8 +5092,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.perl
-      - begin: \b((?i:r))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:r))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5108,8 +5103,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.r
-      - begin: \b((?i:sh))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:sh))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5119,8 +5114,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.shell
-      - begin: \b((?i:sql))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:sql))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5130,8 +5125,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.sql
-      - begin: \b((?i:html))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:html))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5141,8 +5136,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: text.html.basic
-      - begin: \b((?i:css))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:css))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5152,8 +5147,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.css
-      - begin: \b((?i:json))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:json))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5163,8 +5158,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.json
-      - begin: \b((?i:xml))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:xml))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5174,8 +5169,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: text.xml
-      - begin: \b((?i:yaml|yml))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:yaml|yml))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5185,8 +5180,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.yaml
-      - begin: \b((?i:markdown|md))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:markdown|md))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5196,8 +5191,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: text.html.markdown
-      - begin: \b((?i:latex|tex))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:latex|tex))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5207,8 +5202,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: text.tex.latex
-      - begin: \b((?i:was[imt]|wasm|wat))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:was[imt]|wasm|wat))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5218,8 +5213,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.wat
-      - begin: \b((?i:cljs?))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:cljs?))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5229,8 +5224,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.clojure
-      - begin: \b((?i:makefile|make))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:makefile|make))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5240,8 +5235,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.makefile
-      - begin: \b((?i:hs))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:hs))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5251,8 +5246,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.haskell
-      - begin: \b((?i:ml))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:ml))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5262,8 +5257,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.ml
-      - begin: \b((?i:ocaml))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:ocaml))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5273,8 +5268,8 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.ocaml
-      - begin: \b((?i:fs))\b\s*('(?:'')*|"(?:"")*)\s*
-        end: \s*(\2)\s*
+      - begin: \b((?i:fs))\b\s*({)\s*
+        end: \s*(})\s*
         name: meta.brace.script.ruko
         beginCaptures:
           1: {name: storage.type.language.ruko}
@@ -5719,11 +5714,110 @@ repository:
         match: |
           (?x)
           (?<=
+            ^ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators at beginning of line
+          )
+          \b
+          (
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|has|old|new|del
+                |unset|(?:de)?ref|and|x?or|not
+                |const|let|mut|dyn|va[rl]|use
+                |given|expr|eval|init|comp
+                |func|pro[pc]|type|class|actor|trait
+                |impl|enum|mod(?:el|ule)|struct|record
+                |union|iter|macro|query|elem|temp|oper
+                |object|realm|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def(?:er)?
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
+              )
+              \b
+            )
+            (?:
+              \b
+              [\p{Pc}\p{L}]\w* # identifier
+              \b
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+            )*
+            [\p{Pc}\p{L}]\w* # last part of identifier
+          )
+          \b
+          (?=
+            (?:
+              \s* (?: # function name
+                \b
+                # ignore all keywords
+                (?!
+                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                  (?: # keywords
+                    [io]n|of|[ai]s|has|old|new|del
+                    |unset|(?:de)?ref|and|x?or|not
+                    |const|let|mut|dyn|va[rl]|use
+                    |given|expr|eval|init|comp
+                    |func|pro[pc]|type|class|actor|trait
+                    |impl|enum|mod(?:el|ule)|struct|record
+                    |union|iter|macro|query|elem|temp|oper
+                    |object|realm|style|script|quote
+                    |go|defer|do|with|from|where
+                    |if|else|then|guard|when
+                    |for|loop|while|goto|move
+                    |try|throw|catch|switch
+                    |match|case|pass|def(?:er)?
+                    |break|skip|redo|retry
+                    |return|yield|await|scope
+                    |import|export|intern|extern
+                    |debug|assert|check|decl
+                  )
+                  \b
+                )
+                \b
+                [\p{Pc}\p{L}]\w* # identifier
+                \b
+              )(?! : # avoid matching labels/message passing here
+                (?:
+                    (?:\w*|[\\$#%]*)['"] # quoted string literals
+                  | `\s*(?=\N) # unquoted string literals 
+                  | :[\p{Pc}\p{L}]\w* # symbols
+                  | ['"`\w\s] # string literals
+                  | \d # numbers
+                  | \#? [(\[{] # opening brackets
+                )
+              )
+              | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+              | [!~] \#? [({] # macro and destructor calls
+              | \s* (?:
+                  (?:\w*|[\\$#%]*)['"] # quoted string literals
+                | `\s*(?=\N) # unquoted string literals 
+                | :[\p{Pc}\p{L}]\w* # symbols
+                | \d # numbers
+                | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators
+                  (?: ['"`\w] | \#?[(\[{])
+                | \s+ [(\[] # brackets
+              )
+            )
+          )
+        captures:
+          1: {patterns: [include: '#function-names']}
+      - name: meta.function.arguments.ruko
+        match: |
+          (?x)
+          (?<=
             (?:
                 ^ # beginning of line
               | [,;] | ['"`)}\]\w\s]: # separator or postfix colon
               | [({\[] # opening bracket
-              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s # postfix or infix operator
+              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # postfix or infix operator
             ) \s*
             | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor or qualified name separator
             | # a keyword
@@ -6109,8 +6203,8 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b
               \s*
             | # type specifier and assignment
-              (?::|[?:]?=) \s* [\w'"`({\[]
-            | \s+ (?::|[?:]?=) \s+ [\w'"`({\[]
+              (?::|[?:]?=) \s* (?:[*&%@^!~?\\\-+]*) [\w'"`({\[]
+            | \s+ (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) [\w'"`({\[]
           )
         captures:
           1:
@@ -6647,13 +6741,13 @@ repository:
       6: {name: keyword.operator.union.ruko}
       7: {name: keyword.operator.borrow.ruko}
       8: {name: keyword.operator.logical.ruko}
-      9: {name: keyword.operator.private.ruko}
-      10: {name: keyword.operator.decorator.ruko}
+      9: {name: punctuation.definition.variable.ruko}
+      10: {name: punctuation.definition.decorator.ruko}
       11: {name: keyword.operator.bitwise.not.ruko}
       12: {name: keyword.operator.existential.ruko}
       13: {name: keyword.operator.assignment.ruko}
       14: {name: keyword.operator.pipeline.ruko}
-      15: {name: keyword.operator.private.ruko}
+      15: {name: punctuation.definition.anchor.ruko}
       16: {name: keyword.operator.format.ruko}
       17: {name: keyword.operator.accessor.ruko}
       18: {name: keyword.operator.lifetime.ruko}
@@ -7933,6 +8027,7 @@ repository:
 
   clauses:
     patterns:
+      - include: '#do-clause'
       - include: '#for-clause'
       - include: '#if-clause'
       - include: '#match-clause'
@@ -7959,6 +8054,10 @@ repository:
           - include: '#parameter-brackets'
           - include: '#namespace-separators'
           - include: '#round-brackets'
+
+      do-clause:
+        match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(do)\b\s*
+        name: keyword.control.do.ruko
 
       type-clause:
         patterns:
@@ -8443,13 +8542,13 @@ repository:
   generics: &generics
     patterns:
       - comment: <> exception.
-        match: (?<=^|['"`)}\]>\w\s])(<)(>)(?=$|[!~]?(?:['"`\w<]|\#?[(\[{]))
+        match: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(>)(?=$|[!~]?(?:['"`\w<]|\#?[(\[{]))
         captures:
           1: {name: punctuation.type.arguments.ruko}
           2: {name: punctuation.type.arguments.ruko}
       - comment: <...> with content.
         name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|\#?[(\[{]))
+        begin: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|['"`)}\]>\w])(>)(?:(!)|(~))?
         beginCaptures:
           1:
