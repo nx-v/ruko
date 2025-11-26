@@ -19,6 +19,7 @@ information: |
   Last updated: November 26, 2025
 
 todo: |
+  - Fix bug with function al
   - Add support for reflection and meta-programming syntax.
     Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
     for inspiration.
@@ -322,6 +323,7 @@ define:
 repository:
   core:
     patterns:
+      - include: '#function-calls'
       - include: '#directives'
       - include: '#ignore-long-lines'
       - include: '#clauses'
@@ -340,7 +342,6 @@ repository:
       - include: '#brackets'
       - include: '#punctuation'
       - include: '#operators'
-      - include: '#function-calls'
       - include: '#variables'
       - include: '#illegal'
       - include: '#space'
@@ -5714,114 +5715,15 @@ repository:
         match: |
           (?x)
           (?<=
-            ^ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators at beginning of line
-          )
-          \b
-          (
-            # ignore all keywords
-            (?!
-              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-              (?: # keywords
-                [io]n|of|[ai]s|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init|comp
-                |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |go|defer|do|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
-                |break|skip|redo|retry
-                |return|yield|await|scope
-                |import|export|intern|extern
-                |debug|assert|check|decl
-              )
-              \b
-            )
-            (?:
-              \b
-              [\p{Pc}\p{L}]\w* # identifier
-              \b
-              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-            )*
-            [\p{Pc}\p{L}]\w* # last part of identifier
-          )
-          \b
-          (?=
-            (?:
-              \s* (?: # function name
-                \b
-                # ignore all keywords
-                (?!
-                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                  (?: # keywords
-                    [io]n|of|[ai]s|has|old|new|del
-                    |unset|(?:de)?ref|and|x?or|not
-                    |const|let|mut|dyn|va[rl]|use
-                    |given|expr|eval|init|comp
-                    |func|pro[pc]|type|class|actor|trait
-                    |impl|enum|mod(?:el|ule)|struct|record
-                    |union|iter|macro|query|elem|temp|oper
-                    |object|realm|style|script|quote
-                    |go|defer|do|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def(?:er)?
-                    |break|skip|redo|retry
-                    |return|yield|await|scope
-                    |import|export|intern|extern
-                    |debug|assert|check|decl
-                  )
-                  \b
-                )
-                \b
-                [\p{Pc}\p{L}]\w* # identifier
-                \b
-              )(?! : # avoid matching labels/message passing here
-                (?:
-                    (?:\w*|[\\$#%]*)['"] # quoted string literals
-                  | `\s*(?=\N) # unquoted string literals 
-                  | :[\p{Pc}\p{L}]\w* # symbols
-                  | ['"`\w\s] # string literals
-                  | \d # numbers
-                  | \#? [(\[{] # opening brackets
-                )
-              )
-              | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
-              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
-              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-              | [!~] \#? [({] # macro and destructor calls
-              | \s* (?:
-                  (?:\w*|[\\$#%]*)['"] # quoted string literals
-                | `\s*(?=\N) # unquoted string literals 
-                | :[\p{Pc}\p{L}]\w* # symbols
-                | \d # numbers
-                | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators
-                  (?: ['"`\w] | \#?[(\[{])
-                | \s+ [(\[] # brackets
-              )
-            )
-          )
-        captures:
-          1: {patterns: [include: '#function-names']}
-      - name: meta.function.arguments.ruko
-        match: |
-          (?x)
-          (?<=
             (?:
                 ^ # beginning of line
-              | [,;] | ['"`)}\]\w\s]: # separator or postfix colon
-              | [({\[] # opening bracket
-              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # postfix or infix operator
+              | [,;] # delimiter
+              | (?: ['"`)}\]\w\s] | \\.): # postfix colon
+              | #? [({\[] # opening bracket
+              | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # operator
             ) \s*
-            | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor or qualified name separator
-            | # a keyword
-            (?:
+            | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # operator
+            | (?:
               (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
               \b
                 (?: # keywords
