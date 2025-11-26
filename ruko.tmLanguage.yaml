@@ -63,6 +63,12 @@ todo: |
 changelog: |
   New changes:
 
+  - Add operator definition syntax for user-defined operators.
+    oper param <suffix> -> return_type { ... }
+    oper <prefix> param -> return_type { ... }
+    oper param1 <infix> param2 -> return_type { ... }
+    oper param1 <ternary_1> param2 <ternary_2> param3 -> return_type { ... }
+    Example: oper x ** y -> f64 = pow(x, y)
   - Added Python slicing syntax for arrays, strings, tuples, etc.:
     array[start:end:step]
     string[start:end:step]
@@ -256,7 +262,7 @@ define:
         |given|expr|eval|init|comp
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
-        |union|iter|macro|query|elem|temp
+        |union|iter|macro|query|elem|temp|oper
         |object|realm|style|script|quote
         |go|defer|do|with|from|where
         |if|else|then|guard|when
@@ -286,7 +292,7 @@ define:
         |given|expr|eval|init|comp
         |func|pro[pc]|type|class|actor|trait
         |impl|enum|mod(?:el|ule)|struct|record
-        |union|iter|macro|query|elem|temp
+        |union|iter|macro|query|elem|temp|oper
         |object|realm|style|script|quote
         |go|defer|do|with|from|where
         |if|else|then|guard|when
@@ -408,7 +414,7 @@ repository:
           |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
-          |union|iter|macro|query|elem|temp
+          |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |go|defer|do|with|from|where
           |if|else|then|guard|when
@@ -488,8 +494,7 @@ repository:
     end: (?=)|$
     beginCaptures:
       1: {name: punctuation.definition.annotation.ruko}
-    patterns:
-      - include: '#types'
+    patterns: [include: '#types']
 
   type-brackets:
     patterns:
@@ -796,8 +801,7 @@ repository:
         name: keyword.operator.type.function.ruko
       - match: \s*(<--?|<~~?|<==?)
         name: keyword.operator.type.channel.ruko
-      - &prefix-type-operators
-        comment: prefix type operators
+      - comment: prefix type operators
         match: |
           (?x)
           \s*
@@ -812,9 +816,10 @@ repository:
             |(\?)       # optional
             |(\\)       # lifetime
             |(\-)       # negation
+            |(\+)       # arithmetic
           ) 
           (?=[\w'"`]|\#?[(\[{<])
-        captures:
+        captures: &prefix-type-operator-captures
           1: {name: keyword.operator.pointer.ruko}
           2: {name: keyword.operator.reference.ruko}
           3: {name: keyword.operator.format.ruko}
@@ -825,8 +830,7 @@ repository:
           8: {name: keyword.operator.optional.ruko}
           9: {name: keyword.operator.lifetime.ruko}
           10: {name: keyword.operator.arithmetic.ruko}
-      - &infix-type-operators
-        comment: infix type operators
+      - comment: infix type operators
         match: |
           (?x)
           \s*
@@ -855,8 +859,7 @@ repository:
           7: {name: keyword.operator.relation.ruko}
           8: {name: keyword.operator.comparison.ruko}
           9: {name: keyword.operator.variant.ruko}
-      - &suffix-type-operators
-        comment: suffix type operators
+      - comment: suffix type operators
         match: |
           (?x)
           \s*
@@ -866,16 +869,37 @@ repository:
             |(\?)       # existential
           )
           \B
-        captures:
+        captures: &suffix-type-operator-captures
           1: {name: keyword.operator.assert.ruko}
           2: {name: keyword.operator.existential.ruko}
 
   parameter-type-operators:
     patterns:
-      - *prefix-type-operators
-      - *infix-type-operators
-      - *suffix-type-operators
-      - include: '#illegal'
+      - comment: prefix type operators
+        match: |
+          (?x)
+          (?:
+             (\*)       # pointer
+            |(\&)       # reference
+            |(\%)       # format
+            |(\@)       # decorator
+            |(\^)       # borrow 
+            |(\!)       # negation
+            |(\~)       # destructor
+            |(\?)       # optional
+            |(\\)       # lifetime
+            |(\-)       # negation
+            |(\+)       # arithmetic
+          )
+        captures: *prefix-type-operator-captures
+      - comment: suffix type operators
+        match: |
+          (?x)
+          (?:
+             (\!)       # negation
+            |(\?)       # existential
+          )
+        captures: *suffix-type-operator-captures
 
   # Literals and Constants
 
@@ -3034,7 +3058,7 @@ repository:
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
@@ -3118,7 +3142,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -3262,7 +3286,7 @@ repository:
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
@@ -3867,7 +3891,7 @@ repository:
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
@@ -5216,6 +5240,79 @@ repository:
         patterns:
           - include: '#template-expression'
           - include: source.makefile
+      - begin: \b((?i:hs))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#template-expression'
+          - include: source.haskell
+      - begin: \b((?i:ml))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#template-expression'
+          - include: source.ml
+      - begin: \b((?i:ocaml))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#template-expression'
+          - include: source.ocaml
+      - begin: \b((?i:fs))\b\s*('(?:'')*|"(?:"")*)\s*
+        end: \s*(\2)\s*
+        name: meta.brace.script.ruko
+        beginCaptures:
+          1: {name: storage.type.language.ruko}
+          2: {name: punctuation.definition.block.script.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.block.script.ruko}
+        patterns:
+          - include: '#template-expression'
+          - include: source.fsharp
+
+  operator-declarations:
+    comment: |
+      Operator declarations.
+      Format: <prec> <associativity> <fixity> <operator> (-> <return type>)
+    patterns:
+      - include: '#comments'
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(prec)\b\s*(?:(\d+)|([\p{Pc}\p{L}]\w*))
+        captures:
+          1: {name: storage.type.precedence.ruko}
+          2: {name: constant.numeric.integer.ruko}
+          3: {name: constant.language.ruko}
+      - match: (?<=\boper\b)\s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(left|right|none)\b
+        name: storage.type.associativity.ruko
+      - match: *entity-name
+        name: variable.parameter.operator.ruko
+      - comment: return type signature
+        applyEndPatternLast: true
+        name: meta.type.ruko
+        begin: \s*(?:(--?>)|(==?>)|(~~?>))\s*
+        end: (?=)|$
+        beginCaptures:
+          1: {name: keyword.operator.arrow.skinny.ruko}
+          2: {name: keyword.operator.arrow.fat.ruko}
+          3: {name: keyword.operator.arrow.wavy.ruko}
+        patterns: [include: '#types']
+      - include: '#suffix-operators'
+      - include: '#prefix-operators'
+      - include: '#infix-operators'
 
   style-block:
     begin: \s*(\{)\s*
@@ -5640,7 +5737,7 @@ repository:
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
-                  |union|iter|macro|query|elem|temp
+                  |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |go|defer|do|with|from|where
                   |if|else|then|guard|when
@@ -5667,7 +5764,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -5704,7 +5801,7 @@ repository:
                     |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
                     |impl|enum|mod(?:el|ule)|struct|record
-                    |union|iter|macro|query|elem|temp
+                    |union|iter|macro|query|elem|temp|oper
                     |object|realm|style|script|quote
                     |go|defer|do|with|from|where
                     |if|else|then|guard|when
@@ -5732,8 +5829,8 @@ repository:
                 )
               )
               | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
-              | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
-              | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | [!~] \#? [({] # macro and destructor calls
               | \s* (?:
                   (?:\w*|[\\$#%]*)['"] # quoted string literals
@@ -5768,7 +5865,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -5976,7 +6073,7 @@ repository:
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
-                  |union|iter|macro|query|elem|temp
+                  |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |given|use|as
                 ) \b
@@ -5984,18 +6081,21 @@ repository:
             ) \s*
           )
 
-          \s*
-          ([\p{P}\p{S}&&[^,;'"`({\[|)}\]\p{Pc}]]*) # any sigils
-          (
-            \b
-            [\p{Pc}\p{L}]\w* # identifier
-            \s*\b 
+          (?:
+            \s*
+            ([*&%@^!~?\\\-+]*) # any sigils
+            (\b[\p{Pc}\p{L}]\w*\b) # identifier
+            ([!?]*) # optional sigils
+            \s*
           )*
 
-          \s*
-          (\b[\p{Pc}\p{L}]\w*\b) # identifier
-          ([\p{P}\p{S}&&[^,;'"`({\[|)}\]\p{Pc}]]*) # any sigils
-          \s*
+          (?:
+            \s*
+            ([*&%@^!~?\\\-+]*) # any sigils
+            (\b[\p{Pc}\p{L}]\w*\b) # identifier
+            ([!?]*) # optional sigils
+            \s*
+          )
 
           (?!\|\s*$)
           (?=
@@ -6022,9 +6122,15 @@ repository:
               - include: '#declaration-keywords'
               - include: '#modifiers'
           3:
+            name: keyword.operator.suffix.ruko
+            patterns: [include: '#parameter-type-operators']
+          4:
+            name: keyword.operator.prefix.ruko
+            patterns: [include: '#parameter-type-operators']
+          5:
             name: variable.parameter.ruko
             patterns: [include: '#constants']
-          4:
+          6:
             name: keyword.operator.suffix.ruko
             patterns: [include: '#parameter-type-operators']
 
@@ -6314,8 +6420,8 @@ repository:
       21: {name: keyword.operator.macro.ruko}
       22: {name: keyword.operator.assignment.ruko}
       23: {name: keyword.operator.range.ruko}
-      24: {name: keyword.operator.arrow.double.ruko}
-      25: {name: keyword.operator.arrow.single.ruko}
+      24: {name: keyword.operator.arrow.fat.ruko}
+      25: {name: keyword.operator.arrow.skinny.ruko}
       26: {name: keyword.operator.arrow.wavy.ruko}
       27: {name: keyword.operator.logical.custom.ruko}
       28: {name: keyword.operator.arithmetic.custom.ruko}
@@ -6489,8 +6595,8 @@ repository:
       21: {name: keyword.operator.macro.ruko}
       22: {name: keyword.operator.assignment.ruko}
       23: {name: keyword.operator.range.ruko}
-      24: {name: keyword.operator.arrow.double.ruko}
-      25: {name: keyword.operator.arrow.single.ruko}
+      24: {name: keyword.operator.arrow.fat.ruko}
+      25: {name: keyword.operator.arrow.skinny.ruko}
       26: {name: keyword.operator.arrow.wavy.ruko}
       27: {name: keyword.operator.logical.custom.ruko}
       28: {name: keyword.operator.arithmetic.custom.ruko}
@@ -6636,7 +6742,7 @@ repository:
           |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
           |impl|enum|mod(?:el|ule)|struct|record
-          |union|iter|macro|query|elem|temp
+          |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |import|export|intern|extern
           |do|scope
@@ -6663,7 +6769,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -6690,7 +6796,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -6761,7 +6867,7 @@ repository:
             (
               func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
             \b
@@ -6900,7 +7006,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -7110,6 +7216,7 @@ repository:
       - include: '#variable'
       - include: '#declare'
       - include: '#quote'
+      - include: '#operator'
       - include: '#style'
       - include: '#script'
       - include: '#markup'
@@ -7161,7 +7268,7 @@ repository:
       style:
         applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(style)\b\s*
-        end: (?=)|$
+        end: (?=$|['"`\w\s]|#?[(\[{])
         beginCaptures:
           1: {name: storage.type.style.ruko}
         name: meta.style.ruko
@@ -7173,6 +7280,21 @@ repository:
           - include: '#namespace-separators'
           - match: *entity-name
             name: entity.name.style.ruko
+
+      operator:
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(oper)\b\s*
+        end: (:?=)|(?=#?{|[;,]|$)
+        beginCaptures:
+          1: {name: storage.type.script.ruko}
+        endCaptures:
+          1: {name: punctuation.terminator.operator.ruko}
+        name: meta.script.ruko
+        patterns:
+          - include: '#angle-brackets'
+          - include: '#operator-declarations'
+          - include: '#declaration-clause'
+          - match: *entity-name
+            name: entity.name.script.ruko
 
       script:
         applyEndPatternLast: true
@@ -7510,7 +7632,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -7558,7 +7680,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -7582,7 +7704,7 @@ repository:
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
             \b
@@ -7611,7 +7733,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -7664,7 +7786,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -7688,7 +7810,7 @@ repository:
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
             \b
@@ -7717,7 +7839,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -7777,7 +7899,7 @@ repository:
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
@@ -8182,7 +8304,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -8206,7 +8328,7 @@ repository:
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
               |impl|enum|mod(?:el|ule)|struct|record
-              |union|iter|macro|query|elem|temp
+              |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
             \b
@@ -8235,7 +8357,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -8273,7 +8395,7 @@ repository:
           (?<=^|[,;(\[{])\s*
           \s*
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # label
-          (?=: (?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))
+          (?=:(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)) # lookahead for key-value separator
         name: meta.object-literal.key.ruko
         captures:
           1:
@@ -8327,7 +8449,7 @@ repository:
           2: {name: punctuation.type.arguments.ruko}
       - comment: <...> with content.
         name: meta.type-arguments
-        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[!@#$%^&*_\-+=|\\/~`:;,.?<]*(?:['"`\w]|\#?[(\[{]))
+        begin: (?<=^|['"`)}\]>\w\s])(<)(?=[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|['"`)}\]>\w])(>)(?:(!)|(~))?
         beginCaptures:
           1:
@@ -8767,7 +8889,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -8854,7 +8976,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
@@ -8887,7 +9009,7 @@ repository:
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
                   |impl|enum|mod(?:el|ule)|struct|record
-                  |union|iter|macro|query|elem|temp
+                  |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |go|defer|do|with|from|where
                   |if|else|then|guard|when
@@ -8951,7 +9073,7 @@ repository:
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
                 |impl|enum|mod(?:el|ule)|struct|record
-                |union|iter|macro|query|elem|temp
+                |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
