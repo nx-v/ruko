@@ -19,12 +19,18 @@ information: |
   Last updated: November 26, 2025
 
 todo: |
+  - Fix lambda pipe syntax highlighting bugs.
+    - [ ] Pipes with no parameters.
+    - [ ] Pipes with single parameters at the start or end of a line.
+    - [ ] Pipes with parameters whose default values or type expressions 
+      contain operators that begin with a pipe (|).
   - Add support for reflection and meta-programming syntax.
     Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
     for inspiration.
     https://safecpp.org/draft.html
     https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
-    - [ ] Unsafe by default, for the sake of performance. Use the 'safe' keyword to enable scoped 'safe' mode.
+    - [ ] Unsafe by default, for the sake of performance. 
+      Use the 'safe' keyword to enable scoped 'safe' mode.
     - [ ] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
   - [x] Add dynamic JSX/XML literals <(expr)> </>.
   - [ ] Backslashes may begin identifiers to strop them to avoid keyword conflicts.
@@ -5341,16 +5347,7 @@ repository:
         name: storage.type.associativity.ruko
       - match: *entity-name
         name: variable.parameter.operator.ruko
-      - comment: return type signature
-        applyEndPatternLast: true
-        name: meta.type.ruko
-        begin: \s*(?:(--?>)|(==?>)|(~~?>))\s*
-        end: (?=)|$
-        beginCaptures:
-          1: {name: keyword.operator.arrow.skinny.ruko}
-          2: {name: keyword.operator.arrow.fat.ruko}
-          3: {name: keyword.operator.arrow.wavy.ruko}
-        patterns: [include: '#types']
+      - include: '#type-signature'
       - include: '#suffix-operators'
       - include: '#prefix-operators'
       - include: '#infix-operators'
@@ -6240,11 +6237,12 @@ repository:
             \s*
           )
 
-          (?!\|\s*$)
           (?=
             $ # EOL
             | # close bracket or pipe
-              \s* [)}\]] | \s* \|:? [\w\s'"`({\[)}\]]
+              \s* [)}\]]
+            | # pipe
+              \s* \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.)
             | # separator
               \s* [;,]
             | # as keyword (aliasing)
@@ -6252,8 +6250,8 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b
               \s*
             | # type specifier and assignment
-              (?::|[?:]?=) \s* (?:[*&%@^!~?\\\-+]*) [\w'"`({\[]
-            | \s+ (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) [\w'"`({\[]
+              (?::|[?:]?=) \s* (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{])
+            | \s+ (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{])
           )
         captures:
           1:
@@ -7410,6 +7408,7 @@ repository:
             name: entity.name.style.ruko
 
       operator:
+        applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(oper)\b\s*
         end: (:?=)|(?=#?{|[;,]|$)
         beginCaptures:
