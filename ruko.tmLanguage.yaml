@@ -5914,15 +5914,6 @@ repository:
                 | \s+ [(\[] # opening brackets
                 | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators
                   (?: ['"`\w] | \#?[(\[{])
-                | \s+ # lambda parameter list
-                  \|(?:
-                      # opening bracket
-                      #?[({\[]
-                    | # parameter variable
-                      [*&%@^!~?\\\-+]* # any sigils
-                      \b[\p{Pc}\p{L}]\w*\b # identifier
-                      [!?]* # optional sigils
-                  )
                 | \s+ # XML tag component name
                   <[>\p{Pc}\p{L}(]
                 | \s+ # regexp literal
@@ -5936,14 +5927,14 @@ repository:
             name: meta.function.name.ruko
             patterns: [include: '#function-names']
         patterns:
+          - include: '#infix-operators'
           - applyEndPatternLast: true
             begin: |
               (?x)
               (?=<(?:[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|\#?[(\[{])))
             end: (?=)|$
             name: meta.type-arguments.ruko
-            patterns:
-              - include: '#generics'
+            patterns: [include: '#generics']
           - begin: |
               (?x)
               (?<!\|)\s+(\|)
@@ -5984,6 +5975,7 @@ repository:
                 patterns:
                   - include: '#back-references'
                   - include: '#xml-regex-content'
+          - include: '#xml'
           - include: '#literals'
           - include: '#variables'
           - include: '#prefix-operators'
