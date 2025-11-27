@@ -5770,7 +5770,7 @@ repository:
               | #? [({\[] # opening bracket
               | ^ # beginning of line
             ) \s*
-            | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+            | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # operator
             | (?:
               (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
               \b
@@ -5872,6 +5872,36 @@ repository:
                   | \#? [(\[{] # opening brackets
                 )
               )
+              | \s* (?: # function name
+                \b
+                # ignore all keywords
+                (?!
+                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                  (?: # keywords
+                    [io]n|of|[ai]s|has|old|new|del
+                    |unset|(?:de)?ref|and|x?or|not
+                    |const|let|mut|dyn|va[rl]|use
+                    |given|expr|eval|init|comp
+                    |func|pro[pc]|type|class|actor|trait
+                    |impl|enum|mod(?:el|ule)|struct|record
+                    |union|iter|macro|query|elem|temp|oper
+                    |object|realm|style|script|quote
+                    |go|defer|do|with|from|where
+                    |if|else|then|guard|when
+                    |for|loop|while|goto|move
+                    |try|throw|catch|switch
+                    |match|case|pass|def(?:er)?
+                    |break|skip|redo|retry
+                    |return|yield|await|scope
+                    |import|export|intern|extern
+                    |debug|assert|check|decl
+                  )
+                  \b
+                )
+                \b
+                [\p{Pc}\p{L}]\w* # identifier
+                \b
+              )(?= : (?: \s+ | $ ) ) # beginning of block
               | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
@@ -9014,7 +9044,7 @@ repository:
           - include: '#brackets'
       - match: |
           (?x)
-          (?<=\[)
+          (?<=\#?\[[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*)
           \s*
           ( # Message name
             \b
@@ -9108,6 +9138,8 @@ repository:
                 [\w'"`)}\]] # literals and closing brackets
               | (?:[?!][:>]?=?|[:>])?[\p{Pc}\p{L}]\w* # identifiers
               | \\. # escape sequences
+              | [;,] # punctuation
+              | ^ # start of line
             ) 
             \s*
           )
