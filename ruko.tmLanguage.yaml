@@ -5917,7 +5917,7 @@ repository:
                 | \s+ # XML tag component name
                   <[>\p{Pc}\p{L}(]
                 | \s+ # regexp literal
-                  /[^/\s]
+                  /[^/*\s]
               )
             )
           )
@@ -5927,7 +5927,6 @@ repository:
             name: meta.function.name.ruko
             patterns: [include: '#function-names']
         patterns:
-          - include: '#infix-operators'
           - applyEndPatternLast: true
             begin: |
               (?x)
@@ -5958,7 +5957,7 @@ repository:
             end: (?=)|$
             patterns:
               - include: '#tag-component-name'
-          - begin: (?<!/)\s+(/)(?=[^/\s])
+          - begin: (?<!/)\s+(/)(?=[^/*\s])
             name: string.regexp.pattern.ruko
             end: (?<!/)(/)(?!/)
             captures:
@@ -5975,7 +5974,6 @@ repository:
                 patterns:
                   - include: '#back-references'
                   - include: '#xml-regex-content'
-          - include: '#xml'
           - include: '#literals'
           - include: '#variables'
           - include: '#prefix-operators'
