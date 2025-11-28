@@ -19,11 +19,6 @@ information: |
   Last updated: November 26, 2025
 
 todo: |
-  - Fix lambda pipe syntax highlighting bugs.
-    - [ ] Pipes with no parameters.
-    - [ ] Pipes with single parameters at the start or end of a line.
-    - [ ] Pipes with parameters whose default values or type expressions 
-      contain operators that begin with a pipe (|).
   - Add support for reflection and meta-programming syntax.
     Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
     for inspiration.
@@ -72,6 +67,8 @@ todo: |
 changelog: |
   New changes:
 
+  - Added infix function call syntax using backslashes.
+    a \x\ b
   - Brought back Haskell-style function call syntax with 
     space OR comma-separated arguments.
       funcName arg1 arg2 { arg3: 10 }; or 
@@ -5391,31 +5388,7 @@ repository:
 
   style-rules:
     patterns:
-      - comment: CSS operators
-        match: |
-          (?x)
-          \s*
-            (?:
-               (\+)|(\-)|(\*)|(\/)|(\%)|(\!)
-              |(\?)|(\&)|(\^)|(\~)|(\$)|(\\)
-              |([<>])|(\#)
-            )
-          \s*
-        captures:
-          1: {name: keyword.operator.sum.ruko}
-          2: {name: keyword.operator.difference.ruko}
-          3: {name: keyword.operator.product.ruko}
-          4: {name: keyword.operator.quotient.ruko}
-          5: {name: keyword.operator.remainder.ruko}
-          6: {name: keyword.operator.only.ruko}
-          7: {name: keyword.operator.maybe.ruko}
-          8: {name: keyword.operator.intersection.ruko}
-          9: {name: keyword.operator.symmetric.ruko}
-          10: {name: keyword.operator.negation.ruko}
-          11: {name: keyword.operator.macro.dollar.ruko}
-          12: {name: keyword.operator.successor.ruko}
-          13: {name: keyword.operator.class.ruko}
-          14: {name: keyword.operator.id.ruko}
+      - include: '#type-operators'
       - begin: \s*(\()\s*
         end: \s*(\))
         captures:
@@ -5909,10 +5882,11 @@ repository:
                 | :[\p{Pc}\p{L}]\w* # symbols
                 | \d # numbers
                 | \s+ [(\[] # opening brackets
-                | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ # prefix operators
+                | \s+ [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
+                      [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
                   (?: ['"`\w] | \#?[(\[{])
                 | \s+ # XML tag component name
-                  <[>\p{Pc}\p{L}(]
+                  <[\p{Pc}\p{L}(]
                 | \s+ # regexp literal
                   /[^/*\s]
               )
@@ -5950,7 +5924,7 @@ repository:
               1: {name: punctuation.separator.arguments.ruko}
             patterns: [include: '#argument-list-content']
           - applyEndPatternLast: true
-            begin: (?<!<)\s+(?=<[>\p{Pc}\p{L}(])
+            begin: (?<!<)\s+(?=<[\p{Pc}\p{L}(])
             end: (?=)|$
             patterns:
               - include: '#tag-component-name'
@@ -6111,7 +6085,7 @@ repository:
           (?x)
           (?:
             (?<=
-              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.?) # literal, bracket or space
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
             )
             \b # methods
@@ -6373,6 +6347,7 @@ repository:
 
   operators:
     patterns:
+      - include: '#named-infix-operators'
       - include: '#special-operators'
       - include: '#infix-operators'
       - include: '#primary-operators'
@@ -6386,21 +6361,73 @@ repository:
       - match: (?<=>|\w)(~)(?=#?[({])
         captures: {1: {name: keyword.operator.destructor.ruko}}
 
+  named-infix-operators:
+    comment: 'Named infix operators: x \fn\ y'
+    contentName: keyword.operator.infix.named.ruko
+    begin: (?<=['"`)}\]\w\s]|\\.)(\\)\s*
+    end: \s*(\\)(?=$|['"`\w\s]|\#?[(\[{])
+    captures:
+      1: {name: punctuation.definition.operator.ruko}
+    patterns:
+      - match: (?<=\\?)([?!:]:|[?!]?\.|[?!-]>)([\p{Pc}\p{L}]\w*)(?!(?:[?!:]:|[?!]?\.|[?!-]>))
+        captures:
+          1:
+            name: punctuation.separator.accessor.ruko
+            patterns: [include: '#accessor-operators']
+          2:
+            name: entity.name.function.member.ruko
+            patterns: [include: '#function-names']
+      - match: |
+          (?x)
+          (?<=\\?)
+          ( # function name
+            \b
+            # ignore all keywords
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                [io]n|of|[ai]s|by|has|old|new|del
+                |unset|(?:de)?ref|and|x?or|not
+                |const|let|mut|dyn|va[rl]|use
+                |given|expr|eval|init|comp
+                |func|pro[pc]|type|class|actor|trait
+                |impl|enum|mod(?:el|ule)|struct|record
+                |union|iter|macro|query|elem|temp|oper
+                |object|realm|style|script|quote
+                |go|defer|do|with|from|where
+                |if|else|then|guard|when
+                |for|loop|while|goto|move
+                |try|throw|catch|switch
+                |match|case|pass|def(?:er)?
+                |break|skip|redo|retry
+                |return|yield|await|scope
+                |import|export|intern|extern
+                |debug|assert|check|decl
+              )
+              \b
+            )
+            \b
+            [\p{Pc}\p{L}]\w* # identifier
+            \b
+          )
+          (?=\\)
+        captures:
+          1:
+            name: entity.name.function.ruko
+            patterns: [include: '#function-names']
+      - include: '#operators'
+      - include: $self
+
   infix-operators:
+    comment: All other infix operators
     name: keyword.operator.infix.ruko
     match: |
       (?xi)
       (?<=^|[\s({\[]) # opening
       (?:
-        ( # 1: optional access/unwrap
-          \?[.:>]=?
-        ) |
-        ( # 2: assert/unwrap operator
-          ![.:>]=?
-        ) |
-        ( # 3: access operator
-          (?:::|\.|->)=?
-        ) |
+        ( \?[.:>]=? ) | # 1: optional access/unwrap
+        ( ![.:>]=? ) | # 2: assert/unwrap operator
+        ( (?:::|\.|->)=? ) | # 3: access operator
         ( # 4: compound assignment operators
           # all operators except ~ < = > . : !
           [\p{P}\p{S}&&[^~<=>.,:;!'"`({\[)}\]\p{Pc}]]
@@ -6408,118 +6435,39 @@ repository:
           [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*
           = # ending equal sign
         ) |
-        ( # 5: arithmetic operator
-          [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%?
-        ) |
-        ( # 6: string/regex/array/set
-          \+\+ | \-\-
-        ) |
-        ( # 7: logical operator
-          \&\& | \|\| | \^\^ | ! | /\\ | \\/
-        ) |
-        ( # 8: bitwise and set
-          \& | \| | \^ | ~
-        ) |
-        ( # 9: bitwise shift/rotate
-          <<[<>]? | [<>]?>>
-        ) |
-        ( # 10: pipeline
-          <\|+ | \|+> | !+> | <!+
-        ) |
-        ( # 11: composition
-          <\+ | \+>
-        ) |
-        ( # 12: membership
-          [<>][:!] | [:!][<>]
-        ) |
-        ( # 13: comparison
-          < | > | <= | >= | <> | <=>
-        ) |
-        ( # 14: equality
-          == | != | === | !==
-        ) |
-        ( # 15: similarity
-          ~[=!] | [=!]~ | =< | ><
-        ) |
-        ( # 16: functional
-          <[/*|+$:]> | [/*|+$:]> | <[/*|+$:]
-        ) |
-        ( # 17: null coalescing
-          \?\?
-        ) |
-        ( # 18: non null coalescing
-          !!
-        ) |
-        ( # 19: falsy coalescing
-          \?:?
-        ) |
-        ( # 20: truthy coalescing
-          !:?
-        ) |
-        ( # 21: function application
-          [.$] | :
-        ) |
-        ( # 22: assignment / fallback
-          :?=
-        ) |
-        ( # 23: range
-          [>.]\.[.<] | \.\. | [=.]\.[.=]
-        ) |
-        ( # 24: double arrow
-            =+> # right side
-          | <=+ # left side
-        ) |
-        ( # 25: single arrow
-            -+> # right side
-          | <-+ # left side
-        ) |
-        ( # 26: wavy arrow
-            ~+> # right side
-          | <~+ # left side
-        ) |
-        ( # 27: custom logical
-          [&|^~] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 28: custom arithmetic
-          [-+*/%] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 29: custom prototype
-          [@:] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 30: custom accessor
-          [.] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 31: custom comparison
-          [=!] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 32: custom relational
-          [<>] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 33: custom private
-          [?\#] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 34: custom math
-          \p{Sm} # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 35: custom currency
-          \p{Sc} # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 36: custom ascii
-          [\p{P}\p{S}&&[\x80-\xFF]] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 37: catch all
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        )
+        ( [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%? ) | # 5: arithmetic operator
+        ( \+\+ | \-\- ) | # 6: string/regex/array/set
+        ( \&\& | \|\| | \^\^ ) | # 7: logical operator
+        ( \& | \| | \^ ) | # 8: bitwise and set
+        ( <<[<>]? | [<>]?>> ) | # 9: bitwise shift/rotate
+        ( <\|+ | \|+> | !+> | <!+ ) | # 10: pipeline
+        ( <\+ | \+> ) | # 11: composition
+        ( [<>][:!] | [:!][<>] ) | # 12: membership
+        ( [<>]=? | <> | <=> ) | # 13: comparison
+        ( [!=]==? ) | # 14: equality
+        ( ~[=!] | [=!]~ | =< | >< ) | # 15: similarity
+        ( <[/*|+$:]> | [/*|+$:]> | <[/*|+$:] ) | # 16: functional
+        ( \?\? ) | # 17: null coalescing
+        ( !! ) | # 18: non null coalescing
+        ( \?:? ) | # 19: falsy coalescing
+        ( !:? ) | # 20: truthy coalescing
+        ( [.$] | : ) | # 21: function application
+        ( :?= ) | # 22: assignment / fallback
+        ( [>.]\.[.<] | \.\. | [=.]\.[.=] ) | # 23: range
+        ( =+> | <=+ ) | # 24: double arrow
+        ( -+> | <-+ ) | # 25: single arrow
+        ( ~+> | <~+ ) | # 26: wavy arrow
+        ( [&|^~][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 27: custom logical
+        ( [-+*/%][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 28: custom arithmetic
+        ( [@:] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 29: custom prototype
+        ( [.] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 30: custom accessor
+        ( [=!] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 31: custom comparison
+        ( [<>] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 32: custom relational
+        ( [?\#] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 33: custom private
+        ( \p{Sm} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 34: custom math
+        ( \p{Sc} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 35: custom currency
+        ( [\x21-\x7E&&[^a-zA-Z\d_,;'"`({\[)}\]\p{Pc}]]+ ) | # 36: custom ascii
+        ( [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # 37: catch-all
       )
       (?=$|[)}\]\s]) # closing
     captures:
@@ -6567,15 +6515,9 @@ repository:
       (?x)
       (?<=['"`)}\]\w]|\\.) # closing
       (?:
-        ( # 1: optional access/unwrap
-          \?[.:>]=?
-        ) |
-        ( # 2: assert/unwrap operator
-          ![.:>]=?
-        ) |
-        ( # 3: access operator
-          (?:::|\.|->)=?
-        ) |
+        ( \?[.:>]=? ) | # 1: optional access/unwrap
+        ( ![.:>]=? ) | # 2: assert/unwrap operator
+        ( (?:::|\.|->)=? ) | # 3: access operator
         ( # 4: compound assignment operators
           # all operators except ~ < = > . : !
           [\p{P}\p{S}&&[^~<=>.,:;!'"`({\[)}\]\p{Pc}]]
@@ -6583,118 +6525,39 @@ repository:
           [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*
           = # ending equal sign
         ) |
-        ( # 5: arithmetic operator
-          [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%?
-        ) |
-        ( # 6: string/regex/array/set
-          \+\+ | \-\-
-        ) |
-        ( # 7: logical operator
-          \&\& | \|\| | \^\^ | ! | /\\ | \\/
-        ) |
-        ( # 8: bitwise and set
-          \& | \| | \^ | ~
-        ) |
-        ( # 9: bitwise shift/rotate
-          <<[<>]? | [<>]?>>
-        ) |
-        ( # 10: pipeline
-          <\|+ | \|+> | !+> | <!+
-        ) |
-        ( # 11: composition
-          <\+ | \+>
-        ) |
-        ( # 12: membership
-          [<>][:!] | [:!][<>]
-        ) |
-        ( # 13: comparison
-          < | > | <= | >= | <> | <=>
-        ) |
-        ( # 14: equality
-          == | != | === | !==
-        ) |
-        ( # 15: similarity
-          ~[=!] | [=!]~ | =< | ><
-        ) |
-        ( # 16: functional
-          <[/*|+$:]> | [/*|+$:]> | <[/*|+$:]
-        ) |
-        ( # 17: null coalescing
-          \?\?
-        ) |
-        ( # 18: non null coalescing
-          !!
-        ) |
-        ( # 19: falsy coalescing
-          \?:?
-        ) |
-        ( # 20: truthy coalescing
-          !:?
-        ) |
-        ( # 21: function application
-          [.$] | :
-        ) |
-        ( # 22: assignment / fallback
-          :?=
-        ) |
-        ( # 23: range
-          [>.]\.[.<] | \.\. | [=.]\.[.=]
-        ) |
-        ( # 24: double arrow
-            =+> # right side
-          | <=+ # left side
-        ) |
-        ( # 25: single arrow
-            -+> # right side
-          | <-+ # left side
-        ) |
-        ( # 26: wavy arrow
-            ~+> # right side
-          | <~+ # left side
-        ) |
-        ( # 27: custom logical
-          [&|^~] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 28: custom arithmetic
-          [-+*/%] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 29: custom prototype
-          [@:] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 30: custom accessor
-          [.] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 31: custom comparison
-          [=!] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 32: custom relational
-          [<>] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 33: custom private
-          [?\#] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 34: custom math
-          \p{Sm} # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 35: custom currency
-          \p{Sc} # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 36: custom ascii
-          [\p{P}\p{S}&&[\x80-\xFF]] # leading chars
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        ) |
-        ( # 37: catch all
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-        )
+        ( [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%? ) | # 5: arithmetic operator
+        ( \+\+ | \-\- ) | # 6: string/regex/array/set
+        ( \&\& | \|\| | \^\^ ) | # 7: logical operator
+        ( \& | \| | \^ ) | # 8: bitwise and set
+        ( <<[<>]? | [<>]?>> ) | # 9: bitwise shift/rotate
+        ( <\|+ | \|+> | !+> | <!+ ) | # 10: pipeline
+        ( <\+ | \+> ) | # 11: composition
+        ( [<>][:!] | [:!][<>] ) | # 12: membership
+        ( [<>]=? | <> | <=> ) | # 13: comparison
+        ( [!=]==? ) | # 14: equality
+        ( ~[=!] | [=!]~ | =< | >< ) | # 15: similarity
+        ( <[/*|+$:]> | [/*|+$:]> | <[/*|+$:] ) | # 16: functional
+        ( \?\? ) | # 17: null coalescing
+        ( !! ) | # 18: non null coalescing
+        ( \?:? ) | # 19: falsy coalescing
+        ( !:? ) | # 20: truthy coalescing
+        ( [.$] | : ) | # 21: function application
+        ( :?= ) | # 22: assignment / fallback
+        ( [>.]\.[.<] | \.\. | [=.]\.[.=] ) | # 23: range
+        ( =+> | <=+ ) | # 24: double arrow
+        ( -+> | <-+ ) | # 25: single arrow
+        ( ~+> | <~+ ) | # 26: wavy arrow
+        ( [&|^~][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 27: custom logical
+        ( [-+*/%][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 28: custom arithmetic
+        ( [@:] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 29: custom prototype
+        ( [.] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 30: custom accessor
+        ( [=!] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 31: custom comparison
+        ( [<>] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 32: custom relational
+        ( [?\#] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 33: custom private
+        ( \p{Sm} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 34: custom math
+        ( \p{Sc} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 35: custom currency
+        ( [\x21-\x7E&&[^a-zA-Z\d_,;'"`({\[)}\]\p{Pc}]]+ ) | # 36: custom ascii
+        ( [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # 37: catch-all
       )
       (?=(?:['"`\w]|\#?[(\[{])) # opening
     captures:
@@ -6741,27 +6604,26 @@ repository:
     match: |
       (?x)
       (?:
-         (\*) # 1
-        |(\/) # 2
-        |(\+) # 3
-        |(\-) # 4
-        |(\&) # 5
-        |(\|) # 6
-        |(\^) # 7
-        |(\!) # 8
-        |(\$) # 9
-        |(\@) # 10
-        |(\~) # 11
-        |(\?) # 12
-        |(\=) # 13
-        |(\$) # 14
-        |(\#) # 15
-        |(\%) # 16
-        |(\.) # 17
-        |(\\) # 18
-        |[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]
-      ) # 19
-      (?=[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*
+         (\*) # 1: pointer
+        |(\/) # 2: spread
+        |(\+) # 3: increment  
+        |(\-) # 4: decrement
+        |(\&) # 5: reference
+        |(\|) # 6: union
+        |(\^) # 7: borrow
+        |(\!) # 8: logical
+        |(\$) # 9: variable
+        |(\@) # 10: decorator
+        |(\~) # 11: bitwise not
+        |(\?) # 12: existential
+        |(\=) # 13: assignment
+        |(\$) # 14: pipeline
+        |(\#) # 15: anchor
+        |(\%) # 16: format
+        |(\.) # 17: accessor
+        |[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # 18: catch-all
+      )
+      (?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*
       (?:['"`\w]|\#?[(\[{]))
     name: keyword.operator.prefix.ruko
     captures:
@@ -6790,28 +6652,27 @@ repository:
     match: |
       (?x)
       (?<=(?:['"`)}\]\w]|\\.)
-        [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*)
+        [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*)
       (?:
-         (\*) # 1
-        |(\/) # 2
-        |(\+) # 3
-        |(\-) # 4
-        |(\&) # 5
-        |(\|) # 6
-        |(\^) # 7
-        |(\!) # 8
-        |(\$) # 9
-        |(\@) # 10
-        |(\~) # 11
-        |(\?) # 12
-        |(\=) # 13
-        |(\$) # 14
-        |(\#) # 15
-        |(\%) # 16
-        |(\.) # 17
-        |(\\) # 18
-        |[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]
-      ) # 19
+          (\*) # 1: pointer
+        | (\/) # 2: quotient
+        | (\+) # 3: increment  
+        | (\-) # 4: decrement
+        | (\&) # 5: reference
+        | (\|) # 6: union
+        | (\^) # 7: borrow
+        | (\!) # 8: logical
+        | (\$) # 9: variable
+        | (\@) # 10: decorator
+        | (\~) # 11: bitwise not
+        | (\?) # 12: existential
+        | (\=) # 13: assignment
+        | (\$) # 14: pipeline
+        | (\#) # 15: anchor
+        | (\%) # 16: format
+        | (\.) # 17: accessor
+        | [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # 18: catch-all
+      )
     name: keyword.operator.suffix.ruko
     captures:
       1: {name: keyword.operator.pointer.ruko}
@@ -6831,8 +6692,7 @@ repository:
       15: {name: keyword.operator.private.ruko}
       16: {name: keyword.operator.format.ruko}
       17: {name: keyword.operator.accessor.ruko}
-      18: {name: keyword.operator.lifetime.ruko}
-      19: {name: keyword.operator.suffix.ruko}
+      18: {name: keyword.operator.suffix.ruko}
 
   # Clauses and Keywords
 
