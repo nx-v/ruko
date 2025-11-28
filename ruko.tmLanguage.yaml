@@ -6443,17 +6443,17 @@ repository:
         ( <\|+ | \|+> | !+> | <!+ ) | # 10: pipeline
         ( <\+ | \+> ) | # 11: composition
         ( [<>][:!] | [:!][<>] ) | # 12: membership
-        ( [<>]=? | <> | <=> ) | # 13: comparison
+        ( [<>]=? | <=?> ) | # 13: comparison
         ( [!=]==? ) | # 14: equality
-        ( ~[=!] | [=!]~ | =< | >< ) | # 15: similarity
-        ( <[/*|+$:]> | [/*|+$:]> | <[/*|+$:] ) | # 16: functional
+        ( ~[=!] | [=!]~ | [=>]< ) | # 15: similarity
+        ( <[/*|+$:]>? | [/*|+$:]> ) | # 16: functional
         ( \?\? ) | # 17: null coalescing
         ( !! ) | # 18: non null coalescing
         ( \?:? ) | # 19: falsy coalescing
         ( !:? ) | # 20: truthy coalescing
-        ( [.$] | : ) | # 21: function application
+        ( [.:$] ) | # 21: function application
         ( :?= ) | # 22: assignment / fallback
-        ( [>.]\.[.<] | \.\. | [=.]\.[.=] ) | # 23: range
+        ( [>.]\.[.<] | [=.]\.[.=] | \.\. ) | # 23: range
         ( =+> | <=+ ) | # 24: double arrow
         ( -+> | <-+ ) | # 25: single arrow
         ( ~+> | <~+ ) | # 26: wavy arrow
@@ -6533,17 +6533,17 @@ repository:
         ( <\|+ | \|+> | !+> | <!+ ) | # 10: pipeline
         ( <\+ | \+> ) | # 11: composition
         ( [<>][:!] | [:!][<>] ) | # 12: membership
-        ( [<>]=? | <> | <=> ) | # 13: comparison
+        ( [<>]=? | <=?> ) | # 13: comparison
         ( [!=]==? ) | # 14: equality
-        ( ~[=!] | [=!]~ | =< | >< ) | # 15: similarity
-        ( <[/*|+$:]> | [/*|+$:]> | <[/*|+$:] ) | # 16: functional
+        ( ~[=!] | [=!]~ | [=>]< ) | # 15: similarity
+        ( <[/*|+$:]>? | [/*|+$:]> ) | # 16: functional
         ( \?\? ) | # 17: null coalescing
         ( !! ) | # 18: non null coalescing
         ( \?:? ) | # 19: falsy coalescing
         ( !:? ) | # 20: truthy coalescing
-        ( [.$] | : ) | # 21: function application
+        ( [.:$] ) | # 21: function application
         ( :?= ) | # 22: assignment / fallback
-        ( [>.]\.[.<] | \.\. | [=.]\.[.=] ) | # 23: range
+        ( [>.]\.[.<] | [=.]\.[.=] | \.\. ) | # 23: range
         ( =+> | <=+ ) | # 24: double arrow
         ( -+> | <-+ ) | # 25: single arrow
         ( ~+> | <~+ ) | # 26: wavy arrow
@@ -6979,7 +6979,7 @@ repository:
     patterns:
       - match: &constraint-keyword |
           (?x)
-          (?<=^|[,;(\[{])\s*
+          (?<=^|[,;]|\#?[(\[{])\s*
           (
             \b
             # ignore all keywords
@@ -8166,7 +8166,7 @@ repository:
   # Binding patterns
 
   object-key:
-    begin: (?<=^|[,;(\[{])\s*
+    begin: (?<=^|[,;]|\#?[(\[{])\s*
     end: \s*(?=[,;)\]}]|$)|\s*(:)
     name: meta.object-key.ruko
     endCaptures:
@@ -8175,7 +8175,7 @@ repository:
       - include: '#literals'
       - include: '#embedded-expressions'
       - include: '#brackets'
-      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}:]|$)
+      - match: (?<=^|[,;]|\#?[(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}:]|$)
         name: constant.other.object.key.ruko
       - include: '#space'
       - include: '#comments'
@@ -8186,14 +8186,14 @@ repository:
     patterns:
       - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
         name: variable.other.constant.ruko
-      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
+      - match: (?<=^|[,;]|\#?[(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
         name: variable.other.constant.ruko
 
   object-argument:
     patterns:
       - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
         name: variable.parameter.ruko
-      - match: (?<=^|[,;(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
+      - match: (?<=^|[,;]|\#?[(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
         name: variable.parameter.ruko
 
   as-keyword:
@@ -8279,7 +8279,7 @@ repository:
           x = def()
         match: |
           (?x)
-          (?<=^|[,;(\[{])\s*
+          (?<=^|[,;]|\#?[(\[{])\s*
 
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
           (:) # Key value separator
@@ -8332,7 +8332,7 @@ repository:
           3: {patterns: [include: '#modifiers']}
       - begin: |
           (?x)
-          (?<=^|[,;(\[{])\s*
+          (?<=^|[,;]|\#?[(\[{])\s*
 
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
           (:) # Key value separator
@@ -8384,8 +8384,7 @@ repository:
           - include: '#argument-list-content'
       - match: |
           (?x)
-          (?<=^|[,;(\[{])\s*
-          \s*
+          (?<=^|[,;]|\#?[(\[{])\s*
           (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # label
           (?=:(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)) # lookahead for key-value separator
         name: meta.object-literal.key.ruko
@@ -8416,13 +8415,16 @@ repository:
 
   comma:
     match: \s*(,)
-    name: punctuation.separator.expression.ruko
+    captures:
+      1: [name: punctuation.separator.expression.ruko]
   double-semicolon:
     match: \s*(;;)
-    name: punctuation.terminator.expression.ruko
+    captures:
+      1: [name: punctuation.terminator.expression.ruko]
   semicolon:
     match: \s*(;)
-    name: punctuation.terminator.statement.ruko
+    captures:
+      1: [name: punctuation.terminator.statement.ruko]
 
   brackets:
     patterns:
@@ -8434,7 +8436,7 @@ repository:
   generics: &generics
     patterns:
       - comment: <> exception.
-        match: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(>)(?=$|[!~]?(?:['"`\w<]|\#?[(\[{]))
+        match: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(>)(?=[!~]?(?:['"`\w<]|\#?[(\[{]))
         captures:
           1: {name: punctuation.type.arguments.ruko}
           2: {name: punctuation.type.arguments.ruko}
