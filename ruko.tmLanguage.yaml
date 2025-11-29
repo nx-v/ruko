@@ -443,12 +443,13 @@ repository:
 
       (?:
         (?<=
-          (?: [,;'"`)\]}\w] | \#?[(\[{] | \\.) # literal, bracket or space
+          (?: [,;'"`)\]}\w] | \\.) \s* # literal, bracket or space
           (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
         )
+        \b # methods
         (?: # Properties
             # Leading underscore
-            (\p{Pc}+\w*(?!\p{Pc}+))
+            (\p{Pc}+\w*\b(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -457,9 +458,14 @@ repository:
             ([\p{Pc}\p{L}]\w*)
         )
         |
+        (?<!
+          (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+          (?: [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # operators
+        )
+        \b
         (?: # Objects
             # Leading underscore
-            (\p{Pc}+\w*(?!\p{Pc}+))
+            (\p{Pc}+\w*\b(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -468,14 +474,14 @@ repository:
             ([\p{Pc}\p{L}]\w*)
         )
         (?! [?!]?\.\.+ ) # not a range operator
-        (?=
-          (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
-          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+        (?= 
+            (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+          | \#?\[ # or array access
         )
         |
         (?: # Regular variables
             # Leading underscore
-            (\p{Pc}+\w*(?!\p{Pc}+))
+            (\p{Pc}+\w*\b(?!\p{Pc}+))
           | # Train case
             ([\p{L}&&\P{Ll}][\w&&\P{Ll}]*)
           | # Pascal case
@@ -2487,37 +2493,15 @@ repository:
           | # separator
             [,;]
           | # opening bracket
-            [({\[]
+            \#? [({\[]
           | # postfix or infix operator
             [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s
-        ) \s*
-        | # a keyword
-        (?:
-          (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
-          \b
-            (?: # keywords
-              [io]n|of|[ai]s|by|has|old|new|del
-              |unset|ref|deref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init|comp
-              |func|pro[pc]|type|class|actor|trait
-              |impl|enum|module|model|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
-              |go|defer|do|with|from|where
-              |if|else|then|guard|when
-              |for|loop|while|goto|move
-              |try|throw|catch|switch
-              |match|case|pass|def|defer
-              |break|skip|redo|retry
-              |return|yield|await|scope
-              |import|export|intern|extern
-              |debug|assert|check|decl
-            )
-          \b
+          | # a keyword
+            (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            [\p{Pc}\p{L}]\w*  # keyword or identifier
         ) \s*
       ) \s*
-      (?=/)
+      (?=/(?:$|[^\s/]))
     end: (?=)|$
     name: meta.regexp.ruko
     patterns:
@@ -3115,34 +3099,12 @@ repository:
           | # separator
             [,;]
           | # opening bracket
-            [({\[]
+            \#? [({\[]
           | # postfix or infix operator
             [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s
-        ) \s*
-        | # a keyword
-        (?:
-          (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
-          \b
-            (?: # keywords
-              [io]n|of|[ai]s|by|has|old|new|del
-              |unset|ref|deref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init|comp
-              |func|pro[pc]|type|class|actor|trait
-              |impl|enum|module|model|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
-              |go|defer|do|with|from|where
-              |if|else|then|guard|when
-              |for|loop|while|goto|move
-              |try|throw|catch|switch
-              |match|case|pass|def|defer
-              |break|skip|redo|retry
-              |return|yield|await|scope
-              |import|export|intern|extern
-              |debug|assert|check|decl
-            )
-          \b
+          | # a keyword
+            (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            [\p{Pc}\p{L}]\w*  # keyword or identifier
         ) \s*
       ) \s*
       (?=<[>\p{Pc}\p{L}(])
@@ -5458,7 +5420,7 @@ repository:
 
           (?:
             (?<=
-              (?: [,;'"`)\]}\w] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?: [,;'"`)\]}\w] | \\.) \s* # literal, bracket or space
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
             )
             \b # methods
@@ -5473,6 +5435,11 @@ repository:
                 ([\p{Pc}\p{L}]\w*)
             )
             |
+            (?<!
+              (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?: [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # operators
+            )
+            \b
             (?: # Objects
                 # Leading underscore
                 (\p{Pc}+\w*\b(?!\p{Pc}+))
@@ -5602,20 +5569,20 @@ repository:
         name: keyword.operator.accessor.ruko
       - match: (?<=^|[\s({\[])(?:[\p{P}\p{S}&&[^~<=>.,:;!''"`({\[)}\]\p{Pc}]][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]*=)(?=$|[)}\]\s])
         name: keyword.operator.assignment.augmented.ruko
-      - match: (?<=^|[\s({\[])(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=$|[)}\]\s])
-        name: keyword.operator.arithmetic.ruko
-      - match: (?<=^|[\s({\[])(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=$|[)}\]\s])
-        name: keyword.operator.arithmetic.ruko
-      - match: (?<=^|[\s({\[])(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=$|[)}\]\s])
-        name: keyword.operator.arrow.ruko
-      - match: (?<=^|[\s({\[])(?:\+\+|--)(?=$|[)}\]\s])
-        name: keyword.operator.successor.ruko
       - match: (?<=^|[\s({\[])(?:&&|\|\||\^\^|⊻⊻)(?=$|[)}\]\s])
         name: keyword.operator.logical.ruko
       - match: (?<=^|[\s({\[])(?:&|\||\^|⊻)(?=$|[)}\]\s])
         name: keyword.operator.bitwise.ruko
       - match: (?<=^|[\s({\[])(?:<<[<>]?|[<>]?>>)(?=$|[)}\]\s])
         name: keyword.operator.bitwise.shift.ruko
+      - match: (?<=^|[\s({\[])(?:\+\+|--)(?=$|[)}\]\s])
+        name: keyword.operator.successor.ruko
+      - match: (?<=^|[\s({\[])(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=$|[)}\]\s])
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=^|[\s({\[])(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=$|[)}\]\s])
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=^|[\s({\[])(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=$|[)}\]\s])
+        name: keyword.operator.arrow.ruko
       - match: (?<=^|[\s({\[])(?:<[-=]?\||\|[-=]?>)(?=$|[)}\]\s])
         name: keyword.operator.pipeline.ruko
       - match: (?<=^|[\s({\[])(?:<\+|\+>|∘)(?=$|[)}\]\s])
@@ -5628,8 +5595,8 @@ repository:
         name: keyword.operator.relational.ruko
       - match: (?<=^|[\s({\[])(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|∊|∍|∥|∦|∷|∺|∻|∽|∾|≁|≃|≂|≄|≅|≆|≇|≈|≉|≊|≋|≌|≍|≎|≐|≑|≒|≓|≖|≗|≘|≙|≚|≛|≜|≝|≞|≟|≣|≦|≧|≨|≩|≪|≫|≬|≭|≮|≯|≰|≱|≲|≳|≴|≵|≶|≷|≸|≹|≺|≻|≼|≽|≾|≿|⊀|⊁|⊃|⊅|⊇|⊉|⊋|⊏|⊐|⊑|⊒|⊜|⊩|⊬|⊮|⊰|⊱|⊲|⊳|⊴|⊵|⊶|⊷|⋍|⋐|⋑|⋕|⋖|⋗|⋘|⋙|⋚|⋛|⋜|⋝|⋞|⋟|⋠|⋡|⋢|⋣|⋤|⋥|⋦|⋧|⋨|⋩|⋪|⋫|⋬|⋭|⋲|⋳|⋴|⋵|⋶|⋷|⋸|⋹|⋺|⋻|⋼|⋽|⋾|⋿|⟈|⟉|⟒|⦷|⧀|⧁|⧡|⧣|⧤|⧥|⩦|⩧|⩪|⩫|⩬|⩭|⩮|⩯|⩰|⩱|⩲|⩳|⩵|⩶|⩷|⩸|⩹|⩺|⩻|⩼|⩽|⩾|⩿|⪀|⪁|⪂|⪃|⪄|⪅|⪆|⪇|⪈|⪉|⪊|⪋|⪌|⪍|⪎|⪏|⪐|⪑|⪒|⪓|⪔|⪕|⪖|⪗|⪘|⪙|⪚|⪛|⪜|⪝|⪞|⪟|⪠|⪡|⪢|⪣|⪤|⪥|⪦|⪧|⪨|⪩|⪪|⪫|⪬|⪭|⪮|⪯|⪰|⪱|⪲|⪳|⪴|⪵|⪶|⪷|⪸|⪹|⪺|⪻|⪼|⪽|⪾|⪿|⫀|⫁|⫂|⫃|⫄|⫅|⫆|⫇|⫈|⫉|⫊|⫋|⫌|⫍|⫎|⫏|⫐|⫑|⫒|⫓|⫔|⫕|⫖|⫗|⫘|⫙|⫷|⫸|⫹|⫺|⊢|⊣|⟂|⫪|⫫)(?=$|[)}\]\s])
         name: keyword.operator.relational.ruko
-      - match: (?<=^|[\s({\[])(?:\.(?=)|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=$|[)}\]\s])
-        name: keyword.operator.dots.julia
+      - match: (?<=^|[\s({\[])(?:\.|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=$|[)}\]\s])
+        name: keyword.operator.dots.ruko
       - match: (?<=^|[\s({\[])(?:[!=]==?)(?=$|[)}\]\s])
         name: keyword.operator.comparison.ruko
       - match: (?<=^|[\s({\[])(?:~[=!]|[=!]~|[=>]<)(?=$|[)}\]\s])
@@ -5688,21 +5655,21 @@ repository:
         name: keyword.operator.accessor.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[\p{P}\p{S}&&[^~<=>.,:;!''"`({\[)}\]\p{Pc}]][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]*=)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.assignment.augmented.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.arithmetic.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.arithmetic.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.arrow.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|--)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.successor.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:&&|\|\||\^\^|⊻⊻)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.logical.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:&|\||\^|⊻)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.bitwise.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:<<[<>]?|[<>]?>>)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.bitwise.shift.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:<\|+|\|+>|!+>|<!+)(?=(?:['"`\w]|\#?[(\[{]))
+      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|--)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.successor.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arrow.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<[-=]?\||\|[-=]?>)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.pipeline.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:<\+|\+>|∘)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.compose.ruko
@@ -5712,10 +5679,10 @@ repository:
         name: keyword.operator.range.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[<>]=?|<=?>)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.relational.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|===|==|≡|!=|≠|!==|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|…)(?=(?:['"`\w]|\#?[(\[{]))
+      - match: (?<=['"`)}\]\w]|\\.)(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|∊|∍|∥|∦|∷|∺|∻|∽|∾|≁|≃|≂|≄|≅|≆|≇|≈|≉|≊|≋|≌|≍|≎|≐|≑|≒|≓|≖|≗|≘|≙|≚|≛|≜|≝|≞|≟|≣|≦|≧|≨|≩|≪|≫|≬|≭|≮|≯|≰|≱|≲|≳|≴|≵|≶|≷|≸|≹|≺|≻|≼|≽|≾|≿|⊀|⊁|⊃|⊅|⊇|⊉|⊋|⊏|⊐|⊑|⊒|⊜|⊩|⊬|⊮|⊰|⊱|⊲|⊳|⊴|⊵|⊶|⊷|⋍|⋐|⋑|⋕|⋖|⋗|⋘|⋙|⋚|⋛|⋜|⋝|⋞|⋟|⋠|⋡|⋢|⋣|⋤|⋥|⋦|⋧|⋨|⋩|⋪|⋫|⋬|⋭|⋲|⋳|⋴|⋵|⋶|⋷|⋸|⋹|⋺|⋻|⋼|⋽|⋾|⋿|⟈|⟉|⟒|⦷|⧀|⧁|⧡|⧣|⧤|⧥|⩦|⩧|⩪|⩫|⩬|⩭|⩮|⩯|⩰|⩱|⩲|⩳|⩵|⩶|⩷|⩸|⩹|⩺|⩻|⩼|⩽|⩾|⩿|⪀|⪁|⪂|⪃|⪄|⪅|⪆|⪇|⪈|⪉|⪊|⪋|⪌|⪍|⪎|⪏|⪐|⪑|⪒|⪓|⪔|⪕|⪖|⪗|⪘|⪙|⪚|⪛|⪜|⪝|⪞|⪟|⪠|⪡|⪢|⪣|⪤|⪥|⪦|⪧|⪨|⪩|⪪|⪫|⪬|⪭|⪮|⪯|⪰|⪱|⪲|⪳|⪴|⪵|⪶|⪷|⪸|⪹|⪺|⪻|⪼|⪽|⪾|⪿|⫀|⫁|⫂|⫃|⫄|⫅|⫆|⫇|⫈|⫉|⫊|⫋|⫌|⫍|⫎|⫏|⫐|⫑|⫒|⫓|⫔|⫕|⫖|⫗|⫘|⫙|⫷|⫸|⫹|⫺|⊢|⊣|⟂|⫪|⫫)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.relational.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:\.(?=)|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.dots.julia
+      - match: (?<=['"`)}\]\w]|\\.)(?:\.|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.dots.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[!=]==?)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.comparison.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:~[=!]|[=!]~|[=>]<)(?=(?:['"`\w]|\#?[(\[{]))
@@ -5760,6 +5727,8 @@ repository:
         name: keyword.operator.currency.custom.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.ascii.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.primary.ruko
       - match: (?<=['"`)}\]\w]|\\.)([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.primary.ruko
 
@@ -7065,37 +7034,22 @@ repository:
           | # separator
             [,;]
           | # opening bracket
-            [({\[]
+            \#? [({\[]
           | # postfix or infix operator
             [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s
-        ) \s*
-        | # a keyword
-        (?:
-          (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
-          \b
-            (?: # keywords
-              [io]n|of|[ai]s|by|has|old|new|del
-              |unset|ref|deref|and|x?or|not
-              |const|let|mut|dyn|va[rl]|use
-              |given|expr|eval|init|comp
-              |func|pro[pc]|type|class|actor|trait
-              |impl|enum|module|model|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
-              |go|defer|do|with|from|where
-              |if|else|then|guard|when
-              |for|loop|while|goto|move
-              |try|throw|catch|switch
-              |match|case|pass|def|defer
-              |break|skip|redo|retry
-              |return|yield|await|scope
-              |import|export|intern|extern
-              |debug|assert|check|decl
-            )
-          \b
+          | # a keyword
+            (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            [\p{Pc}\p{L}]\w*  # keyword or identifier
         ) \s*
       ) \s*
-      (\|)(?!\|)
+      (\|) (?=
+        (?:
+          (?:[*&%@^!~?\\\-+]*) # any sigils
+          (?:\b[\p{Pc}\p{L}]\w*\b) # identifier
+          (?:[!?]*) # optional sigils
+          \s*
+        )+
+      )
     captures:
       1: {name: punctuation.separator.arguments.ruko}
     end: (?<!\|)(\|)(?!\|)
