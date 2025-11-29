@@ -4947,8 +4947,7 @@ repository:
     patterns:
       - comment: Normal (bracketed or bracketless) function calls
         name: meta.function.arguments.ruko
-        applyEndPatternLast: true
-        begin: |
+        match: |
           (?x)
           (?<=
             (?:
@@ -5051,14 +5050,20 @@ repository:
                 \b
                 [\p{Pc}\p{L}]\w* # identifier
                 \b
-              )(?! : # avoid matching labels/message passing here
+              ) (?! : # avoid matching labels/message passing here
                 (?:
                     (?:\w*|[\\$#%]*)['"] # quoted string literals
                   | `\s*(?=\N) # unquoted string literals 
                   | :[\p{Pc}\p{L}]\w* # symbols
-                  | ['"`\w\s] # string literals
                   | \d # numbers
-                  | \#? [(\[{] # opening brackets
+                  | \s [(\[] # opening brackets
+                  | \s [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
+                        [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
+                    (?: ['"`\w] | \#?[(\[{])
+                  | \s # XML tag component name
+                    <[\p{Pc}\p{L}(]
+                  | \s # regexp literal
+                    /[^/*\s]
                 )
               )
               | \s* (?: # function name
@@ -5090,7 +5095,7 @@ repository:
                 \b
                 [\p{Pc}\p{L}]\w* # identifier
                 \b
-              )(?=:(?:\s+|$)) # beginning of block
+              )(?= :(?:\s+|$) ) # beginning of block
               | \s (?:<[-=]?\||<\+) (?:['"`\w\s]|\#?[(\[{]) 
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
@@ -5108,67 +5113,13 @@ repository:
                   <[\p{Pc}\p{L}(]
                 | \s # regexp literal
                   /[^/*\s]
-              )
+              ) # function application
             )
           )
-        end: (?=)|$
-        beginCaptures:
+        captures:
           1:
             name: meta.function.name.ruko
             patterns: [include: '#function-names']
-        patterns:
-          - applyEndPatternLast: true
-            begin: |
-              (?x)
-              (?=<(?:[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|\#?[(\[{])))
-            end: (?=)|$
-            name: meta.type-arguments.ruko
-            patterns: [include: '#generics']
-          - begin: |
-              (?x)
-              (?<!\|)\s+(\|)
-              (?=
-                (?:
-                    # opening bracket
-                    #?[({\[]
-                  | # parameter variable
-                    [*&%@^!~?\\\-+]* # any sigils
-                    \b[\p{Pc}\p{L}]\w*\b # identifier
-                    [!?]* # optional sigils
-                )
-              )
-            end: (?<!\|)(\|)(?!\|)
-            name: meta.function.arguments.ruko
-            captures:
-              1: {name: punctuation.separator.arguments.ruko}
-            patterns: [include: '#argument-list-content']
-          - applyEndPatternLast: true
-            begin: (?<!<)\s+(?=<[\p{Pc}\p{L}(])
-            end: (?=)|$
-            patterns:
-              - include: '#tag-component-name'
-          - begin: (?<!/)\s+(/)(?=[^/*\s])
-            name: string.regexp.pattern.ruko
-            end: (?<!/)(/)(?!/)
-            captures:
-              1: {name: punctuation.definition.regexp.ruko}
-              2: {name: keyword.other.flag.ruko}
-            patterns:
-              - include: '#regexp-patterns'
-              - comment: Single-line replacement section
-                begin: (:)\s*
-                end: \s*(\|)|\s*(?=/)
-                name: string.regexp.replace.ruko
-                captures:
-                  1: {name: punctuation.definition.regexp.ruko}
-                patterns:
-                  - include: '#back-references'
-                  - include: '#xml-regex-content'
-          - include: '#literals'
-          - include: '#variables'
-          - include: '#prefix-operators'
-          - include: '#special-operators'
-          - include: '#space'
       - comment: Piped function calls
         name: meta.function.arguments.ruko
         match: |
