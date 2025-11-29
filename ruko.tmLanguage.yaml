@@ -459,7 +459,7 @@ repository:
         )
         |
         (?<!
-          (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+          (?: [,;'"`)}\]\w] | \\. ) # literal, bracket or space
           (?: [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # operators
         )
         \b
@@ -827,6 +827,7 @@ repository:
             |(\\)  # lifetime
             |(\-)  # negation
             |(\+)  # arithmetic
+            |(\.\.\.) # spread
           ) 
           (?=[\w'"`]|\#?[(\[{<])
         captures: &prefix-type-operator-captures
@@ -839,7 +840,9 @@ repository:
           7: {name: keyword.operator.destructor.ruko}
           8: {name: keyword.operator.optional.ruko}
           9: {name: keyword.operator.lifetime.ruko}
-          10: {name: keyword.operator.arithmetic.ruko}
+          10: {name: keyword.operator.negation.ruko}
+          11: {name: keyword.operator.arithmetic.ruko}
+          12: {name: keyword.operator.spread.ruko}
       - comment: infix type operators
         match: |
           (?x)
@@ -902,6 +905,7 @@ repository:
             |(\\)  # lifetime
             |(\-)  # negation
             |(\+)  # arithmetic
+            |(\.\.\.) # spread
           )
         captures: *prefix-type-operator-captures
       - comment: suffix type operators
@@ -5018,14 +5022,22 @@ repository:
                   | `\s*(?=\N) # unquoted string literals 
                   | :[\p{Pc}\p{L}]\w* # symbols
                   | \d # numbers
-                  | \s [(\[] # opening brackets
+                  | \s #? [(\[] # opening brackets
                   | \s [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
-                        [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
-                    (?: ['"`\w] | \#?[(\[{])
+                       [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
+                    (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
                   | \s # XML tag component name
                     <[\p{Pc}\p{L}(]
                   | \s # regexp literal
                     /[^/*\s]
+                  | \s \|(?: \#?[(\[{] )? # opening bracket
+                    (?: [;,] \s* )* # optional separators
+                    (?:
+                      ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+                      (\b[\p{Pc}\p{L}]\w*\b) # identifier
+                      ([!?]*) # optional sigils
+                      \s*
+                    )+ (?: \#? [)\]}] )? # closing bracket
                 )
               )
               | \s* (?: # function name
@@ -5067,14 +5079,22 @@ repository:
                 | `\s*(?=\N) # unquoted string literals 
                 | :[\p{Pc}\p{L}]\w* # symbols
                 | \d # numbers
-                | \s [(\[] # opening brackets
+                | \s \#? [(\[] # opening brackets
                 | \s [\p{P}\p{S}&&[^.,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
-                      [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
-                  (?: ['"`\w] | \#?[(\[{])
+                     [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
+                  (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
                 | \s # XML tag component name
                   <[\p{Pc}\p{L}(]
                 | \s # regexp literal
                   /[^/*\s]
+                | \s \|(?: \#?[(\[{] )? # opening bracket
+                  (?: [;,] \s* )* # optional separators
+                  (?:
+                    ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+                    (\b[\p{Pc}\p{L}]\w*\b) # identifier
+                    ([!?]*) # optional sigils
+                    \s*
+                  )+ (?: \#? [)\]}] )? # closing bracket
               ) # function application
             )
           )
@@ -5310,7 +5330,7 @@ repository:
             (?:
               ^ # SOL
               | (?:^ | [^|]) \| # open pipe
-              | [({\[] # open bracket
+              | \#?[({\[] # open bracket
               | [;,] # separator
               | [(|]\. \s # uncurried function
               | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
@@ -5337,7 +5357,7 @@ repository:
 
           (?:
             \s*
-            ([*&%@^!~?\\\-+]*) # any sigils
+            ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
             (\b[\p{Pc}\p{L}]\w*\b) # identifier
             ([!?]*) # optional sigils
             \s*
@@ -5408,13 +5428,7 @@ repository:
           )
           (?:\d\w*)
         name: variable.other.index.ruko
-      - &variable-name
-        comment: |
-          Four types of variables:
-          - _lead_underscore
-          - UPPERCASE
-          - PascalCase
-          - camelCase
+      - comment: 4 types of variables - _lead_underscore, UPPERCASE, PascalCase, camelCase
         match: |
           (?x) \b
 
@@ -5436,7 +5450,7 @@ repository:
             )
             |
             (?<!
-              (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?: [,;'"`)}\]\w] | \\.) # literal, bracket or space
               (?: [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # operators
             )
             \b
@@ -5950,7 +5964,9 @@ repository:
         match: |
           (?x)\s*\b
           (?:
-            rec|oper|curry|opaque|inline|left|right|none
+            rec|oper|curry|opaque|inline|tail|macro
+            |partial|variadic|generic|template|lambda
+            |coroutine|continuation|hook|event
           )\b\s*
         name: storage.modifier.function.ruko
       - include: '#expression-keywords'
@@ -7043,12 +7059,14 @@ repository:
         ) \s*
       ) \s*
       (\|) (?=
+        (?: \#?[(\[{] )? # opening bracket
+        (?: [;,] \s* )* # optional separators
         (?:
-          (?:[*&%@^!~?\\\-+]*) # any sigils
-          (?:\b[\p{Pc}\p{L}]\w*\b) # identifier
-          (?:[!?]*) # optional sigils
+          ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+          (\b[\p{Pc}\p{L}]\w*\b) # identifier
+          ([!?]*) # optional sigils
           \s*
-        )+
+        )+ (?: \#? [)\]}] )? # closing bracket
       )
     captures:
       1: {name: punctuation.separator.arguments.ruko}
