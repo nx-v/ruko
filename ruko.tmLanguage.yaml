@@ -336,7 +336,7 @@ define:
 repository:
   core:
     patterns:
-      - include: '#function-calls'
+      - include: '#punctuation'
       - include: '#directives'
       - include: '#ignore-long-lines'
       - include: '#clauses'
@@ -345,6 +345,7 @@ repository:
       - include: '#comments'
       - include: '#argument-list'
       - include: '#function-clause'
+      - include: '#function-calls'
       - include: '#symbols'
       - include: '#decorators'
       - include: '#type-signature'
@@ -354,7 +355,6 @@ repository:
       - include: '#literals'
       - include: '#accessor-operators'
       - include: '#brackets'
-      - include: '#punctuation'
       - include: '#operators'
       - include: '#variables'
       - include: '#illegal'
@@ -467,6 +467,7 @@ repository:
           | # Camel or kebab case
             ([\p{Pc}\p{L}]\w*)
         )
+        (?! [?!]?\.\.+ ) # not a range operator
         (?=
           (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
           (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
@@ -5089,8 +5090,8 @@ repository:
                 \b
                 [\p{Pc}\p{L}]\w* # identifier
                 \b
-              )(?= : (?: \s+ | $ ) ) # beginning of block
-              | \s (?: [$@] | <\|+ | <!+ | <[-+]) (?:['"`\w\s]|\#?[(\[{]) # function application, composition and piping
+              )(?=:(?:\s+|$)) # beginning of block
+              | \s (?:<[-=]?\||<\+) (?:['"`\w\s]|\#?[(\[{]) 
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | [!~] \#? [({] # macro and destructor calls
@@ -5174,7 +5175,7 @@ repository:
           (?x)
           (?<=
             \s* # opening
-            (?: \|+> | !+> | \+>) # operator
+            (?:\|[-=]?>|\+>) # operator
             \s*
           )
           \b
@@ -5303,7 +5304,7 @@ repository:
           (?x)
           (?:
             (?<=
-              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.?) # literal, bracket or space
+              (?:^ | [,;'"`)\]}\w] | \#?[(\[{] | \\.?) # literal, bracket or space
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
             )
             \b # methods
@@ -5506,7 +5507,7 @@ repository:
 
           (?:
             (?<=
-              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?:^ | [,;'"`)\]}\w] | \#?[(\[{] | \\.) # literal, bracket or space
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
             )
             \b # methods
@@ -5531,6 +5532,7 @@ repository:
               | # Camel or kebab case
                 ([\p{Pc}\p{L}]\w*)
             )
+            (?! [?!]?\.\.+ ) # not a range operator
             (?= 
                 (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
               | \#?\[ # or array access
@@ -5574,6 +5576,13 @@ repository:
 
   special-operators:
     patterns:
+      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*)([?!:]:|[?!]?\.|[?!-]>)(?=[\p{Pc}\p{L}]\w*)
+        captures:
+          1:
+            name: keyword.operator.accessor.ruko
+            patterns: [include: '#accessor-operators']
+      - match: (?<=^|[,;]|\#?[(\[{])\s*(\.\.\.?)(?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+        captures: {1: {name: keyword.operator.spread.ruko}}
       - match: (?<=>|\w)(!)(?=#?[({])
         captures: {1: {name: keyword.operator.macro.ruko}}
       - match: (?<=>|\w)(~)(?=#?[({])
@@ -5661,7 +5670,7 @@ repository:
         name: keyword.operator.bitwise.ruko
       - match: (?<=^|[\s({\[])(?:<<[<>]?|[<>]?>>)(?=$|[)}\]\s])
         name: keyword.operator.bitwise.shift.ruko
-      - match: (?<=^|[\s({\[])(?:<\|+|\|+>|!+>|<!+)(?=$|[)}\]\s])
+      - match: (?<=^|[\s({\[])(?:<[-=]?\||\|[-=]?>)(?=$|[)}\]\s])
         name: keyword.operator.pipeline.ruko
       - match: (?<=^|[\s({\[])(?:<\+|\+>|∘)(?=$|[)}\]\s])
         name: keyword.operator.compose.ruko
@@ -6213,6 +6222,8 @@ repository:
       - include: $self
 
   query-expression:
+    applyEndPatternLast: true
+    comment: RINQ (Ruko INtegrated Query) expression mini-language
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
@@ -6231,6 +6242,7 @@ repository:
       - include: '#group-clause'
       - include: '#take-clause'
       - include: '#reduce-clause'
+      - include: '#set-clause'
 
     repository:
       in-clause:
@@ -6270,8 +6282,13 @@ repository:
           3: {name: keyword.control.query.ruko}
         end: (?=[,;)}\]])
         patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]nto|equal|[io]n|of)\b\s*
-            name: keyword.control.query.ruko
+          - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]nto|[io]n|of|where)\b\s*
+            end: (?=[,;)}\]])
+            beginCaptures:
+              1: {name: keyword.control.query.ruko}
+            patterns:
+              - include: '#query-body'
+              - include: $self
           - include: '#query-body'
           - include: $self
 
@@ -6326,8 +6343,12 @@ repository:
           1: {name: keyword.control.query.ruko}
         end: (?=[,;)}\]])
         patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|while|with)\b\s*
+          - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|with|while)\b\s*
+            end: (?=[,;)}\]])
             name: keyword.control.query.ruko
+            patterns:
+              - include: '#query-body'
+              - include: $self
           - include: '#query-body'
           - include: $self
 
@@ -6346,8 +6367,12 @@ repository:
           1: {name: keyword.control.query.ruko}
         end: (?=[,;)}\]])
         patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|while|with)\b\s*
+          - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|with|while)\b\s*
+            end: (?=[,;)}\]])
             name: keyword.control.query.ruko
+            patterns:
+              - include: '#query-body'
+              - include: $self
           - include: '#query-body'
           - include: $self
 
@@ -6366,8 +6391,12 @@ repository:
           1: {name: keyword.control.query.ruko}
         end: (?=[,;)}\]])
         patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|while|with)\b\s*
+          - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|while|with)\b\s*
+            end: (?=[,;)}\]])
             name: keyword.control.query.ruko
+            patterns:
+              - include: '#query-body'
+              - include: $self
           - include: '#query-body'
           - include: $self
 
@@ -6377,7 +6406,7 @@ repository:
           \s*
           (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (
-              group
+              group|lookup
             )
           \b
           \s*
@@ -6385,8 +6414,29 @@ repository:
           1: {name: keyword.control.query.ruko}
         end: (?=[,;)}\]])
         patterns:
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|[io]nto)\b\s*
+          - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|[io]nto)\b\s*
+            end: (?=[,;)}\]])
             name: keyword.control.query.ruko
+            patterns:
+              - include: '#query-body'
+              - include: $self
+          - include: '#query-body'
+          - include: $self
+
+      set-clause:
+        begin: |
+          (?x)
+          \s*
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+            (
+              and|x?or|but
+            )
+          \b
+          \s*
+        beginCaptures:
+          1: {name: keyword.control.query.ruko}
+        end: (?=[,;)}\]])
+        patterns:
           - include: '#query-body'
           - include: $self
 
@@ -7614,15 +7664,15 @@ repository:
   comma:
     match: \s*(,)
     captures:
-      1: [name: punctuation.separator.expression.ruko]
+      1: {name: punctuation.separator.expression.ruko}
   double-semicolon:
     match: \s*(;;)
     captures:
-      1: [name: punctuation.terminator.expression.ruko]
+      1: {name: punctuation.terminator.statement.ruko}
   semicolon:
     match: \s*(;)
     captures:
-      1: [name: punctuation.terminator.statement.ruko]
+      1: {name: punctuation.terminator.expression.ruko}
 
   brackets:
     patterns:
