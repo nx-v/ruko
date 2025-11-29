@@ -28,7 +28,12 @@ todo: |
       Use the 'safe' keyword to enable scoped 'safe' mode.
     - [x] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
   - [x] Add dynamic JSX/XML literals <(expr)> </>.
-  - [ ] Backslashes may begin identifiers to strop them to avoid keyword conflicts.
+  - [x] Backslashes are now used for infix function calls.
+    For example: a \x\ b is equivalent to x(a, b). 
+    This now means that operators CANNOT start or end with a backslash,
+    and backslashes cannot be used prefix or postfix, 
+    same with angle brackets, pipes, and forward slashes,
+    which are used for JSX/generics, lambdas and regexes respectively.
   - [ ] Rework inline Markdown syntax. Refer to Texy, Textile, AsciiDoc
     and cousins for inspiration. Reimplement with these extensions:
     - [ ] Citations 
@@ -67,6 +72,9 @@ todo: |
 changelog: |
   New changes:
 
+  - Refactored and improved the syntax highlighting for operators.
+    Operators are now highlighted more consistently, and more Unicode
+    symbols are supported.
   - Added infix function call syntax using backslashes.
     a \x\ b
   - Brought back Haskell-style function call syntax with 
@@ -263,18 +271,18 @@ define:
       (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
       (?: # keywords
         [io]n|of|[ai]s|by|has|old|new|del
-        |unset|(?:de)?ref|and|x?or|not
+        |unset|ref|deref|and|x?or|not
         |const|let|mut|dyn|va[rl]|use
         |given|expr|eval|init|comp
         |func|pro[pc]|type|class|actor|trait
-        |impl|enum|mod(?:el|ule)|struct|record
+        |impl|enum|module|model|struct|record
         |union|iter|macro|query|elem|temp|oper
         |object|realm|style|script|quote
         |go|defer|do|with|from|where
         |if|else|then|guard|when
         |for|loop|while|goto|move
         |try|throw|catch|switch
-        |match|case|pass|def(?:er)?
+        |match|case|pass|def|defer
         |break|skip|redo|retry
         |return|yield|await|scope
         |import|export|intern|extern
@@ -293,18 +301,18 @@ define:
     (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
       (?: # keywords
         [io]n|of|[ai]s|by|has|old|new|del
-        |unset|(?:de)?ref|and|x?or|not
+        |unset|ref|deref|and|x?or|not
         |const|let|mut|dyn|va[rl]|use
         |given|expr|eval|init|comp
         |func|pro[pc]|type|class|actor|trait
-        |impl|enum|mod(?:el|ule)|struct|record
+        |impl|enum|module|model|struct|record
         |union|iter|macro|query|elem|temp|oper
         |object|realm|style|script|quote
         |go|defer|do|with|from|where
         |if|else|then|guard|when
         |for|loop|while|goto|move
         |try|throw|catch|switch
-        |match|case|pass|def(?:er)?
+        |match|case|pass|def|defer
         |break|skip|redo|retry
         |return|yield|await|scope
         |import|export|intern|extern
@@ -413,18 +421,18 @@ repository:
         (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?: # keywords
           [io]n|of|[ai]s|by|has|old|new|del
-          |unset|(?:de)?ref|and|x?or|not
+          |unset|ref|deref|and|x?or|not
           |const|let|mut|dyn|va[rl]|use
           |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
-          |impl|enum|mod(?:el|ule)|struct|record
+          |impl|enum|module|model|struct|record
           |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |go|defer|do|with|from|where
           |if|else|then|guard|when
           |for|loop|while|goto|move
           |try|throw|catch|switch
-          |match|case|pass|def(?:er)?
+          |match|case|pass|def|defer
           |break|skip|redo|retry
           |return|yield|await|scope
           |import|export|intern|extern
@@ -550,7 +558,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -574,7 +582,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -801,17 +809,17 @@ repository:
           (?x)
           \s*
           (?:
-             (\*)       # pointer
-            |(\&)       # reference
-            |(\%)       # format
-            |(\@)       # decorator
-            |(\^)       # borrow 
-            |(\!)       # negation
-            |(\~)       # destructor
-            |(\?)       # optional
-            |(\\)       # lifetime
-            |(\-)       # negation
-            |(\+)       # arithmetic
+             (\*)  # pointer
+            |(\&)  # reference
+            |(\%)  # format
+            |(\@)  # decorator
+            |(\^)  # borrow 
+            |(\!)  # negation
+            |(\~)  # destructor
+            |(\?)  # optional
+            |(\\)  # lifetime
+            |(\-)  # negation
+            |(\+)  # arithmetic
           ) 
           (?=[\w'"`]|\#?[(\[{<])
         captures: &prefix-type-operator-captures
@@ -830,18 +838,18 @@ repository:
           (?x)
           (?<=^|['"`)}\]\w\s]|\\.)
             (?:
-               (\+)         # sum
-              |(\-)         # difference
-              |(\|)         # union
-              |(\&)         # intersection
-              |(\^)         # exclusion 
-              |(<:|>:)      # strict super/subtype
-              |(<=|>=)      # super/subtype
-              |(!=|==)      # inequality/equality
-              |(<<|>>)      # variance (i.e. covariant/contravariant)
-              |(===|!==)    # identity/non-identity
-              |(=~|!~)      # pattern match/non-pattern match
-              |(:)          # extends/implements
+               (\+)      # sum
+              |(\-)      # difference
+              |(\|)      # union
+              |(\&)      # intersection
+              |(\^)      # exclusion 
+              |(<:|>:)   # strict super/subtype
+              |(<=|>=)   # super/subtype
+              |(!=|==)   # inequality/equality
+              |(<<|>>)   # variance (i.e. covariant/contravariant)
+              |(===|!==) # identity/non-identity
+              |(=~|!~)   # pattern match/non-pattern match
+              |(:)       # extends/implements
             )
           (?=['"`\w\s]|\#?[(\[{])
         captures:
@@ -862,8 +870,8 @@ repository:
           (?x)
           (?<=[\w'"`)\]}>]|\\.)
           (?:
-             (\!)       # negation
-            |(\?)       # existential
+             (\!) # negation
+            |(\?) # existential
           )
           \B
         captures: &suffix-type-operator-captures
@@ -876,25 +884,25 @@ repository:
         match: |
           (?x)
           (?:
-             (\*)       # pointer
-            |(\&)       # reference
-            |(\%)       # format
-            |(\@)       # decorator
-            |(\^)       # borrow 
-            |(\!)       # negation
-            |(\~)       # destructor
-            |(\?)       # optional
-            |(\\)       # lifetime
-            |(\-)       # negation
-            |(\+)       # arithmetic
+             (\*)  # pointer
+            |(\&)  # reference
+            |(\%)  # format
+            |(\@)  # decorator
+            |(\^)  # borrow 
+            |(\!)  # negation
+            |(\~)  # destructor
+            |(\?)  # optional
+            |(\\)  # lifetime
+            |(\-)  # negation
+            |(\+)  # arithmetic
           )
         captures: *prefix-type-operator-captures
       - comment: suffix type operators
         match: |
           (?x)
           (?:
-             (\!)       # negation
-            |(\?)       # existential
+             (\!) # negation
+            |(\?) # existential
           )
         captures: *suffix-type-operator-captures
 
@@ -1184,9 +1192,9 @@ repository:
         match: |
           (?ix) \b
             (0z) # prefix
-            [\d\u218a\u218babetx] [\d\u218a\u218babetx_]* # integer part
+            [\d↊↋abetx] [\d↊↋abetx_]* # integer part
             (\.)? # decimal point
-            [\d\u218a\u218babetx_]* # fractional part
+            [\d↊↋abetx_]* # fractional part
             (?: # exponent part
               (p) # delimiter
               ([+-])? # sign
@@ -2181,796 +2189,6 @@ repository:
           - include: '#punctuation'
           - include: '#illegal'
 
-  numeric-escapes:
-    comments: |
-      Grammar for numeric escape sequences in Ruko strings.
-      All bases from binary (base 2) to hexadecimal (base 16) are supported,
-      using these prefixes:
-        \b - binary (base 2)
-        \t - ternary (base 3)
-        \q - quaternary (base 4)
-        \p - quinary (base 5)
-        \h - senary (base 6)
-        \s - septenary (base 7)
-        \o - octal (base 8)
-        \e - nonary (base 9)
-        \d - decimal (base 10)
-        \u - undecimal (base 11)
-        \z - duodecimal (base 12)
-        \r - tridecimal (base 13)
-        \c - tetradecimal (base 14)
-        \k - pentadecimal (base 15)
-        \x - hexadecimal (base 16)
-    patterns:
-      - comment: Binary escape sequences (0 to 0b100001111111111111111)
-        match: |
-          (?x)
-          \\b
-            0*
-          (?:
-                1 0 0 0 0 [0-1] {16}
-              | 1 [0-1] {0,19}
-              | 0
-          )
-            (?![0-1])
-        name: constant.character.escape.binary.ruko
-      - comment: Invalid binary escape sequences
-        match: |
-          (?x)
-          \\b
-            [0-1]+
-            (?![0-1])
-        name: invalid.illegal.escape.binary.ruko
-      - begin: \\b{
-        end: \s*}
-        name: constant.character.escape.binary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    1 0 0 0 0 [0-1] {16}
-                  | 1 [0-1] {0,19}
-                  | 0
-              )
-                (?![0-1])
-            name: constant.character.escape.binary.ruko
-          - include: '#illegal'
-
-      - comment: Ternary escape sequences (0 to 0t2002121021101)
-        match: |
-          (?x)
-          \\t
-            0*
-          (?:
-                2 0 0 2 1 2 1 0 2 1 1 0 1
-              | 2 0 0 2 1 2 1 0 2 1 1 0 0
-              | 2 0 0 2 1 2 1 0 2 1 0 [0-2] {2}
-              | 2 0 0 2 1 2 1 0 2 0 [0-2] {3}
-              | 2 0 0 2 1 2 1 0 [0-1] [0-2] {4}
-              | 2 0 0 2 1 2 0 [0-2] {6}
-              | 2 0 0 2 1 [0-1] [0-2] {7}
-              | 2 0 0 2 0 [0-2] {8}
-              | 2 0 0 [0-1] [0-2] {9}
-              | 1 [0-2] {12}
-              | [1-2] [0-2] {0,11}
-              | 0
-          )
-            (?![0-2])
-        name: constant.character.escape.ternary.ruko
-      - comment: Invalid ternary escape sequences
-        match: |
-          (?x)
-          \\t
-            [0-2]+
-            (?![0-2])
-        name: invalid.illegal.escape.ternary.ruko
-      - begin: \\t{
-        end: \s*}
-        name: constant.character.escape.ternary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    2 0 0 2 1 2 1 0 2 1 1 0 1
-                  | 2 0 0 2 1 2 1 0 2 1 1 0 0
-                  | 2 0 0 2 1 2 1 0 2 1 0 [0-2] {2}
-                  | 2 0 0 2 1 2 1 0 2 0 [0-2] {3}
-                  | 2 0 0 2 1 2 1 0 [0-1] [0-2] {4}
-                  | 2 0 0 2 1 2 0 [0-2] {6}
-                  | 2 0 0 2 1 [0-1] [0-2] {7}
-                  | 2 0 0 2 0 [0-2] {8}
-                  | 2 0 0 [0-1] [0-2] {9}
-                  | 1 [0-2] {12}
-                  | [1-2] [0-2] {0,11}
-                  | 0
-              )
-                (?![0-2])
-            name: constant.character.escape.ternary.ruko
-          - include: '#illegal'
-
-      - comment: Quaternary escape sequences (0 to 0q10033333333)
-        match: |
-          (?x)
-          \\q
-            0*
-          (?:
-                1 0 0 [0-3] {8}
-              | [1-3] [0-3] {0,9}
-              | 0
-          )
-            (?![0-3])
-        name: constant.character.escape.quaternary.ruko
-      - comment: Invalid quaternary escape sequences
-        match: |
-          (?x)
-          \\q
-            [0-3]+
-            (?![0-3])
-        name: invalid.illegal.escape.quaternary.ruko
-      - begin: \\q{
-        end: \s*}
-        name: constant.character.escape.quaternary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    1 0 0 [0-3] {8}
-                  | [1-3] [0-3] {0,9}
-                  | 0
-              )
-                (?![0-3])
-            name: constant.character.escape.quaternary.ruko
-          - include: '#illegal'
-
-      - comment: Quinary escape sequences (0 to 0p241122421)
-        match: |
-          (?x)
-          \\p
-            0*
-          (?:
-                2 4 1 1 2 2 4 2 1
-              | 2 4 1 1 2 2 4 2 0
-              | 2 4 1 1 2 2 4 [0-1] [0-4]
-              | 2 4 1 1 2 2 [0-3] [0-4] {2}
-              | 2 4 1 1 2 [0-1] [0-4] {3}
-              | 2 4 1 1 [0-1] [0-4] {4}
-              | 2 4 1 0 [0-4] {5}
-              | 2 4 0 [0-4] {6}
-              | 2 [0-3] [0-4] {7}
-              | 1 [0-4] {8}
-              | [1-4] [0-4] {0,7}
-              | 0
-          )
-            (?![0-4])
-        name: constant.character.escape.quinary.ruko
-      - comment: Invalid quinary escape sequences
-        match: |
-          (?x)
-          \\p
-            [0-4]+
-            (?![0-4])
-        name: invalid.illegal.escape.quinary.ruko
-      - begin: \\p{
-        end: \s*}
-        name: constant.character.escape.quinary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    2 4 1 1 2 2 4 2 1
-                  | 2 4 1 1 2 2 4 2 0
-                  | 2 4 1 1 2 2 4 [0-1] [0-4]
-                  | 2 4 1 1 2 2 [0-3] [0-4] {2}
-                  | 2 4 1 1 2 [0-1] [0-4] {3}
-                  | 2 4 1 1 [0-1] [0-4] {4}
-                  | 2 4 1 0 [0-4] {5}
-                  | 2 4 0 [0-4] {6}
-                  | 2 [0-3] [0-4] {7}
-                  | 1 [0-4] {8}
-                  | [1-4] [0-4] {0,7}
-                  | 0
-              )
-                (?![0-4])
-            name: constant.character.escape.quinary.ruko
-          - include: '#illegal'
-
-      - comment: Senary escape sequences (0 to 0h35513531)
-        match: |
-          (?x)
-          \\h
-            0*
-          (?:
-                3 5 5 1 3 5 3 1
-              | 3 5 5 1 3 5 3 0
-              | 3 5 5 1 3 5 [0-2] [0-5]
-              | 3 5 5 1 3 [0-4] [0-5] {2}
-              | 3 5 5 1 [0-2] [0-5] {3}
-              | 3 5 5 0 [0-5] {4}
-              | 3 5 [0-4] [0-5] {5}
-              | 3 [0-4] [0-5] {6}
-              | [1-2] [0-5] {7}
-              | [1-5] [0-5] {0,6}
-              | 0
-          )
-            (?![0-5])
-        name: constant.character.escape.senary.ruko
-      - comment: Invalid senary escape sequences
-        match: |
-          (?x)
-          \\h
-            [0-5]+
-            (?![0-5])
-        name: invalid.illegal.escape.senary.ruko
-      - begin: \\h{
-        end: \s*}
-        name: constant.character.escape.senary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    3 5 5 1 3 5 3 1
-                  | 3 5 5 1 3 5 3 0
-                  | 3 5 5 1 3 5 [0-2] [0-5]
-                  | 3 5 5 1 3 [0-4] [0-5] {2}
-                  | 3 5 5 1 [0-2] [0-5] {3}
-                  | 3 5 5 0 [0-5] {4}
-                  | 3 5 [0-4] [0-5] {5}
-                  | 3 [0-4] [0-5] {6}
-                  | [1-2] [0-5] {7}
-                  | [1-5] [0-5] {0,6}
-                  | 0
-              )
-                (?![0-5])
-            name: constant.character.escape.senary.ruko
-          - include: '#illegal'
-
-      - comment: Septenary escape sequences (0 to 0s12320065)
-        match: |
-          (?x)
-          \\s
-            0*
-          (?:
-                1 2 3 2 0 0 6 5
-              | 1 2 3 2 0 0 6 [0-4]
-              | 1 2 3 2 0 0 [0-5] [0-6]
-              | 1 2 3 [0-1] [0-6] {4}
-              | 1 2 [0-2] [0-6] {5}
-              | 1 [0-1] [0-6] {6}
-              | [1-6] [0-6] {0,6}
-              | 0
-          )
-            (?![0-6])
-        name: constant.character.escape.septenary.ruko
-      - comment: Invalid septenary escape sequences
-        match: |
-          (?x)
-          \\s
-            [0-6]+
-            (?![0-6])
-        name: invalid.illegal.escape.septenary.ruko
-      - begin: \\s{
-        end: \s*}
-        name: constant.character.escape.septenary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    1 2 3 2 0 0 6 5
-                  | 1 2 3 2 0 0 6 [0-4]
-                  | 1 2 3 2 0 0 [0-5] [0-6]
-                  | 1 2 3 [0-1] [0-6] {4}
-                  | 1 2 [0-2] [0-6] {5}
-                  | 1 [0-1] [0-6] {6}
-                  | [1-6] [0-6] {0,6}
-                  | 0
-              )
-                (?![0-6])
-            name: constant.character.escape.septenary.ruko
-          - include: '#illegal'
-
-      - comment: Octal escape sequences (0 to 0o4177777)
-        match: |
-          (?x)
-          \\o
-            0*
-          (?:
-                4 1 [0-7] {5}
-              | [1-3] [0-7] {6}
-              | [1-7] [0-7] {0,5}
-              | 0
-          )
-            (?![0-7])
-        name: constant.character.escape.octal.ruko
-      - comment: Invalid octal escape sequences
-        match: |
-          (?x)
-          \\o
-            [0-7]+
-            (?![0-7])
-        name: invalid.illegal.escape.octal.ruko
-      - begin: \\o{
-        end: \s*}
-        name: constant.character.escape.octal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    4 1 [0-7] {5}
-                  | [1-3] [0-7] {6}
-                  | [1-7] [0-7] {0,5}
-                  | 0
-              )
-                (?![0-7])
-            name: constant.character.escape.octal.ruko
-          - include: '#illegal'
-
-      - comment: Nonary escape sequences (0 to 0e2077241)
-        match: |
-          (?x)
-          \\e
-            0*
-          (?:
-                2 0 7 7 2 4 1
-              | 2 0 7 7 2 4 0
-              | 2 0 7 7 2 [0-3] [0-8]
-              | 2 0 7 7 [0-1] [0-8] {2}
-              | 2 0 7 [0-6] [0-8] {3}
-              | 2 0 [0-6] [0-8] {4}
-              | 1 [0-8] {6}
-              | [1-8] [0-8] {0,5}
-              | 0
-          )
-            (?![0-8])
-        name: constant.character.escape.nonary.ruko
-      - comment: Invalid nonary escape sequences
-        match: |
-          (?x)
-          \\e
-            [0-8]+
-            (?![0-8])
-        name: invalid.illegal.escape.nonary.ruko
-      - begin: \\e{
-        end: \s*}
-        name: constant.character.escape.nonary.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    2 0 7 7 2 4 1
-                  | 2 0 7 7 2 4 0
-                  | 2 0 7 7 2 [0-3] [0-8]
-                  | 2 0 7 7 [0-1] [0-8] {2}
-                  | 2 0 7 [0-6] [0-8] {3}
-                  | 2 0 [0-6] [0-8] {4}
-                  | 1 [0-8] {6}
-                  | [1-8] [0-8] {0,5}
-                  | 0
-              )
-                (?![0-8])
-            name: constant.character.escape.nonary.ruko
-          - include: '#illegal'
-
-      - comment: Decimal escape sequences (0 to 0d1114111)
-        match: |
-          (?x)
-          \\d
-            0*
-          (?:
-                1 1 1 4 1 1 1
-              | 1 1 1 4 1 1 0
-              | 1 1 1 4 1 0 [0-9]
-              | 1 1 1 4 0 [0-9] {2}
-              | 1 1 1 [0-3] [0-9] {3}
-              | 1 1 0 [0-9] {4}
-              | 1 0 [0-9] {5}
-              | [1-9] [0-9] {0,5}
-              | 0
-          )
-            (?![0-9])
-        name: constant.character.escape.decimal.ruko
-      - comment: Invalid decimal escape sequences
-        match: |
-          (?x)
-          \\d
-            [0-9]+
-            (?![0-9])
-        name: invalid.illegal.escape.decimal.ruko
-      - begin: \\d{
-        end: \s*}
-        name: constant.character.escape.decimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    1 1 1 4 1 1 1
-                  | 1 1 1 4 1 1 0
-                  | 1 1 1 4 1 0 [0-9]
-                  | 1 1 1 4 0 [0-9] {2}
-                  | 1 1 1 [0-3] [0-9] {3}
-                  | 1 1 0 [0-9] {4}
-                  | 1 0 [0-9] {5}
-                  | [1-9] [0-9] {0,5}
-                  | 0
-              )
-                (?![0-9])
-            name: constant.character.escape.decimal.ruko
-          - include: '#illegal'
-
-      - comment: Undecimal escape sequences (0 to 0l6a1059)
-        match: |
-          (?x)
-          \\l
-            0*
-          (?:
-                6 a 1 0 5 9
-              | 6 a 1 0 5 [0-8]
-              | 6 a 1 0 [0-4] [0-a]
-              | 6 a 0 [0-a] {3}
-              | 6 [0-9] [0-a] {4}
-              | [1-5] [0-a] {5}
-              | [1-a] [0-a] {0,4}
-              | 0
-          )
-            (?![0-a])
-        name: constant.character.escape.undecimal.ruko
-      - comment: Invalid undecimal escape sequences
-        match: |
-          (?x)
-          \\l
-            [0-a]+
-            (?![0-a])
-        name: invalid.illegal.escape.undecimal.ruko
-      - begin: \\l{
-        end: \s*}
-        name: constant.character.escape.undecimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    6 a 1 0 5 9
-                  | 6 a 1 0 5 [0-8]
-                  | 6 a 1 0 [0-4] [0-a]
-                  | 6 a 0 [0-a] {3}
-                  | 6 [0-9] [0-a] {4}
-                  | [1-5] [0-a] {5}
-                  | [1-a] [0-a] {0,4}
-                  | 0
-              )
-                (?![0-a])
-            name: constant.character.escape.undecimal.ruko
-          - include: '#illegal'
-
-      - comment: Duodecimal escape sequences (0 to 0z4588a7)
-        match: |
-          (?x)
-          \\z
-            0*
-          (?:
-                4 5 8 8 a 7
-              | 4 5 8 8 a [0-6]
-              | 4 5 8 8 [0-9] [0-b]
-              | 4 5 8 [0-7] [0-b] {2}
-              | 4 5 [0-7] [0-b] {3}
-              | 4 [0-4] [0-b] {4}
-              | [1-3] [0-b] {5}
-              | [1-b] [0-b] {0,4}
-              | 0
-          )
-            (?![0-b])
-        name: constant.character.escape.duodecimal.ruko
-      - comment: Invalid duodecimal escape sequences
-        match: |
-          (?x)
-          \\z
-            [0-b]+
-            (?![0-b])
-        name: invalid.illegal.escape.duodecimal.ruko
-      - begin: \\z{
-        end: \s*}
-        name: constant.character.escape.duodecimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    4 5 8 8 a 7
-                  | 4 5 8 8 a [0-6]
-                  | 4 5 8 8 [0-9] [0-b]
-                  | 4 5 8 [0-7] [0-b] {2}
-                  | 4 5 [0-7] [0-b] {3}
-                  | 4 [0-4] [0-b] {4}
-                  | [1-3] [0-b] {5}
-                  | [1-b] [0-b] {0,4}
-                  | 0
-              )
-                (?![0-b])
-            name: constant.character.escape.duodecimal.ruko
-          - include: '#illegal'
-
-      - comment: Tridecimal escape sequences (0 to 0r30014b)
-        match: |
-          (?x)
-          \\r
-            0*
-          (?:
-                3 0 0 1 4 b
-              | 3 0 0 1 4 [0-a]
-              | 3 0 0 1 [0-3] [0-c]
-              | 3 0 0 0 [0-c] {2}
-              | [1-2] [0-c] {5}
-              | [1-c] [0-c] {0,4}
-              | 0
-          )
-            (?![0-c])
-        name: constant.character.escape.tridecimal.ruko
-      - comment: Invalid tridecimal escape sequences
-        match: |
-          (?x)
-          \\r
-            [0-c]+
-            (?![0-c])
-        name: invalid.illegal.escape.tridecimal.ruko
-      - begin: \\r{
-        end: \s*}
-        name: constant.character.escape.tridecimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    3 0 0 1 4 b
-                  | 3 0 0 1 4 [0-a]
-                  | 3 0 0 1 [0-3] [0-c]
-                  | 3 0 0 0 [0-c] {2}
-                  | [1-2] [0-c] {5}
-                  | [1-c] [0-c] {0,4}
-                  | 0
-              )
-                (?![0-c])
-            name: constant.character.escape.tridecimal.ruko
-          - include: '#illegal'
-
-      - comment: Tetradecimal escape sequences (0 to 0c210035)
-        match: |
-          (?x)
-          \\c
-            0*
-          (?:
-                2 1 0 0 3 5
-              | 2 1 0 0 3 [0-4]
-              | 2 1 0 0 [0-2] [0-d]
-              | 2 0 [0-d] {4}
-              | 1 [0-d] {5}
-              | [1-d] [0-d] {0,4}
-              | 0
-          )
-            (?![0-d])
-        name: constant.character.escape.tetradecimal.ruko
-      - comment: Invalid tetradecimal escape sequences
-        match: |
-          (?x)
-          \\c
-            [0-d]+
-            (?![0-d])
-        name: invalid.illegal.escape.tetradecimal.ruko
-      - begin: \\c{
-        end: \s*}
-        name: constant.character.escape.tetradecimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    2 1 0 0 3 5
-                  | 2 1 0 0 3 [0-4]
-                  | 2 1 0 0 [0-2] [0-d]
-                  | 2 0 [0-d] {4}
-                  | 1 [0-d] {5}
-                  | [1-d] [0-d] {0,4}
-                  | 0
-              )
-                (?![0-d])
-            name: constant.character.escape.tetradecimal.ruko
-          - include: '#illegal'
-
-      - comment: Pentadecimal escape sequences (0 to 0k170191)
-        match: |
-          (?x)
-          \\k
-            0*
-          (?:
-                1 7 0 1 9 1
-              | 1 7 0 1 9 0
-              | 1 7 0 1 [0-8] [0-e]
-              | 1 7 0 0 [0-e] {2}
-              | 1 [0-6] [0-e] {4}
-              | [1-e] [0-e] {0,4}
-              | 0
-          )
-            (?![0-e])
-        name: constant.character.escape.pentadecimal.ruko
-      - comment: Invalid pentadecimal escape sequences
-        match: |
-          (?x)
-          \\k
-            [0-e]+
-            (?![0-e])
-        name: invalid.illegal.escape.pentadecimal.ruko
-      - begin: \\k{
-        end: \s*}
-        name: constant.character.escape.pentadecimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    1 7 0 1 9 1
-                  | 1 7 0 1 9 0
-                  | 1 7 0 1 [0-8] [0-e]
-                  | 1 7 0 0 [0-e] {2}
-                  | 1 [0-6] [0-e] {4}
-                  | [1-e] [0-e] {0,4}
-                  | 0
-              )
-                (?![0-e])
-            name: constant.character.escape.pentadecimal.ruko
-          - include: '#illegal'
-
-      - comment: Hexadecimal escape sequences (0 to 0x10ffff)
-        match: |
-          (?x)
-          \\x
-            0*
-          (?:
-                1 0 [0-f] {4}
-              | [1-f] [0-f] {0,4}
-              | 0
-          )
-            (?![0-f])
-        name: constant.character.escape.hexadecimal.ruko
-      - comment: Invalid hexadecimal escape sequences
-        match: |
-          (?x)
-          \\x
-            [0-f]+
-            (?![0-f])
-        name: invalid.illegal.escape.hexadecimal.ruko
-      - begin: \\x{
-        end: \s*}
-        name: constant.character.escape.hexadecimal.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              0*
-              (?:
-                    1 0 [0-f] {4}
-                  | [1-f] [0-f] {0,4}
-                  | 0
-              )
-                (?![0-f])
-            name: constant.character.escape.hexadecimal.ruko
-          - include: '#illegal'
-
-      - comment: Low surrogate pairs U+DC00-DFFF
-        match: |
-          (?x)
-            \\u # prefix
-          (?i:
-            0*  # leading zeroes
-            d[c-f] \h {2}
-          )
-            (?!\h)
-        name: constant.character.escape.surrogate.low.ruko
-      - comment: High surrogate pairs U+D800-DBFF
-        match: |
-          (?x)
-            \\u # prefix
-          (?i:
-            0*  # leading zeroes
-            d[89ab] \h{2}
-          )
-            (?!\h)
-        name: constant.character.escape.surrogate.high.ruko
-      - comment: Hexadecimal escape sequences
-        match: |
-          (?x)
-            \\u # prefix
-          (?i:
-            0*  # leading zeroes
-            (?: # 0 to 10FFFF
-                1 0 [0-f] {4}
-              | [1-f] [0-f] {0,4}
-              | 0
-            )
-          )
-            (?!\h)
-        name: constant.character.escape.unicode.ruko
-      - comment: Unicode escape sequences
-        match: |
-          (?x)
-          \\u # prefix
-            \h+
-            (?!\h)
-        name: invalid.illegal.escape.unicode.ruko
-      - comment: Unicode escapes
-        begin: \\u{
-        end: \s*}
-        name: constant.character.escape.unicode.ruko
-        patterns:
-          - include: '#punctuation'
-          - match: |
-              (?x)
-                \b
-              (?i:
-                0*  # leading zeroes
-                d [c-f] \h{2}
-              )
-                (?!\h)
-            name: constant.character.escape.surrogate.low.ruko
-          - match: |
-              (?x)
-                \b
-              (?i:
-                0*  # leading zeroes
-                d [89ab] \h{2}
-              )
-                (?!\h)
-            name: constant.character.escape.surrogate.high.ruko
-          - match: |
-              (?x)
-                \b
-              (?i:
-                0*  # leading zeroes
-                (?: # 0 to 10FFFF
-                    1 0 [0-f] {4}
-                  | [1-f] [0-f] {0,4}
-                  | 0
-                )
-              )
-                (?!\h)
-            name: constant.character.escape.unicode.ruko
-          - include: '#illegal'
-
   unicode-escapes:
     patterns:
       - comment: standard \x escapes
@@ -3010,7 +2228,7 @@ repository:
         match: \\o0*(41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0)
         name: constant.character.escape.octal.ruko
       - comment: Decimal escape sequences
-        match: \\0*(1114111|1114110|111410[0-9]|1114[0-0][0-9]{2}|111[0-3][0-9]{3}|110[0-9]{4}|10[0-9]{5}|[1-9][0-9]{0,5}|0)
+        match: \\0*(111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0)
         name: constant.character.escape.numeric.ruko
 
   # Embedded expressions
@@ -3050,18 +2268,18 @@ repository:
             (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (?: # keywords
               [io]n|of|[ai]s|by|has|old|new|del
-              |unset|(?:de)?ref|and|x?or|not
+              |unset|ref|deref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
               |for|loop|while|goto|move
               |try|throw|catch|switch
-              |match|case|pass|def(?:er)?
+              |match|case|pass|def|defer
               |break|skip|redo|retry
               |return|yield|await|scope
               |import|export|intern|extern
@@ -3134,18 +2352,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -3278,18 +2496,18 @@ repository:
           \b
             (?: # keywords
               [io]n|of|[ai]s|by|has|old|new|del
-              |unset|(?:de)?ref|and|x?or|not
+              |unset|ref|deref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
               |for|loop|while|goto|move
               |try|throw|catch|switch
-              |match|case|pass|def(?:er)?
+              |match|case|pass|def|defer
               |break|skip|redo|retry
               |return|yield|await|scope
               |import|export|intern|extern
@@ -3731,7 +2949,7 @@ repository:
       - match: |
           (?x)
           ( # from
-              \\0*(?:1114111|1114110|111410[0-9]|1114[0-0][0-9]{2}|111[0-3][0-9]{3}|110[0-9]{4}|10[0-9]{5}|[1-9][0-9]{0,5}|0) # decimal escape
+              \\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal escape
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
             | \\x\h\h # hex escape (2-digit)
@@ -3746,7 +2964,7 @@ repository:
               (-|->|>-|>>) # range
             \s*
           ( # to
-              \\0*(?:1114111|1114110|111410[0-9]|1114[0-0][0-9]{2}|111[0-3][0-9]{3}|110[0-9]{4}|10[0-9]{5}|[1-9][0-9]{0,5}|0) # decimal escape
+              \\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal escape
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
             | \\x\h\h # hex escape (2-digit)
@@ -3760,8 +2978,11 @@ repository:
               \s*
                 (:) # range
               \s*
-            ( # to
-              -?\d+ # number
+            ( # by
+                -?0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal
+              | -?0o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal
+              | -?0b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary
+              | -?0x(?:10\h{6}|\h{1,5}) # hexadecimal
             )
           )?
         captures:
@@ -3785,14 +3006,13 @@ repository:
               - include: '#numbers'
               - include: '#regexp-character-class'
               - include: '#regexp-character-operators'
-      - match: \|\|
-        name: keyword.operator.union.ruko
-      - match: \&\&
-        name: keyword.operator.intersection.ruko
-      - match: \^\^
-        name: keyword.operator.symmetric.ruko
-      - match: \-\-
-        name: keyword.operator.difference.ruko
+      - match: (\|\|)|(&&)|(\^\^)|(--)
+        name: keyword.operator.set.ruko
+        captures:
+          1: {name: keyword.operator.union.ruko}
+          2: {name: keyword.operator.intersection.ruko}
+          3: {name: keyword.operator.exclusion.ruko}
+          4: {name: keyword.operator.difference.ruko}
 
   regexp-character-set:
     patterns:
@@ -3904,18 +3124,18 @@ repository:
           \b
             (?: # keywords
               [io]n|of|[ai]s|by|has|old|new|del
-              |unset|(?:de)?ref|and|x?or|not
+              |unset|ref|deref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
               |for|loop|while|goto|move
               |try|throw|catch|switch
-              |match|case|pass|def(?:er)?
+              |match|case|pass|def|defer
               |break|skip|redo|retry
               |return|yield|await|scope
               |import|export|intern|extern
@@ -4134,7 +3354,7 @@ repository:
             | (\#q[0-3]+)
             | (\#s[0-5]+)
             | (\#o[0-7]+)
-            | (\#z(?i:[\d\u218a\u218babetx]+))
+            | (\#z(?i:[\d↊↋abetx]+))
             | (\#x\h+)
             | ([\p{Pc}\p{L}]\w*)
             | ((?:\\.|[^({\[)}\]\s;])+?)
@@ -5744,18 +4964,18 @@ repository:
               \b
                 (?: # keywords
                   [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|(?:de)?ref|and|x?or|not
+                  |unset|ref|deref|and|x?or|not
                   |const|let|mut|dyn|va[rl]|use
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
-                  |impl|enum|mod(?:el|ule)|struct|record
+                  |impl|enum|module|model|struct|record
                   |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |go|defer|do|with|from|where
                   |if|else|then|guard|when
                   |for|loop|while|goto|move
                   |try|throw|catch|switch
-                  |match|case|pass|def(?:er)?
+                  |match|case|pass|def|defer
                   |break|skip|redo|retry
                   |return|yield|await|scope
                   |import|export|intern|extern
@@ -5771,18 +4991,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -5808,18 +5028,18 @@ repository:
                   (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|(?:de)?ref|and|x?or|not
+                    |unset|ref|deref|and|x?or|not
                     |const|let|mut|dyn|va[rl]|use
                     |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
-                    |impl|enum|mod(?:el|ule)|struct|record
+                    |impl|enum|module|model|struct|record
                     |union|iter|macro|query|elem|temp|oper
                     |object|realm|style|script|quote
                     |go|defer|do|with|from|where
                     |if|else|then|guard|when
                     |for|loop|while|goto|move
                     |try|throw|catch|switch
-                    |match|case|pass|def(?:er)?
+                    |match|case|pass|def|defer
                     |break|skip|redo|retry
                     |return|yield|await|scope
                     |import|export|intern|extern
@@ -5847,18 +5067,18 @@ repository:
                   (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|(?:de)?ref|and|x?or|not
+                    |unset|ref|deref|and|x?or|not
                     |const|let|mut|dyn|va[rl]|use
                     |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
-                    |impl|enum|mod(?:el|ule)|struct|record
+                    |impl|enum|module|model|struct|record
                     |union|iter|macro|query|elem|temp|oper
                     |object|realm|style|script|quote
                     |go|defer|do|with|from|where
                     |if|else|then|guard|when
                     |for|loop|while|goto|move
                     |try|throw|catch|switch
-                    |match|case|pass|def(?:er)?
+                    |match|case|pass|def|defer
                     |break|skip|redo|retry
                     |return|yield|await|scope
                     |import|export|intern|extern
@@ -5879,13 +5099,13 @@ repository:
                 | `\s*(?=\N) # unquoted string literals 
                 | :[\p{Pc}\p{L}]\w* # symbols
                 | \d # numbers
-                | \s+ [(\[] # opening brackets
-                | \s+ [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
+                | \s [(\[] # opening brackets
+                | \s [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
                       [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
                   (?: ['"`\w] | \#?[(\[{])
-                | \s+ # XML tag component name
+                | \s # XML tag component name
                   <[\p{Pc}\p{L}(]
-                | \s+ # regexp literal
+                | \s # regexp literal
                   /[^/*\s]
               )
             )
@@ -5964,18 +5184,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -6184,7 +5404,7 @@ repository:
                   const|let|mut|dyn|va[rl]|use
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
-                  |impl|enum|mod(?:el|ule)|struct|record
+                  |impl|enum|module|model|struct|record
                   |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |given|use|as
@@ -6385,18 +5605,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -6417,280 +5637,262 @@ repository:
       - include: $self
 
   infix-operators:
-    comment: All other infix operators
-    name: keyword.operator.infix.ruko
-    match: |
-      (?xi)
-      (?<=^|[\s({\[]) # opening
-      (?:
-        ( \?[.:>]=? ) | # 1: optional access/unwrap
-        ( ![.:>]=? ) | # 2: assert/unwrap operator
-        ( (?:::|\.|->)=? ) | # 3: access operator
-        ( # 4: compound assignment operators
-          # all operators except ~ < = > . : !
-          [\p{P}\p{S}&&[^~<=>.,:;!'"`({\[)}\]\p{Pc}]]
-          # operator character
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*
-          = # ending equal sign
-        ) |
-        ( [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%? ) | # 5: arithmetic operator
-        ( \+\+ | \-\- ) | # 6: string/regex/array/set
-        ( \&\& | \|\| | \^\^ ) | # 7: logical operator
-        ( \& | \| | \^ ) | # 8: bitwise and set
-        ( <<[<>]? | [<>]?>> ) | # 9: bitwise shift/rotate
-        ( <\|+ | \|+> | !+> | <!+ ) | # 10: pipeline
-        ( <\+ | \+> ) | # 11: composition
-        ( [<>][:!] | [:!][<>] ) | # 12: membership
-        ( [<>]=? | <=?> ) | # 13: comparison
-        ( [!=]==? ) | # 14: equality
-        ( ~[=!] | [=!]~ | [=>]< ) | # 15: similarity
-        ( <[/*|+$:]>? | [/*|+$:]> ) | # 16: functional
-        ( \?\? ) | # 17: null coalescing
-        ( !! ) | # 18: non null coalescing
-        ( \?:? ) | # 19: falsy coalescing
-        ( !:? ) | # 20: truthy coalescing
-        ( [.:$] ) | # 21: function application
-        ( :?= ) | # 22: assignment / fallback
-        ( [>.]\.[.<] | [=.]\.[.=] | \.\. ) | # 23: range
-        ( =+> | <=+ ) | # 24: double arrow
-        ( -+> | <-+ ) | # 25: single arrow
-        ( ~+> | <~+ ) | # 26: wavy arrow
-        ( [&|^~][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 27: custom logical
-        ( [-+*/%][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 28: custom arithmetic
-        ( [@:] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 29: custom prototype
-        ( [.] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 30: custom accessor
-        ( [=!] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 31: custom comparison
-        ( [<>] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 32: custom relational
-        ( [?\#] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 33: custom private
-        ( \p{Sm} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 34: custom math
-        ( \p{Sc} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 35: custom currency
-        ( [\x21-\x7E&&[^a-zA-Z\d_,;'"`({\[)}\]\p{Pc}]]+ ) | # 36: custom ascii
-        ( [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # 37: catch-all
-      )
-      (?=$|[)}\]\s]) # closing
-    captures:
-      1: {name: keyword.operator.optional.ruko}
-      2: {name: keyword.operator.assert.ruko}
-      3: {name: keyword.operator.accessor.ruko}
-      4: {name: keyword.operator.assignment.augmented.ruko}
-      5: {name: keyword.operator.arithmetic.ruko}
-      6: {name: keyword.operator.successor.ruko}
-      7: {name: keyword.operator.logical.ruko}
-      8: {name: keyword.operator.bitwise.ruko}
-      9: {name: keyword.operator.bitwise.shift.ruko}
-      10: {name: keyword.operator.pipeline.ruko}
-      11: {name: keyword.operator.compose.ruko}
-      12: {name: keyword.operator.class.ruko}
-      13: {name: keyword.operator.relational.ruko}
-      14: {name: keyword.operator.comparison.ruko}
-      15: {name: keyword.operator.similarity.ruko}
-      16: {name: keyword.operator.function.ruko}
-      17: {name: keyword.operator.null-coalescing.ruko}
-      18: {name: keyword.operator.coalescing.ruko}
-      19: {name: keyword.operator.conditional.ruko}
-      20: {name: keyword.operator.ternary.ruko}
-      21: {name: keyword.operator.macro.ruko}
-      22: {name: keyword.operator.assignment.ruko}
-      23: {name: keyword.operator.range.ruko}
-      24: {name: keyword.operator.arrow.fat.ruko}
-      25: {name: keyword.operator.arrow.skinny.ruko}
-      26: {name: keyword.operator.arrow.wavy.ruko}
-      27: {name: keyword.operator.logical.custom.ruko}
-      28: {name: keyword.operator.arithmetic.custom.ruko}
-      29: {name: keyword.operator.prototype.custom.ruko}
-      30: {name: keyword.operator.accessor.custom.ruko}
-      31: {name: keyword.operator.comparison.custom.ruko}
-      32: {name: keyword.operator.relational.custom.ruko}
-      33: {name: keyword.operator.private.custom.ruko}
-      34: {name: keyword.operator.math.custom.ruko}
-      35: {name: keyword.operator.currency.custom.ruko}
-      36: {name: keyword.operator.ascii.custom.ruko}
-      37: {name: keyword.operator.primary.ruko}
+    comment: Infix operators - e.g., x + y
+    patterns:
+      - match: (?<=^|[\s({\[])(?:\?[.:>]=?)(?=$|[)}\]\s])
+        name: keyword.operator.optional.ruko
+      - match: (?<=^|[\s({\[])(?:![.:>]=?)(?=$|[)}\]\s])
+        name: keyword.operator.assert.ruko
+      - match: (?<=^|[\s({\[])(?:(::|\.|->)=?)(?=$|[)}\]\s])
+        name: keyword.operator.accessor.ruko
+      - match: (?<=^|[\s({\[])(?:[\p{P}\p{S}&&[^~<=>.,:;!''"`({\[)}\]\p{Pc}]][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]*=)(?=$|[)}\]\s])
+        name: keyword.operator.assignment.augmented.ruko
+      - match: (?<=^|[\s({\[])(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=$|[)}\]\s])
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=^|[\s({\[])(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|&|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=$|[)}\]\s])
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=^|[\s({\[])(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=$|[)}\]\s])
+        name: keyword.operator.arrow.ruko
+      - match: (?<=^|[\s({\[])(?:\+\+|--)(?=$|[)}\]\s])
+        name: keyword.operator.successor.ruko
+      - match: (?<=^|[\s({\[])(?:&&|\|\||\^\^)(?=$|[)}\]\s])
+        name: keyword.operator.logical.ruko
+      - match: (?<=^|[\s({\[])(?:&|\||\^)(?=$|[)}\]\s])
+        name: keyword.operator.bitwise.ruko
+      - match: (?<=^|[\s({\[])(?:<<[<>]?|[<>]?>>)(?=$|[)}\]\s])
+        name: keyword.operator.bitwise.shift.ruko
+      - match: (?<=^|[\s({\[])(?:<\|+|\|+>|!+>|<!+)(?=$|[)}\]\s])
+        name: keyword.operator.pipeline.ruko
+      - match: (?<=^|[\s({\[])(?:<\+|\+>|∘)(?=$|[)}\]\s])
+        name: keyword.operator.compose.ruko
+      - match: (?<=^|[\s({\[])(?:[<>][:!]|[:!][<>])(?=$|[)}\]\s])
+        name: keyword.operator.class.ruko
+      - match: (?<=^|[\s({\[])(?:[>.]\.[.<]|[=.]\.[.=]|\.\.)(?=$|[)}\]\s])
+        name: keyword.operator.range.ruko
+      - match: (?<=^|[\s({\[])(?:[<>]=?|<=?>)(?=$|[)}\]\s])
+        name: keyword.operator.relational.ruko
+      - match: (?<=^|[\s({\[])(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|∊|∍|∥|∦|∷|∺|∻|∽|∾|≁|≃|≂|≄|≅|≆|≇|≈|≉|≊|≋|≌|≍|≎|≐|≑|≒|≓|≖|≗|≘|≙|≚|≛|≜|≝|≞|≟|≣|≦|≧|≨|≩|≪|≫|≬|≭|≮|≯|≰|≱|≲|≳|≴|≵|≶|≷|≸|≹|≺|≻|≼|≽|≾|≿|⊀|⊁|⊃|⊅|⊇|⊉|⊋|⊏|⊐|⊑|⊒|⊜|⊩|⊬|⊮|⊰|⊱|⊲|⊳|⊴|⊵|⊶|⊷|⋍|⋐|⋑|⋕|⋖|⋗|⋘|⋙|⋚|⋛|⋜|⋝|⋞|⋟|⋠|⋡|⋢|⋣|⋤|⋥|⋦|⋧|⋨|⋩|⋪|⋫|⋬|⋭|⋲|⋳|⋴|⋵|⋶|⋷|⋸|⋹|⋺|⋻|⋼|⋽|⋾|⋿|⟈|⟉|⟒|⦷|⧀|⧁|⧡|⧣|⧤|⧥|⩦|⩧|⩪|⩫|⩬|⩭|⩮|⩯|⩰|⩱|⩲|⩳|⩵|⩶|⩷|⩸|⩹|⩺|⩻|⩼|⩽|⩾|⩿|⪀|⪁|⪂|⪃|⪄|⪅|⪆|⪇|⪈|⪉|⪊|⪋|⪌|⪍|⪎|⪏|⪐|⪑|⪒|⪓|⪔|⪕|⪖|⪗|⪘|⪙|⪚|⪛|⪜|⪝|⪞|⪟|⪠|⪡|⪢|⪣|⪤|⪥|⪦|⪧|⪨|⪩|⪪|⪫|⪬|⪭|⪮|⪯|⪰|⪱|⪲|⪳|⪴|⪵|⪶|⪷|⪸|⪹|⪺|⪻|⪼|⪽|⪾|⪿|⫀|⫁|⫂|⫃|⫄|⫅|⫆|⫇|⫈|⫉|⫊|⫋|⫌|⫍|⫎|⫏|⫐|⫑|⫒|⫓|⫔|⫕|⫖|⫗|⫘|⫙|⫷|⫸|⫹|⫺|⊢|⊣|⟂|⫪|⫫)(?=$|[)}\]\s])
+        name: keyword.operator.relational.ruko
+      - match: (?<=^|[\s({\[])(?:\.(?=)|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=$|[)}\]\s])
+        name: keyword.operator.dots.julia
+      - match: (?<=^|[\s({\[])(?:[!=]==?)(?=$|[)}\]\s])
+        name: keyword.operator.comparison.ruko
+      - match: (?<=^|[\s({\[])(?:~[=!]|[=!]~|[=>]<)(?=$|[)}\]\s])
+        name: keyword.operator.similarity.ruko
+      - match: (?<=^|[\s({\[])(?:<[/*|+$:]>?|[/*|+$:]>)(?=$|[)}\]\s])
+        name: keyword.operator.function.ruko
+      - match: (?<=^|[\s({\[])(?:\?\?)(?=$|[)}\]\s])
+        name: keyword.operator.null-coalescing.ruko
+      - match: (?<=^|[\s({\[])(?:!!)(?=$|[)}\]\s])
+        name: keyword.operator.coalescing.ruko
+      - match: (?<=^|[\s({\[])(?:\?:?)(?=$|[)}\]\s])
+        name: keyword.operator.conditional.ruko
+      - match: (?<=^|[\s({\[])(?:!:?)(?=$|[)}\]\s])
+        name: keyword.operator.ternary.ruko
+      - match: (?<=^|[\s({\[])(?:[.:$]|:::?)(?=$|[)}\]\s])
+        name: keyword.operator.macro.ruko
+      - match: (?<=^|[\s({\[])(?::?=)(?=$|[)}\]\s])
+        name: keyword.operator.assignment.ruko
+      - match: (?<=^|[\s({\[])(?:=+>|<=+)(?=$|[)}\]\s])
+        name: keyword.operator.arrow.fat.ruko
+      - match: (?<=^|[\s({\[])(?:-+>|<-+)(?=$|[)}\]\s])
+        name: keyword.operator.arrow.skinny.ruko
+      - match: (?<=^|[\s({\[])(?:~+>|<~+)(?=$|[)}\]\s])
+        name: keyword.operator.arrow.wavy.ruko
+      - match: (?<=^|[\s({\[])(?:[&|^~][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.logical.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[-+*/%][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.arithmetic.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[@:][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.prototype.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[.][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.accessor.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[=!][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.comparison.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[<>][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.relational.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[?#][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.private.custom.ruko
+      - match: (?<=^|[\s({\[])(?:\p{Sm}+)(?=$|[)}\]\s])
+        name: keyword.operator.math.custom.ruko
+      - match: (?<=^|[\s({\[])(?:\p{Sc}+)(?=$|[)}\]\s])
+        name: keyword.operator.currency.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+)(?=$|[)}\]\s])
+        name: keyword.operator.ascii.custom.ruko
+      - match: (?<=^|[\s({\[])([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
+        name: keyword.operator.primary.ruko
 
   primary-operators:
-    name: keyword.operator.primary.ruko
-    match: |
-      (?x)
-      (?<=['"`)}\]\w]|\\.) # closing
-      (?:
-        ( \?[.:>]=? ) | # 1: optional access/unwrap
-        ( ![.:>]=? ) | # 2: assert/unwrap operator
-        ( (?:::|\.|->)=? ) | # 3: access operator
-        ( # 4: compound assignment operators
-          # all operators except ~ < = > . : !
-          [\p{P}\p{S}&&[^~<=>.,:;!'"`({\[)}\]\p{Pc}]]
-          # operator character
-          [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]*
-          = # ending equal sign
-        ) |
-        ( [+-][%|]? | \*{1,3}[%|]? | ~?/ | %%? ) | # 5: arithmetic operator
-        ( \+\+ | \-\- ) | # 6: string/regex/array/set
-        ( \&\& | \|\| | \^\^ ) | # 7: logical operator
-        ( \& | \| | \^ ) | # 8: bitwise and set
-        ( <<[<>]? | [<>]?>> ) | # 9: bitwise shift/rotate
-        ( <\|+ | \|+> | !+> | <!+ ) | # 10: pipeline
-        ( <\+ | \+> ) | # 11: composition
-        ( [<>][:!] | [:!][<>] ) | # 12: membership
-        ( [<>]=? | <=?> ) | # 13: comparison
-        ( [!=]==? ) | # 14: equality
-        ( ~[=!] | [=!]~ | [=>]< ) | # 15: similarity
-        ( <[/*|+$:]>? | [/*|+$:]> ) | # 16: functional
-        ( \?\? ) | # 17: null coalescing
-        ( !! ) | # 18: non null coalescing
-        ( \?:? ) | # 19: falsy coalescing
-        ( !:? ) | # 20: truthy coalescing
-        ( [.:$] ) | # 21: function application
-        ( :?= ) | # 22: assignment / fallback
-        ( [>.]\.[.<] | [=.]\.[.=] | \.\. ) | # 23: range
-        ( =+> | <=+ ) | # 24: double arrow
-        ( -+> | <-+ ) | # 25: single arrow
-        ( ~+> | <~+ ) | # 26: wavy arrow
-        ( [&|^~][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 27: custom logical
-        ( [-+*/%][\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 28: custom arithmetic
-        ( [@:] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 29: custom prototype
-        ( [.] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 30: custom accessor
-        ( [=!] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 31: custom comparison
-        ( [<>] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 32: custom relational
-        ( [?\#] [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 33: custom private
-        ( \p{Sm} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 34: custom math
-        ( \p{Sc} [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) | # 35: custom currency
-        ( [\x21-\x7E&&[^a-zA-Z\d_,;'"`({\[)}\]\p{Pc}]]+ ) | # 36: custom ascii
-        ( [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ ) # 37: catch-all
-      )
-      (?=(?:['"`\w]|\#?[(\[{])) # opening
-    captures:
-      1: {name: keyword.operator.optional.ruko}
-      2: {name: keyword.operator.assert.ruko}
-      3: {name: keyword.operator.accessor.ruko}
-      4: {name: keyword.operator.assignment.augmented.ruko}
-      5: {name: keyword.operator.arithmetic.ruko}
-      6: {name: keyword.operator.successor.ruko}
-      7: {name: keyword.operator.logical.ruko}
-      8: {name: keyword.operator.bitwise.ruko}
-      9: {name: keyword.operator.bitwise.shift.ruko}
-      10: {name: keyword.operator.pipeline.ruko}
-      11: {name: keyword.operator.compose.ruko}
-      12: {name: keyword.operator.class.ruko}
-      13: {name: keyword.operator.relational.ruko}
-      14: {name: keyword.operator.comparison.ruko}
-      15: {name: keyword.operator.similarity.ruko}
-      16: {name: keyword.operator.function.ruko}
-      17: {name: keyword.operator.null-coalescing.ruko}
-      18: {name: keyword.operator.coalescing.ruko}
-      19: {name: keyword.operator.conditional.ruko}
-      20: {name: keyword.operator.ternary.ruko}
-      21: {name: keyword.operator.macro.ruko}
-      22: {name: keyword.operator.assignment.ruko}
-      23: {name: keyword.operator.range.ruko}
-      24: {name: keyword.operator.arrow.fat.ruko}
-      25: {name: keyword.operator.arrow.skinny.ruko}
-      26: {name: keyword.operator.arrow.wavy.ruko}
-      27: {name: keyword.operator.logical.custom.ruko}
-      28: {name: keyword.operator.arithmetic.custom.ruko}
-      29: {name: keyword.operator.prototype.custom.ruko}
-      30: {name: keyword.operator.accessor.custom.ruko}
-      31: {name: keyword.operator.comparison.custom.ruko}
-      32: {name: keyword.operator.relational.custom.ruko}
-      33: {name: keyword.operator.private.custom.ruko}
-      34: {name: keyword.operator.math.custom.ruko}
-      35: {name: keyword.operator.currency.custom.ruko}
-      36: {name: keyword.operator.ascii.custom.ruko}
-      37: {name: keyword.operator.primary.ruko}
+    comment: Primary operators - x+y (without spaces)
+    patterns:
+      - match: (?<=['"`)}\]\w]|\\.)(?:\?[.:>]=?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.optional.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:![.:>]=?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.assert.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:(::|\.|->)=?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.accessor.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[\p{P}\p{S}&&[^~<=>.,:;!''"`({\[)}\]\p{Pc}]][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]*=)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.assignment.augmented.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|&|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arithmetic.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arrow.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|--)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.successor.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:&&|\|\||\^\^)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.logical.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:&|\||\^)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.bitwise.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<<[<>]?|[<>]?>>)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.bitwise.shift.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<\|+|\|+>|!+>|<!+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.pipeline.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<\+|\+>|∘)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.compose.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[<>][:!]|[:!][<>])(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.class.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[>.]\.[.<]|[=.]\.[.=]|\.\.)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.range.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[<>]=?|<=?>)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.relational.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|===|==|≡|!=|≠|!==|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|…)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.relational.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\.(?=)|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.dots.julia
+      - match: (?<=['"`)}\]\w]|\\.)(?:[!=]==?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.comparison.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:~[=!]|[=!]~|[=>]<)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.similarity.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:<[/*|+$:]>?|[/*|+$:]>)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.function.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\?\?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.null-coalescing.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:!!)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.coalescing.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\?:?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.conditional.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:!:?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.ternary.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[.:$]|:::?)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.macro.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?::?=)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.assignment.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:=+>|<=+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arrow.fat.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:-+>|<-+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arrow.skinny.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:~+>|<~+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arrow.wavy.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[&|^~][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.logical.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[-+*/%][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arithmetic.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[@:][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.prototype.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[.][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.accessor.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[=!][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.comparison.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[<>][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.relational.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[?#][\p{P}\p{S}&&[^,;''"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.private.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\p{Sm}+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.math.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:\p{Sc}+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.currency.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.ascii.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.primary.ruko
 
   prefix-operators:
     comment: Prefix operators
-    match: |
-      (?x)
-      (?:
-         (\*) # 1: pointer
-        |(\/) # 2: spread
-        |(\+) # 3: increment  
-        |(\-) # 4: decrement
-        |(\&) # 5: reference
-        |(\|) # 6: union
-        |(\^) # 7: borrow
-        |(\!) # 8: logical
-        |(\$) # 9: variable
-        |(\@) # 10: decorator
-        |(\~) # 11: bitwise not
-        |(\?) # 12: existential
-        |(\=) # 13: assignment
-        |(\$) # 14: pipeline
-        |(\#) # 15: anchor
-        |(\%) # 16: format
-        |(\.) # 17: accessor
-        |[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # 18: catch-all
-      )
-      (?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*
-      (?:['"`\w]|\#?[(\[{]))
+    match: ([\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]])(?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
     name: keyword.operator.prefix.ruko
     captures:
-      1: {name: keyword.operator.pointer.ruko}
-      2: {name: keyword.operator.spread.ruko}
-      3: {name: keyword.operator.increment.ruko}
-      4: {name: keyword.operator.decrement.ruko}
-      5: {name: keyword.operator.reference.ruko}
-      6: {name: keyword.operator.union.ruko}
-      7: {name: keyword.operator.borrow.ruko}
-      8: {name: keyword.operator.logical.ruko}
-      9: {name: punctuation.definition.variable.ruko}
-      10: {name: punctuation.definition.decorator.ruko}
-      11: {name: keyword.operator.bitwise.not.ruko}
-      12: {name: keyword.operator.existential.ruko}
-      13: {name: keyword.operator.assignment.ruko}
-      14: {name: keyword.operator.pipeline.ruko}
-      15: {name: punctuation.definition.anchor.ruko}
-      16: {name: keyword.operator.format.ruko}
-      17: {name: keyword.operator.accessor.ruko}
-      18: {name: keyword.operator.lifetime.ruko}
-      19: {name: keyword.operator.prefix.ruko}
+      1:
+        patterns:
+          - match: \*
+            name: keyword.operator.pointer.ruko
+          - match: /
+            name: keyword.operator.spread.ruko
+          - match: \+
+            name: keyword.operator.increment.ruko
+          - match: '-'
+            name: keyword.operator.decrement.ruko
+          - match: '&'
+            name: keyword.operator.reference.ruko
+          - match: \|
+            name: keyword.operator.union.ruko
+          - match: \^
+            name: keyword.operator.borrow.ruko
+          - match: '!'
+            name: keyword.operator.logical.ruko
+          - match: \$
+            name: punctuation.definition.variable.ruko
+          - match: '@'
+            name: punctuation.definition.decorator.ruko
+          - match: '~'
+            name: keyword.operator.bitwise.ruko
+          - match: \?
+            name: keyword.operator.existential.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+          - match: '#'
+            name: punctuation.definition.anchor.ruko
+          - match: '%'
+            name: keyword.operator.format.ruko
+          - match: \.
+            name: keyword.operator.accessor.ruko
+          - match: ¬
+            name: keyword.operator.lifetime.ruko
 
   suffix-operators:
     comment: Suffix operators
-    match: |
-      (?x)
-      (?<=(?:['"`)}\]\w]|\\.)
-        [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*)
-      (?:
-          (\*) # 1: pointer
-        | (\/) # 2: quotient
-        | (\+) # 3: increment  
-        | (\-) # 4: decrement
-        | (\&) # 5: reference
-        | (\|) # 6: union
-        | (\^) # 7: borrow
-        | (\!) # 8: logical
-        | (\$) # 9: variable
-        | (\@) # 10: decorator
-        | (\~) # 11: bitwise not
-        | (\?) # 12: existential
-        | (\=) # 13: assignment
-        | (\$) # 14: pipeline
-        | (\#) # 15: anchor
-        | (\%) # 16: format
-        | (\.) # 17: accessor
-        | [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # 18: catch-all
-      )
+    match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*)([\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]])
     name: keyword.operator.suffix.ruko
     captures:
-      1: {name: keyword.operator.pointer.ruko}
-      2: {name: keyword.operator.quotient.ruko}
-      3: {name: keyword.operator.increment.ruko}
-      4: {name: keyword.operator.decrement.ruko}
-      5: {name: keyword.operator.reference.ruko}
-      6: {name: keyword.operator.union.ruko}
-      7: {name: keyword.operator.borrow.ruko}
-      8: {name: keyword.operator.logical.ruko}
-      9: {name: keyword.operator.private.ruko}
-      10: {name: keyword.operator.decorator.ruko}
-      11: {name: keyword.operator.spread.ruko}
-      12: {name: keyword.operator.existential.ruko}
-      13: {name: keyword.operator.assignment.ruko}
-      14: {name: keyword.operator.pipeline.ruko}
-      15: {name: keyword.operator.private.ruko}
-      16: {name: keyword.operator.format.ruko}
-      17: {name: keyword.operator.accessor.ruko}
-      18: {name: keyword.operator.suffix.ruko}
+      1:
+        patterns:
+          - match: \*
+            name: keyword.operator.pointer.ruko
+          - match: /
+            name: keyword.operator.quotient.ruko
+          - match: \+
+            name: keyword.operator.increment.ruko
+          - match: '-'
+            name: keyword.operator.decrement.ruko
+          - match: '&'
+            name: keyword.operator.reference.ruko
+          - match: \|
+            name: keyword.operator.union.ruko
+          - match: \^
+            name: keyword.operator.borrow.ruko
+          - match: '!'
+            name: keyword.operator.logical.ruko
+          - match: \$
+            name: punctuation.definition.variable.ruko
+          - match: '@'
+            name: punctuation.definition.decorator.ruko
+          - match: '~'
+            name: keyword.operator.destructor.ruko
+          - match: \?
+            name: keyword.operator.existential.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+          - match: \$
+            name: keyword.operator.pipeline.ruko
+          - match: '#'
+            name: punctuation.definition.anchor.ruko
+          - match: '%'
+            name: keyword.operator.format.ruko
+          - match: \.
+            name: keyword.operator.accessor.ruko
+          - match: ¬
+            name: keyword.operator.lifetime.ruko
 
   # Clauses and Keywords
 
@@ -6725,7 +5927,7 @@ repository:
           const|let|mut|dyn|va[rl]|use
           |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
-          |impl|enum|mod(?:el|ule)|struct|record
+          |impl|enum|module|model|struct|record
           |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |import|export|intern|extern
@@ -6748,18 +5950,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -6775,18 +5977,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -6849,7 +6051,7 @@ repository:
             (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (
               func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -6984,18 +6186,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -7610,18 +6812,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -7658,18 +6860,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -7686,7 +6888,7 @@ repository:
             \b
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -7711,18 +6913,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -7764,18 +6966,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -7792,7 +6994,7 @@ repository:
             \b
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -7817,18 +7019,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -7877,18 +7079,18 @@ repository:
           \b
             (?: # keywords
               [io]n|of|[ai]s|by|has|old|new|del
-              |unset|(?:de)?ref|and|x?or|not
+              |unset|ref|deref|and|x?or|not
               |const|let|mut|dyn|va[rl]|use
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |go|defer|do|with|from|where
               |if|else|then|guard|when
               |for|loop|while|goto|move
               |try|throw|catch|switch
-              |match|case|pass|def(?:er)?
+              |match|case|pass|def|defer
               |break|skip|redo|retry
               |return|yield|await|scope
               |import|export|intern|extern
@@ -8287,18 +7489,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -8315,7 +7517,7 @@ repository:
             \b
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
-              |impl|enum|mod(?:el|ule)|struct|record
+              |impl|enum|module|model|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -8340,18 +7542,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -8465,15 +7667,9 @@ repository:
       (?x)
       (?<=\b|>)
       (?:
-        ( # 1: optional access/unwrap
-          \?[.:>]=?
-        ) |
-        ( # 2: assert/unwrap operator
-          ![.:>]=?
-        ) |
-        ( # 3: access operator
-          (?:::|\.|->)=?
-        )
+        ( \?[.:>]=? ) | # 1: optional access/unwrap
+        ( ![.:>]=? ) | # 2: assert/unwrap operator
+        ( (?:::|\.|->)=? ) # 3: standard accessor
       )
       (?=\b|<)
     captures:
@@ -8563,7 +7759,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -8587,7 +7783,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -8763,7 +7959,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -8785,7 +7981,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -8873,18 +8069,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -8905,15 +8101,9 @@ repository:
               - match: |
                   (?x)
                   (?:
-                    ( # 1: optional access/unwrap
-                      \?[:>]?=?
-                    ) |
-                    ( # 2: assert/unwrap operator
-                      ![:>]?=?
-                    ) |
-                    ( # 3: access operator
-                      [:>]?=?
-                    )
+                    ( \?[:>]?=? ) | # 1: optional access/unwrap
+                    ( ![:>]?=? ) | # 2: assert/unwrap operator
+                    ( [:>]?=? ) # 3: access operator
                   )
                 captures:
                   1: {name: keyword.operator.optional.ruko}
@@ -8960,18 +8150,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -8993,18 +8183,18 @@ repository:
                 (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 (?: # keywords
                   [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|(?:de)?ref|and|x?or|not
+                  |unset|ref|deref|and|x?or|not
                   |const|let|mut|dyn|va[rl]|use
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
-                  |impl|enum|mod(?:el|ule)|struct|record
+                  |impl|enum|module|model|struct|record
                   |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |go|defer|do|with|from|where
                   |if|else|then|guard|when
                   |for|loop|while|goto|move
                   |try|throw|catch|switch
-                  |match|case|pass|def(?:er)?
+                  |match|case|pass|def|defer
                   |break|skip|redo|retry
                   |return|yield|await|scope
                   |import|export|intern|extern
@@ -9059,18 +8249,18 @@ repository:
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|(?:de)?ref|and|x?or|not
+                |unset|ref|deref|and|x?or|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
-                |impl|enum|mod(?:el|ule)|struct|record
+                |impl|enum|module|model|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |go|defer|do|with|from|where
                 |if|else|then|guard|when
                 |for|loop|while|goto|move
                 |try|throw|catch|switch
-                |match|case|pass|def(?:er)?
+                |match|case|pass|def|defer
                 |break|skip|redo|retry
                 |return|yield|await|scope
                 |import|export|intern|extern
@@ -9089,15 +8279,9 @@ repository:
               - match: |
                   (?x)
                   (?:
-                    ( # 1: optional access/unwrap
-                      \?[:>]?=?
-                    ) |
-                    ( # 2: assert/unwrap operator
-                      ![:>]?=?
-                    ) |
-                    ( # 3: access operator
-                      [:>]?=?
-                    )
+                    ( \?[:>]?=? ) | # 1: optional access/unwrap
+                    ( ![:>]?=? ) | # 2: assert/unwrap operator
+                    ( [:>]?=? ) # 3: access operator
                   )
                 captures:
                   1: {name: keyword.operator.optional.ruko}
