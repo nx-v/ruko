@@ -2349,46 +2349,56 @@ repository:
         match: |
           (?x)
           (\#) # sigil
-          (
-            (?:
-              (?:&|%|\$|~~?|\*\*?) # sigil
-              [?!]? # required or optional
-            )
-            \b
-              [\p{Pc}\p{L}]\w*
-            \b
-            |
-            # ignore all keywords
-            (?!
-              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
-                |const|let|mut|dyn|va[rl]|use
-                |given|expr|eval|init|comp
-                |func|pro[pc]|type|class|actor|trait
-                |impl|enum|module|model|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |go|defer|do|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          (?:
+            \s*
+            ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+            ( # identifier
+              (?: # function name
+                \b
+                # ignore all keywords
+                (?!
+                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                  (?: # keywords
+                    [io]n|of|[ai]s|by|has|old|new|del
+                    |unset|ref|deref|and|x?or|not
+                    |const|let|mut|dyn|va[rl]|use
+                    |given|expr|eval|init|comp
+                    |func|pro[pc]|type|class|actor|trait
+                    |impl|enum|module|model|struct|record
+                    |union|iter|macro|query|elem|temp|oper
+                    |object|realm|style|script|quote
+                    |go|defer|do|with|from|where
+                    |if|else|then|guard|when
+                    |for|loop|while|goto|move
+                    |try|throw|catch|switch
+                    |match|case|pass|def|defer
+                    |break|skip|redo|retry
+                    |return|yield|await|scope
+                    |import|export|intern|extern
+                    |debug|assert|check|decl
+                  )
+                  \b
+                )
+                \b
+                [\p{Pc}\p{L}]\w* # identifier
+                \b
               )
-              \b
             )
-            \b
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
+            ([!?]*) # optional sigils
+            \s*
           )
         captures:
-          1: {name: punctuation.definition.anchor.ruko}
-          2: {patterns: [include: '#placeholder-variables']}
+          1:
+            name: punctuation.definition.anchor.ruko
+          2:
+            name: keyword.operator.prefix.ruko
+            patterns: [include: '#parameter-type-operators']
+          3:
+            name: variable.parameter.ruko
+            patterns: [include: '#constants']
+          4:
+            name: keyword.operator.suffix.ruko
+            patterns: [include: '#parameter-type-operators']
       - name: meta.embedded.placeholder.ruko
         begin: (\#{)\s*
         end: \s*(})
@@ -4985,6 +4995,16 @@ repository:
             [\p{Pc}\p{L}]\w* # last part of identifier
           )
           \b
+          (?! # infix operator
+            \s+ 
+              (?:[\p{P}\p{S}&&[^,;'"`/({\[)}\]\p{Pc}]]+
+              (?:
+                [\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
+              )?
+              (?=\s|$)
+            )
+          )
           (?=
             (?:
               \s* (?: # function name
@@ -5022,9 +5042,9 @@ repository:
                   | `\s*(?=\N) # unquoted string literals 
                   | :[\p{Pc}\p{L}]\w* # symbols
                   | \d # numbers
-                  | \s #? [(\[] # opening brackets
-                  | \s [\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
-                       [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
+                  | \s \#? [(\[] # opening brackets
+                  | \s [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]] # prefix operators except / and \
+                      [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
                     (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
                   | \s # XML tag component name
                     <[\p{Pc}\p{L}(]
@@ -5080,8 +5100,8 @@ repository:
                 | :[\p{Pc}\p{L}]\w* # symbols
                 | \d # numbers
                 | \s \#? [(\[] # opening brackets
-                | \s [\p{P}\p{S}&&[^.,;'"`\\({\[)}\]\p{Pc}]] # prefix operators except \ 
-                     [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
+                | \s [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]] # prefix operators except / and \
+                    [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
                   (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
                 | \s # XML tag component name
                   <[\p{Pc}\p{L}(]
@@ -5095,7 +5115,7 @@ repository:
                     ([!?]*) # optional sigils
                     \s*
                   )+ (?: \#? [)\]}] )? # closing bracket
-              ) # function application
+              )
             )
           )
         captures:
@@ -5655,8 +5675,8 @@ repository:
         name: keyword.operator.currency.custom.ruko
       - match: (?<=^|[\s({\[])(?:[!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+)(?=$|[)}\]\s])
         name: keyword.operator.ascii.custom.ruko
-      - match: (?<=^|[\s({\[])([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
-        name: keyword.operator.primary.ruko
+      - match: (?<=^|[\s({\[])([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+([\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)?)(?=$|[)}\]\s])
+        name: keyword.operator.infix.ruko
 
   primary-operators:
     comment: Primary operators - x+y (without spaces)
