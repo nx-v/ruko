@@ -408,12 +408,7 @@ repository:
       - include: '#space'
 
   type-variables:
-    comment: |
-      Four types of variables:
-      - _lead_underscore
-      - UPPERCASE
-      - PascalCase
-      - camelCase
+    comment: 'Four types of variables: _lead_underscore, UPPERCASE, PascalCase, camelCase'
     match: |
       (?x) \s* \b
 
@@ -443,10 +438,40 @@ repository:
 
       (?:
         (?<=
-          (?: ['"`)\]}\w] | \\.) \s* # literal, bracket or space
+          (?: 
+              ['"`)\]}] | \\. # literal, bracket
+            | \b
+              # ignore keywords
+              (?!
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                (?: # keywords
+                  [io]n|of|[ai]s|by|has|old|new|del
+                  |unset|ref|deref|and|x?or|not
+                  |const|let|mut|dyn|va[rl]|use
+                  |given|expr|eval|init|comp
+                  |func|pro[pc]|type|class|actor|trait
+                  |impl|enum|module|model|struct|record
+                  |union|iter|macro|query|elem|temp|oper
+                  |object|realm|style|script|quote
+                  |go|defer|do|with|from|where
+                  |if|else|then|guard|when
+                  |for|loop|while|goto|move
+                  |try|throw|catch|switch
+                  |match|case|pass|def|defer
+                  |break|skip|redo|retry
+                  |return|yield|await|scope
+                  |import|export|intern|extern
+                  |debug|assert|check|decl
+                )
+                \b
+              )
+              \b
+              [\p{Pc}\p{L}]\w* # identifier
+              \b
+            ) \s*
+          )
           (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
-        )
-        \b # methods
+        ) \b
         (?: # Properties
             # Leading underscore
             (\p{Pc}+\w*\b(?!\p{Pc}+))
@@ -2274,7 +2299,7 @@ repository:
         begin: |
           (?x)
           (\$) # beginning of identifier
-          # ignore all keywords
+          # ignore keywords
           (?!
             (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (?: # keywords
@@ -2355,7 +2380,7 @@ repository:
             ( # identifier
               (?: # function name
                 \b
-                # ignore all keywords
+                # ignore keywords
                 (?!
                   (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                   (?: # keywords
@@ -4962,7 +4987,7 @@ repository:
           ) \s*
           \b
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -5009,7 +5034,7 @@ repository:
             (?:
               \s* (?: # function name
                 \b
-                # ignore all keywords
+                # ignore keywords
                 (?!
                   (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                   (?: # keywords
@@ -5062,7 +5087,7 @@ repository:
               )
               | \s* (?: # function name
                 \b
-                # ignore all keywords
+                # ignore keywords
                 (?!
                   (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                   (?: # keywords
@@ -5133,7 +5158,7 @@ repository:
           )
           \b
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -5257,10 +5282,40 @@ repository:
           (?x)
           (?:
             (?<=
-              (?: [,;'"`)\]}\w] | \#?[(\[{] | \\.?) # literal, bracket or space
+              (?: 
+                  ['"`)\]}] | \\. # literal, bracket
+                | \b
+                  # ignore keywords
+                  (?!
+                    (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                    (?: # keywords
+                      [io]n|of|[ai]s|by|has|old|new|del
+                      |unset|ref|deref|and|x?or|not
+                      |const|let|mut|dyn|va[rl]|use
+                      |given|expr|eval|init|comp
+                      |func|pro[pc]|type|class|actor|trait
+                      |impl|enum|module|model|struct|record
+                      |union|iter|macro|query|elem|temp|oper
+                      |object|realm|style|script|quote
+                      |go|defer|do|with|from|where
+                      |if|else|then|guard|when
+                      |for|loop|while|goto|move
+                      |try|throw|catch|switch
+                      |match|case|pass|def|defer
+                      |break|skip|redo|retry
+                      |return|yield|await|scope
+                      |import|export|intern|extern
+                      |debug|assert|check|decl
+                    )
+                    \b
+                  )
+                  \b
+                  [\p{Pc}\p{L}]\w* # identifier
+                  \b
+                ) \s*
+              )
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
-            )
-            \b # methods
+            ) \b
               (?:
                 # Leading underscore
                 (\p{Pc}+\w*(?!\p{Pc}+))
@@ -5454,10 +5509,40 @@ repository:
 
           (?:
             (?<=
-              (?: ['"`)\]}\w] | \\.) \s* # literal, bracket or space
+              (?: 
+                  ['"`)\]}] | \\. # literal, bracket
+                | \b
+                  # ignore keywords
+                  (?!
+                    (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                    (?: # keywords
+                      [io]n|of|[ai]s|by|has|old|new|del
+                      |unset|ref|deref|and|x?or|not
+                      |const|let|mut|dyn|va[rl]|use
+                      |given|expr|eval|init|comp
+                      |func|pro[pc]|type|class|actor|trait
+                      |impl|enum|module|model|struct|record
+                      |union|iter|macro|query|elem|temp|oper
+                      |object|realm|style|script|quote
+                      |go|defer|do|with|from|where
+                      |if|else|then|guard|when
+                      |for|loop|while|goto|move
+                      |try|throw|catch|switch
+                      |match|case|pass|def|defer
+                      |break|skip|redo|retry
+                      |return|yield|await|scope
+                      |import|export|intern|extern
+                      |debug|assert|check|decl
+                    )
+                    \b
+                  )
+                  \b
+                  [\p{Pc}\p{L}]\w* # identifier
+                  \b
+                ) \s*
+              )
               (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
-            )
-            \b # methods
+            ) \b
             (?: # Properties
                 # Leading underscore
                 (\p{Pc}+\w*\b(?!\p{Pc}+))
@@ -5556,7 +5641,7 @@ repository:
           (?<=\\?)
           ( # function name
             \b
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -5903,7 +5988,7 @@ repository:
           (?x)
           \s*\b
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -6141,7 +6226,7 @@ repository:
           (?<=^|[,;]|\#?[(\[{])\s*
           (
             \b
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -6808,7 +6893,7 @@ repository:
       - match: |
           (?x)
           ^\s*\b((?:
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -6856,7 +6941,7 @@ repository:
           (:?=)\s+ # Assignment operator
 
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -6909,7 +6994,7 @@ repository:
           (:?=)\s+ # Assignment operator
 
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -6962,7 +7047,7 @@ repository:
           (:?=)\s+ # Assignment operator
 
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -7015,7 +7100,7 @@ repository:
           \s*
 
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -7472,7 +7557,7 @@ repository:
           \s*\b
 
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -7525,7 +7610,7 @@ repository:
           \s*\b
 
           (
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -8052,7 +8137,7 @@ repository:
           ([?!][:>]?=?|[:>])? # message access operator
           ( # Message name
             \b
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -8133,7 +8218,7 @@ repository:
           \s*
           ( # Message name
             \b
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -8166,7 +8251,7 @@ repository:
             (?:[?!][:>]?=?|[:>])? # message access operator
             (?: # function name
               \b
-              # ignore all keywords
+              # ignore keywords
               (?!
                 (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 (?: # keywords
@@ -8232,7 +8317,7 @@ repository:
           ([?!][:>]?=?|[:>])? # message access operator
           ( # Message name
             \b
-            # ignore all keywords
+            # ignore keywords
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
