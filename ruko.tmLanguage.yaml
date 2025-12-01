@@ -375,6 +375,71 @@ repository:
       - match: \s*\w+\s*
         name: invalid.illegal.identifier.ruko
 
+  # Directives
+
+  directives:
+    comments: Yeah these are just straight-up copied from C/C++ grammars
+    patterns:
+      - applyEndPatternLast: true
+        begin: ^\s*(\#)(!|if|else|elif|end|ifdef|ifndef)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(\#)(define|undef)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns:
+          - include: '#regexp-patterns'
+          - begin: (:)\s*
+            end: \s*([,;])|$
+            name: string.regexp.replace.ruko
+            captures:
+              1: {name: punctuation.definition.regexp.ruko}
+            patterns:
+              - include: '#back-references'
+              - include: '#xml-regex-content'
+              - begin: \s*(\{)
+                end: (\})\s*
+                name: meta.interpolation.regexp.ruko
+                captures:
+                  1: {name: punctuation.definition.variable.ruko}
+                patterns:
+                  - include: '#back-references'
+                  - include: '#xml-regex-content'
+                  - include: $self
+          - match: .+
+            name: meta.directive.definition.ruko
+      - applyEndPatternLast: true
+        begin: ^\s*(\#)(include|exclude|import|export|extern|intern)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: '#module-content'}]
+      - applyEndPatternLast: true
+        begin: ^\s*(\#)(pragma|region|endregion|once)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - comment: null directive
+        match: ^\s*(\#)\s*$
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: text.whitespace.ruko}
+        patterns: [{include: $self}]
+
   # Types
 
   types:
@@ -2107,19 +2172,20 @@ repository:
         name: constant.other.function.ruko
         begin: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b(?=\{)
         beginCaptures:
-          1: {patterns: [{include: '#function-namespace'}]}
+          1:
+            patterns: [{include: '#function-namespace'}]
         end: (?=)|$
         patterns:
           - begin: (\{)
             end: (\})
             captures:
               1: {name: constant.other.function.ruko}
-            patterns:
-              - include: '#named-characters'
+            patterns: [{include: '#named-characters'}]
       - match: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b([;,]|(?=\W))
         name: constant.character.escape.ruko
         captures:
-          1: {patterns: [{include: '#character-namespace'}]}
+          1:
+            patterns: [{include: '#character-namespace'}]
       - include: '#xml-regex-content'
       - include: '#punctuation'
       - include: '#illegal'
@@ -2144,19 +2210,20 @@ repository:
         name: constant.other.function.ruko
         begin: \\j([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b(?=\{)
         beginCaptures:
-          1: {patterns: [{include: '#function-namespace'}]}
+          1:
+            patterns: [{include: '#function-namespace'}]
         end: (?=)|$
         patterns:
           - begin: (\{)
             end: (\})
             captures:
               1: {name: constant.other.function.ruko}
-            patterns:
-              - include: '#named-characters'
+            patterns: [{include: '#named-characters'}]
       - match: \\j([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b([;,]|(?=\W))
         name: constant.character.escape.ruko
         captures:
-          1: {patterns: [{include: '#character-namespace'}]}
+          1:
+            patterns: [{include: '#character-namespace'}]
       - begin: \\j{\s*
         end: \s*}
         name: constant.other.character-class.unicode.ruko
@@ -2165,19 +2232,20 @@ repository:
             name: constant.other.function.ruko
             begin: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b(?=\{)
             beginCaptures:
-              1: {patterns: [{include: '#function-namespace'}]}
+              1:
+                patterns: [{include: '#function-namespace'}]
             end: (?=)|$
             patterns:
               - begin: (\{)
                 end: (\})
                 captures:
                   1: {name: constant.other.function.ruko}
-                patterns:
-                  - include: '#named-characters'
+                patterns: [{include: '#named-characters'}]
           - match: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b([;,]|(?=\W))
             name: constant.character.escape.ruko
             captures:
-              1: {patterns: [{include: '#character-namespace'}]}
+              1:
+                patterns: [{include: '#character-namespace'}]
           - include: '#xml-regex-content'
           - include: '#punctuation'
           - include: '#illegal'
@@ -2251,8 +2319,7 @@ repository:
         name: meta.embedded.expression.ruko
         captures:
           1: {name: punctuation.definition.variable.ruko}
-        patterns:
-          - include: $self
+        patterns: [{include: $self}]
       - comment: Interpolated expression
         applyEndPatternLast: true
         name: meta.embedded.expression.ruko
@@ -2293,9 +2360,11 @@ repository:
           - include: '#brackets'
           - include: '#embedded-function-calls'
           - match: (?<=>|\w)(!)(?=\#?[({])
-            captures: {1: {name: keyword.operator.macro.ruko}}
+            captures:
+              1: {name: keyword.operator.macro.ruko}
           - match: (?<=>|\w)(~)(?=\#?[({])
-            captures: {1: {name: keyword.operator.destructor.ruko}}
+            captures:
+              1: {name: keyword.operator.destructor.ruko}
           - include: '#variables'
           - include: '#numbers'
           - *qualified-name-separators
@@ -2373,8 +2442,7 @@ repository:
             \s*
           )
         captures:
-          1:
-            name: punctuation.definition.anchor.ruko
+          1: {name: punctuation.definition.anchor.ruko}
           2:
             name: keyword.operator.prefix.ruko
             patterns: [{include: '#parameter-type-operators'}]
@@ -2403,8 +2471,7 @@ repository:
     end: (?=)|$
     captures:
       1: {name: punctuation.definition.directive.ruko}
-    patterns:
-      - include: '#format-syntax'
+    patterns: [{include: '#format-syntax'}]
 
   format-syntax:
     comment: Format specifier language, inspired by MS-DOS, Bash and Python's f-strings.
@@ -2424,9 +2491,11 @@ repository:
           - include: '#brackets'
           - include: '#embedded-function-calls'
           - match: (?<=>|\w)(!)(?=\#?[({])
-            captures: {1: {name: keyword.operator.macro.ruko}}
+            captures:
+              1: {name: keyword.operator.macro.ruko}
           - match: (?<=>|\w)(~)(?=\#?[({])
-            captures: {1: {name: keyword.operator.destructor.ruko}}
+            captures:
+              1: {name: keyword.operator.destructor.ruko}
           - include: '#variables'
           - include: '#numbers'
           - include: '#regexps'
@@ -2672,8 +2741,7 @@ repository:
             beginCaptures:
               1: {name: punctuation.separator.key-value.ruko}
             end: (?=[,;}]|)|$
-            patterns:
-              - include: '#regexp-patterns'
+            patterns: [{include: '#regexp-patterns'}]
           - include: '#fuzzy-expression'
       - match: \\[abefrntv]
         name: constant.character.escape.ruko
@@ -2805,8 +2873,7 @@ repository:
               3: {name: punctuation.definition.tag.ruko}
               4: {patterns: [{include: '#function-names'}]}
               5: {name: punctuation.definition.tag.ruko}
-            patterns:
-              - include: $self
+            patterns: [{include: $self}]
           - include: '#regexp-patterns'
       - comment: Atomic groups
         begin: (\(\?>)
@@ -2959,15 +3026,13 @@ repository:
             patterns:
               - include: '#regexp-character-class'
               - include: '#regexp-character-operators'
-          2:
-            name: keyword.operator.range.ruko
+          2: {name: keyword.operator.range.ruko}
           3:
             name: constant.other.character-class.range.to.ruko
             patterns:
               - include: '#regexp-character-class'
               - include: '#regexp-character-operators'
-          4:
-            name: keyword.operator.range.ruko
+          4: {name: keyword.operator.range.ruko}
           5:
             name: constant.other.character-class.range.by.ruko
             patterns:
@@ -5399,11 +5464,14 @@ repository:
   special-operators:
     patterns:
       - match: (?<=^|[,;]|\#?[(\[{])\s*(\.\.\.?)(?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
-        captures: {1: {name: keyword.operator.spread.ruko}}
+        captures:
+          1: {name: keyword.operator.spread.ruko}
       - match: (?<=>|\w)(!)(?=\#?[({])
-        captures: {1: {name: keyword.operator.macro.ruko}}
+        captures:
+          1: {name: keyword.operator.macro.ruko}
       - match: (?<=>|\w)(~)(?=\#?[({])
-        captures: {1: {name: keyword.operator.destructor.ruko}}
+        captures:
+          1: {name: keyword.operator.destructor.ruko}
 
   named-infix-operators:
     comment: 'Named infix operators: x \fn\ y'
@@ -8077,74 +8145,6 @@ repository:
                   4: {name: variable.other.property.ruko}
       - include: '#function-calls'
       - include: '#type-signature'
-
-  # Directives
-
-  directives:
-    comments: Yeah these are just straight-up copied from C/C++ grammars
-    patterns:
-      - applyEndPatternLast: true
-        begin: ^\s*(\#)(!|if|else|elif|end|ifdef|ifndef)\b
-        end: $
-        name: meta.directive.ruko
-        captures:
-          1: {name: punctuation.definition.directive.ruko}
-          2: {name: keyword.control.directive.ruko}
-        patterns: [{include: $self}]
-      - applyEndPatternLast: true
-        begin: ^\s*(\#)(define|undef)\b
-        end: $
-        name: meta.directive.ruko
-        captures:
-          1: {name: punctuation.definition.directive.ruko}
-          2: {name: keyword.control.directive.ruko}
-        patterns:
-          - include: '#regexp-patterns'
-          - begin: (:)\s*
-            end: \s*([,;])|$
-            name: string.regexp.replace.ruko
-            captures:
-              1: {name: punctuation.definition.regexp.ruko}
-            patterns:
-              - include: '#back-references'
-              - include: '#xml-regex-content'
-              - begin: \s*(\{)
-                end: (\})\s*
-                name: meta.interpolation.regexp.ruko
-                captures:
-                  1: {name: punctuation.definition.variable.ruko}
-                patterns:
-                  - include: '#back-references'
-                  - include: '#xml-regex-content'
-                  - include: $self
-          - match: .+
-            name: meta.directive.definition.ruko
-      - applyEndPatternLast: true
-        begin: ^\s*(\#)(include|exclude|import|export|extern|intern)\b
-        end: $
-        name: meta.directive.ruko
-        captures:
-          1: {name: punctuation.definition.directive.ruko}
-          2: {name: keyword.control.directive.ruko}
-        patterns:
-          - include: '#module-content'
-      - applyEndPatternLast: true
-        begin: ^\s*(\#)(pragma|region|endregion|once)\b
-        end: $
-        name: meta.directive.ruko
-        captures:
-          1: {name: punctuation.definition.directive.ruko}
-          2: {name: keyword.control.directive.ruko}
-        patterns:
-          - include: $self
-      - comment: null directive
-        match: ^\s*(\#)\s*$
-        name: meta.directive.ruko
-        captures:
-          1: {name: punctuation.definition.directive.ruko}
-          2: {name: text.whitespace.ruko}
-        patterns:
-          - include: $self
 
   # Support
 
