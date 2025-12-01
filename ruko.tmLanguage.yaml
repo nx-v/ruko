@@ -2223,6 +2223,9 @@ repository:
       - comment: Decimal escape sequences
         match: \\0*(111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0)
         name: constant.character.escape.numeric.ruko
+      - comment: Quaternary escape sequences
+        match: \\q0*(1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)
+        name: constant.character.escape.quaternary.ruko
 
   # Embedded expressions
 
@@ -2919,6 +2922,7 @@ repository:
               \\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal escape
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
+            | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
             | \\x\h\h # hex escape (2-digit)
             | \\u\h{4} # hex escape (4-digit)
             | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
@@ -2932,6 +2936,7 @@ repository:
               \\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal escape
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
+            | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
             | \\x\h\h # hex escape (2-digit)
             | \\u\h{4} # hex escape (4-digit)
             | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
@@ -3284,15 +3289,13 @@ repository:
       - match: |
           (?xi)
           (&)(?:
-              (\#\d+)
-            | (\#b[01]+)
-            | (\#q[0-3]+)
-            | (\#s[0-5]+)
-            | (\#o[0-7]+)
-            | (\#z(?i:[\d↊↋abetx]+))
-            | (\#x\h+)
-            | ([\p{Pc}\p{L}]\w*)
-            | ((?:\\.|[^({\[)}\]\s;])+?)
+              (\#\\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0)) # decimal
+            | (\#b0*(?:10000[10]{16}|1[01]{0,19}|0)) # binary
+            | (\#q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)) # quaternary
+            | (\#o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0)) # octal
+            | (\#x0*(?:10\h{6}|\h{1,5})) # hexadecimal
+            | ([\p{Pc}\p{L}]\w*) # named
+            | ((?:\\.|[^({\[)}\]\s;])+?) # numeric or invalid
           )(;)
         name: constant.other.entity.ruko
         captures: &xml-entities
@@ -3300,13 +3303,11 @@ repository:
           2: {name: constant.character.escape.decimal.ruko}
           3: {name: constant.character.escape.binary.ruko}
           4: {name: constant.character.escape.quaternary.ruko}
-          5: {name: constant.character.escape.senary.ruko}
           6: {name: constant.character.escape.octal.ruko}
-          7: {name: constant.character.escape.duodecimal.ruko}
-          8: {name: constant.character.escape.hexadecimal.ruko}
-          9: {name: constant.character.entity.named.ruko}
-          10: {name: constant.character.entity.ruko}
-          11: {name: punctuation.definition.entity.ruko}
+          7: {name: constant.character.escape.hexadecimal.ruko}
+          8: {name: constant.character.entity.named.ruko}
+          9: {name: constant.character.entity.ruko}
+          10: {name: punctuation.definition.entity.ruko}
       - match: '&(?=\w*;)'
         name: invalid.illegal.ambiguous-ampersand.ruko
       - comment: Entity with & and invalid name
@@ -3785,8 +3786,7 @@ repository:
     begin: ^\s*(\*)(\s+.*)\n*
     end: ^(?=\S)|(?!\G)
     beginCaptures:
-      1:
-        name: punctuation.definition.quote.begin.markdown
+      1: {name: punctuation.definition.quote.begin.markdown}
       2:
         name: markup.quote.markdown
         patterns: [{include: '#markdown'}]
@@ -3798,8 +3798,7 @@ repository:
     begin: ^\s*(\-)(?!>)\s+(.*)\n*
     end: ^(?=\S)|(?!\G)
     beginCaptures:
-      1:
-        name: punctuation.definition.list.begin.markdown
+      1: {name: punctuation.definition.list.begin.markdown}
       2:
         name: markup.list.unnumbered.markdown
         patterns: [{include: '#markdown'}]
@@ -3811,8 +3810,7 @@ repository:
     begin: ^\s*(\+)(?!>)\s+(.*)\n*
     end: ^(?=\S)|(?!\G)
     beginCaptures:
-      1:
-        name: punctuation.definition.list.begin.markdown
+      1: {name: punctuation.definition.list.begin.markdown}
       2:
         name: markup.list.numbered.markdown
         patterns: [{include: '#markdown'}]
@@ -4436,8 +4434,7 @@ repository:
       1:
         name: support.type.property-name.ruko
         patterns: [{include: '#css-property-names'}]
-      2:
-        name: punctuation.separator.key-value.ruko
+      2: {name: punctuation.separator.key-value.ruko}
     patterns:
       - include: '#style-property-values'
       - match: \s+
