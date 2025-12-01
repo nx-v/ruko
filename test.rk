@@ -1,0 +1,286 @@
+// Ruko is a programming, script, markup and styling
+// language I'm making that compiles to HTML/CSS/JS,
+// WebAssembly, and WebGPU shaders (GLSL, WGSL).
+
+// This file implements the Mersenne Twister
+// pseudorandom number generator (MT19937),
+// translated from the original C code by
+// Makoto Matsumoto and Takuji Nishimura,
+// see http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html.
+
+// Its syntax is inspired by Haskell, Rust and Kotlin,
+// hence the name "HaRuKo", clipped to just "Ruko".
+// but also is named after the character 
+// Haruko Haruhara from the anime "FLCL".
+
+// Syntax is kind of similar to
+// Haskell, Rust, and Kotlin (hence "Haruko"),
+// but also borrows ideas from F#, Scala, Go, Swift, 
+// Zig, Nim, Crystal, OCaml, Python, Ruby, ECMAScript, 
+// C#, C++, C3, Carbon, D, V, Vala, Flix, QML, Reason,
+// ReScript, Lisp, Clojure, Smalltalk, Objective-C, Lua,
+// Java, Julia, Ada, Pascal, Delphi, Eiffel,
+// and other languages.
+
+export* class MTRand {
+  import std.{io, fs, time}.*
+
+  pub:
+    enum N = 624
+    enum SAVE = N + 1
+
+  prot:
+    enum M = 397
+    prop state: u32[N]
+    prop pNext: &u32
+    prop left: int
+    stat mut differ: u32 = 0
+
+    proc n(oneSeed: u32) = 
+      $seed oneSeed
+    proc n(bigSeed: &u32, seedLength: u32 = N) = 
+      $seed bigSeed, seedLength
+    proc n() = 
+      $seed()
+    proc n(o: &MTRand) {
+      for i in 0..<N: $state[i] = o.state[i]
+      $left = o.left
+      $pNext = &$state[N - $left]
+    }
+
+    proc randInt(): u32 {
+      if $left == 0: $reload()
+      $left -= 1
+
+      mut s1: u32 = *$pNext
+      $pNext += 1
+
+      s1 ^= (s1 >> 11)
+      s1 ^= (s1 << 7) & 0x9d2c5680
+      s1 ^= (s1 << 15) & 0xefc60000
+
+      s1 ^ (s1 >> 18) // implicit return
+    }
+
+    proc randInt(n: u32): u32 {
+      mut used = n
+      for i in 0..5:
+        used |= used >> (1 << i)
+
+      mut i: u32
+      loop {
+        i = $randInt() & used
+        if i <= n: break
+      }
+
+      i // implicit return
+    }
+
+    proc rand(): f64 =
+      ($randInt() as f64) * (1.0 / 0xffffffff.0)
+    proc rand(n: f64): f64 = 
+      $rand() * n
+    proc randExc(): f64 =
+      ($randInt() as f64) * (1.0 / 0x100000000.0)
+    proc randExc(n: f64): f64 =
+      $randExc() * n
+    proc randDblExc(): f64 =
+      (($randInt() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
+    proc randDblExc(n: f64): f64 =
+      $randDblExc() * n
+
+    proc rand53(): f64 {
+      let a = $randInt() >> 5 // 27 bits
+      let b = $randInt() >> 6 // 26 bits
+      (a as f64 * 0x4000000.0 + b as f64) * (1.0 / 0x20000000000000.0)
+    }
+
+    proc genrand_int31(): u32 = $randInt() >> 1
+    proc genrand_real1(): f64 = $randDblExc()
+    proc genrand_real2(): f64 = $rand()
+    proc genrand_real3(): f64 = $randExc()
+    proc genrand_res53(): f64 = $rand53()
+
+    proc randNorm(mean: f64 = 0.0, stdDev: f64 = 1.0): f64 {
+      mut x: f64, y: f64, r: f64
+
+      loop {
+        x = 2.0 * $rand() - 1.0
+        y = 2.0 * $rand() - 1.0
+        r = x ** 2 + y ** 2
+      } while r >= 1.0 || r == 0.0
+
+      let s = sqrt(-2.0 * log r / r)
+      mean + x * s * stdDev
+    }
+
+    proc seed(oneSeed: u32): void {
+      $initialize oneSeed
+      $reload()
+    }
+
+    proc seed(bigSeed: &u32, seedLength: u32 = N): void {
+      $initialize 19650218
+
+      mut i: int = 1
+      mut j: u32 = 0
+      mut k: int = if N > seedLength: N else seedLength
+
+      for in 0..<k {
+        $state[i] = $state[i] ^
+          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1664525)
+        $state[i] += (bigSeed[j] & 0xffffffff) + j
+        $state[i] &= 0xffffffff
+
+        i += 1; j += 1
+
+        if i >= N {$state.0 = $state[N - 1]; i = 1}
+        if j >= seedLength: j = 0
+      }
+
+      for in 0..<N - 1 {
+        $state[i] = $state[i] ^
+          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1566083941)
+        $state[i] -= i
+        $state[i] &= 0xffffffff
+
+        i += 1
+        if i >= N {$state.0 = $state[N - 1]; i = 1}
+      }
+
+      $state.0 = 0x80000000
+      $reload()
+    }
+
+    proc seed(): void {
+      let ur = fs.open '../dev/urandom' fmRead
+
+      if (ur?) {
+        mut big: u32[N]
+        mut ok = true
+        for i in 0..<N {
+          let bytes = ur.get.readBytes 4
+          if bytes.len != 4 {ok = false; break}
+          big[i] = bytes.toU32 0
+        }
+        ur.get.close()
+        if ok: $seed &big.0, N
+      }
+
+      let t = time.now().toUnix()
+      let c = time.clock.toNanoseconds()
+      $seed $hash t, c
+    }
+
+    proc initialize(oneSeed: u32): void {
+      $state.0 = oneSeed & 0xffffffff
+
+      for i in 1..<N {
+        let x = $state[i - 1] ^ ($state[i - 1] >> 30)
+        $state[i] = (1812433253 * x + i) & 0xffffffff
+      }
+    }
+
+    proc reload(): void {
+      mut p = &$state.0
+
+      for in 0..<(N - M) {
+        p.0 = $twist p[M], p.0, p.1
+        p += 1
+      }
+
+      for in 0..<(M - 1) {
+        p.0 = $twist p[M - N], p.0, p.1
+        p += 1
+      }
+
+      p.0 = $twist p[M - N], p.0, $state.0
+      $left = N
+      $pNext = &$state.0
+    }
+
+    proc save(saveArray: &u32): void {
+      mut sa = saveArray
+      for i in 0..<N: sa[i] = $state[i]
+      sa[N] = $left
+    }
+
+    proc load(loadArray: &u32): void {
+      mut la = loadArray
+      for i in 0..<N: $state[i] = la[i]
+      $left = la[N]
+      $pNext = &$state[N - $left]
+    }
+
+    proc hash(t: time.time, c: time.clock): u32 {
+      mut h1: u32 = 0
+      let tb = t as &u8
+      for i in 0..<sizeof time.time {
+        h1 *= u8.maxValue + 2
+        h1 += tb[i] as u32
+      }
+
+      mut h2: u32 = 0
+      let cb = c as &u8
+      for i in 0..<sizeof time.clock {
+        h2 *= u8.maxValue + 2
+        h2 += cb[i] as u32
+      }
+
+      let out = (h1 + MTRand.differ) ^ h2
+      MTRand.differ += 1
+      out
+    }
+
+    proc twist(m: u32, s0: u32, s1: u32): u32 =
+      m ^ ($mixBits s0, s1 >> 1) ^ $magic s1
+
+    proc mixBits(u: u32, v: u32): u32 =
+      (u & 0x80000000) | (v & 0x7fffffff)
+
+    proc magic(u: u32): u32 =
+      if (u & 1) != 0: 0x9908b0df else 0x0
+
+    proc n(): &MTRand = *this
+
+    right oper prec 4 (
+      oStream: &io.OutputStream
+    ) <- (
+      mtRand: &MTRand
+    ): &io.OutputStream {
+      for i in 0..<N:
+        oStream.writeStr(str mtRand.state[i] + '\t')
+      oStream.writeStr(str mtRand.left)
+      oStream
+    }
+
+    left oper prec 4 (
+      iStream: &io.InputStream
+    ) -> (
+      mtRand: &MTRand
+    ): &io.InputStream {
+      for i in 0..<N {
+        let line = iStream.readLine()
+        mtRand.state[i] = u32 line
+      }
+
+      let line = iStream.readLine()
+      mtRand.left = int line
+      mtRand.pNext = &mtRand.state[N - mtRand.left]
+      iStream
+    }
+
+    right oper prec 1 =(o: &MTRand): &MTRand {
+      if *this == o: return *this
+      for i in 0..<N: $state[i] = o.state[i]
+      $left = o.left
+      $pNext = &$state[N - $left]
+      return *this
+    }
+}
+
+rand = new MTRand
+rand.seed()
+
+rand -> fs.open('mtstate.txt', fmWrite).get.close()
+rand <- fs.open('mtstate.txt', fmRead).get.close()
