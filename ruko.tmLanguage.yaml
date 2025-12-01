@@ -2989,8 +2989,7 @@ repository:
         end: \s*(\])
         name: constant.other.character-set.negated.ruko
         captures:
-          1:
-            name: punctuation.definition.character-class.negated.ruko
+          1: {name: punctuation.definition.character-class.negated.ruko}
         patterns:
           - include: '#comments'
           - include: '#regexp-character-operators'
@@ -3347,47 +3346,7 @@ repository:
     name: meta.other.valid-ampersand.markdown
 
   bold:
-    begin: |
-      (?x)
-      (?<open>(\*\*(?=\w)|(?<!\w)\*\*|(?<!\w)\b__))(?=\S)
-      (?=
-        (
-          <[^>]*+> # HTML tags
-          | (?<raw>`+)([^`]|(?!(?<!`)\k<raw>(?!`))`)*+\k<raw>
-          # Raw
-          | \\[\\`*_{}\[\]() #.!+\->]?+ # Escapes
-          | \[
-          (
-              (?<square> # Named group
-                [^\[\]\\] # Match most chars
-                | \\. # Escaped chars
-                | \[ \g<square>*+ \] # Nested brackets
-              )*+
-            \]
-            (
-              ( # Reference Link
-                [ ]? # Optional space
-                \[[^\]]*+\] # Ref name
-              )
-              | ( # Inline Link
-                \( # Opening paren
-                  [ \t]*+ # Optional whitespace
-                  <?(.*?)>? # URL
-                  [ \t]*+ # Optional whitespace
-                  ( # Optional Title
-                    (?<title>['"])
-                    (.*?)
-                    \k<title>
-                  )?
-                \)
-              )
-            )
-          )
-          | (?!(?<=\S)\k<open>). # Everything besides
-          # style closer
-        )++
-        (?<=\S)(?=__\b|\*\*)\k<open> # Close
-      )
+    begin: (\*\*|\b__)(?=\S)
     captures:
       1: {name: punctuation.definition.bold.markdown}
     end: (?<=\S)(\1)
@@ -3415,47 +3374,7 @@ repository:
       - include: '#link-ref-shortcut'
 
   italic:
-    begin: |
-      (?x) (?<open>(\*(?=\w)|(?<!\w)\*|(?<!\w)\b_))(?=\S) # Open
-      (?=
-        (
-          <[^>]*+> # HTML tags
-          | (?<raw>`+)([^`]|(?!(?<!`)\k<raw>(?!`))`)*+\k<raw>
-          # Raw
-          | \\[\\`*_{}\[\]() #.!+\->]?+ # Escapes
-          | \[
-          (
-              (?<square> # Named group
-                [^\[\]\\] # Match most chars
-                | \\. # Escaped chars
-                | \[ \g<square>*+ \] # Nested brackets
-              )*+
-            \]
-            (
-              ( # Reference Link
-                [ ]? # Optional space
-                \[[^\]]*+\] # Ref name
-              )
-              | ( # Inline Link
-                \( # Opening paren
-                  [ \t]*+ # Optional whitespace
-                  <?(.*?)>? # URL
-                  [ \t]*+ # Optional whitespace
-                  ( # Optional Title
-                    (?<title>['"])
-                    (.*?)
-                    \k<title>
-                  )?
-                \)
-              )
-            )
-          )
-          | \k<open>\k<open> # Must be bold closer
-          | (?!(?<=\S)\k<open>). # Everything besides
-          # style closer
-        )++
-        (?<=\S)(?=_\b|\*)\k<open> # Close
-      )
+    begin: (\*|\b_)(?=\S)
     captures:
       1: {name: punctuation.definition.italic.markdown}
     end: (?<=\S)(\1)((?!\1)|(?=\1\1))
