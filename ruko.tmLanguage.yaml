@@ -3107,10 +3107,14 @@ repository:
           2: {name: keyword.operator.pattern.ruko}
       - include: '#comments'
       - include: '#operators'
+      - include: '#numbers'
+      - include: '#space'
 
   # Splicing
 
   splice-brackets:
+    repository:
+
     patterns:
       - begin: \s*(<\{)
         end: (\}>)
@@ -3153,8 +3157,7 @@ repository:
       ) \s*
       (?=<[>\p{Pc}\p{L}(])
     end: (?=)|$
-    patterns:
-      - include: '#tag-component-name'
+    patterns: [include: '#tag-component-name']
 
   tag-component-name:
     patterns:
@@ -3164,8 +3167,7 @@ repository:
         end: (?<=</)(>)
         captures:
           1: {name: punctuation.definition.tag.ruko}
-        patterns:
-          - include: '#tag-termination'
+        patterns: [include: '#tag-termination']
       - comment: Expression tags like <( ... )>.
         contentName: text.html.ruko
         begin: (<)(\()
@@ -4689,8 +4691,7 @@ repository:
     end: ^|(?=\*/)|(?=\3$)
     beginCaptures:
       1: {name: storage.type.class.jsdoc}
-    patterns:
-      - include: '#jsdoc-name-path-scopes'
+    patterns: [include: '#jsdoc-name-path-scopes']
 
   jsdoc-simple:
     comment: '@tag'
@@ -4724,8 +4725,7 @@ repository:
     end: ^|(?=\*/)|(?=\4$)
     beginCaptures:
       1: {name: storage.type.class.jsdoc}
-    patterns:
-      - include: '#jsdoc-typedef-scopes'
+    patterns: [include: '#jsdoc-typedef-scopes']
 
   jsdoc-inline-tags:
     name: meta.tag.inline.jsdoc
@@ -4818,7 +4818,7 @@ repository:
 
   jsdoc-string:
     name: string.jsdoc
-    match: \"(\\"|[^"])*"|'(\\'|[^'])*'
+    match: '"(\\"|[^"])*"|''(\\''|[^''])*'
 
   # Function and method calls
 
