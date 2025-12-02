@@ -280,7 +280,7 @@ repository:
         (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (?: # keywords
           [io]n|of|[ai]s|by|has|old|new|del
-          |unset|ref|deref|and|x?or|not
+          |unset|ref|deref|nand|x?n?or|c?n?imply|not
           |const|let|mut|dyn|va[rl]|use
           |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
@@ -468,7 +468,7 @@ repository:
         (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (?: # keywords
           [io]n|of|[ai]s|by|has|old|new|del
-          |unset|ref|deref|and|x?or|not
+          |unset|ref|deref|nand|x?n?or|c?n?imply|not
           |const|let|mut|dyn|va[rl]|use
           |given|expr|eval|init|comp
           |func|pro[pc]|type|class|actor|trait
@@ -491,7 +491,7 @@ repository:
       (?:
         (?<=
           (?: ['"`)\]}\w] | \\.) \s* # literal, bracket or space
-          (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
         )
         \b # methods
         (?: # Properties
@@ -514,7 +514,7 @@ repository:
         )
         (?! [?!]?\.\.+ ) # not a range operator
         (?=
-            (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
           | \#?\[ # or array access
         )
         |
@@ -600,7 +600,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -624,7 +624,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -1189,9 +1189,11 @@ repository:
         comment: decimal (no prefix)
         name: constant.numeric.decimal.ruko
         begin: |
-          (?ix)\b() # prefix
-            \d(?:[\d_]*\d)? # integer part
+          (?ix)\b(?:) # no prefix
+            (\d(?:[\d_]*\d)?) # integer part
         end: (?=)|$
+        captures:
+          1: {name: constant.numeric.decimal.integer.ruko}
         patterns:
           - match: (\.)([\d](?:[\d_]*[\d])?)
             name: constant.numeric.decimal.fraction.ruko
@@ -1268,7 +1270,7 @@ repository:
 
   strings:
     patterns:
-      - comment: multi- single-quoted verbatim, interpolated, format, and template string
+      - comment: multi single-quoted verbatim, interpolated, format, and template string
         begin: \s*(\\+\$+%+\#+|\\+\$+\#+%+|\\+%+\$+\#+|\\+%+\#+\$+|\\+\#+\$+%+|\\+\#+%+\$+|\$+\\+%+\#+|\$+\\+\#+%+|\$+%+\\+\#+|\$+%+\#+\\+|\$+\#+\\+%+|\$+\#+%+\\+|%+\\+\$+\#+|%+\\+\#+\$+|%+\$+\\+\#+|%+\$+\#+\\+|%+\#+\\+\$+|%+\#+\$+\\+|\#+\\+\$+%+|\#+\\+%+\$+|\#+\$+\\+%+|\#+\$+%+\\+|\#+%+\\+\$+|\#+%+\$+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1281,7 +1283,7 @@ repository:
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted verbatim, interpolated, format, and template string
+      - comment: multi double-quoted verbatim, interpolated, format, and template string
         begin: \s*(\\+\$+%+\#+|\\+\$+\#+%+|\\+%+\$+\#+|\\+%+\#+\$+|\\+\#+\$+%+|\\+\#+%+\$+|\$+\\+%+\#+|\$+\\+\#+%+|\$+%+\\+\#+|\$+%+\#+\\+|\$+\#+\\+%+|\$+\#+%+\\+|%+\\+\$+\#+|%+\\+\#+\$+|%+\$+\\+\#+|%+\$+\#+\\+|%+\#+\\+\$+|%+\#+\$+\\+|\#+\\+\$+%+|\#+\\+%+\$+|\#+\$+\\+%+|\#+\$+%+\\+|\#+%+\\+\$+|\#+%+\$+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1320,7 +1322,7 @@ repository:
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted interpolated, format, and template string
+      - comment: multi single-quoted interpolated, format, and template string
         begin: \s*(\$+%+\#+|\$+\#+%+|%+\$+\#+|%+\#+\$+|\#+\$+%+|\#+%+\$+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1332,7 +1334,7 @@ repository:
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted interpolated, format, and template string
+      - comment: multi double-quoted interpolated, format, and template string
         begin: \s*(\$+%+\#+|\$+\#+%+|%+\$+\#+|%+\#+\$+|\#+\$+%+|\#+%+\$+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1368,7 +1370,7 @@ repository:
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted verbatim, interpolated, and format string
+      - comment: multi single-quoted verbatim, interpolated, and format string
         begin: \s*(\\+\$+%+|\\+%+\$+|\$+\\+%+|\$+%+\\+|%+\\+\$+|%+\$+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1380,7 +1382,7 @@ repository:
             name: constant.character.escape.ruko
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
-      - comment: multi- double-quoted verbatim, interpolated, and format string
+      - comment: multi double-quoted verbatim, interpolated, and format string
         begin: \s*(\\+\$+%+|\\+%+\$+|\$+\\+%+|\$+%+\\+|%+\\+\$+|%+\$+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1416,7 +1418,7 @@ repository:
             name: constant.character.escape.ruko
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
-      - comment: multi- single-quoted verbatim, interpolated, and template string
+      - comment: multi single-quoted verbatim, interpolated, and template string
         begin: \s*(\\+\$+\#+|\\+\#+\$+|\$+\\+\#+|\$+\#+\\+|\#+\\+\$+|\#+\$+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1428,7 +1430,7 @@ repository:
             name: constant.character.escape.ruko
           - include: '#embedded-expressions'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted verbatim, interpolated, and template string
+      - comment: multi double-quoted verbatim, interpolated, and template string
         begin: \s*(\\+\$+\#+|\\+\#+\$+|\$+\\+\#+|\$+\#+\\+|\#+\\+\$+|\#+\$+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1464,7 +1466,7 @@ repository:
             name: constant.character.escape.ruko
           - include: '#embedded-expressions'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted verbatim, format, and template string
+      - comment: multi single-quoted verbatim, format, and template string
         begin: \s*(\\+%+\#+|\\+\#+%+|%+\\+\#+|%+\#+\\+|\#+\\+%+|\#+%+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1476,7 +1478,7 @@ repository:
             name: constant.character.escape.ruko
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted verbatim, format, and template string
+      - comment: multi double-quoted verbatim, format, and template string
         begin: \s*(\\+%+\#+|\\+\#+%+|%+\\+\#+|%+\#+\\+|\#+\\+%+|\#+%+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1512,7 +1514,7 @@ repository:
             name: constant.character.escape.ruko
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted interpolated and format string
+      - comment: multi single-quoted interpolated and format string
         begin: \s*(\$+%+|%+\$+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1523,7 +1525,7 @@ repository:
           - include: '#string-escapes'
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
-      - comment: multi- double-quoted interpolated and format string
+      - comment: multi double-quoted interpolated and format string
         begin: \s*(\$+%+|%+\$+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1556,7 +1558,7 @@ repository:
           - include: '#string-escapes'
           - include: '#embedded-expressions'
           - include: '#embedded-formatting'
-      - comment: multi- single-quoted interpolated and template string
+      - comment: multi single-quoted interpolated and template string
         begin: \s*(\$+\#+|\#+\$+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1567,7 +1569,7 @@ repository:
           - include: '#string-escapes'
           - include: '#embedded-expressions'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted interpolated and template string
+      - comment: multi double-quoted interpolated and template string
         begin: \s*(\$+\#+|\#+\$+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1600,7 +1602,7 @@ repository:
           - include: '#string-escapes'
           - include: '#embedded-expressions'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted format and template string
+      - comment: multi single-quoted format and template string
         begin: \s*(%+\#+|\#+%+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1611,7 +1613,7 @@ repository:
           - include: '#string-escapes'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted format and template string
+      - comment: multi double-quoted format and template string
         begin: \s*(%+\#+|\#+%+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1644,7 +1646,7 @@ repository:
           - include: '#string-escapes'
           - include: '#embedded-formatting'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted verbatim and interpolated string
+      - comment: multi single-quoted verbatim and interpolated string
         begin: \s*(\\+\$+|\$+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1655,7 +1657,7 @@ repository:
           - match: '''''|\$\$'
             name: constant.character.escape.ruko
           - include: '#embedded-expressions'
-      - comment: multi- double-quoted verbatim and interpolated string
+      - comment: multi double-quoted verbatim and interpolated string
         begin: \s*(\\+\$+|\$+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1688,7 +1690,7 @@ repository:
           - match: '""|\$\$'
             name: constant.character.escape.ruko
           - include: '#embedded-expressions'
-      - comment: multi- single-quoted verbatim and format string
+      - comment: multi single-quoted verbatim and format string
         begin: \s*(\\+%+|%+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1699,7 +1701,7 @@ repository:
           - match: "''|%%"
             name: constant.character.escape.ruko
           - include: '#embedded-formatting'
-      - comment: multi- double-quoted verbatim and format string
+      - comment: multi double-quoted verbatim and format string
         begin: \s*(\\+%+|%+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1732,7 +1734,7 @@ repository:
           - match: '""|%%'
             name: constant.character.escape.ruko
           - include: '#embedded-formatting'
-      - comment: multi- single-quoted verbatim and template string
+      - comment: multi single-quoted verbatim and template string
         begin: \s*(\\+\#+|\#+\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1743,7 +1745,7 @@ repository:
           - match: '''''|\#\#'
             name: constant.character.escape.ruko
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted verbatim and template string
+      - comment: multi double-quoted verbatim and template string
         begin: \s*(\\+\#+|\#+\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1776,7 +1778,7 @@ repository:
           - match: '""|\#\#'
             name: constant.character.escape.ruko
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted interpolated string
+      - comment: multi single-quoted interpolated string
         begin: \s*(\$+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1786,7 +1788,7 @@ repository:
         patterns:
           - include: '#string-escapes'
           - include: '#embedded-expressions'
-      - comment: multi- double-quoted interpolated string
+      - comment: multi double-quoted interpolated string
         begin: \s*(\$+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1816,7 +1818,7 @@ repository:
         patterns:
           - include: '#string-escapes'
           - include: '#embedded-expressions'
-      - comment: multi- single-quoted format string
+      - comment: multi single-quoted format string
         begin: \s*(%+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1826,7 +1828,7 @@ repository:
         patterns:
           - include: '#string-escapes'
           - include: '#embedded-formatting'
-      - comment: multi- double-quoted format string
+      - comment: multi double-quoted format string
         begin: \s*(%+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1856,7 +1858,7 @@ repository:
         patterns:
           - include: '#string-escapes'
           - include: '#embedded-formatting'
-      - comment: multi- single-quoted template string
+      - comment: multi single-quoted template string
         begin: \s*(\#+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1866,7 +1868,7 @@ repository:
         patterns:
           - include: '#string-escapes'
           - include: '#embedded-arguments'
-      - comment: multi- double-quoted template string
+      - comment: multi double-quoted template string
         begin: \s*(\#+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1896,7 +1898,7 @@ repository:
         patterns:
           - include: '#string-escapes'
           - include: '#embedded-arguments'
-      - comment: multi- single-quoted verbatim string
+      - comment: multi single-quoted verbatim string
         begin: \s*(\\+)('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1906,7 +1908,7 @@ repository:
         patterns:
           - match: "''"
             name: constant.character.escape.ruko
-      - comment: multi- double-quoted verbatim string
+      - comment: multi double-quoted verbatim string
         begin: \s*(\\+)("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -1936,7 +1938,7 @@ repository:
         patterns:
           - match: '""'
             name: constant.character.escape.ruko
-      - comment: multi- single-quoted plain string
+      - comment: multi single-quoted plain string
         begin: \s*()('''+)\s*
         contentName: string.quoted.single.ruko
         end: \s*((\2)(?!'+))
@@ -1945,7 +1947,7 @@ repository:
           2: {name: punctuation.definition.string.ruko}
         patterns:
           - include: '#string-escapes'
-      - comment: multi- double-quoted plain string
+      - comment: multi double-quoted plain string
         begin: \s*()("""+)\s*
         contentName: string.quoted.double.ruko
         end: \s*((\2)(?!"+))
@@ -2185,7 +2187,7 @@ repository:
             (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
             (?: # keywords
               [io]n|of|[ai]s|by|has|old|new|del
-              |unset|ref|deref|and|x?or|not
+              |unset|ref|deref|nand|x?n?or|c?n?imply|not
               |const|let|mut|dyn|va[rl]|use
               |given|expr|eval|init|comp
               |func|pro[pc]|type|class|actor|trait
@@ -2268,7 +2270,7 @@ repository:
                   (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|and|x?or|not
+                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
                     |const|let|mut|dyn|va[rl]|use
                     |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
@@ -4712,7 +4714,7 @@ repository:
               \b
                 (?: # keywords
                   [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|ref|deref|and|x?or|not
+                  |unset|ref|deref|nand|x?n?or|c?n?imply|not
                   |const|let|mut|dyn|va[rl]|use
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
@@ -4739,7 +4741,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -4784,7 +4786,7 @@ repository:
                   (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|and|x?or|not
+                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
                     |const|let|mut|dyn|va[rl]|use
                     |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
@@ -4835,7 +4837,7 @@ repository:
                   (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|and|x?or|not
+                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
                     |const|let|mut|dyn|va[rl]|use
                     |given|expr|eval|init|comp
                     |func|pro[pc]|type|class|actor|trait
@@ -4904,7 +4906,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -4942,7 +4944,7 @@ repository:
       (?:
         (?<=
           (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
-          (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
         )
         \b # methods
           (?:
@@ -4952,10 +4954,9 @@ repository:
             | ([\p{Pc}\p{L}]\w*) # Camel or snake case
           )
         \b
-        (?= # opening macro, destructor, or function call
-            [!~]? \#? [({]
-          | generics
-            (?: [?!]?\. | [?!:]: | [?!-]> ) <
+        (?= 
+            [!~]? \#? [({] # opening macro, destructor, or function call
+          | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
         )
         |
         (?<= ^ # beginning of line
@@ -4971,10 +4972,9 @@ repository:
             | ([\p{Pc}\p{L}]\w*) # Camel or snake case
           )
         \b
-          (?= # opening macro, destructor, or function call
-              [!~]? \#? [({]
-            | generics
-              (?: [?!]?\. | [?!:]: | [?!-]> ) <
+          (?=  
+              [!~]? \#? [({] # opening macro, destructor, or function call
+            | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
           )
       )
     captures:
@@ -5014,7 +5014,7 @@ repository:
           (?:
             (?<=
               (?: [,;'"`)\]}\w] | \#?[(\[{] | \\.?) # literal, bracket or space
-              (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+              (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
             )
             \b # methods
               (?:
@@ -5026,17 +5026,13 @@ repository:
             \b
             (?=
                 $ # end of line
-              | (?: # operators
-                  <\|{1,3} | <[-+] | \|{1,3}> | \+> | [$@]
-                )?
-                (?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)
+              | (?: <\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
+                (?:[,;'"`)}\]\w\s] | \#?[(\[{] | \\.)
             )
             |
             (?<=
-               ^ # beginning of line
-                [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # operators
-              | (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
-                [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # operators
+              (?: ^ | [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # operators
             ) \b
               (?: # Regular variables
                   (\p{Pc}+\w*(?!\p{Pc}+)\b) # Leading underscore
@@ -5047,10 +5043,8 @@ repository:
             \b
               (?=
                   $ # end of line
-                | (?: # operators
-                    <\|{1,3} | <[-+] | \|{1,3}> | \+> | [$@]
-                  )?
-                  (?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)
+                | (?: <\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
+                  (?:[,;'"`)}\]\w\s] | \#?[(\[{] | \\.)
               )
           )
         captures:
@@ -5132,20 +5126,13 @@ repository:
           )
 
           (?=
-            $ # EOL
-            | # close bracket or pipe
-              \s* [)}\]]
-            | # pipe
-              \s* \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.)
-            | # separator
-              \s* [;,]
-            | # as keyword (aliasing)
-              \s*
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b
-              \s*
-            | # type specifier and assignment
-              (?::|[?:]?=) \s* (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{])
-            | \s+ (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{])
+            $ | \s* (?: # EOL
+              | [)}\]] # close bracket or pipe
+              | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.) # pipe
+              | [;,] # separator
+              | (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b # as keyword (aliasing)
+              | \s (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
+            )
           )
         captures:
           1:
@@ -5203,7 +5190,7 @@ repository:
           (?:
             (?<=
               (?: ['"`)\]}\w] | \\.) \s* # literal, bracket or space
-              (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+              (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
             )
             \b # methods
             (?: # Properties
@@ -5226,7 +5213,7 @@ repository:
             )
             (?! [?!]?\.\.+ ) # not a range operator
             (?=
-                (?: [?!]?\. | [?!:]: | [?!-]> ) =? # accessor or qualified name separator
+                (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
               | \#?\[ # or array access
             )
             |
@@ -5300,7 +5287,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -5645,7 +5632,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -5672,7 +5659,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -5791,7 +5778,7 @@ repository:
         name: keyword.operator.expression.delete.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(unset)\b\s*
         name: keyword.operator.expression.void.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(and|x?or|not)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(nand|x?n?or|c?n?imply|not)\b\s*
         name: keyword.operator.expression.logical.ruko
 
   keywords:
@@ -5883,7 +5870,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -5934,14 +5921,12 @@ repository:
 
   in-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           [io]n|of
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
       2: {patterns: [include: $self]}
@@ -5953,16 +5938,14 @@ repository:
 
   join-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           \b (?:full|part|self|cross)? \b \s*
           \b (?:inner|outer|left|right)? \b \s*
           \b (?:join)
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
       2: {patterns: [include: $self]}
@@ -5981,14 +5964,12 @@ repository:
 
   where-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           where|having|filter|reject
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -5998,16 +5979,14 @@ repository:
 
   sort-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           \b (?:sort|order|then) \b \s*
           \b (?:asc|desc)? \b \s*
           \b (?:by|with)?
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -6017,15 +5996,13 @@ repository:
 
   select-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           \b (?:select|map) \b \s*
           \b (?:unique|any|all|some|every)?
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -6041,15 +6018,13 @@ repository:
 
   take-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           \b (?:take|drop|limit|offset) \b \s*
           \b (?:first|last|head|tail)?
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -6065,15 +6040,13 @@ repository:
 
   reduce-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           \b (?:fold|reduce|scan) \b \s*
           \b (?:first|last|left|right)?
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -6089,14 +6062,12 @@ repository:
 
   group-clause:
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
           group|lookup
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -6111,15 +6082,27 @@ repository:
       - include: $self
 
   set-clause:
+    comment: |
+      Set operations in queries using logical operators
+      - and: conjunction or intersection, & or &&
+      - or: disjunction or union, | or ||
+      - xor: exclusive or or symmetric difference, ^ or ^^
+      - nand: "not and" or alternative denial, ~& or !&
+      - nor: "not or" or joint denial, ~| or !|
+      - xnor: "not xor" or equivalence or biconditional, ~^ or !^
+      - imply: material conditional or implication (if-then), :> or ->
+      - cimply: converse/reverse implication, <: or <-
+      - nimply: non-implication or denial of the antecedent, :< or !<
+      - cnimply: converse non-implication or denial of the consequent, >: or >!
     begin: |
-      (?x)
-      \s*
+      (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-          and|x?or|but
+            n?and # and, nand
+          | x?n?or # or, xor, nor, xnor 
+          | c?n?imply # imply, cimply, nimply, cnimply
         )
-      \b
-      \s*
+      \b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
     end: (?=[,;)}\]])
@@ -6466,7 +6449,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -6512,7 +6495,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -6565,7 +6548,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -6616,7 +6599,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -6670,7 +6653,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -7125,7 +7108,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -7178,7 +7161,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -7395,7 +7378,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7419,7 +7402,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7595,7 +7578,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7617,7 +7600,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7705,7 +7688,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -7786,7 +7769,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
@@ -7819,7 +7802,7 @@ repository:
                 (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                 (?: # keywords
                   [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|ref|deref|and|x?or|not
+                  |unset|ref|deref|nand|x?n?or|c?n?imply|not
                   |const|let|mut|dyn|va[rl]|use
                   |given|expr|eval|init|comp
                   |func|pro[pc]|type|class|actor|trait
@@ -7883,7 +7866,7 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|and|x?or|not
+                |unset|ref|deref|nand|x?n?or|c?n?imply|not
                 |const|let|mut|dyn|va[rl]|use
                 |given|expr|eval|init|comp
                 |func|pro[pc]|type|class|actor|trait
