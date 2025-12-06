@@ -10,17 +10,34 @@
 
 // Its syntax is inspired by Haskell, Rust and Kotlin,
 // hence the name "HaRuKo", clipped to just "Ruko".
-// but also is named after the character 
+// but also is named after the character
 // Haruko Haruhara from the anime "FLCL".
 
-// Syntax is kind of similar to
-// Haskell, Rust, and Kotlin (hence "Haruko"),
-// but also borrows ideas from F#, Scala, Go, Swift, 
-// Zig, Nim, Crystal, OCaml, Python, Ruby, ECMAScript, 
-// C#, C++, C3, Carbon, D, V, Vala, Flix, QML, Reason,
-// ReScript, Lisp, Clojure, Smalltalk, Objective-C, Lua,
-// Java, Julia, Ada, Pascal, Delphi, Eiffel,
+// Syntax is kind of similar to Haskell, Rust, and Kotlin 
+// (hence forming the name "HaRuKo", clipped to "Ruko"),
+// but also has influences from modern and not-so-modern
+// languages like Elm, F#, Scala, Go, Swift, Zig, Nim, Ocaml,
+// Crystal, OCaml, Python, Ruby, ECMAScript, TypeScript,
+// Java, C#, C, C++, D, V, Lua, Julia, Ada, Pascal, Vala,
+// Delphi, Eiffel, QML, Reason, ReScript, Lisp, Clojure,
+// Smalltalk, Objective-C, Lua, Bash, PowerShell, SQL,
+// R, PHP, Perl, Haxe, Dart, Java, PHP, Solidity, Motoko,
 // and other languages.
+
+// I don't know if anyone will ever use this language, 
+// other than me, but I made it mainly as a personal project 
+// to experiment with language and compiler design, as well
+// as the first step towards making my own game engine and LSP
+// for it, along with IDE support, to make developing my game
+//' nu-Eden: Sundered Skies' using just web technologies,
+// without having to juggle multiple languages, frameworks 
+// and tools (HTML, CSS, JS/TS, WebAssembly, GLSL/WGSL, etc.)
+// around like everyone else does.
+
+script rs {
+  use std::{io, fs, time};
+  pub mut rand: &MTRand;
+}
 
 export* class MTRand {
   import std.{io, fs, time}.*
@@ -33,15 +50,13 @@ export* class MTRand {
     enum M = 397
     prop state: u32[N]
     prop pNext: &u32
-    prop left: int
+    prop left: i32
     stat mut differ: u32 = 0
 
-    proc n(oneSeed: u32) = 
-      $seed oneSeed
+    proc n(oneSeed: u32) = $seed(oneSeed)
     proc n(bigSeed: &u32, seedLength: u32 = N) = 
-      $seed bigSeed, seedLength
-    proc n() = 
-      $seed()
+      $seed(bigSeed, seedLength)
+    proc n() = $seed()
     proc n(o: &MTRand) {
       for i in 0..<N: $state[i] = o.state[i]
       $left = o.left
@@ -70,15 +85,14 @@ export* class MTRand {
       mut i: u32
       loop {
         i = $randInt() & used
-        if i <= n: break
-      }
+      } while i > n
 
       i // implicit return
     }
 
     proc rand(): f64 =
       ($randInt() as f64) * (1.0 / 0xffffffff.0)
-    proc rand(n: f64): f64 = 
+    proc rand(n: f64): f64 =
       $rand() * n
     proc randExc(): f64 =
       ($randInt() as f64) * (1.0 / 0x100000000.0)
@@ -110,21 +124,21 @@ export* class MTRand {
         r = x ** 2 + y ** 2
       } while r >= 1.0 || r == 0.0
 
-      let s = sqrt(-2.0 * log r / r)
+      let s = sqrt(-2.0 * log(r) / r)
       mean + x * s * stdDev
     }
 
     proc seed(oneSeed: u32): void {
-      $initialize oneSeed
+      $initialize(oneSeed)
       $reload()
     }
 
     proc seed(bigSeed: &u32, seedLength: u32 = N): void {
-      $initialize 19650218
+      $initialize(19650218)
 
-      mut i: int = 1
+      mut i: i32 = 1
       mut j: u32 = 0
-      mut k: int = if N > seedLength: N else seedLength
+      mut k: i32 = if N > seedLength: N else seedLength
 
       for in 0..<k {
         $state[i] = $state[i] ^
@@ -153,23 +167,23 @@ export* class MTRand {
     }
 
     proc seed(): void {
-      let ur = fs.open '../dev/urandom' fmRead
+      let ur = fs.open('../dev/urandom', fmRead)
 
       if (ur?) {
         mut big: u32[N]
         mut ok = true
         for i in 0..<N {
-          let bytes = ur.get.readBytes 4
+          let bytes = ur.get.readBytes(4)
           if bytes.len != 4 {ok = false; break}
           big[i] = bytes.toU32 0
         }
         ur.get.close()
-        if ok: $seed &big.0, N
+        if ok: $seed(&big.0, N)
       }
 
       let t = time.now().toUnix()
       let c = time.clock.toNanoseconds()
-      $seed $hash t, c
+      $seed($hash(t, c))
     }
 
     proc initialize(oneSeed: u32): void {
@@ -185,16 +199,16 @@ export* class MTRand {
       mut p = &$state.0
 
       for in 0..<(N - M) {
-        p.0 = $twist p[M], p.0, p.1
+        p.0 = $twist(p[M], p.0, p.1)
         p += 1
       }
 
       for in 0..<(M - 1) {
-        p.0 = $twist p[M - N], p.0, p.1
+        p.0 = $twist(p[M - N], p.0, p.1)
         p += 1
       }
 
-      p.0 = $twist p[M - N], p.0, $state.0
+      p.0 = $twist(p[M - N], p.0, $state.0)
       $left = N
       $pNext = &$state.0
     }
@@ -215,14 +229,14 @@ export* class MTRand {
     proc hash(t: time.time, c: time.clock): u32 {
       mut h1: u32 = 0
       let tb = t as &u8
-      for i in 0..<sizeof time.time {
+      for i in 0..<sizeof(time.time) {
         h1 *= u8.maxValue + 2
         h1 += tb[i] as u32
       }
 
       mut h2: u32 = 0
       let cb = c as &u8
-      for i in 0..<sizeof time.clock {
+      for i in 0..<sizeof(time.clock) {
         h2 *= u8.maxValue + 2
         h2 += cb[i] as u32
       }
@@ -233,7 +247,7 @@ export* class MTRand {
     }
 
     proc twist(m: u32, s0: u32, s1: u32): u32 =
-      m ^ ($mixBits s0, s1 >> 1) ^ $magic s1
+      m ^ ($mixBits(s0), s1 >> 1) ^ $magic(s1)
 
     proc mixBits(u: u32, v: u32): u32 =
       (u & 0x80000000) | (v & 0x7fffffff)
@@ -241,7 +255,7 @@ export* class MTRand {
     proc magic(u: u32): u32 =
       if (u & 1) != 0: 0x9908b0df else 0x0
 
-    proc n(): &MTRand = *this
+    proc n(): &MTRand = *self
 
     right oper prec 4 (
       oStream: &io.OutputStream
@@ -249,8 +263,8 @@ export* class MTRand {
       mtRand: &MTRand
     ): &io.OutputStream {
       for i in 0..<N:
-        oStream.writeStr(str mtRand.state[i] + '\t')
-      oStream.writeStr(str mtRand.left)
+        oStream.writeStr(mtRand.state[i] as str # '\t')
+      oStream.writeStr(mtRand.left as str)
       oStream
     }
 
@@ -261,21 +275,21 @@ export* class MTRand {
     ): &io.InputStream {
       for i in 0..<N {
         let line = iStream.readLine()
-        mtRand.state[i] = u32 line
+        mtRand.state[i] = line as u32
       }
 
       let line = iStream.readLine()
-      mtRand.left = int line
+      mtRand.left = line as i32
       mtRand.pNext = &mtRand.state[N - mtRand.left]
       iStream
     }
 
     right oper prec 1 =(o: &MTRand): &MTRand {
-      if *this == o: return *this
+      if *self == o: return *self
       for i in 0..<N: $state[i] = o.state[i]
       $left = o.left
       $pNext = &$state[N - $left]
-      return *this
+      return *self
     }
 }
 
