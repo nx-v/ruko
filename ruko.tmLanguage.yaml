@@ -4,22 +4,33 @@ fileTypes: [ruko, rk, spwn]
 patterns: [include: '#core']
 
 # Last updated: December 5, 2025
-
+#
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
-
+#
 # https://github.com/nx-v/ruko
-
+#
 # Note that this grammar is still actively being developed alongside
 # the compiler and spec itself, so frequent updates may be necessary.
-
+#
 # If you find any bugs or want to suggest any new features, please
 # open an issue or a pull request on the repository above.
 
 # Planned features / TODOs:
 #
-# - Add support for indentation-based syntax (like Python, Haskell, etc.)
+# - Some patterns should have `applyEndPatternLast: true` where appropriate
+#   to make patterns more modular and easier to maintain, rather than
+#   having everything in one big pattern.
+# - Add more tests for all patterns to ensure they work as intended.
+# - Duplicate patterns using the alias/merge feature in YAML (&,*,<<)
+#   to reduce redundancy and make maintenance easier.
+#   - Each section in the grammar has a built-in repository for this purpose.
+# - All patterns should have better comments explaining what they do.
+# - Add support for s-expressions (Lisp-style syntax) as an alternative
+#   syntax for function calls and expressions. This will require a massive
+#   refactor of the grammar to implement properly.
+# - Add full support for significant whitespace (like Python, Haskell, etc.)
 #   as an alternative to curly braces for blocks. A massive refactor will
 #   be needed to implement this properly.
 # - Add support for reflection and meta-programming syntax, used for
@@ -30,17 +41,6 @@ patterns: [include: '#core']
 #   https://safecpp.org/draft.html
 #   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
 #   - [x] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
-# - [x] Ruko is unsafe by default, for the sake of performance.
-#   This is similar to Rust's unsafe blocks, but inverted.
-#   Use the 'safe' keyword to enable 'safe' mode within a block,
-#   function, or module to enable runtime checks and safety features.
-# - [x] Add dynamic JSX/XML literals <(expr)> </>.
-# - [x] Backslashes are now used for infix function calls.
-#   For example: a \x\ b is equivalent to x(a, b).
-#   This now means that operators CANNOT start or end with a backslash,
-#   and backslashes cannot be used prefix or postfix,
-#   same with angle brackets, pipes, and forward slashes,
-#   which are used for JSX/generics, lambdas and regexes respectively.
 # - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
 #   AsciiDoc and other lightweight markup languages for inspiration.
 #   - [x] Headings and subheadings
@@ -87,7 +87,11 @@ patterns: [include: '#core']
 #   Operators are now highlighted more consistently. More Unicode
 #   symbols will be added in future updates.
 # - Added infix function call syntax using backslashes, similar to Haskell.
-#   a \x\ b
+#   For example: a \x\ b is equivalent to x(a, b).
+#   This now means that operators CANNOT start or end with a backslash,
+#   and backslashes cannot be used prefix or postfix,
+#   same with angle brackets, pipes, and forward slashes,
+#   which are used for JSX/generics, lambdas and regexes respectively.
 # - Brought back Haskell-style function call syntax with
 #   space OR comma-separated arguments.
 #     funcName arg1 arg2 { arg3: 10 }; or
@@ -170,6 +174,7 @@ patterns: [include: '#core']
 #         - Subitem 2.2
 #       + Item 3
 #     </>
+#   Add dynamic JSX/XML literals where <(expr)/> evaluates to an `elem`.
 # - Fix bug with highlighting of generics when followed by
 #   ! or ~ macro/destructor calls. For example: Vec<int>!(), MyType~().
 # - Brought back train-case for CSS properties and HTML attributes.
@@ -1957,8 +1962,7 @@ repository:
         name: constant.other.function.ruko
         begin: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b(?=\{)
         beginCaptures:
-          1:
-            patterns: [include: '#function-namespace']
+          1: { patterns: [include: '#function-namespace'] }
         end: (?=)|$
         patterns:
           - begin: (\{)
@@ -1969,8 +1973,7 @@ repository:
       - match: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b([;,]|(?=\W))
         name: constant.character.escape.ruko
         captures:
-          1:
-            patterns: [include: '#character-namespace']
+          1: { patterns: [include: '#character-namespace'] }
       - include: '#xml-regex-content'
       - include: '#punctuation'
       - include: '#illegal'
@@ -1995,8 +1998,7 @@ repository:
         name: constant.other.function.ruko
         begin: \\j([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b(?=\{)
         beginCaptures:
-          1:
-            patterns: [include: '#function-namespace']
+          1: { patterns: [include: '#function-namespace'] }
         end: (?=)|$
         patterns:
           - begin: (\{)
@@ -2007,8 +2009,7 @@ repository:
       - match: \\j([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b([;,]|(?=\W))
         name: constant.character.escape.ruko
         captures:
-          1:
-            patterns: [include: '#character-namespace']
+          1: { patterns: [include: '#character-namespace'] }
       - begin: \\j{\s*
         end: \s*}
         name: constant.other.character-class.unicode.ruko
@@ -2017,8 +2018,7 @@ repository:
             name: constant.other.function.ruko
             begin: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b(?=\{)
             beginCaptures:
-              1:
-                patterns: [include: '#function-namespace']
+              1: { patterns: [include: '#function-namespace'] }
             end: (?=)|$
             patterns:
               - begin: (\{)
@@ -2029,8 +2029,7 @@ repository:
           - match: \b([\p{Pc}\p{L}]\w*\b([:.][\p{Pc}\p{L}]\w*)*)\b([;,]|(?=\W))
             name: constant.character.escape.ruko
             captures:
-              1:
-                patterns: [include: '#character-namespace']
+              1: { patterns: [include: '#character-namespace'] }
           - include: '#xml-regex-content'
           - include: '#punctuation'
           - include: '#illegal'
@@ -4456,8 +4455,7 @@ repository:
         )
       )
     captures:
-      1:
-        patterns: [include: '#function-names']
+      1: { patterns: [include: '#function-names'] }
 
   function-calls:
     patterns:
@@ -5514,8 +5512,7 @@ repository:
             [\p{Pc}\p{L}]\w*
           )
         captures:
-          1:
-            patterns: [include: '#modifiers']
+          1: { patterns: [include: '#modifiers'] }
 
   modifiers:
     patterns:
