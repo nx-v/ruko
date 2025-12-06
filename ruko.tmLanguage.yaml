@@ -22,14 +22,18 @@ patterns: [include: '#core']
 # - Add support for indentation-based syntax (like Python, Haskell, etc.)
 #   as an alternative to curly braces for blocks. A massive refactor will
 #   be needed to implement this properly.
-# - Add support for reflection and meta-programming syntax.
+# - Add support for reflection and meta-programming syntax, used for
+#   compile-time code generation, type introspection, etc. on the level
+#   of the language itself rather than relying on external tools.
 #   Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
 #   for inspiration.
 #   https://safecpp.org/draft.html
 #   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
-#   - [ ] Unsafe by default, for the sake of performance.
-#     Use the 'safe' keyword to enable scoped 'safe' mode.
 #   - [x] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
+# - [x] Ruko is unsafe by default, for the sake of performance.
+#   This is similar to Rust's unsafe blocks, but inverted.
+#   Use the 'safe' keyword to enable 'safe' mode within a block,
+#   function, or module to enable runtime checks and safety features.
 # - [x] Add dynamic JSX/XML literals <(expr)> </>.
 # - [x] Backslashes are now used for infix function calls.
 #   For example: a \x\ b is equivalent to x(a, b).
@@ -79,18 +83,21 @@ patterns: [include: '#core']
 
 # Changelog of notable changes since initial release:
 #
-# - Added support for named function call arguments.
-# - Refactored and improved the syntax highlighting for operators.
-#   Operators are now highlighted more consistently, and more Unicode
-#   symbols are supported.
-# - Added infix function call syntax using backslashes.
+# - Refactored and improved syntax highlighting for operators.
+#   Operators are now highlighted more consistently. More Unicode
+#   symbols will be added in future updates.
+# - Added infix function call syntax using backslashes, similar to Haskell.
 #   a \x\ b
 # - Brought back Haskell-style function call syntax with
 #   space OR comma-separated arguments.
 #     funcName arg1 arg2 { arg3: 10 }; or
 #     funcName arg1, arg2, { arg3: 10 }
 #   This CANNOT be mixed and matched with normal function call syntax.
+#   Use either one or the other consistently.
 #     funcName(arg1, arg2, { arg3: 10 })
+#   Named arguments are supported only in the latter syntax.
+#   All arguments after the first named argument MUST be named as well.
+#     funcName(arg1: 10, &mut arg2, stat const arg3: { k: v } as MyType)
 # - Add operator definition syntax for user-defined operators.
 #   oper param <suffix>: return_type { ... }
 #   oper <prefix> param: return_type { ... }
@@ -426,7 +433,7 @@ repository:
           |try|throw|catch|switch
           |match|case|pass|def|defer
           |break|skip|redo|retry
-          |return|yield|await|scope
+          |return|yield|await|scope|safe
           |import|export|intern|extern
           |debug|assert|check|decl
         )
@@ -919,7 +926,12 @@ repository:
             (true|false) # boolean
             |(null|nan) # null and not-a-number
             |(undef) # undefined
-            |(inf) # infinity
+            |(infty) # infinity
+            |(it|this|super|self) # special arguments
+            |(args) # arguments
+            |(ctor) # constructor
+            |(dtor) # destructor
+            |(proto) # prototype
           )
           \b
         captures:
@@ -927,21 +939,11 @@ repository:
           2: { name: constant.language.$2.ruko }
           3: { name: constant.language.undefined.ruko }
           4: { name: constant.language.infinity.ruko }
-      - match: |-
-          (?x)
-          (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-          (?:
-            (it|this|super|self) # special arguments
-            |(args) # arguments
-            |(ctor) # constructor
-            |(proto) # prototype
-          )
-          \b
-        captures:
-          1: { name: variable.language.$1.ruko }
-          2: { name: variable.language.arguments.ruko }
-          3: { name: variable.language.constructor.ruko }
-          4: { name: variable.language.prototype.ruko }
+          5: { name: variable.language.$5.ruko }
+          6: { name: variable.language.arguments.ruko }
+          7: { name: variable.language.constructor.ruko }
+          8: { name: variable.language.destructor.ruko }
+          9: { name: variable.language.prototype.ruko }
       - match: |-
           (?x)
           (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
@@ -2145,7 +2147,7 @@ repository:
               |try|throw|catch|switch
               |match|case|pass|def|defer
               |break|skip|redo|retry
-              |return|yield|await|scope
+              |return|yield|await|scope|safe
               |import|export|intern|extern
               |debug|assert|check|decl
             )
@@ -2228,7 +2230,7 @@ repository:
                     |try|throw|catch|switch
                     |match|case|pass|def|defer
                     |break|skip|redo|retry
-                    |return|yield|await|scope
+                    |return|yield|await|scope|safe
                     |import|export|intern|extern
                     |debug|assert|check|decl
                   )
@@ -3774,7 +3776,7 @@ repository:
                   |try|throw|catch|switch
                   |match|case|pass|def|defer
                   |break|skip|redo|retry
-                  |return|yield|await|scope
+                  |return|yield|await|scope|safe
                   |import|export|intern|extern
                   |debug|assert|check|decl
                 )
@@ -4727,7 +4729,7 @@ repository:
                     |try|throw|catch|switch
                     |match|case|pass|def|defer
                     |break|skip|redo|retry
-                    |return|yield|await|scope
+                    |return|yield|await|scope|safe
                     |import|export|intern|extern
                     |debug|assert|check|decl
                   )
@@ -4756,7 +4758,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -4799,7 +4801,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -4853,7 +4855,7 @@ repository:
                       |try|throw|catch|switch
                       |match|case|pass|def|defer
                       |break|skip|redo|retry
-                      |return|yield|await|scope
+                      |return|yield|await|scope|safe
                       |import|export|intern|extern
                       |debug|assert|check|decl
                     )
@@ -4920,7 +4922,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -5302,7 +5304,7 @@ repository:
 
   special-operators:
     patterns:
-      - match: (?<=^|[,;]|\#?[(\[{])\s*(\.\.\.?)(?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)(\.\.\.?)(?=[\p{P}\p{S}&&[^,;'"`\\({\[)}\]\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
         captures:
           1: { name: keyword.operator.spread.ruko }
       - match: (?<=>|\w)(!)(?=\#?[({])
@@ -5351,7 +5353,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -5668,13 +5670,12 @@ repository:
           |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |import|export|intern|extern
-          |do|scope
+          |scope
         )
         \b\s*
       )
     captures:
-      1:
-        patterns: [include: '#modifiers']
+      1: { patterns: [include: '#modifiers'] }
 
   type-modifiers:
     patterns:
@@ -5701,7 +5702,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -5728,7 +5729,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -5813,7 +5814,7 @@ repository:
         name: keyword.control.switch.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(match)\b\s*
         name: keyword.control.match.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(break|skip|redo|retry|return|await|scope|yield|goto|move|pass)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(break|skip|redo|retry|return|await|scope|yield|goto|move|pass|safe)\b\s*
         name: keyword.control.flow.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(import|export|intern|extern)\b\s*
         name: keyword.control.module.ruko
@@ -5919,7 +5920,7 @@ repository:
     patterns:
       - match: |-
           (?x)
-          (?<=^|[,;]|\#?[(\[{])\s*
+          (?<=(?:^|[,;]|\#?[(\[{])\s*)
           (
             \b
             # ignore all keywords
@@ -5940,7 +5941,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -6517,7 +6518,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -6562,7 +6563,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -6615,7 +6616,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -6672,7 +6673,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -6726,7 +6727,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -7046,7 +7047,7 @@ repository:
   # Binding patterns
 
   object-key:
-    begin: (?<=^|[,;]|\#?[(\[{])\s*
+    begin: (?<=(?:^|[,;]|\#?[(\[{])\s*)
     end: \s*(?=[,;)\]}]|$)|\s*(:)
     name: meta.object-key.ruko
     endCaptures:
@@ -7055,7 +7056,7 @@ repository:
       - include: '#literals'
       - include: '#embedded-expressions'
       - include: '#brackets'
-      - match: (?<=^|[,;]|\#?[(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}:]|$)
+      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}:]|$)
         name: constant.other.object.key.ruko
       - include: '#space'
       - include: '#comments'
@@ -7066,14 +7067,14 @@ repository:
     patterns:
       - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
         name: variable.other.constant.ruko
-      - match: (?<=^|[,;]|\#?[(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
+      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
         name: variable.other.constant.ruko
 
   object-argument:
     patterns:
       - match: (?<=(?:^|[,;(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
         name: variable.parameter.ruko
-      - match: (?<=^|[,;]|\#?[(\[{])\s*\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
+      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)\b[\p{Pc}\p{L}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
         name: variable.parameter.ruko
 
   as-keyword:
@@ -7158,9 +7159,9 @@ repository:
       - comment: 'Function def before function keyword: x = def()'
         match: |-
           (?x)
-          (?<=^|[,;]|\#?[(\[{])\s*
+          (?<=(?:^|[,;]|\#?[(\[{])\s*)
 
-          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
+          (\b[\w\p{Pd}]+\b) # Label
           (:) # Key value separator
           \s*\b
 
@@ -7183,7 +7184,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -7211,9 +7212,9 @@ repository:
           3: { patterns: [include: '#modifiers'] }
       - begin: |-
           (?x)
-          (?<=^|[,;]|\#?[(\[{])\s*
+          (?<=(?:^|[,;]|\#?[(\[{])\s*)
 
-          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # Label
+          (\b[\w\p{Pd}]+\b) # Label
           (:) # Key value separator
           \s*\b
 
@@ -7236,7 +7237,7 @@ repository:
                 |try|throw|catch|switch
                 |match|case|pass|def|defer
                 |break|skip|redo|retry
-                |return|yield|await|scope
+                |return|yield|await|scope|safe
                 |import|export|intern|extern
                 |debug|assert|check|decl
               )
@@ -7247,7 +7248,6 @@ repository:
           )?
 
           \s*
-          \b(fn)\b\s* # function keyword
           (\|) (?=
             (?: \#?[(\[{] )? # opening bracket
             (?: [;,] \s* )* # optional separators
@@ -7270,9 +7270,9 @@ repository:
         patterns: [include: '#argument-list-content']
       - match: |-
           (?x)
-          (?<=^|[,;]|\#?[(\[{])\s*
-          (\b[\p{Pc}\p{L}][\p{Pd}\w]*\b) # label
-          (?=:(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)) # lookahead for key-value separator
+          (?<=(?:^|[,;]|\#?[(\[{])\s*)
+          (\b[\w\p{Pd}]+\b) # Label
+          (:) # Key value separator
         name: meta.object-literal.key.ruko
         captures:
           1:
@@ -7282,6 +7282,7 @@ repository:
               - include: '#numbers'
               - include: '#symbols'
               - include: '#xml-regex-content'
+          2: { name: punctuation.separator.key-value.ruko }
 
   # Slicing syntax
 
@@ -7335,7 +7336,7 @@ repository:
             |try|throw|catch|switch
             |match|case|pass|def|defer
             |break|skip|redo|retry
-            |return|yield|await|scope
+            |return|yield|await|scope|safe
             |import|export|intern|extern
             |debug|assert|check|decl
           )
@@ -8305,6 +8306,7 @@ repository:
       - include: source.r#builtin-functions
       - include: source.objcpp#c_functions
       - include: source.objc#c_functions
+      - include: '#html-builtins'
 
       # PHP (correct as of PHP 8.2)
       - match: |-
