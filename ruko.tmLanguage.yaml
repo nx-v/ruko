@@ -320,15 +320,6 @@ repository:
       - match: \S+
         name: invalid.illegal.uncaught.ruko
 
-  illegal-identifier:
-    applyEndPatternLast: true
-    name: meta.type.ruko
-    begin: (?<=\w+\b)\s*(?=\b\w+)
-    end: (?=)|$
-    patterns:
-      - match: \s*\w+\s*
-        name: invalid.illegal.identifier.ruko
-
   # Directives
 
   directives:
@@ -520,7 +511,7 @@ repository:
             name: punctuation.separator.key-value.ruko
 
     patterns:
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -542,12 +533,12 @@ repository:
           1:
             name: punctuation.definition.binding-pattern.object.ruko
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#as-keyword'
           - include: '#types'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -567,11 +558,11 @@ repository:
         captures:
           1: { name: punctuation.definition.mapping.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#types'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -591,11 +582,11 @@ repository:
         captures:
           1: { name: punctuation.definition.dictionary.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#types'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:
@@ -613,11 +604,11 @@ repository:
         captures:
           1: { name: punctuation.definition.mapping.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#types'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:
@@ -635,7 +626,7 @@ repository:
         captures:
           1: { name: punctuation.definition.dictionary.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#types'
           - include: $self
@@ -652,7 +643,7 @@ repository:
             name: punctuation.definition.metadata.ruko
 
     patterns:
-      - begin: |
+      - begin: |-
           (?x)
           (?<= # literal
               (?: [\w'"`)}\]] | \\.) >* \s*
@@ -666,7 +657,7 @@ repository:
         patterns:
           - include: '#types'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -714,7 +705,7 @@ repository:
             name: punctuation.separator.sequence.ruko
 
     patterns:
-      - begin: |
+      - begin: |-
           (?x)
           (?<= # literal
               (?: [\w'"`)}\]] | \\.) \s*
@@ -728,7 +719,7 @@ repository:
         patterns:
           - include: '#types'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -987,7 +978,7 @@ repository:
       - applyEndPatternLast: true
         comment: binary (0b prefix)
         name: constant.numeric.binary.ruko
-        begin: |
+        begin: |-
           (?ix)\b(0b) # prefix
             ([01](?:[01_]*[01])?) # binary digits
         end: (?=)|$
@@ -1018,7 +1009,7 @@ repository:
       - applyEndPatternLast: true
         comment: quaternary (0q prefix)
         name: constant.numeric.quaternary.ruko
-        begin: |
+        begin: |-
           (?ix)\b(0q) # prefix
             ([0-3](?:[0-3_]*[0-3])?) # quaternary digits
         end: (?=)|$
@@ -1049,7 +1040,7 @@ repository:
       - applyEndPatternLast: true
         comment: octal (0o prefix)
         name: constant.numeric.octal.ruko
-        begin: |
+        begin: |-
           (?ix)\b(0o) # prefix
             ([0-7](?:[0-7_]*[0-7])?) # octal digits
         end: (?=)|$
@@ -1080,7 +1071,7 @@ repository:
       - applyEndPatternLast: true
         comment: hexadecimal (0x prefix)
         name: constant.numeric.hexadecimal.ruko
-        begin: |
+        begin: |-
           (?ix)\b(0x) # prefix
             (\h(?:[\h_]*[\h])?) # hexadecimal digits
         end: (?=)|$
@@ -1111,7 +1102,7 @@ repository:
       - applyEndPatternLast: true
         comment: duodecimal (0z prefix)
         name: constant.numeric.duodecimal.ruko
-        begin: |
+        begin: |-
           (?ix)\b(0z) # prefix
             ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # duodecimal digits
         end: (?=)|$
@@ -1142,7 +1133,7 @@ repository:
       - applyEndPatternLast: true
         comment: decimal (no prefix)
         name: constant.numeric.decimal.ruko
-        begin: |
+        begin: |-
           (?ix)\b(?:) # no prefix
             (\d(?:[\d_]*\d)?) # integer part
         end: (?=)|$
@@ -2133,7 +2124,7 @@ repository:
       - comment: Interpolated expression
         applyEndPatternLast: true
         name: meta.embedded.expression.ruko
-        begin: |
+        begin: |-
           (?x)
           (\$) # beginning of identifier
           # ignore all keywords
@@ -2360,7 +2351,7 @@ repository:
 
   regexps:
     applyEndPatternLast: true
-    begin: |
+    begin: |-
       (?x)(?<=
         (?:
             ^ # beginning of line
@@ -2420,7 +2411,7 @@ repository:
         patterns:
           - match: ','
             name: punctuation.separator.mapping.ruko
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#fuzzy-expression'
           - include: $self
       - begin: (\[)\s*
@@ -2942,7 +2933,7 @@ repository:
     comment: Only captured when next to opening brackets, commas,
       semicolons, keywords, and operators.
       XML also supports functional components.
-    begin: |
+    begin: |-
       (?x)(?<=
         (?:
             ^ # beginning of line
@@ -2994,7 +2985,7 @@ repository:
             name: punctuation.definition.tag.ruko
       - comment: Tags that end > are trapped in tag-termination
         contentName: text.html.ruko
-        begin: |
+        begin: |-
           (?x)
           (<) # start tag begin
           (
@@ -4698,39 +4689,53 @@ repository:
         match: |-
           (?x)
           (?<=
-            (?: 
-              ^ # start of line
-              | [,;] # delimiter 
-              | (?: ['"`)}\]\w\s] | \\.): # postfix colon
-              | \#? [({\[] # opening bracket
-            ) \s*
-            | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s+ # infix operator
-              [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # prefix operator
-            | (?:
-              (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
-              \b
-                (?: # keywords
-                  [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|ref|deref|nand|x?n?or|c?n?imply|not
-                  |const|let|mut|dyn|va[rl]|use
-                  |given|expr|eval|init|comp
-                  |func|pro[pc]|type|class|actor|trait
-                  |impl|enum|module|model|struct|record
-                  |union|iter|macro|query|elem|temp|oper
-                  |object|realm|style|script|quote
-                  |go|defer|do|with|from|where
-                  |if|else|then|guard|when
-                  |for|loop|while|goto|move
-                  |try|throw|catch|switch
-                  |match|case|pass|def|defer
-                  |break|skip|redo|retry
-                  |return|yield|await|scope
-                  |import|export|intern|extern
-                  |debug|assert|check|decl
-                )
-              \b
-            ) \s*
-          ) \s*
+            (?:
+                (?: 
+                  ^ # start of line
+                  | [,;] # delimiter 
+                  | (?: ['"`)}\]\w\s] | \\.): # postfix colon
+                  | \#? [({\[] # opening bracket
+                ) \s*
+              | # infix operator
+                  \s+ (?:[\p{P}\p{S}&&[^,;'"`/({\[)}\]\p{Pc}]]+
+                    (?:
+                      [\p{P}\p{S}]*
+                      [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
+                    )?
+                  ) \s+
+              | # primary operator
+                \b (?:[\p{P}\p{S}&&[^,;'"`/({\[)}\]\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
+                  )?
+                ) \b
+              | (?:
+                (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
+                \b
+                  (?: # keywords
+                    [io]n|of|[ai]s|by|has|old|new|del
+                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                    |const|let|mut|dyn|va[rl]|use
+                    |given|expr|eval|init|comp
+                    |func|pro[pc]|type|class|actor|trait
+                    |impl|enum|module|model|struct|record
+                    |union|iter|macro|query|elem|temp|oper
+                    |object|realm|style|script|quote
+                    |go|defer|do|with|from|where
+                    |if|else|then|guard|when
+                    |for|loop|while|goto|move
+                    |try|throw|catch|switch
+                    |match|case|pass|def|defer
+                    |break|skip|redo|retry
+                    |return|yield|await|scope
+                    |import|export|intern|extern
+                    |debug|assert|check|decl
+                  )
+                \b
+              ) \s*
+            )
+            [\p{P}\p{S}&&[^,;'"`/\({\[)}\]\p{Pc}]]* # prefix operator except slashes
+          )
           \b
           (
             # ignore all keywords
@@ -4771,7 +4776,7 @@ repository:
                 [\p{P}\p{S}]*
                 [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
               )?
-              (?=\s|$)
+              (?= \s|$)
             )
           )
           (?! # function name
@@ -4810,7 +4815,7 @@ repository:
             | [!~] \#? [({] # macro and destructor calls
             | (?:\w*|[\\$\#%]*)['"] # quoted string literals
             | `\s*(?=\N) # unquoted string literals
-            | \s :[\p{Pc}\p{L}]\w* # symbols
+            | \s+ :[\p{Pc}\p{L}]\w* # symbols
             | \s* \b\d # numbers
             | \s+ \#? [(\[] # opening brackets
             | \s+ [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]] # prefix operators except slashes
@@ -4830,35 +4835,55 @@ repository:
                 )
             | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
               (?: # identifier
-                # ignore all keywords
-                (?!
-                  (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                  (?: # keywords
-                    [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
-                    |const|let|mut|dyn|va[rl]|use
-                    |given|expr|eval|init|comp
-                    |func|pro[pc]|type|class|actor|trait
-                    |impl|enum|module|model|struct|record
-                    |union|iter|macro|query|elem|temp|oper
-                    |object|realm|style|script|quote
-                    |go|defer|do|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def|defer
-                    |break|skip|redo|retry
-                    |return|yield|await|scope
-                    |import|export|intern|extern
-                    |debug|assert|check|decl
+                  # ignore all keywords
+                  (?!
+                    (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                    (?: # keywords
+                      [io]n|of|[ai]s|by|has|old|new|del
+                      |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                      |const|let|mut|dyn|va[rl]|use
+                      |given|expr|eval|init|comp
+                      |func|pro[pc]|type|class|actor|trait
+                      |impl|enum|module|model|struct|record
+                      |union|iter|macro|query|elem|temp|oper
+                      |object|realm|style|script|quote
+                      |go|defer|do|with|from|where
+                      |if|else|then|guard|when
+                      |for|loop|while|goto|move
+                      |try|throw|catch|switch
+                      |match|case|pass|def|defer
+                      |break|skip|redo|retry
+                      |return|yield|await|scope
+                      |import|export|intern|extern
+                      |debug|assert|check|decl
+                    )
+                    \b
                   )
-                  \b
-                )
-                (?:
-                  \b[\p{Pc}\p{L}]\w*\b # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                )*
-                [\p{Pc}\p{L}]\w* # last part of identifier
+                  (?:
+                    \b[\p{Pc}\p{L}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  )*
+                  [\p{Pc}\p{L}]\w* # last part of identifier
+                | (?:\w*|[\\$\#%]*)['"] # quoted string literals
+                | `\s*(?=\N) # unquoted string literals
+                | \s+ :[\p{Pc}\p{L}]\w* # symbols
+                | \s* \b\d # numbers
+                | \s+ \#? [(\[] # opening brackets
+                | \s+ [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]] # prefix operators except slashes
+                      [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
+                      (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+                | \s+ # XML tag component name or splice expression
+                    <[\p{Pc}\p{L}(\[{]
+                | \s+ # regexp literal
+                    /['"`\w\\(\[{]
+                | \s+ \|(?: \#?[(\[{] )? # opening bracket
+                    (?: [;,] \s* )* # optional separators
+                    (?:
+                      ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+                      (\b[\p{Pc}\p{L}]\w*\b) # identifier
+                      ([!?]*) # optional sigils
+                      \s*
+                    )
               )
               \s* \b[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
           )
@@ -5066,7 +5091,7 @@ repository:
           (?x)
           (?<=
             (?:
-              ^ # SOL
+              ^ # start of line
               | (?:^ | [^|]) \| # open pipe
               | \#?[({\[] # open bracket
               | [;,] # separator
@@ -5102,7 +5127,7 @@ repository:
           )
 
           (?=
-            $ | \s* (?: # EOL
+            $ | \s* (?: # end of line
               | [)}\]] # close bracket or pipe
               | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.) # pipe
               | [;,] # separator
@@ -5138,7 +5163,7 @@ repository:
       (?x)
       (?<=
         (?:
-          ^ # SOL
+          ^ # start of line
           | (?:^ | [^|]) \| # open pipe
           | \#?[({\[] # open bracket
           | [;,] # separator
@@ -5929,13 +5954,12 @@ repository:
       - include: $self
 
   query-expression:
-    applyEndPatternLast: true
     comment: RINQ (Ruko INtegrated Query) expression mini-language
     begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(from)\b\s*
     beginCaptures:
       1: { name: keyword.control.query.ruko }
     end: (?=[,;)}\]])
-    patterns:
+    patterns: &query-body
       - include: '#query-body'
       - include: $self
 
@@ -5952,7 +5976,7 @@ repository:
       - include: '#set-clause'
 
   in-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -5969,11 +5993,11 @@ repository:
       - include: $self
 
   join-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-             (?:inner|left|right|outer|cross) \b\s*
+             (?:inner|left|right|outer|cross)? \b\s*
           \b join
         )
       \b\s*
@@ -5987,14 +6011,12 @@ repository:
         end: (?=[,;)}\]])
         beginCaptures:
           1: { name: keyword.control.query.ruko }
-        patterns:
-          - include: '#query-body'
-          - include: $self
+        patterns: *query-body
       - include: '#query-body'
       - include: $self
 
   where-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -6008,19 +6030,16 @@ repository:
       - begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(any|all|some|every)\b\s*
         end: (?=[,;)}\]])
         name: keyword.control.query.ruko
-        patterns:
-          - include: '#query-body'
-          - include: $self
+        patterns: *query-body
       - include: '#query-body'
       - include: $self
 
   sort-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
              (?:sort|order|then) \b\s*
-          \b (?:asc|desc)?       \b\s*
           \b (?:by|with)?
         )
       \b\s*
@@ -6028,11 +6047,13 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[,;)}\]])
     patterns:
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(asc|desc)\b\s*
+        name: keyword.control.query.ruko
       - include: '#query-body'
       - include: $self
 
   select-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -6047,14 +6068,12 @@ repository:
       - begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|with|while)\b\s*
         end: (?=[,;)}\]])
         name: keyword.control.query.ruko
-        patterns:
-          - include: '#query-body'
-          - include: $self
+        patterns: *query-body
       - include: '#query-body'
       - include: $self
 
   take-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -6069,14 +6088,12 @@ repository:
       - begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|with|while)\b\s*
         end: (?=[,;)}\]])
         name: keyword.control.query.ruko
-        patterns:
-          - include: '#query-body'
-          - include: $self
+        patterns: *query-body
       - include: '#query-body'
       - include: $self
 
   reduce-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -6088,17 +6105,13 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[,;)}\]])
     patterns:
-      - begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|while|with)\b\s*
-        end: (?=[,;)}\]])
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(to|by)\b\s*
         name: keyword.control.query.ruko
-        patterns:
-          - include: '#query-body'
-          - include: $self
       - include: '#query-body'
       - include: $self
 
   group-clause:
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -6112,9 +6125,7 @@ repository:
       - begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|[io]nto)\b\s*
         end: (?=[,;)}\]])
         name: keyword.control.query.ruko
-        patterns:
-          - include: '#query-body'
-          - include: $self
+        patterns: *query-body
       - include: '#query-body'
       - include: $self
 
@@ -6131,7 +6142,7 @@ repository:
       - cimply: converse/reverse implication, <: or <-
       - nimply: non-implication or denial of the antecedent, :< or !<
       - cnimply: converse non-implication or denial of the consequent, >: or >!
-    begin: |
+    begin: |-
       (?x)\s*
       (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
@@ -6519,8 +6530,7 @@ repository:
           1:
             name: storage.modifier.specifier.ruko
             patterns: [include: '#modifiers']
-          2:
-            name: punctuation.separator.section.ruko
+          2: { name: punctuation.separator.section.ruko }
 
   function-clause:
     patterns:
@@ -6578,7 +6588,7 @@ repository:
           1: { name: entity.name.method.ruko }
           2: { name: keyword.operator.assignment.ruko }
           3: { patterns: [include: '#modifiers'] }
-      - begin: |
+      - begin: |-
           (?x)
           \s*
           (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
@@ -6616,16 +6626,23 @@ repository:
           )?
 
           \s*
-          \b(fn)\b\s* # function keyword
-          (\|)(?!\|)
+          (\|) (?=
+            (?: \#?[(\[{] )? # opening bracket
+            (?: [;,] \s* )* # optional separators
+            (?:
+              ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+              (\b[\p{Pc}\p{L}]\w*\b) # identifier
+              ([!?]*) # optional sigils
+              \s*
+            )+ (?: [)\]}] )? # closing bracket
+          )
         end: (?<!\|)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
           1: { name: entity.name.method.ruko }
           2: { name: keyword.operator.assignment.ruko }
           3: { patterns: [include: '#modifiers'] }
-          4: { name: storage.type.function.ruko }
-          5: { name: punctuation.separator.arguments.ruko }
+          4: { name: punctuation.separator.arguments.ruko }
         endCaptures:
           1: { name: punctuation.separator.arguments.ruko }
         patterns: [include: '#argument-list-content']
@@ -6682,7 +6699,7 @@ repository:
           2: { name: keyword.operator.assignment.ruko }
           3: { patterns: [include: '#modifiers'] }
       - comment: 'Function def with function keyword; x = fn |args| { }'
-        begin: |
+        begin: |-
           (?x)
 
           \s*
@@ -6720,16 +6737,23 @@ repository:
           )?
 
           \s*
-          \b(fn)\b\s* # function keyword
-          (\|)(?!\|)
+          (\|) (?=
+            (?: \#?[(\[{] )? # opening bracket
+            (?: [;,] \s* )* # optional separators
+            (?:
+              ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+              (\b[\p{Pc}\p{L}]\w*\b) # identifier
+              ([!?]*) # optional sigils
+              \s*
+            )+ (?: [)\]}] )? # closing bracket
+          )
         end: (?<!\|)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
           1: { name: entity.name.ruko }
           2: { name: keyword.operator.assignment.ruko }
           3: { patterns: [include: '#modifiers'] }
-          4: { name: storage.type.function.ruko }
-          5: { name: punctuation.separator.arguments.ruko }
+          4: { name: punctuation.separator.arguments.ruko }
         endCaptures:
           1: { name: punctuation.separator.arguments.ruko }
         patterns: [include: '#argument-list-content']
@@ -6737,7 +6761,7 @@ repository:
   argument-list:
     comment: Function argument list starting and ending with |
     name: meta.function.arguments.ruko
-    begin: |
+    begin: |-
       (?x)
       (?<=
         (?:
@@ -7068,9 +7092,9 @@ repository:
       1: { name: punctuation.definition.binding-pattern.object.ruko }
     patterns:
       - include: '#object-argument'
-      - include: '#labels'
+      - include: '#object-labels'
       - include: '#object-key'
-      - match: ;|,
+      - match: '[;,]'
         name: punctuation.separator.mapping.ruko
       - include: '#binding-pattern'
       - include: '#illegal'
@@ -7082,8 +7106,8 @@ repository:
     captures:
       1: { name: punctuation.definition.binding-pattern.tuple.ruko }
     patterns:
-      - include: '#labels'
-      - match: ;|,
+      - include: '#object-labels'
+      - match: '[;,]'
         name: punctuation.separator.arguments.ruko
       - include: '#binding-pattern'
       - include: '#illegal'
@@ -7095,8 +7119,8 @@ repository:
     captures:
       1: { name: punctuation.definition.binding-pattern.array.ruko }
     patterns:
-      - include: '#labels'
-      - match: ;|,
+      - include: '#object-labels'
+      - match: '[;,]'
         name: punctuation.separator.sequence.ruko
       - include: '#binding-pattern'
       - include: '#illegal'
@@ -7129,7 +7153,7 @@ repository:
 
   # Object labels
 
-  labels:
+  object-labels:
     patterns:
       - comment: 'Function def before function keyword: x = def()'
         match: |-
@@ -7185,7 +7209,7 @@ repository:
           1: { name: entity.name.ruko }
           2: { name: punctuation.separator.key-value.ruko }
           3: { patterns: [include: '#modifiers'] }
-      - begin: |
+      - begin: |-
           (?x)
           (?<=^|[,;]|\#?[(\[{])\s*
 
@@ -7224,15 +7248,23 @@ repository:
 
           \s*
           \b(fn)\b\s* # function keyword
-          (\|)(?!\|)
+          (\|) (?=
+            (?: \#?[(\[{] )? # opening bracket
+            (?: [;,] \s* )* # optional separators
+            (?:
+              ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
+              (\b[\p{Pc}\p{L}]\w*\b) # identifier
+              ([!?]*) # optional sigils
+              \s*
+            )+ (?: [)\]}] )? # closing bracket
+          )
         end: (?<!\|)(\|)(?!\|)
         name: meta.object-literal.key.ruko
         beginCaptures:
           1: { name: entity.name.ruko }
           2: { name: punctuation.separator.key-value.ruko }
           3: { patterns: [include: '#modifiers'] }
-          4: { name: storage.type.function.ruko }
-          5: { name: punctuation.separator.arguments.ruko }
+          4: { name: punctuation.separator.arguments.ruko }
         endCaptures:
           1: { name: punctuation.separator.arguments.ruko }
         patterns: [include: '#argument-list-content']
@@ -7266,7 +7298,7 @@ repository:
 
   message-passing:
     applyEndPatternLast: true
-    begin: |
+    begin: |-
       (?x)
       (?<= # literal
         (?:
@@ -7450,7 +7482,7 @@ repository:
             name: punctuation.separator.key-value.ruko
 
     patterns:
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:
@@ -7467,7 +7499,7 @@ repository:
         captures:
           1: { name: punctuation.section.class.ruko }
         patterns: [include: $self]
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:
@@ -7484,7 +7516,7 @@ repository:
         captures:
           1: { name: punctuation.definition.block.ruko }
         patterns: [include: $self]
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7504,13 +7536,13 @@ repository:
         captures:
           1: { name: punctuation.definition.binding-pattern.object.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#object-value'
           - include: '#object-key'
           - include: '#as-keyword'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7529,12 +7561,12 @@ repository:
         captures:
           1: { name: punctuation.definition.mapping.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#object-value'
           - include: '#object-key'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7553,12 +7585,12 @@ repository:
         captures:
           1: { name: punctuation.definition.dictionary.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#object-value'
           - include: '#object-key'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:
@@ -7574,12 +7606,12 @@ repository:
         captures:
           1: { name: punctuation.definition.mapping.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#object-value'
           - include: '#object-key'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:
@@ -7595,7 +7627,7 @@ repository:
         captures:
           1: { name: punctuation.definition.dictionary.ruko }
         patterns:
-          - include: '#labels'
+          - include: '#object-labels'
           - include: '#punctuation'
           - include: '#object-value'
           - include: '#object-key'
@@ -7625,7 +7657,7 @@ repository:
             name: punctuation.definition.metadata.ruko
 
     patterns:
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7648,7 +7680,7 @@ repository:
           - include: '#as-keyword'
           - include: '#punctuation'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<= # literal
               (?: [\w'"`)}\]] | \\.) >* !?
@@ -7683,7 +7715,7 @@ repository:
             name: punctuation.separator.sequence.ruko
 
     patterns:
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7706,7 +7738,7 @@ repository:
           - include: '#punctuation'
           - include: '#as-keyword'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7728,7 +7760,7 @@ repository:
           - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7750,7 +7782,7 @@ repository:
           - include: '#message-passing'
           - include: '#punctuation'
           - include: $self
-      - begin: |
+      - begin: |-
           (?x)
           (?<= # literal
               (?: [\w'"`)}\]] | \\.)
