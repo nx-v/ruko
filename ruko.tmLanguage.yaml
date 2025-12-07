@@ -2368,7 +2368,7 @@ repository:
     patterns:
       - applyEndPatternLast: true
         comment: Single-line pattern section
-        begin: (/)(?!/)\s*
+        begin: (/)(?![/*])\s*
         end: \s*(/)(\p{L}*)
         contentName: string.regexp.pattern.ruko
         captures:
@@ -2881,7 +2881,7 @@ repository:
       https://unicode.org/Public/UCD/latest/ucd/PropertyAliases.txt'
     patterns:
       - comment: Numeric Unicode property aliases and canonical names
-        match: |
+        match: |-
           (?x)\b(
               cjkAccountingNumeric     | kAccountingNumeric
             | cjkOtherNumeric          | kOtherNumeric
@@ -2890,7 +2890,7 @@ repository:
           )\b
         name: support.type.property-name.unicode.numeric.ruko
       - comment: String Unicode property aliases and canonical names
-        match: |
+        match: |-
           (?x)\b(
               bmg                      | Bidi_Mirroring_Glyph
             | bpb                      | Bidi_Paired_Bracket
@@ -2911,7 +2911,7 @@ repository:
           )
         name: support.type.property-name.unicode.string.ruko
       - comment: Catalog Unicode property aliases and canonical names
-        match: |
+        match: |-
           (?x)\b(
                 age                      | Age
               | blk                      | Block
@@ -2920,7 +2920,7 @@ repository:
           )\b
         name: support.type.property-name.unicode.catalog.ruko
       - comment: Enumerated Unicode property aliases and canonical names
-        match: |
+        match: |-
           (?x)\b(
               bc                       | Bidi_Class
             | bpt                      | Bidi_Paired_Bracket_Type
@@ -2947,7 +2947,7 @@ repository:
           )\b
         name: support.type.property-name.unicode.enumerated.ruko
       - comment: Binary Unicode propery aliases and canonical names
-        match: |
+        match: |-
           (?x)\b(
               AHex                     | ASCII_Hex_Digit
             | Alpha                    | Alphabetic
@@ -3030,7 +3030,7 @@ repository:
       https://unicode.org/Public/UCD/latest/ucd/PropertyValueAliases.txt'
     patterns:
       - comment: Unicode Script property values
-        match: |
+        match: |-
           (?x)\b(
               Adlam                            | Adlam
             | Aegean_Numbers                   | Aegean_Numbers
@@ -3380,7 +3380,7 @@ repository:
             | Zanabazar_Square                 | Zanabazar_Square
             | Znamenny_Music                   | Znamenny_Musical_Notation
           )\b
-        name: support.constant.property-value.unicode.script.ruko
+        name: support.constant.property-value.unicode.block.ruko
 
   attribute-selectors:
     name: meta.attribute-selector.ruko
@@ -3391,7 +3391,7 @@ repository:
         match: \b(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)\b
         name: support.type.character-class.unicode.ruko
       - applyEndPatternLast: true
-        begin: |
+        begin: |-
           (?x)
           ([\p{Pc}\p{L}]\w*) # property name
           \s*
@@ -3414,16 +3414,21 @@ repository:
         patterns:
           - include: '#numbers'
           - include: '#strings'
-          - include: '#constants'
-          - include: '#css-property-values'
-          - include: '#unicode-property-values'
+          - match: \b(\w+)\b
+            captures:
+              1:
+                name: constant.other.attribute-value.identifier.ruko
+                patterns:
+                  - include: '#constants'
+                  - include: '#unicode-property-values'
+                  - include: '#css-property-values'
           - comment: Regular expression patterns
-            begin: (/)
-            end: (/)([imsxADU]*)
+            begin: (/)(?![/*])
+            end: (/)(\p{L}*)
             name: string.regexp.attribute-value.ruko
             captures:
-              1: { name: punctuation.definition.pattern.begin.ruko }
-              2: { name: punctuation.definition.pattern.end.ruko }
+              1: { name: punctuation.definition.regexp.begin.ruko }
+              2: { name: punctuation.definition.regexp.end.ruko }
               3: { name: keyword.other.flag.ruko }
             patterns: [include: '#regexp-patterns']
       - match: \b([\p{Pc}\p{L}]\w*)\b
@@ -6993,37 +6998,19 @@ repository:
           \s*
           (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
           \s*
-          \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
-          (:?=)\s+ # Assignment operator
+          \b([\p{Pc}\p{L}]\w*)\b\s+ # label
+          (:?=)\s+ # assignment operator
 
-          (
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ( # modifiers
+            (?:
+              (?:
+              \s*
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                [\p{Pc}\p{L}]\w*
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
-          )?
+              \b\s*
+            )*
+          )
 
           \s*
           (?=
@@ -7046,37 +7033,19 @@ repository:
           \s*
           (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
           \s*
-          \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
-          (:?=)\s+ # Assignment operator
+          \b([\p{Pc}\p{L}]\w*)\b\s+ # label
+          (:?=)\s+ # assignment operator
 
-          (
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ( # modifiers
+            (?:
+              (?:
+              \s*
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                [\p{Pc}\p{L}]\w*
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
-          )?
+              \b\s*
+            )*
+          )
 
           \s*
           (\|) (?=
@@ -7106,34 +7075,16 @@ repository:
           \b([\p{Pc}\p{L}]\w*)\b\s+ # Label
           (:?=)\s+ # Assignment operator
 
-          (
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ( # modifiers
+            (?:
+              (?:
+              \s*
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                [\p{Pc}\p{L}]\w*
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
-          )?
+              \b\s*
+            )*
+          )
 
           \s*
           (?=
@@ -7160,34 +7111,16 @@ repository:
           (:?=)\s+ # Assignment operator
           \s*
 
-          (
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ( # modifiers
+            (?:
+              (?:
+              \s*
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                [\p{Pc}\p{L}]\w*
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
-          )?
+              \b\s*
+            )*
+          )
 
           \s*
           (\|) (?=
@@ -7608,38 +7541,20 @@ repository:
           (?x)
           (?<=(?:^|[,;]|\#?[(\[{])\s*)
 
-          (\b[\w\p{Pd}]+\b) # Label
-          (:) # Key value separator
+          (\b[\w\p{Pd}]+\b) # label
+          (:) # key value separator
           \s*\b
 
-          (
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ( # modifiers
+            (?:
+              (?:
+              \s*
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                [\p{Pc}\p{L}]\w*
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
-          )?
+              \b\s*
+            )*
+          )
 
           \s*
           (?=
@@ -7661,38 +7576,20 @@ repository:
           (?x)
           (?<=(?:^|[,;]|\#?[(\[{])\s*)
 
-          (\b[\w\p{Pd}]+\b) # Label
-          (:) # Key value separator
+          (\b[\w\p{Pd}]+\b) # label
+          (:) # key value separator
           \s*\b
 
-          (
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ( # modifiers
+            (?:
+              (?:
+              \s*
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                [\p{Pc}\p{L}]\w*
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b
-          )?
+              \b\s*
+            )*
+          )
 
           \s*
           (\|) (?=
