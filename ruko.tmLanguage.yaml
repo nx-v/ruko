@@ -19,6 +19,8 @@ patterns: [include: '#core']
 
 # Planned features / TODOs:
 #
+# - [ ] Add regexp patterns for Unicode character properties, scripts, blocks,
+#   categories, etc. Refer to: https://www.unicode.org/reports/tr18/
 # - Some patterns should have `applyEndPatternLast: true` where appropriate
 #   to make patterns more modular and easier to maintain, rather than
 #   having everything in one big pattern.
@@ -425,11 +427,11 @@ repository:
         (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (?: # keywords
           [io]n|of|[ai]s|by|has|old|new|del
-          |unset|ref|deref|nand|x?n?or|c?n?imply|not
+          |unset|ref|deref|n?and|x?n?or|c?n?imply|not
           |va[rl]|mut|let|const|dyn
           |use|echo|run|eval|expr
           |func|pro[pc]|type|class|actor|trait
-          |inter|enum|module|model|struct|record
+          |inter|enum|module|schema|struct|record
           |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |[gd]o|defer|with|from|where
@@ -557,7 +559,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -581,7 +583,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -2133,11 +2135,11 @@ repository:
             (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
             (?: # keywords
               [io]n|of|[ai]s|by|has|old|new|del
-              |unset|ref|deref|nand|x?n?or|c?n?imply|not
+              |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               |va[rl]|mut|let|const|dyn
               |use|echo|run|eval|expr
               |func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|model|struct|record
+              |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |[gd]o|defer|with|from|where
@@ -2177,30 +2179,27 @@ repository:
         match: |-
           (?x)
           (\#) # sigil
-          (
+          ([+-]?) (\d+) # start of range
+          (?:
             (?:
-              (?:&|%|\$|~~?|\*\*?)? # sigil
-              [?!]? # required or optional
-            )?
-            [+-]? \d+ # start of range
-            (?:
-              (?:[>.]\.[.<]|\.\.|[=.]\.[.=]|\.\.=?|=\.=) # range operator
-              [+-]? \d+ # end of range
+              ([>.]\.[.<]|\.\.|[=.]\.[.=]|\.\.=?|=\.=) # range operator
+              ([+-]?) (\d+) # to
               (?:
-                \.{1,3}
-                [+-]? \d+ # increment
+                (\.\.) # step operator
+                ([+-]?) (\d+) # by
               )?
             )?
-          )
+          )?
         captures:
           1: { name: punctuation.definition.anchor.ruko }
-          2:
-            name: constant.numeric.decimal.ruko
-            patterns:
-              - match: '[+-]'
-                name: keyword.operator.arithmetic.ruko
-              - match: (?:[>.]\.[.<]|\.\.|[=.]\.[.=]|\.\.=?|=\.=)
-                name: keyword.operator.range.ruko
+          2: { name: keyword.operator.arithmetic.sign.ruko }
+          3: { name: constant.numeric.range.start.ruko }
+          4: { name: keyword.operator.range.ruko }
+          5: { name: keyword.operator.arithmetic.sign.ruko }
+          6: { name: constant.numeric.range.end.ruko }
+          7: { name: keyword.operator.range.ruko }
+          8: { name: keyword.operator.arithmetic.sign.ruko }
+          9: { name: constant.numeric.range.increment.ruko }
       - name: meta.embedded.placeholder.ruko
         match: |-
           (?x)
@@ -2216,11 +2215,11 @@ repository:
                   (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                     |va[rl]|mut|let|const|dyn
                     |use|echo|run|eval|expr
                     |func|pro[pc]|type|class|actor|trait
-                    |inter|enum|module|model|struct|record
+                    |inter|enum|module|schema|struct|record
                     |union|iter|macro|query|elem|temp|oper
                     |object|realm|style|script|quote
                     |[gd]o|defer|with|from|where
@@ -2444,10 +2443,12 @@ repository:
         captures:
           1: { name: keyword.other.back-reference.ruko }
         patterns: &regex-back-references
-          - include: '#variables'
-          - include: '#numbers'
-          - include: '#operators'
-          - include: '#xml-regex-content'
+          - match: \b[\p{Pc}\p{L}]\w*\b
+            name: constant.other.back-reference.name.ruko
+          - match: ([+-])?(\d+)
+            captures:
+              1: { name: keyword.operator.arithmetic.sign.ruko }
+              2: { name: constant.other.back-reference.number.ruko }
       - begin: (\$(['"]))\s*
         end: \s*(\2)
         name: keyword.other.back-reference.ruko
@@ -2875,27 +2876,569 @@ repository:
           - include: '#regexp-character-class'
           - include: '#regexp-character-set'
 
+  unicode-property-keys:
+    comment: 'Corresponds to Unicode Standard Annex #44
+      https://unicode.org/Public/UCD/latest/ucd/PropertyAliases.txt'
+    patterns:
+      - comment: Numeric Unicode property aliases and canonical names
+        match: |
+          (?x)\b(
+              cjkAccountingNumeric     | kAccountingNumeric
+            | cjkOtherNumeric          | kOtherNumeric
+            | cjkPrimaryNumeric        | kPrimaryNumeric
+            | nv                       | Numeric_Value
+          )\b
+        name: support.type.property-name.unicode.numeric.ruko
+      - comment: String Unicode property aliases and canonical names
+        match: |
+          (?x)\b(
+              bmg                      | Bidi_Mirroring_Glyph
+            | bpb                      | Bidi_Paired_Bracket
+            | cf                       | Case_Folding
+            | cjkCompatibilityVariant  | kCompatibilityVariant
+            | dm                       | Decomposition_Mapping
+            | EqUIdeo                  | Equivalent_Unified_Ideograph
+            | FC_NFKC                  | FC_NFKC_Closure
+            | lc                       | Lowercase_Mapping
+            | NFKC_CF                  | NFKC_Casefold
+            | NFKC_SCF                 | NFKC_Simple_Casefold
+            | scf                      | Simple_Case_Folding          | sfc
+            | slc                      | Simple_Lowercase_Mapping
+            | stc                      | Simple_Titlecase_Mapping
+            | suc                      | Simple_Uppercase_Mapping
+            | tc                       | Titlecase_Mapping
+            | uc                       | Uppercase_Mapping
+          )
+        name: support.type.property-name.unicode.string.ruko
+      - comment: Catalog Unicode property aliases and canonical names
+        match: |
+          (?x)\b(
+                age                      | Age
+              | blk                      | Block
+              | sc                       | Script
+              | scx                      | Script_Extensions # note: not in UAX #44
+          )\b
+        name: support.type.property-name.unicode.catalog.ruko
+      - comment: Enumerated Unicode property aliases and canonical names
+        match: |
+          (?x)\b(
+              bc                       | Bidi_Class
+            | bpt                      | Bidi_Paired_Bracket_Type
+            | ccc                      | Canonical_Combining_Class
+            | dt                       | Decomposition_Type
+            | ea                       | East_Asian_Width
+            | gc                       | General_Category
+            | GCB                      | Grapheme_Cluster_Break
+            | hst                      | Hangul_Syllable_Type
+            | InCB                     | Indic_Conjunct_Break
+            | InPC                     | Indic_Positional_Category
+            | InSC                     | Indic_Syllabic_Category
+            | jg                       | Joining_Group
+            | jt                       | Joining_Type
+            | lb                       | Line_Break
+            | NFC_QC                   | NFC_Quick_Check
+            | NFD_QC                   | NFD_Quick_Check
+            | NFKC_QC                  | NFKC_Quick_Check
+            | NFKD_QC                  | NFKD_Quick_Check
+            | nt                       | Numeric_Type
+            | SB                       | Sentence_Break
+            | vo                       | Vertical_Orientation
+            | WB                       | Word_Break
+          )\b
+        name: support.type.property-name.unicode.enumerated.ruko
+      - comment: Binary Unicode propery aliases and canonical names
+        match: |
+          (?x)\b(
+              AHex                     | ASCII_Hex_Digit
+            | Alpha                    | Alphabetic
+            | Bidi_C                   | Bidi_Control
+            | Bidi_M                   | Bidi_Mirrored
+            | Cased                    | Cased
+            | CE                       | Composition_Exclusion
+            | CI                       | Case_Ignorable
+            | Comp_Ex                  | Full_Composition_Exclusion
+            | CWCF                     | Changes_When_Casefolded
+            | CWCM                     | Changes_When_Casemapped
+            | CWKCF                    | Changes_When_NFKC_Casefolded
+            | CWL                      | Changes_When_Lowercased
+            | CWT                      | Changes_When_Titlecased
+            | CWU                      | Changes_When_Uppercased
+            | Dash                     | Dash
+            | Dep                      | Deprecated
+            | DI                       | Default_Ignorable_Code_Point
+            | Dia                      | Diacritic
+            | EBase                    | Emoji_Modifier_Base
+            | EComp                    | Emoji_Component
+            | EMod                     | Emoji_Modifier
+            | Emoji                    | Emoji
+            | EPres                    | Emoji_Presentation
+            | Ext                      | Extender
+            | ExtPict                  | Extended_Pictographic
+            | Gr_Base                  | Grapheme_Base
+            | Gr_Ext                   | Grapheme_Extend
+            | Gr_Link                  | Grapheme_Link
+            | Hex                      | Hex_Digit
+            | Hyphen                   | Hyphen
+            | ID_Compat_Math_Continue  | ID_Compat_Math_Continue
+            | ID_Compat_Math_Start     | ID_Compat_Math_Start
+            | IDC                      | ID_Continue
+            | Ideo                     | Ideographic
+            | IDS                      | ID_Start
+            | IDSB                     | IDS_Binary_Operator
+            | IDST                     | IDS_Trinary_Operator
+            | IDSU                     | IDS_Unary_Operator
+            | Join_C                   | Join_Control
+            | kEH_NoMirror             | kEH_NoMirror
+            | kEH_NoRotate             | kEH_NoRotate
+            | LOE                      | Logical_Order_Exception
+            | Lower                    | Lowercase
+            | Math                     | Math
+            | MCM                      | Modifier_Combining_Mark
+            | NChar                    | Noncharacter_Code_Point
+            | OAlpha                   | Other_Alphabetic
+            | ODI                      | Other_Default_Ignorable_Code_Point
+            | OGr_Ext                  | Other_Grapheme_Extend
+            | OIDC                     | Other_ID_Continue
+            | OIDS                     | Other_ID_Start
+            | OLower                   | Other_Lowercase
+            | OMath                    | Other_Math
+            | OUpper                   | Other_Uppercase
+            | Pat_Syn                  | Pattern_Syntax
+            | Pat_WS                   | Pattern_White_Space
+            | PCM                      | Prepended_Concatenation_Mark
+            | QMark                    | Quotation_Mark
+            | Radical                  | Radical
+            | RI                       | Regional_Indicator
+            | SD                       | Soft_Dotted
+            | STerm                    | Sentence_Terminal
+            | Term                     | Terminal_Punctuation
+            | UIdeo                    | Unified_Ideograph
+            | Upper                    | Uppercase
+            | VS                       | Variation_Selector
+            | WSpace                   | White_Space                 | space
+            | XIDC                     | XID_Continue
+            | XIDS                     | XID_Start
+            | XO_NFC                   | Expands_On_NFC
+            | XO_NFD                   | Expands_On_NFD
+            | XO_NFKC                  | Expands_On_NFKC
+            | XO_NFKD                  | Expands_On_NFKD
+          )\b
+        name: support.type.property-name.unicode.binary.ruko
+
+  unicode-property-values:
+    comment: 'WIP: Unicode Standard Annex #44
+      https://unicode.org/Public/UCD/latest/ucd/PropertyValueAliases.txt'
+    patterns:
+      - comment: Unicode Script property values
+        match: |
+          (?x)\b(
+              Adlam                            | Adlam
+            | Aegean_Numbers                   | Aegean_Numbers
+            | Ahom                             | Ahom
+            | Alchemical                       | Alchemical_Symbols
+            | Alphabetic_PF                    | Alphabetic_Presentation_Forms
+            | Anatolian_Hieroglyphs            | Anatolian_Hieroglyphs
+            | Ancient_Greek_Music              | Ancient_Greek_Musical_Notation
+            | Ancient_Greek_Numbers            | Ancient_Greek_Numbers
+            | Ancient_Symbols                  | Ancient_Symbols
+            | Arabic                           | Arabic
+            | Arabic_Ext_A                     | Arabic_Extended_A
+            | Arabic_Ext_B                     | Arabic_Extended_B
+            | Arabic_Ext_C                     | Arabic_Extended_C
+            | Arabic_Math                      | Arabic_Mathematical_Alphabetic_Symbols
+            | Arabic_PF_A                      | Arabic_Presentation_Forms_A | Arabic_Presentation_Forms-A
+            | Arabic_PF_B                      | Arabic_Presentation_Forms_B
+            | Arabic_Sup                       | Arabic_Supplement
+            | Armenian                         | Armenian
+            | Arrows                           | Arrows
+            | ASCII                            | Basic_Latin
+            | Avestan                          | Avestan
+            | Balinese                         | Balinese
+            | Bamum                            | Bamum
+            | Bamum_Sup                        | Bamum_Supplement
+            | Bassa_Vah                        | Bassa_Vah
+            | Batak                            | Batak
+            | Bengali                          | Bengali
+            | Beria_Erfe                       | Beria_Erfe
+            | Bhaiksuki                        | Bhaiksuki
+            | Block_Elements                   | Block_Elements
+            | Bopomofo                         | Bopomofo
+            | Bopomofo_Ext                     | Bopomofo_Extended
+            | Box_Drawing                      | Box_Drawing
+            | Brahmi                           | Brahmi
+            | Braille                          | Braille_Patterns
+            | Buginese                         | Buginese
+            | Buhid                            | Buhid
+            | Byzantine_Music                  | Byzantine_Musical_Symbols
+            | Carian                           | Carian
+            | Caucasian_Albanian               | Caucasian_Albanian
+            | Chakma                           | Chakma
+            | Cham                             | Cham
+            | Cherokee                         | Cherokee
+            | Cherokee_Sup                     | Cherokee_Supplement
+            | Chess_Symbols                    | Chess_Symbols
+            | Chorasmian                       | Chorasmian
+            | CJK                              | CJK_Unified_Ideographs
+            | CJK_Compat                       | CJK_Compatibility
+            | CJK_Compat_Forms                 | CJK_Compatibility_Forms
+            | CJK_Compat_Ideographs            | CJK_Compatibility_Ideographs
+            | CJK_Compat_Ideographs_Sup        | CJK_Compatibility_Ideographs_Supplement
+            | CJK_Ext_A                        | CJK_Unified_Ideographs_Extension_A
+            | CJK_Ext_B                        | CJK_Unified_Ideographs_Extension_B
+            | CJK_Ext_C                        | CJK_Unified_Ideographs_Extension_C
+            | CJK_Ext_D                        | CJK_Unified_Ideographs_Extension_D
+            | CJK_Ext_E                        | CJK_Unified_Ideographs_Extension_E
+            | CJK_Ext_F                        | CJK_Unified_Ideographs_Extension_F
+            | CJK_Ext_G                        | CJK_Unified_Ideographs_Extension_G
+            | CJK_Ext_H                        | CJK_Unified_Ideographs_Extension_H
+            | CJK_Ext_I                        | CJK_Unified_Ideographs_Extension_I
+            | CJK_Ext_J                        | CJK_Unified_Ideographs_Extension_J
+            | CJK_Radicals_Sup                 | CJK_Radicals_Supplement
+            | CJK_Strokes                      | CJK_Strokes
+            | CJK_Symbols                      | CJK_Symbols_And_Punctuation
+            | Compat_Jamo                      | Hangul_Compatibility_Jamo
+            | Control_Pictures                 | Control_Pictures
+            | Coptic                           | Coptic
+            | Coptic_Epact_Numbers             | Coptic_Epact_Numbers
+            | Counting_Rod                     | Counting_Rod_Numerals
+            | Cuneiform                        | Cuneiform
+            | Cuneiform_Numbers                | Cuneiform_Numbers_And_Punctuation
+            | Currency_Symbols                 | Currency_Symbols
+            | Cypriot_Syllabary                | Cypriot_Syllabary
+            | Cypro_Minoan                     | Cypro_Minoan
+            | Cyrillic                         | Cyrillic
+            | Cyrillic_Ext_A                   | Cyrillic_Extended_A
+            | Cyrillic_Ext_B                   | Cyrillic_Extended_B
+            | Cyrillic_Ext_C                   | Cyrillic_Extended_C
+            | Cyrillic_Ext_D                   | Cyrillic_Extended_D
+            | Cyrillic_Sup                     | Cyrillic_Supplement | Cyrillic_Supplementary
+            | Deseret                          | Deseret
+            | Devanagari                       | Devanagari
+            | Devanagari_Ext                   | Devanagari_Extended
+            | Devanagari_Ext_A                 | Devanagari_Extended_A
+            | Diacriticals                     | Combining_Diacritical_Marks
+            | Diacriticals_Ext                 | Combining_Diacritical_Marks_Extended
+            | Diacriticals_For_Symbols         | Combining_Diacritical_Marks_For_Symbols | Combining_Marks_For_Symbols
+            | Diacriticals_Sup                 | Combining_Diacritical_Marks_Supplement
+            | Dingbats                         | Dingbats
+            | Dives_Akuru                      | Dives_Akuru
+            | Dogra                            | Dogra
+            | Domino                           | Domino_Tiles
+            | Duployan                         | Duployan
+            | Early_Dynastic_Cuneiform         | Early_Dynastic_Cuneiform
+            | Egyptian_Hieroglyph_Format_Controls| Egyptian_Hieroglyph_Format_Controls
+            | Egyptian_Hieroglyphs             | Egyptian_Hieroglyphs
+            | Egyptian_Hieroglyphs_Ext_A       | Egyptian_Hieroglyphs_Extended_A
+            | Elbasan                          | Elbasan
+            | Elymaic                          | Elymaic
+            | Emoticons                        | Emoticons
+            | Enclosed_Alphanum                | Enclosed_Alphanumerics
+            | Enclosed_Alphanum_Sup            | Enclosed_Alphanumeric_Supplement
+            | Enclosed_CJK                     | Enclosed_CJK_Letters_And_Months
+            | Enclosed_Ideographic_Sup         | Enclosed_Ideographic_Supplement
+            | Ethiopic                         | Ethiopic
+            | Ethiopic_Ext                     | Ethiopic_Extended
+            | Ethiopic_Ext_A                   | Ethiopic_Extended_A
+            | Ethiopic_Ext_B                   | Ethiopic_Extended_B
+            | Ethiopic_Sup                     | Ethiopic_Supplement
+            | Garay                            | Garay
+            | Geometric_Shapes                 | Geometric_Shapes
+            | Geometric_Shapes_Ext             | Geometric_Shapes_Extended
+            | Georgian                         | Georgian
+            | Georgian_Ext                     | Georgian_Extended
+            | Georgian_Sup                     | Georgian_Supplement
+            | Glagolitic                       | Glagolitic
+            | Glagolitic_Sup                   | Glagolitic_Supplement
+            | Gothic                           | Gothic
+            | Grantha                          | Grantha
+            | Greek                            | Greek_And_Coptic
+            | Greek_Ext                        | Greek_Extended
+            | Gujarati                         | Gujarati
+            | Gunjala_Gondi                    | Gunjala_Gondi
+            | Gurmukhi                         | Gurmukhi
+            | Gurung_Khema                     | Gurung_Khema
+            | Half_And_Full_Forms              | Halfwidth_And_Fullwidth_Forms
+            | Half_Marks                       | Combining_Half_Marks
+            | Hangul                           | Hangul_Syllables
+            | Hanifi_Rohingya                  | Hanifi_Rohingya
+            | Hanunoo                          | Hanunoo
+            | Hatran                           | Hatran
+            | Hebrew                           | Hebrew
+            | High_PU_Surrogates               | High_Private_Use_Surrogates
+            | High_Surrogates                  | High_Surrogates
+            | Hiragana                         | Hiragana
+            | IDC                              | Ideographic_Description_Characters
+            | Ideographic_Symbols              | Ideographic_Symbols_And_Punctuation
+            | Imperial_Aramaic                 | Imperial_Aramaic
+            | Indic_Number_Forms               | Common_Indic_Number_Forms
+            | Indic_Siyaq_Numbers              | Indic_Siyaq_Numbers
+            | Inscriptional_Pahlavi            | Inscriptional_Pahlavi
+            | Inscriptional_Parthian           | Inscriptional_Parthian
+            | IPA_Ext                          | IPA_Extensions
+            | Jamo                             | Hangul_Jamo
+            | Jamo_Ext_A                       | Hangul_Jamo_Extended_A
+            | Jamo_Ext_B                       | Hangul_Jamo_Extended_B
+            | Javanese                         | Javanese
+            | Kaithi                           | Kaithi
+            | Kaktovik_Numerals                | Kaktovik_Numerals
+            | Kana_Ext_A                       | Kana_Extended_A
+            | Kana_Ext_B                       | Kana_Extended_B
+            | Kana_Sup                         | Kana_Supplement
+            | Kanbun                           | Kanbun
+            | Kangxi                           | Kangxi_Radicals
+            | Kannada                          | Kannada
+            | Katakana                         | Katakana
+            | Katakana_Ext                     | Katakana_Phonetic_Extensions
+            | Kawi                             | Kawi
+            | Kayah_Li                         | Kayah_Li
+            | Kharoshthi                       | Kharoshthi
+            | Khitan_Small_Script              | Khitan_Small_Script
+            | Khmer                            | Khmer
+            | Khmer_Symbols                    | Khmer_Symbols
+            | Khojki                           | Khojki
+            | Khudawadi                        | Khudawadi
+            | Kirat_Rai                        | Kirat_Rai
+            | Lao                              | Lao
+            | Latin_1_Sup                      | Latin_1_Supplement | Latin_1
+            | Latin_Ext_A                      | Latin_Extended_A
+            | Latin_Ext_Additional             | Latin_Extended_Additional
+            | Latin_Ext_B                      | Latin_Extended_B
+            | Latin_Ext_C                      | Latin_Extended_C
+            | Latin_Ext_D                      | Latin_Extended_D
+            | Latin_Ext_E                      | Latin_Extended_E
+            | Latin_Ext_F                      | Latin_Extended_F
+            | Latin_Ext_G                      | Latin_Extended_G
+            | Lepcha                           | Lepcha
+            | Letterlike_Symbols               | Letterlike_Symbols
+            | Limbu                            | Limbu
+            | Linear_A                         | Linear_A
+            | Linear_B_Ideograms               | Linear_B_Ideograms
+            | Linear_B_Syllabary               | Linear_B_Syllabary
+            | Lisu                             | Lisu
+            | Lisu_Sup                         | Lisu_Supplement
+            | Low_Surrogates                   | Low_Surrogates
+            | Lycian                           | Lycian
+            | Lydian                           | Lydian
+            | Mahajani                         | Mahajani
+            | Mahjong                          | Mahjong_Tiles
+            | Makasar                          | Makasar
+            | Malayalam                        | Malayalam
+            | Mandaic                          | Mandaic
+            | Manichaean                       | Manichaean
+            | Marchen                          | Marchen
+            | Masaram_Gondi                    | Masaram_Gondi
+            | Math_Alphanum                    | Mathematical_Alphanumeric_Symbols
+            | Math_Operators                   | Mathematical_Operators
+            | Mayan_Numerals                   | Mayan_Numerals
+            | Medefaidrin                      | Medefaidrin
+            | Meetei_Mayek                     | Meetei_Mayek
+            | Meetei_Mayek_Ext                 | Meetei_Mayek_Extensions
+            | Mende_Kikakui                    | Mende_Kikakui
+            | Meroitic_Cursive                 | Meroitic_Cursive
+            | Meroitic_Hieroglyphs             | Meroitic_Hieroglyphs
+            | Miao                             | Miao
+            | Misc_Arrows                      | Miscellaneous_Symbols_And_Arrows
+            | Misc_Math_Symbols_A              | Miscellaneous_Mathematical_Symbols_A
+            | Misc_Math_Symbols_B              | Miscellaneous_Mathematical_Symbols_B
+            | Misc_Pictographs                 | Miscellaneous_Symbols_And_Pictographs
+            | Misc_Symbols                     | Miscellaneous_Symbols
+            | Misc_Symbols_Sup                 | Miscellaneous_Symbols_Supplement
+            | Misc_Technical                   | Miscellaneous_Technical
+            | Modi                             | Modi
+            | Modifier_Letters                 | Spacing_Modifier_Letters
+            | Modifier_Tone_Letters            | Modifier_Tone_Letters
+            | Mongolian                        | Mongolian
+            | Mongolian_Sup                    | Mongolian_Supplement
+            | Mro                              | Mro
+            | Multani                          | Multani
+            | Music                            | Musical_Symbols
+            | Myanmar                          | Myanmar
+            | Myanmar_Ext_A                    | Myanmar_Extended_A
+            | Myanmar_Ext_B                    | Myanmar_Extended_B
+            | Myanmar_Ext_C                    | Myanmar_Extended_C
+            | Nabataean                        | Nabataean
+            | Nag_Mundari                      | Nag_Mundari
+            | Nandinagari                      | Nandinagari
+            | NB                               | No_Block
+            | New_Tai_Lue                      | New_Tai_Lue
+            | Newa                             | Newa
+            | NKo                              | NKo
+            | Number_Forms                     | Number_Forms
+            | Nushu                            | Nushu
+            | Nyiakeng_Puachue_Hmong           | Nyiakeng_Puachue_Hmong
+            | OCR                              | Optical_Character_Recognition
+            | Ogham                            | Ogham
+            | Ol_Chiki                         | Ol_Chiki
+            | Ol_Onal                          | Ol_Onal
+            | Old_Hungarian                    | Old_Hungarian
+            | Old_Italic                       | Old_Italic
+            | Old_North_Arabian                | Old_North_Arabian
+            | Old_Permic                       | Old_Permic
+            | Old_Persian                      | Old_Persian
+            | Old_Sogdian                      | Old_Sogdian
+            | Old_South_Arabian                | Old_South_Arabian
+            | Old_Turkic                       | Old_Turkic
+            | Old_Uyghur                       | Old_Uyghur
+            | Oriya                            | Oriya
+            | Ornamental_Dingbats              | Ornamental_Dingbats
+            | Osage                            | Osage
+            | Osmanya                          | Osmanya
+            | Ottoman_Siyaq_Numbers            | Ottoman_Siyaq_Numbers
+            | Pahawh_Hmong                     | Pahawh_Hmong
+            | Palmyrene                        | Palmyrene
+            | Pau_Cin_Hau                      | Pau_Cin_Hau
+            | Phags_Pa                         | Phags_Pa
+            | Phaistos                         | Phaistos_Disc
+            | Phoenician                       | Phoenician
+            | Phonetic_Ext                     | Phonetic_Extensions
+            | Phonetic_Ext_Sup                 | Phonetic_Extensions_Supplement
+            | Playing_Cards                    | Playing_Cards
+            | Psalter_Pahlavi                  | Psalter_Pahlavi
+            | PUA                              | Private_Use_Area | Private_Use
+            | Punctuation                      | General_Punctuation
+            | Rejang                           | Rejang
+            | Rumi                             | Rumi_Numeral_Symbols
+            | Runic                            | Runic
+            | Samaritan                        | Samaritan
+            | Saurashtra                       | Saurashtra
+            | Sharada                          | Sharada
+            | Sharada_Sup                      | Sharada_Supplement
+            | Shavian                          | Shavian
+            | Shorthand_Format_Controls        | Shorthand_Format_Controls
+            | Siddham                          | Siddham
+            | Sidetic                          | Sidetic
+            | Sinhala                          | Sinhala
+            | Sinhala_Archaic_Numbers          | Sinhala_Archaic_Numbers
+            | Small_Forms                      | Small_Form_Variants
+            | Small_Kana_Ext                   | Small_Kana_Extension
+            | Sogdian                          | Sogdian
+            | Sora_Sompeng                     | Sora_Sompeng
+            | Soyombo                          | Soyombo
+            | Specials                         | Specials
+            | Sundanese                        | Sundanese
+            | Sundanese_Sup                    | Sundanese_Supplement
+            | Sunuwar                          | Sunuwar
+            | Sup_Arrows_A                     | Supplemental_Arrows_A
+            | Sup_Arrows_B                     | Supplemental_Arrows_B
+            | Sup_Arrows_C                     | Supplemental_Arrows_C
+            | Sup_Math_Operators               | Supplemental_Mathematical_Operators
+            | Sup_PUA_A                        | Supplementary_Private_Use_Area_A
+            | Sup_PUA_B                        | Supplementary_Private_Use_Area_B
+            | Sup_Punctuation                  | Supplemental_Punctuation
+            | Sup_Symbols_And_Pictographs      | Supplemental_Symbols_And_Pictographs
+            | Super_And_Sub                    | Superscripts_And_Subscripts
+            | Sutton_SignWriting               | Sutton_SignWriting
+            | Syloti_Nagri                     | Syloti_Nagri
+            | Symbols_And_Pictographs_Ext_A    | Symbols_And_Pictographs_Extended_A
+            | Symbols_For_Legacy_Computing     | Symbols_For_Legacy_Computing
+            | Symbols_For_Legacy_Computing_Sup | Symbols_For_Legacy_Computing_Supplement
+            | Syriac                           | Syriac
+            | Syriac_Sup                       | Syriac_Supplement
+            | Tagalog                          | Tagalog
+            | Tagbanwa                         | Tagbanwa
+            | Tags                             | Tags
+            | Tai_Le                           | Tai_Le
+            | Tai_Tham                         | Tai_Tham
+            | Tai_Viet                         | Tai_Viet
+            | Tai_Xuan_Jing                    | Tai_Xuan_Jing_Symbols
+            | Tai_Yo                           | Tai_Yo
+            | Takri                            | Takri
+            | Tamil                            | Tamil
+            | Tamil_Sup                        | Tamil_Supplement
+            | Tangsa                           | Tangsa
+            | Tangut                           | Tangut
+            | Tangut_Components                | Tangut_Components
+            | Tangut_Components_Sup            | Tangut_Components_Supplement
+            | Tangut_Sup                       | Tangut_Supplement
+            | Telugu                           | Telugu
+            | Thaana                           | Thaana
+            | Thai                             | Thai
+            | Tibetan                          | Tibetan
+            | Tifinagh                         | Tifinagh
+            | Tirhuta                          | Tirhuta
+            | Todhri                           | Todhri
+            | Tolong_Siki                      | Tolong_Siki
+            | Toto                             | Toto
+            | Transport_And_Map                | Transport_And_Map_Symbols
+            | Tulu_Tigalari                    | Tulu_Tigalari
+            | UCAS                             | Unified_Canadian_Aboriginal_Syllabics | Canadian_Syllabics
+            | UCAS_Ext                         | Unified_Canadian_Aboriginal_Syllabics_Extended
+            | UCAS_Ext_A                       | Unified_Canadian_Aboriginal_Syllabics_Extended_A
+            | Ugaritic                         | Ugaritic
+            | Vai                              | Vai
+            | Vedic_Ext                        | Vedic_Extensions
+            | Vertical_Forms                   | Vertical_Forms
+            | Vithkuqi                         | Vithkuqi
+            | VS                               | Variation_Selectors
+            | VS_Sup                           | Variation_Selectors_Supplement
+            | Wancho                           | Wancho
+            | Warang_Citi                      | Warang_Citi
+            | Yezidi                           | Yezidi
+            | Yi_Radicals                      | Yi_Radicals
+            | Yi_Syllables                     | Yi_Syllables
+            | Yijing                           | Yijing_Hexagram_Symbols
+            | Zanabazar_Square                 | Zanabazar_Square
+            | Znamenny_Music                   | Znamenny_Musical_Notation
+          )\b
+        name: support.constant.property-value.unicode.script.ruko
+
   attribute-selectors:
     name: meta.attribute-selector.ruko
     patterns:
-      - match: '[:!=</>.^$%?*+|&~]?='
-        name: keyword.operator.pattern.ruko
-      - match: \&\&|\|\||\^\^|\!
+      - include: '#comments'
+      - include: '#numbers'
+      - comment: Unicode character category selectors
+        match: \b(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)\b
+        name: support.type.character-class.unicode.ruko
+      - applyEndPatternLast: true
+        begin: |
+          (?x)
+          ([\p{Pc}\p{L}]\w*) # property name
+          \s*
+          (?: # operators
+              (!=|==?) # equality
+            | (~[=!]) # matches
+            | ([<>]=?) # relational
+            | ([$^%*]=) # pattern
+          )\s*
+        end: (?=)|$
+        captures:
+          1:
+            name: entity.other.attribute-name.key.ruko
+            patterns: [include: '#unicode-property-keys']
+          2: { name: keyword.operator.comparison.ruko }
+          3: { name: keyword.operator.match.ruko }
+          4: { name: keyword.operator.relation.ruko }
+          5: { name: keyword.operator.pattern.ruko }
+        name: string.unquoted.attribute-name.ruko
+        patterns:
+          - include: '#numbers'
+          - include: '#strings'
+          - include: '#constants'
+          - include: '#css-property-values'
+          - include: '#unicode-property-values'
+          - comment: Regular expression patterns
+            begin: (/)
+            end: (/)([imsxADU]*)
+            name: string.regexp.attribute-value.ruko
+            captures:
+              1: { name: punctuation.definition.pattern.begin.ruko }
+              2: { name: punctuation.definition.pattern.end.ruko }
+              3: { name: keyword.other.flag.ruko }
+            patterns: [include: '#regexp-patterns']
+      - match: \b([\p{Pc}\p{L}]\w*)\b
+        name: entity.other.attribute-name.key.ruko
+      - match: '&&|\|\||\^\^|!'
         name: keyword.operator.logical.ruko
+      - match: \b(n?and|x?n?or|c?n?imply|not)\b
+        name: keyword.operator.expression.logical.ruko
       - match: ','
         name: punctuation.separator.sequence.ruko
-      - match: \b(is\s+not|is|has\s+not|has|has\s+not|has)\b
+      - match: \b(\b(is|has)\b\s*\b(not)?)\b
         name: keyword.operator.expression.is.ruko
-      - match: \b(not\s+)?([io]n|of)\b
+      - match: \b(not)?\s*\b([io]n|of)\b
         name: keyword.operator.expression.$2.ruko
-      - begin: \b([\p{Pc}\p{L}]\w*)\b([:!=</>.^$%?*+|&~]?=)
-        beginCaptures:
-          1: { name: entity.other.attribute-name.key.ruko }
-          2: { name: keyword.operator.pattern.ruko }
-        end: (?=\&\&|\|\||\^\^|[\s,:;'"`)}\]]|\\.)
-        name: string.unquoted.attribute-name.ruko
-        patterns: [include: '#regexp-patterns']
-      - match: (?xi)\b[is]\b\s*(?=[)}\]]|([&|^])\1)
+      - match: \b([\p{Pc}\p{L}]\w*)\b(?=&&|\|\||\^\^|!|[\s,:;'"`)}\]]|\\.)
         name: storage.modifier.ignore-when.ruko
       - include: '#string-escapes'
       - comment: Attribute names
@@ -2903,9 +3446,6 @@ repository:
         captures:
           1: { name: entity.other.attribute-name.ruko }
           2: { name: keyword.operator.pattern.ruko }
-      - include: '#comments'
-      - include: '#operators'
-      - include: '#numbers'
       - include: '#space'
 
   # Splicing
@@ -3118,7 +3658,7 @@ repository:
             name: entity.other.attribute-name.ruko entity.name.property.ruko
           - match: \s*(?<=\?)[\p{Pc}\p{L}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.predicate.ruko
-          - include: '#css-property-names'
+          - include: '#css-property-keys'
       2: { name: punctuation.separator.key-value.ruko }
     end: (?=)|$
     name: meta.attribute.assignment.ruko
@@ -3762,11 +4302,11 @@ repository:
                 (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                 (?: # keywords
                   [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                  |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                   |va[rl]|mut|let|const|dyn
                   |use|echo|run|eval|expr
                   |func|pro[pc]|type|class|actor|trait
-                  |inter|enum|module|model|struct|record
+                  |inter|enum|module|schema|struct|record
                   |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |[gd]o|defer|with|from|where
@@ -3809,7 +4349,7 @@ repository:
     captures:
       1:
         patterns:
-          - include: '#css-value-names'
+          - include: '#css-property-values'
           - match: ([\p{Pc}\p{L}]\w*)\b(?=[.:])
             name: constant.other.ruko
           - match: ([\p{Pc}\p{L}]\w*)\b
@@ -3834,7 +4374,7 @@ repository:
       - include: '#embedded-expressions'
       - include: '#embedded-formatting'
       - include: '#embedded-arguments'
-      - include: '#css-value-names'
+      - include: '#css-property-values'
       - include: $self
 
   hex-colors:
@@ -4108,7 +4648,7 @@ repository:
     beginCaptures:
       1:
         name: support.type.property-name.ruko
-        patterns: [include: '#css-property-names']
+        patterns: [include: '#css-property-keys']
       2: { name: punctuation.separator.key-value.ruko }
     patterns:
       - include: '#style-property-values'
@@ -4490,11 +5030,11 @@ repository:
                 \b
                   (?: # keywords
                     [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                     |va[rl]|mut|let|const|dyn
                     |use|echo|run|eval|expr
                     |func|pro[pc]|type|class|actor|trait
-                    |inter|enum|module|model|struct|record
+                    |inter|enum|module|schema|struct|record
                     |union|iter|macro|query|elem|temp|oper
                     |object|realm|style|script|quote
                     |[gd]o|defer|with|from|where
@@ -4519,11 +5059,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -4562,11 +5102,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -4616,11 +5156,11 @@ repository:
                     (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                     (?: # keywords
                       [io]n|of|[ai]s|by|has|old|new|del
-                      |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                      |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                       |va[rl]|mut|let|const|dyn
                       |use|echo|run|eval|expr
                       |func|pro[pc]|type|class|actor|trait
-                      |inter|enum|module|model|struct|record
+                      |inter|enum|module|schema|struct|record
                       |union|iter|macro|query|elem|temp|oper
                       |object|realm|style|script|quote
                       |[gd]o|defer|with|from|where
@@ -4683,11 +5223,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -4877,7 +5417,7 @@ repository:
                   va[rl]|mut|let|const|dyn
                   |use|echo|run|eval|expr
                   |func|pro[pc]|type|class|actor|trait
-                  |inter|enum|module|model|struct|record
+                  |inter|enum|module|schema|struct|record
                   |union|iter|macro|query|elem|temp|oper
                   |object|realm|style|script|quote
                   |given|use|as
@@ -4949,7 +5489,7 @@ repository:
               va[rl]|mut|let|const|dyn
               |use|echo|run|eval|expr
               |func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|model|struct|record
+              |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
               |given|use|as
@@ -5114,11 +5654,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -5438,7 +5978,7 @@ repository:
           va[rl]|mut|let|const|dyn
           |use|echo|run|eval|expr
           |func|pro[pc]|type|class|actor|trait
-          |inter|enum|module|model|struct|record
+          |inter|enum|module|schema|struct|record
           |union|iter|macro|query|elem|temp|oper
           |object|realm|style|script|quote
           |import|export|intern|extern
@@ -5461,11 +6001,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -5488,11 +6028,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -5702,7 +6242,7 @@ repository:
             (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
             (
               func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|model|struct|record
+              |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -5747,7 +6287,7 @@ repository:
         name: keyword.operator.expression.delete.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(unset)\b\s*
         name: keyword.operator.expression.void.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(nand|x?n?or|c?n?imply|not)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(n?and|x?n?or|c?n?imply|not)\b\s*
         name: keyword.operator.expression.logical.ruko
 
   keywords:
@@ -5840,11 +6380,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -6268,15 +6808,15 @@ repository:
           - match: *entity-name
             name: entity.name.iterator.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(model)\b\s*
+        begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(schema)\b\s*
         end: (?=)|$
         beginCaptures:
-          1: { name: storage.type.model.ruko }
+          1: { name: storage.type.schema.ruko }
         patterns:
           - include: '#declaration-clause'
           - include: '#namespace-separators'
           - match: *entity-name
-            name: entity.name.model.ruko
+            name: entity.name.schema.ruko
       - applyEndPatternLast: true
         begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(macro)\b\s*
         end: (?=)|$
@@ -6417,11 +6957,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -6462,11 +7002,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -6490,7 +7030,7 @@ repository:
             \b
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|model|struct|record
+              |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -6515,11 +7055,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -6572,11 +7112,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -6600,7 +7140,7 @@ repository:
             \b
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|model|struct|record
+              |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -6626,11 +7166,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -6678,16 +7218,11 @@ repository:
       (?x)
       (?<=
         (?:
-            # beginning of line
-            ^
-          | # separator
-            [,;]
-          | # opening bracket
-            \#? [({\[]
-          | # postfix or infix operator
-            [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s
-          | # a keyword
-            (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
+            ^ # beginning of line
+          | [,;] # separator
+          | \#? [({\[] # opening bracket
+          | [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+ \s # postfix or infix operator
+          | (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             [\p{Pc}\p{L}]\w*  # keyword or identifier
         ) \s*
       ) \s*
@@ -6771,7 +7306,7 @@ repository:
           1: { name: keyword.other.typedef.ruko }
         patterns:
           - include: '#types'
-          - match: \s*([:!=</>.^$%?*+|&~]?=)\s*
+          - match: \s*([!#-&*+\-./:;<>?@\\^|~¡-¨«¬­¯°±´¶·¸»¿×÷]?=)\s*
             captures:
               1: { name: keyword.operator.assignment.ruko }
 
@@ -6782,7 +7317,7 @@ repository:
     beginCaptures:
       1: { name: keyword.control.error.ruko }
     endCaptures:
-      1: { name: punctuation.separator.colon.ruko }
+      1: { name: punctuation.terminator.colon.ruko }
     patterns:
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|of|as|await)\b\s*
         name: keyword.control.error.ruko
@@ -6838,7 +7373,7 @@ repository:
     beginCaptures:
       1: { name: keyword.control.loop.ruko }
     endCaptures:
-      1: { name: punctuation.separator.colon.ruko }
+      1: { name: punctuation.terminator.colon.ruko }
     patterns:
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|of|as|await)\b\s*
         name: keyword.control.loop.ruko
@@ -6851,7 +7386,7 @@ repository:
     beginCaptures:
       1: { name: keyword.control.conditional.ruko }
     endCaptures:
-      1: { name: punctuation.separator.colon.ruko }
+      1: { name: punctuation.terminator.colon.ruko }
     patterns:
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
         name: keyword.control.conditional.ruko
@@ -6950,7 +7485,7 @@ repository:
     beginCaptures:
       1: { name: keyword.control.with.ruko }
     endCaptures:
-      1: { name: punctuation.separator.colon.ruko }
+      1: { name: punctuation.terminator.colon.ruko }
     patterns:
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
         name: keyword.control.with.ruko
@@ -7083,11 +7618,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -7111,7 +7646,7 @@ repository:
             \b
             (?: # Function types
               func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|model|struct|record
+              |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
               |object|realm|style|script|quote
             )
@@ -7136,11 +7671,11 @@ repository:
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
                 |va[rl]|mut|let|const|dyn
                 |use|echo|run|eval|expr
                 |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|model|struct|record
+                |inter|enum|module|schema|struct|record
                 |union|iter|macro|query|elem|temp|oper
                 |object|realm|style|script|quote
                 |[gd]o|defer|with|from|where
@@ -7235,11 +7770,11 @@ repository:
           (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
           (?: # keywords
             [io]n|of|[ai]s|by|has|old|new|del
-            |unset|ref|deref|nand|x?n?or|c?n?imply|not
+            |unset|ref|deref|n?and|x?n?or|c?n?imply|not
             |va[rl]|mut|let|const|dyn
             |use|echo|run|eval|expr
             |func|pro[pc]|type|class|actor|trait
-            |inter|enum|module|model|struct|record
+            |inter|enum|module|schema|struct|record
             |union|iter|macro|query|elem|temp|oper
             |object|realm|style|script|quote
             |[gd]o|defer|with|from|where
@@ -7459,7 +7994,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7483,7 +8018,7 @@ repository:
             \b
               (?: # expression keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7655,7 +8190,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7677,7 +8212,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|nand|x?n?or|c?n?imply|not
+                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -7728,7 +8263,7 @@ repository:
 
   # Support
 
-  css-property-names:
+  css-property-keys:
     patterns:
       - match: |-
           (?x)\b(
@@ -7899,7 +8434,7 @@ repository:
       - match: (?x)\b(?:ah|apple|atsc|epub|hp|khtml|moz|ms|o|rim|ro|tc|wap|webkit|xv|mso|prince)(?:[\p{Pc}\p{L}&&\P{Ll}][\w&&\P{Lu}]*)+\b
         name: support.type.vendored.property-name.css.ruko
 
-  css-value-names:
+  css-property-values:
     comment: TODO
     patterns:
       - match: |-
