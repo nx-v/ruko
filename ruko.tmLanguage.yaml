@@ -19,6 +19,9 @@ patterns: [include: '#core']
 
 # Planned features / TODOs:
 #
+# - [ ] Add inline assembly syntax for WebAssembly with a syntax similar to
+#   Rust's asm! macro and Solidity's inline assembly.
+#     https://doc.rust-lang.org/nightly/std/arch/wasm32/asm/index.html
 # - [ ] Add regexp patterns for Unicode character properties, scripts, blocks,
 #   categories, etc. Refer to: https://www.unicode.org/reports/tr18/
 # - Some patterns should have `applyEndPatternLast: true` where appropriate
@@ -487,17 +490,17 @@ repository:
 
       \s*
     captures:
-      1: { name: entity.name.trait.ruko }
+      1: { name: support.type.instance.ruko }
       2: { name: entity.name.interface.ruko }
-      3: { name: entity.name.interface.ruko }
-      4: { name: entity.name.trait.ruko }
-      5: { name: entity.name.module.ruko }
+      3: { name: support.type.interface.ruko }
+      4: { name: entity.name.instance.ruko }
+      5: { name: support.type.module.ruko }
       6: { name: entity.name.namespace.ruko }
-      7: { name: entity.name.namespace.ruko }
+      7: { name: support.type.namespace.ruko }
       8: { name: entity.name.module.ruko }
-      9: { name: entity.name.type.ruko }
+      9: { name: support.type.type.ruko }
       10: { name: entity.name.class.ruko }
-      11: { name: entity.name.class.ruko }
+      11: { name: support.type.class.ruko }
       12: { name: entity.name.type.ruko }
 
   type-signature:
@@ -532,7 +535,6 @@ repository:
             \b
               (?: # destructuring keywords
                 va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
                 |case
               )
             \b
@@ -678,7 +680,6 @@ repository:
             \b
               (?: # destructuring keywords
                 va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
                 |case
               )
             \b
@@ -740,7 +741,6 @@ repository:
             \b
               (?: # destructuring keywords
                 va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
                 |case
               )
             \b
@@ -939,6 +939,8 @@ repository:
             |(ctor) # constructor
             |(dtor) # destructor
             |(proto) # prototype
+            |(_[+-]?\d+) # index variable
+            |(\p{Pc}+) # underscore variable
           )
           \b
         captures:
@@ -951,6 +953,8 @@ repository:
           7: { name: variable.language.constructor.ruko }
           8: { name: variable.language.destructor.ruko }
           9: { name: variable.language.prototype.ruko }
+          10: { name: variable.language.underscore.ruko }
+          110: { name: variable.language.index.ruko }
       - match: |-
           (?x)
           (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
@@ -3395,7 +3399,7 @@ repository:
           (?x)
           ([\p{Pc}\p{L}]\w*) # property name
           \s*(?: # operators
-              (!=|==?) # equality
+              (=|[!=]==?) # equality
             | (~[=!]) # matches
             | ([<>]=?) # relational
             | ([$^%*]=) # pattern
@@ -5016,17 +5020,16 @@ repository:
                 ) \s*
               | # infix operator
                   \s+ (?:[\p{P}\p{S}&&[^,;'"`/\\({\[)}\]\p{Pc}]]+
-                    (?:
-                      [\p{P}\p{S}]*
+                    (?:[\p{P}\p{S}]*
                       [\p{P}\p{S}&&[^,;'"`/\\({\[)}\]\p{Pc}]]+
                     )?
                   ) \s+
               | # primary operator
-                \b (?:[\p{P}\p{S}&&[^,;'"`/({\[)}\]\p{Pc}]]+
-                  (?:[\p{P}\p{S}]*
-                    [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+
-                  )?
-                ) \b
+                  \b (?:[\p{P}\p{S}&&[^,;'"`/\\({\[)}\]\p{Pc}]]+
+                    (?:[\p{P}\p{S}]*
+                      [\p{P}\p{S}&&[^,;'"`/\\({\[)}\]\p{Pc}]]+
+                    )?
+                  ) \b
               | (?:
                 (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
                 \b
@@ -5090,12 +5093,16 @@ repository:
           (?! # infix operator
             \s+
               (?:[\p{P}\p{S}&&[^,;'"`/\\({\[)}\]\p{Pc}]]+
-              (?:
-                [\p{P}\p{S}]*
+              (?:[\p{P}\p{S}]*
                 [\p{P}\p{S}&&[^,;'"`/\\({\[)}\]\p{Pc}]]+
               )?
-              (?= \s|$)
+              (?=\s|$)
             )
+          )
+          (?! # function name
+            \s+ \\ # infix function operator
+                [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]]* # prefix operators except slashes
+                (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
           )
           (?! # function name
             \s* \b
@@ -5131,8 +5138,8 @@ repository:
             | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
             | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
             | [!~] \#? [({] # macro and destructor calls
-            | (?:\w*|[\\$\#%]*)['"] # quoted string literals
-            | `\s*(?=\N) # unquoted string literals
+            | \s* (?:\w*|[\\$\#%]*)['"] # quoted string literals
+            | \s*`\N # unquoted string literals
             | \s+ :[\p{Pc}\p{L}]\w* # symbols
             | \s* \b\d # numbers
             | \s+ \#? [(\[] # opening brackets
@@ -5153,55 +5160,35 @@ repository:
                 )
             | \s+ [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
               (?: # identifier
-                  # ignore all keywords
-                  (?!
-                    (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                    (?: # keywords
-                      [io]n|of|[ai]s|by|has|old|new|del
-                      |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                      |va[rl]|mut|let|const|dyn
-                      |use|echo|run|eval|expr
-                      |func|pro[pc]|type|class|actor|trait
-                      |inter|enum|module|schema|struct|record
-                      |union|iter|macro|query|elem|temp|oper
-                      |object|realm|style|script|quote
-                      |[gd]o|defer|with|from|where
-                      |if|else|then|guard|when
-                      |for|loop|while|goto|move
-                      |try|throw|catch|switch
-                      |match|case|pass|def|defer
-                      |break|skip|redo|retry
-                      |return|yield|await|scope|safe
-                      |import|export|intern|extern
-                      |debug|assert|check|decl
-                    )
-                    \b
+                # ignore all keywords
+                (?!
+                  (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                  (?: # keywords
+                    [io]n|of|[ai]s|by|has|old|new|del
+                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
+                    |va[rl]|mut|let|const|dyn
+                    |use|echo|run|eval|expr
+                    |func|pro[pc]|type|class|actor|trait
+                    |inter|enum|module|schema|struct|record
+                    |union|iter|macro|query|elem|temp|oper
+                    |object|realm|style|script|quote
+                    |[gd]o|defer|with|from|where
+                    |if|else|then|guard|when
+                    |for|loop|while|goto|move
+                    |try|throw|catch|switch
+                    |match|case|pass|def|defer
+                    |break|skip|redo|retry
+                    |return|yield|await|scope|safe
+                    |import|export|intern|extern
+                    |debug|assert|check|decl
                   )
-                  (?:
-                    \b[\p{Pc}\p{L}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                  )*
-                  [\p{Pc}\p{L}]\w* # last part of identifier
-                | (?:\w*|[\\$\#%]*)['"] # quoted string literals
-                | `\s*(?=\N) # unquoted string literals
-                | \s+ :[\p{Pc}\p{L}]\w* # symbols
-                | \s* \b\d # numbers
-                | \s+ \#? [(\[] # opening brackets
-                | \s+ [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]] # prefix operators except slashes
-                      [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
-                      (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-                | \s+ # XML tag component name or splice expression
-                    <[\p{Pc}\p{L}(\[{]
-                | \s+ # regexp literal
-                    /['"`\w\\(\[{]
-                | \s+ \|(?: \#?[(\[{] )? # opening bracket
-                    (?: [;,] \s* )* # optional separators
-                    (?:
-                      ((?:[*&%@^!~?\\\-+]|\.{3})*) # any sigils
-                      (\b[\p{Pc}\p{L}]\w*\b) # identifier
-                      ([!?]*) # optional sigils
-                      \s*
-                    )
+                  \b
+                )
+                (?:
+                  \b[\p{Pc}\p{L}]\w*\b # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                )*
+                [\p{Pc}\p{L}]\w* # last part of identifier
               )
               \s* \b[\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
           )
@@ -5301,28 +5288,28 @@ repository:
         patterns: &builtin-names
           - include: '#type-names'
           - include: '#support-functions'
-        name: entity.name.tag.ruko
+        name: entity.name.tag.directive.ruko
       2:
-        patterns: *builtin-names
-        name: entity.name.tag.ruko support.class.component.ruko
-      3:
-        patterns: *builtin-names
-        name: entity.name.class.builtin.ruko
-      4:
-        patterns: *builtin-names
-        name: entity.name.function.member.ruko
-      5:
-        patterns: *builtin-names
         name: entity.name.function.tagged-template.ruko
+        patterns: *builtin-names
+      3:
+        name: entity.name.function.method.ruko
+        patterns: *builtin-names
+      4:
+        name: entity.name.function.member.ruko
+        patterns: *builtin-names
+      5:
+        name: entity.name.tag.function.ruko
+        patterns: *builtin-names
       6:
+        name: entity.name.subroutine.ruko
         patterns: *builtin-names
-        name: entity.name.type.ruko
       7:
+        name: entity.name.instance.ruko
         patterns: *builtin-names
-        name: entity.name.class.ruko
       8:
-        patterns: *builtin-names
         name: entity.name.function.ruko
+        patterns: *builtin-names
 
   function-names:
     patterns:
@@ -5368,25 +5355,25 @@ repository:
           )
         captures:
           1:
-            name: entity.name.tag.ruko
+            name: entity.name.tag.directive.ruko
             patterns: *builtin-names
           2:
-            name: entity.name.tag.ruko support.class.component.ruko
+            name: entity.name.function.tagged-template.ruko
             patterns: *builtin-names
           3:
-            name: entity.name.class.builtin.ruko
+            name: entity.name.function.method.ruko
             patterns: *builtin-names
           4:
             name: entity.name.function.member.ruko
             patterns: *builtin-names
           5:
-            name: entity.name.function.tagged-template.ruko
+            name: entity.name.tag.function.ruko
             patterns: *builtin-names
           6:
-            name: entity.name.type.ruko
+            name: entity.name.subroutine.ruko
             patterns: *builtin-names
           7:
-            name: entity.name.class.ruko
+            name: entity.name.instance.ruko
             patterns: *builtin-names
           8:
             name: entity.name.function.ruko
@@ -5399,11 +5386,11 @@ repository:
   call-arguments:
     patterns:
       - applyEndPatternLast: true
-        name: meta.type.ruko
-        begin: (?<=(?:[)}\]\w'"`]|\\.)>*)(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+        begin: (?<=(?:(?:[)}\]\w'"`]|\\.)[!?]?>*)*)(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
         end: (?=)|$
         beginCaptures:
           1: { name: punctuation.definition.annotation.ruko }
+        name: meta.type.ruko
         patterns: [include: '#types']
       - match: |-
           (?x)
@@ -5417,7 +5404,6 @@ repository:
               | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
                 \b (?: # declaration keywords
                   va[rl]|mut|let|const|dyn
-                  |use|echo|run|eval|expr
                   |func|pro[pc]|type|class|actor|trait
                   |inter|enum|module|schema|struct|record
                   |union|iter|macro|query|elem|temp|oper
@@ -5489,7 +5475,6 @@ repository:
           | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
             \b (?: # declaration keywords
               va[rl]|mut|let|const|dyn
-              |use|echo|run|eval|expr
               |func|pro[pc]|type|class|actor|trait
               |inter|enum|module|schema|struct|record
               |union|iter|macro|query|elem|temp|oper
@@ -5708,10 +5693,6 @@ repository:
         name: keyword.operator.successor.ruko
       - match: (?<=^|[\s({\[])(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=$|[)}\]\s])
         name: keyword.operator.arithmetic.ruko
-      - match: (?<=^|[\s({\[])(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=$|[)}\]\s])
-        name: keyword.operator.arithmetic.ruko
-      - match: (?<=^|[\s({\[])(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=$|[)}\]\s])
-        name: keyword.operator.arrow.ruko
       - match: (?<=^|[\s({\[])(?:<[-=]?\||\|[-=]?>)(?=$|[)}\]\s])
         name: keyword.operator.pipeline.ruko
       - match: (?<=^|[\s({\[])(?:<\+|\+>|∘)(?=$|[)}\]\s])
@@ -5721,8 +5702,6 @@ repository:
       - match: (?<=^|[\s({\[])(?:[>.]\.[.<]|[=.]\.[.=]|\.\.)(?=$|[)}\]\s])
         name: keyword.operator.range.ruko
       - match: (?<=^|[\s({\[])(?:[<>]=?|<=?>)(?=$|[)}\]\s])
-        name: keyword.operator.relational.ruko
-      - match: (?<=^|[\s({\[])(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|∊|∍|∥|∦|∷|∺|∻|∽|∾|≁|≃|≂|≄|≅|≆|≇|≈|≉|≊|≋|≌|≍|≎|≐|≑|≒|≓|≖|≗|≘|≙|≚|≛|≜|≝|≞|≟|≣|≦|≧|≨|≩|≪|≫|≬|≭|≮|≯|≰|≱|≲|≳|≴|≵|≶|≷|≸|≹|≺|≻|≼|≽|≾|≿|⊀|⊁|⊃|⊅|⊇|⊉|⊋|⊏|⊐|⊑|⊒|⊜|⊩|⊬|⊮|⊰|⊱|⊲|⊳|⊴|⊵|⊶|⊷|⋍|⋐|⋑|⋕|⋖|⋗|⋘|⋙|⋚|⋛|⋜|⋝|⋞|⋟|⋠|⋡|⋢|⋣|⋤|⋥|⋦|⋧|⋨|⋩|⋪|⋫|⋬|⋭|⋲|⋳|⋴|⋵|⋶|⋷|⋸|⋹|⋺|⋻|⋼|⋽|⋾|⋿|⟈|⟉|⟒|⦷|⧀|⧁|⧡|⧣|⧤|⧥|⩦|⩧|⩪|⩫|⩬|⩭|⩮|⩯|⩰|⩱|⩲|⩳|⩵|⩶|⩷|⩸|⩹|⩺|⩻|⩼|⩽|⩾|⩿|⪀|⪁|⪂|⪃|⪄|⪅|⪆|⪇|⪈|⪉|⪊|⪋|⪌|⪍|⪎|⪏|⪐|⪑|⪒|⪓|⪔|⪕|⪖|⪗|⪘|⪙|⪚|⪛|⪜|⪝|⪞|⪟|⪠|⪡|⪢|⪣|⪤|⪥|⪦|⪧|⪨|⪩|⪪|⪫|⪬|⪭|⪮|⪯|⪰|⪱|⪲|⪳|⪴|⪵|⪶|⪷|⪸|⪹|⪺|⪻|⪼|⪽|⪾|⪿|⫀|⫁|⫂|⫃|⫄|⫅|⫆|⫇|⫈|⫉|⫊|⫋|⫌|⫍|⫎|⫏|⫐|⫑|⫒|⫓|⫔|⫕|⫖|⫗|⫘|⫙|⫷|⫸|⫹|⫺|⊢|⊣|⟂|⫪|⫫)(?=$|[)}\]\s])
         name: keyword.operator.relational.ruko
       - match: (?<=^|[\s({\[])(?:\.|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=$|[)}\]\s])
         name: keyword.operator.dots.ruko
@@ -5770,6 +5749,8 @@ repository:
         name: keyword.operator.math.custom.ruko
       - match: (?<=^|[\s({\[])(?:\p{Sc}+)(?=$|[)}\]\s])
         name: keyword.operator.currency.custom.ruko
+      - match: (?<=^|[\s({\[])(?:[\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+)(?=$|[)}\]\s])
+        name: keyword.operator.arrow.ruko
       - match: (?<=^|[\s({\[])(?:[!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+)(?=$|[)}\]\s])
         name: keyword.operator.ascii.custom.ruko
       - match: (?<=^|[\s({\[])([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=$|[)}\]\s])
@@ -5796,10 +5777,6 @@ repository:
         name: keyword.operator.successor.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[+-][%|]?|\*\*?[%|]?|~?/|%%?)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.arithmetic.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:\+\+|\-\-|\+|\-|−|¦|\||⊕|⊖|⊞|⊟|∪|∨|⊔|±|∓|∔|∸|≏|⊎|⊻|⊽|⋎|⋓|⟇|⧺|⧻|⨈|⨢|⨣|⨤|⨥|⨦|⨧|⨨|⨩|⨪|⨫|⨬|⨭|⨮|⨹|⨺|⩁|⩂|⩅|⩊|⩌|⩏|⩐|⩒|⩔|⩖|⩗|⩛|⩝|⩡|⩢|⩣|\*|//?|⌿|÷|%|·|·|⋅|∘|×|\\|∩|∧|⊗|⊘|⊙|⊚|⊛|⊠|⊡|⊓|∗|∙|∤|⅋|≀|⊼|⋄|⋆|⋇|⋉|⋊|⋋|⋌|⋏|⋒|⟑|⦸|⦼|⦾|⦿|⧶|⧷|⨇|⨰|⨱|⨲|⨳|⨴|⨵|⨶|⨷|⨸|⨻|⨼|⨽|⩀|⩃|⩄|⩋|⩍|⩎|⩑|⩓|⩕|⩘|⩚|⩜|⩞|⩟|⩠|⫛|⊍|▷|⨝|⟕|⟖|⟗|⨟|↑|↓|⇵|⟰|⟱|⤈|⤉|⤊|⤋|⤒|⤓|⥉|⥌|⥍|⥏|⥑|⥔|⥕|⥘|⥙|⥜|⥝|⥠|⥡|⥣|⥥|⥮|⥯|￪|￬|√|∛|∜|⋆|±|∓)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.arithmetic.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:<-->|->|-->|<--|←|→|↔|↚|↛|↞|↠|↢|↣|↦|↤|↮|⇎|⇍|⇏|⇐|⇒|⇔|⇴|⇶|⇷|⇸|⇹|⇺|⇻|⇼|⇽|⇾|⇿|⟵|⟶|⟷|⟹|⟺|⟻|⟼|⟽|⟾|⟿|⤀|⤁|⤂|⤃|⤄|⤅|⤆|⤇|⤌|⤍|⤎|⤏|⤐|⤑|⤔|⤕|⤖|⤗|⤘|⤝|⤞|⤟|⤠|⥄|⥅|⥆|⥇|⥈|⥊|⥋|⥎|⥐|⥒|⥓|⥖|⥗|⥚|⥛|⥞|⥟|⥢|⥤|⥦|⥧|⥨|⥩|⥪|⥫|⥬|⥭|⥰|⧴|⬱|⬰|⬲|⬳|⬴|⬵|⬶|⬷|⬸|⬹|⬺|⬻|⬼|⬽|⬾|⬿|⭀|⭁|⭂|⭃|⥷|⭄|⥺|⭇|⭈|⭉|⭊|⭋|⭌|￩|￫|⇜|⇝|↜|↝|↩|↪|↫|↬|↼|↽|⇀|⇁|⇄|⇆|⇇|⇉|⇋|⇌|⇚|⇛|⇠|⇢|↷|↶|↺|↻|=>)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.arrow.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:<[-=]?\||\|[-=]?>)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.pipeline.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:<\+|\+>|∘)(?=(?:['"`\w]|\#?[(\[{]))
@@ -5809,8 +5786,6 @@ repository:
       - match: (?<=['"`)}\]\w]|\\.)(?:[>.]\.[.<]|[=.]\.[.=]|\.\.)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.range.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[<>]=?|<=?>)(?=(?:['"`\w]|\#?[(\[{]))
-        name: keyword.operator.relational.ruko
-      - match: (?<=['"`)}\]\w]|\\.)(?:(?<!<)<=|(?<!>)>=|>|<|≥|≤|≢|∈|∉|∋|∌|⊆|⊈|⊂|⊄|⊊|∝|∊|∍|∥|∦|∷|∺|∻|∽|∾|≁|≃|≂|≄|≅|≆|≇|≈|≉|≊|≋|≌|≍|≎|≐|≑|≒|≓|≖|≗|≘|≙|≚|≛|≜|≝|≞|≟|≣|≦|≧|≨|≩|≪|≫|≬|≭|≮|≯|≰|≱|≲|≳|≴|≵|≶|≷|≸|≹|≺|≻|≼|≽|≾|≿|⊀|⊁|⊃|⊅|⊇|⊉|⊋|⊏|⊐|⊑|⊒|⊜|⊩|⊬|⊮|⊰|⊱|⊲|⊳|⊴|⊵|⊶|⊷|⋍|⋐|⋑|⋕|⋖|⋗|⋘|⋙|⋚|⋛|⋜|⋝|⋞|⋟|⋠|⋡|⋢|⋣|⋤|⋥|⋦|⋧|⋨|⋩|⋪|⋫|⋬|⋭|⋲|⋳|⋴|⋵|⋶|⋷|⋸|⋹|⋺|⋻|⋼|⋽|⋾|⋿|⟈|⟉|⟒|⦷|⧀|⧁|⧡|⧣|⧤|⧥|⩦|⩧|⩪|⩫|⩬|⩭|⩮|⩯|⩰|⩱|⩲|⩳|⩵|⩶|⩷|⩸|⩹|⩺|⩻|⩼|⩽|⩾|⩿|⪀|⪁|⪂|⪃|⪄|⪅|⪆|⪇|⪈|⪉|⪊|⪋|⪌|⪍|⪎|⪏|⪐|⪑|⪒|⪓|⪔|⪕|⪖|⪗|⪘|⪙|⪚|⪛|⪜|⪝|⪞|⪟|⪠|⪡|⪢|⪣|⪤|⪥|⪦|⪧|⪨|⪩|⪪|⪫|⪬|⪭|⪮|⪯|⪰|⪱|⪲|⪳|⪴|⪵|⪶|⪷|⪸|⪹|⪺|⪻|⪼|⪽|⪾|⪿|⫀|⫁|⫂|⫃|⫄|⫅|⫆|⫇|⫈|⫉|⫊|⫋|⫌|⫍|⫎|⫏|⫐|⫑|⫒|⫓|⫔|⫕|⫖|⫗|⫘|⫙|⫷|⫸|⫹|⫺|⊢|⊣|⟂|⫪|⫫)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.relational.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:\.|\.\.+|…|⁝|⋮|⋱|⋰|⋯)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.dots.ruko
@@ -5858,6 +5833,8 @@ repository:
         name: keyword.operator.math.custom.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:\p{Sc}+)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.currency.custom.ruko
+      - match: (?<=['"`)}\]\w]|\\.)(?:[\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+)(?=(?:['"`\w]|\#?[(\[{]))
+        name: keyword.operator.arrow.ruko
       - match: (?<=['"`)}\]\w]|\\.)(?:[!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+)(?=(?:['"`\w]|\#?[(\[{]))
         name: keyword.operator.ascii.custom.ruko
       - match: (?<=['"`)}\]\w]|\\.)([\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]+)(?=(?:['"`\w]|\#?[(\[{]))
@@ -5978,7 +5955,6 @@ repository:
         \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (?:
           va[rl]|mut|let|const|dyn
-          |use|echo|run|eval|expr
           |func|pro[pc]|type|class|actor|trait
           |inter|enum|module|schema|struct|record
           |union|iter|macro|query|elem|temp|oper
@@ -6348,8 +6324,6 @@ repository:
       - include: '#regexps'
       - include: '#symbols'
       - include: '#comments'
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
-        name: keyword.control.module.ruko
       - include: '#type-operators'
       - include: '#accessor-operators'
       - match: \s*(?<!:):(?!:)\s*
@@ -6953,34 +6927,37 @@ repository:
     patterns:
       - match: |-
           (?x)
-          ^\s*\b((?:
-            # ignore all keywords
-            (?!
-              (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-              (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
-                |debug|assert|check|decl
+          ^\s*\b(
+            (?:
+              # ignore all keywords
+              (?!
+                (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?: # keywords
+                  [io]n|of|[ai]s|by|has|old|new|del
+                  |unset|ref|deref|n?and|x?n?or|c?n?imply|not
+                  |va[rl]|mut|let|const|dyn
+                  |use|echo|run|eval|expr
+                  |func|pro[pc]|type|class|actor|trait
+                  |inter|enum|module|schema|struct|record
+                  |union|iter|macro|query|elem|temp|oper
+                  |object|realm|style|script|quote
+                  |[gd]o|defer|with|from|where
+                  |if|else|then|guard|when
+                  |for|loop|while|goto|move
+                  |try|throw|catch|switch
+                  |match|case|pass|def|defer
+                  |break|skip|redo|retry
+                  |return|yield|await|scope|safe
+                  |import|export|intern|extern
+                  |debug|assert|check|decl
+                )
+                \b
               )
-              \b
-            )
-            [\p{Pc}\p{L}]\w* # identifier
-            \b\s*
-          )+)(:)\s*
+              [\p{Pc}\p{L}]\w* # identifier
+              \b\s*
+            )+
+          )
+          (:)\s*
         captures:
           1:
             name: storage.modifier.specifier.ruko
@@ -7862,7 +7839,6 @@ repository:
             \b
               (?: # destructuring keywords
                 va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
                 |case
               )
             \b
@@ -8003,7 +7979,6 @@ repository:
             \b
               (?: # destructuring keywords
                 va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
                 |case
               )
             \b
@@ -8061,7 +8036,6 @@ repository:
             \b
               (?: # destructuring keywords
                 va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
                 |case
               )
             \b
@@ -8489,10 +8463,10 @@ repository:
       - comment: Constant/algebraic classes
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:)\b(
-            True|False|Null|Void|NaN|Inf|Empty|Unit|Object
+            True|False|Null|Void|NaN|Inf|Empty|Unit
             |Any|Mixed|Just|Some|None|Never|(Im)?pure|Const|Undef
             # lower flat case
-            |true|false|null|void|nan|inf|empty|unit|obj
+            |true|false|null|void|nan|inf|empty|unit
             |any|mixed|just|some|none|never|(im)?pure|const|undef
           )\b
         name: support.type.primitive.ruko
@@ -8520,11 +8494,11 @@ repository:
     patterns:
       - include: source.python#builtin-exceptions
       - include: source.php#class-builtin
+      - include: source.swift#builtin-types
       - include: source.swift#builtin-types-builtin-protocol-type
       - include: source.swift#builtin-types-builtin-struct-type
       - include: source.swift#builtin-types-builtin-enum-type
       - include: source.swift#builtin-types-builtin-class-type
-      - include: source.swift#builtin-types
 
       # ShaderLab
       - name: support.type.basic.shaderlab
@@ -8616,8 +8590,7 @@ repository:
       - include: source.objcpp#anonymous_pattern_25
 
   support-functions:
-    comment: |
-      Names for general support functions in Ruko standard library
+    comment: Names for general support functions in Ruko standard library
       organized by naming conventions for maintainability
     patterns:
       - comment: predicate functions
@@ -8647,33 +8620,30 @@ repository:
       - include: '#html-builtins'
 
       # PHP (correct as of PHP 8.2)
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           apc_(
-            store|sma_info|compile_file|clear_cache|cas|cache_info|inc|dec|define_constants|delete(_file)?|
-            exists|fetch|load_constants|add|bin_(dump|load)(file)?
+          store|sma_info|compile_file|clear_cache|cas|cache_info|inc|dec|define_constants|delete(_file)?|
+          exists|fetch|load_constants|add|bin_(dump|load)(file)?
           )\b
         name: support.function.apc.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            compact|count|current|end|extract|in_array|key(_exists)?|list|nat(case)?sort|
-            next|pos|prev|range|reset|shuffle|sizeof|[ak]?r?sort|u[ak]?sort|
-            array_(
-              all|any|change_key_case|chunk|column|combine|count_values|
-              fill(_keys)?|filter|find(_key)?|flip|is_list|key_(exists|first|last)|keys|
-              map|multisort|pad|pop|product|push|rand|reduce|reverse|
-              search|shift|slice|splice|sum|unique|unshift|values|
-              u?(diff|intersect)(_u?(key|assoc))?|(walk|replace|merge)(_recursive)?
-            )
+          compact|count|current|end|extract|in_array|key(_exists)?|list|nat(case)?sort|
+          next|pos|prev|range|reset|shuffle|sizeof|[ak]?r?sort|u[ak]?sort|
+          array_(
+          all|any|change_key_case|chunk|column|combine|count_values|
+          fill(_keys)?|filter|find(_key)?|flip|is_list|key_(exists|first|last)|keys|
+          map|multisort|pad|pop|product|push|rand|reduce|reverse|
+          search|shift|slice|splice|sum|unique|unshift|values|
+          u?(diff|intersect)(_u?(key|assoc))?|(walk|replace|merge)(_recursive)?
+          )
           )\b
         name: support.function.array.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            connection_(aborted|status)|constant|defined?|die|eval|exit|get_browser|
-            __halt_compiler|highlight_(file|string)|hrtime|ignore_user_abort|pack|php_strip_whitespace|
-            show_source|u?sleep|sys_getloadavg|time_(nanosleep|sleep_until)|uniqid|unpack
+          connection_(aborted|status)|constant|defined?|die|eval|exit|get_browser|
+          __halt_compiler|highlight_(file|string)|hrtime|ignore_user_abort|pack|php_strip_whitespace|
+          show_source|u?sleep|sys_getloadavg|time_(nanosleep|sleep_until)|uniqid|unpack
           )\b
         name: support.function.basic_functions.php
       - match: \bbc(add|ceil|comp|(div|pow)(mod)?|floor|mod|mul|round|scale|sqrt|sub)\b
@@ -8689,21 +8659,19 @@ repository:
             jdto(unix|jewish)|easter_(date|days)|JD(MonthName|To(Gregorian|Julian|French)|DayOfWeek)
           )\b
         name: support.function.calendar.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            __autoload|class_alias|(class|interface|method|property|trait|enum)_exists|
-            is_(a|subclass_of)|
-            get_(class(_(vars|methods))?|(called|parent)_class|
-              (mangled_)?object_vars|declared_(classes|interfaces|traits))
+          __autoload|class_alias|(class|interface|method|property|trait|enum)_exists|
+          is_(a|subclass_of)|
+          get_(class(_(vars|methods))?|(called|parent)_class|
+          (mangled_)?object_vars|declared_(classes|interfaces|traits))
           )\b
         name: support.function.classobj.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            com_(create_guid|print_typeinfo|event_sink|load_typelib|get_active_object|message_pump)|
-            variant_(sub|set(_type)?|not|neg|cast|cat|cmp|int|idiv|imp|or|div|date_(from|to)_timestamp|
-                     pow|eqv|fix|and|add|abs|round|get_type|xor|mod|mul)
+          com_(create_guid|print_typeinfo|event_sink|load_typelib|get_active_object|message_pump)|
+          variant_(sub|set(_type)?|not|neg|cast|cat|cmp|int|idiv|imp|or|div|date_(from|to)_timestamp|
+          pow|eqv|fix|and|add|abs|round|get_type|xor|mod|mul)
           )\b
         name: support.function.com.php
       - match: \b(isset|unset|eval|empty|list)\b
@@ -8712,25 +8680,23 @@ repository:
         name: support.function.construct.output.php
       - match: \bctype_(space|cntrl|digit|upper|punct|print|lower|alnum|alpha|graph|xdigit)\b
         name: support.function.ctype.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           curl_(
-            close|copy_handle|errno|error|escape|exec|getinfo|init|pause|reset|
+          close|copy_handle|errno|error|escape|exec|getinfo|init|pause|reset|
           setopt(_array)?|strerror|unescape|upkeep|version|
-            multi_((add|remove)_handle|close|errno|exec|getcontent|
-              info_read|init|select|setopt|strerror)|
-            share_(close|errno|init(_persistent)?|setopt|strerror)
+          multi_((add|remove)_handle|close|errno|exec|getcontent|
+          info_read|init|select|setopt|strerror)|
+          share_(close|errno|init(_persistent)?|setopt|strerror)
           )\b
         name: support.function.curl.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            strtotime|str[fp]time|checkdate|time|timezone_name_(from_abbr|get)|idate|
-            timezone_((location|offset|transitions|version)_get|(abbreviations|identifiers)_list|open)|
-            date(_(sun(rise|set)|sun_info|sub|create(_immutable)?(_from_format)?|timestamp_[gs]et|timezone_[gs]et|time_set|
-                   isodate_set|interval_(create_from_date_string|format)|offset_get|diff|default_timezone_[gs]et|date_set|
-                   parse(_from_format)?|format|add|get_last_errors|modify))?|
-            localtime|get(date|timeofday)|gm(strftime|date|mktime)|microtime|mktime
+          strtotime|str[fp]time|checkdate|time|timezone_name_(from_abbr|get)|idate|
+          timezone_((location|offset|transitions|version)_get|(abbreviations|identifiers)_list|open)|
+          date(_(sun(rise|set)|sun_info|sub|create(_immutable)?(_from_format)?|timestamp_[gs]et|timezone_[gs]et|time_set|
+          isodate_set|interval_(create_from_date_string|format)|offset_get|diff|default_timezone_[gs]et|date_set|
+          parse(_from_format)?|format|add|get_last_errors|modify))?|
+          localtime|get(date|timeofday)|gm(strftime|date|mktime)|microtime|mktime
           )\b
         name: support.function.datetime.php
       - match: \bdba_(sync|handlers|nextkey|close|insert|optimize|open|delete|popen|exists|key_split|firstkey|fetch|list|replace)\b
@@ -8739,20 +8705,18 @@ repository:
         name: support.function.dbx.php
       - match: \b(scandir|chdir|chroot|closedir|opendir|dir|rewinddir|readdir|getcwd)\b
         name: support.function.dir.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           eio_(
-            sync(fs)?|sync_file_range|symlink|stat(vfs)?|sendfile|set_min_parallel|set_max_(idle|poll_(reqs|time)|parallel)|
-            seek|n(threads|op|pending|reqs|ready)|chown|chmod|custom|close|cancel|truncate|init|open|dup2|unlink|utime|poll|
-            event_loop|f(sync|stat(vfs)?|chown|chmod|truncate|datasync|utime|allocate)|write|lstat|link|rename|realpath|
-            read(ahead|dir|link)?|rmdir|get_(event_stream|last_error)|grp(_(add|cancel|limit))?|mknod|mkdir|busy
+          sync(fs)?|sync_file_range|symlink|stat(vfs)?|sendfile|set_min_parallel|set_max_(idle|poll_(reqs|time)|parallel)|
+          seek|n(threads|op|pending|reqs|ready)|chown|chmod|custom|close|cancel|truncate|init|open|dup2|unlink|utime|poll|
+          event_loop|f(sync|stat(vfs)?|chown|chmod|truncate|datasync|utime|allocate)|write|lstat|link|rename|realpath|
+          read(ahead|dir|link)?|rmdir|get_(event_stream|last_error)|grp(_(add|cancel|limit))?|mknod|mkdir|busy
           )\b
         name: support.function.eio.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           enchant_(
-            dict_(store_replacement|suggest|check|is_in_session|describe|quick_check|add_to_(personal|session)|get_error)|
-            broker_(set_ordering|init|dict_exists|describe|free(_dict)?|list_dicts|request_(pwl_)?dict|get_error)
+          dict_(store_replacement|suggest|check|is_in_session|describe|quick_check|add_to_(personal|session)|get_error)|
+          broker_(set_ordering|init|dict_exists|describe|free(_dict)?|list_dicts|request_(pwl_)?dict|get_error)
           )\b
         name: support.function.enchant.php
       - match: \b(split(i)?|sql_regcase|ereg(i)?(_replace)?)\b
@@ -8763,41 +8727,39 @@ repository:
         name: support.function.exec.php
       - match: \b(exif_(thumbnail|tagname|imagetype|read_data)|read_exif_data)\b
         name: support.function.exif.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           fann_(
-            (duplicate|length|merge|shuffle|subset)_train_data|scale_(train(_data)?|(input|output)(_train_data)?)|
-            set_(scaling_params|sarprop_(step_error_(shift|threshold_factor)|temperature|weight_decay_shift)|
-                 cascade_(num_candidate_groups|candidate_(change_fraction|limit|stagnation_epochs)|
-                          output_(change_fraction|stagnation_epochs)|weight_multiplier|activation_(functions|steepnesses)|
-                          (max|min)_(cand|out)_epochs)|
-                 callback|training_algorithm|train_(error|stop)_function|(input|output)_scaling_params|error_log|
-                 quickprop_(decay|mu)|weight(_array)?|learning_(momentum|rate)|bit_fail_limit|
-                 activation_(function|steepness)(_(hidden|layer|output))?|
-                 rprop_((decrease|increase)_factor|delta_(max|min|zero)))|
-            save(_train)?|num_(input|output)_train_data|copy|clear_scaling_params|cascadetrain_on_(file|data)|
-            create_((sparse|shortcut|standard)(_array)?|train(_from_callback)?|from_file)|
-            test(_data)?|train(_(on_(file|data)|epoch))?|init_weights|descale_(input|output|train)|destroy(_train)?|
-            print_error|run|reset_(MSE|err(no|str))|read_train_from_file|randomize_weights|
-            get_(sarprop_(step_error_(shift|threshold_factor)|temperature|weight_decay_shift)|num_(input|output|layers)|
-                 network_type|MSE|connection_(array|rate)|bias_array|bit_fail(_limit)?|
-                 cascade_(num_(candidates|candidate_groups)|(candidate|output)_(change_fraction|limit|stagnation_epochs)|
-                          weight_multiplier|activation_(functions|steepnesses)(_count)?|(max|min)_(cand|out)_epochs)|
-                 total_(connections|neurons)|training_algorithm|train_(error|stop)_function|err(no|str)|
-                 quickprop_(decay|mu)|learning_(momentum|rate)|layer_array|activation_(function|steepness)|
-                 rprop_((decrease|increase)_factor|delta_(max|min|zero)))
+          (duplicate|length|merge|shuffle|subset)_train_data|scale_(train(_data)?|(input|output)(_train_data)?)|
+          set_(scaling_params|sarprop_(step_error_(shift|threshold_factor)|temperature|weight_decay_shift)|
+          cascade_(num_candidate_groups|candidate_(change_fraction|limit|stagnation_epochs)|
+          output_(change_fraction|stagnation_epochs)|weight_multiplier|activation_(functions|steepnesses)|
+          (max|min)_(cand|out)_epochs)|
+          callback|training_algorithm|train_(error|stop)_function|(input|output)_scaling_params|error_log|
+          quickprop_(decay|mu)|weight(_array)?|learning_(momentum|rate)|bit_fail_limit|
+          activation_(function|steepness)(_(hidden|layer|output))?|
+          rprop_((decrease|increase)_factor|delta_(max|min|zero)))|
+          save(_train)?|num_(input|output)_train_data|copy|clear_scaling_params|cascadetrain_on_(file|data)|
+          create_((sparse|shortcut|standard)(_array)?|train(_from_callback)?|from_file)|
+          test(_data)?|train(_(on_(file|data)|epoch))?|init_weights|descale_(input|output|train)|destroy(_train)?|
+          print_error|run|reset_(MSE|err(no|str))|read_train_from_file|randomize_weights|
+          get_(sarprop_(step_error_(shift|threshold_factor)|temperature|weight_decay_shift)|num_(input|output|layers)|
+          network_type|MSE|connection_(array|rate)|bias_array|bit_fail(_limit)?|
+          cascade_(num_(candidates|candidate_groups)|(candidate|output)_(change_fraction|limit|stagnation_epochs)|
+          weight_multiplier|activation_(functions|steepnesses)(_count)?|(max|min)_(cand|out)_epochs)|
+          total_(connections|neurons)|training_algorithm|train_(error|stop)_function|err(no|str)|
+          quickprop_(decay|mu)|learning_(momentum|rate)|layer_array|activation_(function|steepness)|
+          rprop_((decrease|increase)_factor|delta_(max|min|zero)))
           )\b
         name: support.function.fann.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            symlink|stat|set_file_buffer|chown|chgrp|chmod|copy|clearstatcache|touch|tempnam|tmpfile|
-            is_(dir|(uploaded_)?file|executable|link|readable|writ(e)?able)|disk_(free|total)_space|diskfreespace|
-            dirname|delete|unlink|umask|pclose|popen|pathinfo|parse_ini_(file|string)|fscanf|fstat|fseek|fnmatch|
-            fclose|ftell|ftruncate|file(size|[acm]time|type|inode|owner|perms|group)?|file_(exists|(get|put)_contents)|
-            f(open|puts|putcsv|passthru|eof|flush|write|lock|read|gets(s)?|getc(sv)?)|lstat|lchown|lchgrp|link(info)?|
-            rename|rewind|read(file|link)|realpath(_cache_(get|size))?|rmdir|glob|move_uploaded_file|mkdir|basename|
-            f(data)?sync
+          symlink|stat|set_file_buffer|chown|chgrp|chmod|copy|clearstatcache|touch|tempnam|tmpfile|
+          is_(dir|(uploaded_)?file|executable|link|readable|writ(e)?able)|disk_(free|total)_space|diskfreespace|
+          dirname|delete|unlink|umask|pclose|popen|pathinfo|parse_ini_(file|string)|fscanf|fstat|fseek|fnmatch|
+          fclose|ftell|ftruncate|file(size|[acm]time|type|inode|owner|perms|group)?|file_(exists|(get|put)_contents)|
+          f(open|puts|putcsv|passthru|eof|flush|write|lock|read|gets(s)?|getc(sv)?)|lstat|lchown|lchgrp|link(info)?|
+          rename|rewind|read(file|link)|realpath(_cache_(get|size))?|rmdir|glob|move_uploaded_file|mkdir|basename|
+          f(data)?sync
           )\b
         name: support.function.file.php
       - match: \b(finfo_(set_flags|close|open|file|buffer)|mime_content_type)\b
@@ -8810,138 +8772,128 @@ repository:
         name: support.function.funchand.php
       - match: \b((n)?gettext|textdomain|d((n)?gettext|c(n)?gettext)|bind(textdomain|_textdomain_codeset))\b
         name: support.function.gettext.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           gmp_(
-            scan[01]|strval|sign|sub|setbit|sqrt(rem)?|hamdist|neg|nextprime|com|clrbit|cmp|testbit|
-            intval|init|invert|import|or|div(exact)?|div_(q|qr|r)|jacobi|popcount|pow(m)?|perfect_(square|power)|
-            prob_prime|export|fact|legendre|and|add|abs|root(rem)?|random(_(bits|range|seed))?|gcd(ext)?|xor|mod|mul|
-            binomial|kronecker|lcm
+          scan[01]|strval|sign|sub|setbit|sqrt(rem)?|hamdist|neg|nextprime|com|clrbit|cmp|testbit|
+          intval|init|invert|import|or|div(exact)?|div_(q|qr|r)|jacobi|popcount|pow(m)?|perfect_(square|power)|
+          prob_prime|export|fact|legendre|and|add|abs|root(rem)?|random(_(bits|range|seed))?|gcd(ext)?|xor|mod|mul|
+          binomial|kronecker|lcm
           )\b
         name: support.function.gmp.php
       - match: (?x)\b hash(_( algos|copy|equals|file|final|hkdf|hmac(_(file|algos)?)?|
           init|pbkdf2|update(_(file|stream))? ))? \b
         name: support.function.hash.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            http_(support|send_(status|stream|content_(disposition|type)|data|file|last_modified)|head|
-                  negotiate_(charset|content_type|language)|chunked_decode|cache_(etag|last_modified)|throttle|
-                  inflate|deflate|date|post_(data|fields)|put_(data|file|stream)|persistent_handles_(count|clean|ident)|
-                  parse_(cookie|headers|message|params)|redirect|request(_(method_(exists|name|(un)?register)|body_encode))?|
-                  get(_request_(headers|body(_stream)?))?|match_(etag|modified|request_header)|build_(cookie|str|url))|
-            ob_(etag|deflate|inflate)handler
+          http_(support|send_(status|stream|content_(disposition|type)|data|file|last_modified)|head|
+          negotiate_(charset|content_type|language)|chunked_decode|cache_(etag|last_modified)|throttle|
+          inflate|deflate|date|post_(data|fields)|put_(data|file|stream)|persistent_handles_(count|clean|ident)|
+          parse_(cookie|headers|message|params)|redirect|request(_(method_(exists|name|(un)?register)|body_encode))?|
+          get(_request_(headers|body(_stream)?))?|match_(etag|modified|request_header)|build_(cookie|str|url))|
+          ob_(etag|deflate|inflate)handler
           )\b
         name: support.function.http.php
       - match: \b(iconv(_(str(pos|len|rpos)|substr|[gs]et_encoding|mime_(decode(_headers)?|encode)))?|ob_iconv_handler)\b
         name: support.function.iconv.php
       - match: \biis_((start|stop)_(service|server)|set_(script_map|server_rights|dir_security|app_settings)|(add|remove)_server|get_(script_map|service_state|server_(rights|by_(comment|path))|dir_security))\b
         name: support.function.iisfunc.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            iptc(embed|parse)|(jpeg|png)2wbmp|gd_info|getimagesize(fromstring)?|
-            image(s[xy]|scale|(char|string)(up)?|set(clip|style|thickness|tile|interpolation|pixel|brush)|savealpha|
-                  convolution|copy(resampled|resized|merge(gray)?)?|colors(forindex|total)|
-                  color(set|closest(alpha|hwb)?|transparent|deallocate|(allocate|exact|resolve)(alpha)?|at|match)|
-                  crop(auto)?|create(truecolor|from(avif|bmp|string|jpeg|png|wbmp|webp|gif|gd(2(part)?)?|tga|xpm|xbm))?|
-                  types|ttf(bbox|text)|truecolortopalette|istruecolor|interlace|2wbmp|destroy|dashedline|jpeg|
-                  _type_to_(extension|mime_type)|ps(slantfont|text|(encode|extend|free|load)font|bbox)|png|polygon|
-                  palette(copy|totruecolor)|ellipse|ft(text|bbox)|filter|fill|filltoborder|
-                  filled(arc|ellipse|polygon|rectangle)|font(height|width)|flip|webp|wbmp|line|loadfont|layereffect|
-                  antialias|affine(matrix(concat|get))?|alphablending|arc|rotate|rectangle|gif|gd2?|gammacorrect|
-                  grab(screen|window)|xbm|resolution|openpolygon|get(clip|interpolation)|avif|bmp)
+          iptc(embed|parse)|(jpeg|png)2wbmp|gd_info|getimagesize(fromstring)?|
+          image(s[xy]|scale|(char|string)(up)?|set(clip|style|thickness|tile|interpolation|pixel|brush)|savealpha|
+          convolution|copy(resampled|resized|merge(gray)?)?|colors(forindex|total)|
+          color(set|closest(alpha|hwb)?|transparent|deallocate|(allocate|exact|resolve)(alpha)?|at|match)|
+          crop(auto)?|create(truecolor|from(avif|bmp|string|jpeg|png|wbmp|webp|gif|gd(2(part)?)?|tga|xpm|xbm))?|
+          types|ttf(bbox|text)|truecolortopalette|istruecolor|interlace|2wbmp|destroy|dashedline|jpeg|
+          _type_to_(extension|mime_type)|ps(slantfont|text|(encode|extend|free|load)font|bbox)|png|polygon|
+          palette(copy|totruecolor)|ellipse|ft(text|bbox)|filter|fill|filltoborder|
+          filled(arc|ellipse|polygon|rectangle)|font(height|width)|flip|webp|wbmp|line|loadfont|layereffect|
+          antialias|affine(matrix(concat|get))?|alphablending|arc|rotate|rectangle|gif|gd2?|gammacorrect|
+          grab(screen|window)|xbm|resolution|openpolygon|get(clip|interpolation)|avif|bmp)
           )\b
         name: support.function.image.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            sys_get_temp_dir|set_(time_limit|include_path|magic_quotes_runtime)|cli_[gs]et_process_title|
-            ini_(alter|get(_all)?|restore|set)|zend_(thread_id|version|logo_guid)|dl|php(credits|info|version)|
-            php_(sapi_name|ini_(scanned_files|loaded_file)|uname|logo_guid)|putenv|extension_loaded|version_compare|
-            assert(_options)?|restore_include_path|gc_(collect_cycles|disable|enable(d)?)|getopt|
-            get_(cfg_var|current_user|defined_constants|extension_funcs|include_path|included_files|loaded_extensions|
-                 magic_quotes_(gpc|runtime)|required_files|resources)|
-            get(env|lastmod|rusage|my(inode|[gup]id))|
-            memory_get_(peak_)?usage|main|magic_quotes_runtime
+          sys_get_temp_dir|set_(time_limit|include_path|magic_quotes_runtime)|cli_[gs]et_process_title|
+          ini_(alter|get(_all)?|restore|set)|zend_(thread_id|version|logo_guid)|dl|php(credits|info|version)|
+          php_(sapi_name|ini_(scanned_files|loaded_file)|uname|logo_guid)|putenv|extension_loaded|version_compare|
+          assert(_options)?|restore_include_path|gc_(collect_cycles|disable|enable(d)?)|getopt|
+          get_(cfg_var|current_user|defined_constants|extension_funcs|include_path|included_files|loaded_extensions|
+          magic_quotes_(gpc|runtime)|required_files|resources)|
+          get(env|lastmod|rusage|my(inode|[gup]id))|
+          memory_get_(peak_)?usage|main|magic_quotes_runtime
           )\b
         name: support.function.info.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           ibase_(
-            set_event_handler|service_(attach|detach)|server_info|num_(fields|params)|name_result|connect|
-            commit(_ret)?|close|trans|delete_user|drop_db|db_info|pconnect|param_info|prepare|err(code|msg)|
-            execute|query|field_info|fetch_(assoc|object|row)|free_(event_handler|query|result)|wait_event|
-            add_user|affected_rows|rollback(_ret)?|restore|gen_id|modify_user|maintain_db|backup|
-            blob_(cancel|close|create|import|info|open|echo|add|get)
+          set_event_handler|service_(attach|detach)|server_info|num_(fields|params)|name_result|connect|
+          commit(_ret)?|close|trans|delete_user|drop_db|db_info|pconnect|param_info|prepare|err(code|msg)|
+          execute|query|field_info|fetch_(assoc|object|row)|free_(event_handler|query|result)|wait_event|
+          add_user|affected_rows|rollback(_ret)?|restore|gen_id|modify_user|maintain_db|backup|
+          blob_(cancel|close|create|import|info|open|echo|add|get)
           )\b
         name: support.function.interbase.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            normalizer_(normalize|is_normalized)|idn_to_(unicode|utf8|ascii)|
-            numfmt_(set_(symbol|(text_)?attribute|pattern)|create|(parse|format)(_currency)?|
-                    get_(symbol|(text_)?attribute|pattern|error_(code|message)|locale))|
-            collator_(sort(_with_sort_keys)?|set_(attribute|strength)|compare|create|asort|
-                      get_(strength|sort_key|error_(code|message)|locale|attribute))|
-            transliterator_(create(_(inverse|from_rules))?|transliterate|list_ids|get_error_(code|message))|
-            intl(cal|tz)_get_error_(code|message)|intl_(is_failure|error_name|get_error_(code|message))|
-            datefmt_(set_(calendar|lenient|pattern|timezone(_id)?)|create|is_lenient|parse|format(_object)?|localtime|
-                     get_(calendar(_object)?|time(type|zone(_id)?)|datetype|pattern|error_(code|message)|locale))|
-            locale_(set_default|compose|canonicalize|parse|filter_matches|lookup|accept_from_http|
-                    get_(script|display_(script|name|variant|language|region)|default|primary_language|keywords|all_variants|region))|
-            resourcebundle_(create|count|locales|get(_(error_(code|message)))?)|
-            grapheme_(str(i?str|r?i?pos|len|_split)|substr|extract)|
-            msgfmt_(set_pattern|create|(format|parse)(_message)?|get_(pattern|error_(code|message)|locale))
+          normalizer_(normalize|is_normalized)|idn_to_(unicode|utf8|ascii)|
+          numfmt_(set_(symbol|(text_)?attribute|pattern)|create|(parse|format)(_currency)?|
+          get_(symbol|(text_)?attribute|pattern|error_(code|message)|locale))|
+          collator_(sort(_with_sort_keys)?|set_(attribute|strength)|compare|create|asort|
+          get_(strength|sort_key|error_(code|message)|locale|attribute))|
+          transliterator_(create(_(inverse|from_rules))?|transliterate|list_ids|get_error_(code|message))|
+          intl(cal|tz)_get_error_(code|message)|intl_(is_failure|error_name|get_error_(code|message))|
+          datefmt_(set_(calendar|lenient|pattern|timezone(_id)?)|create|is_lenient|parse|format(_object)?|localtime|
+          get_(calendar(_object)?|time(type|zone(_id)?)|datetype|pattern|error_(code|message)|locale))|
+          locale_(set_default|compose|canonicalize|parse|filter_matches|lookup|accept_from_http|
+          get_(script|display_(script|name|variant|language|region)|default|primary_language|keywords|all_variants|region))|
+          resourcebundle_(create|count|locales|get(_(error_(code|message)))?)|
+          grapheme_(str(i?str|r?i?pos|len|_split)|substr|extract)|
+          msgfmt_(set_pattern|create|(format|parse)(_message)?|get_(pattern|error_(code|message)|locale))
           )\b
         name: support.function.intl.php
       - match: \bjson_(decode|encode|last_error(_msg)?|validate)\b
         name: support.function.json.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           ldap_(
-            start|tls|sort|search|sasl_bind|set_(option|rebind_proc)|(first|next)_(attribute|entry|reference)|
-            connect|control_paged_result(_response)?|count_entries|compare|close|t61_to_8859|8859_to_t61|
-            dn2ufn|delete|unbind|parse_(reference|result)|escape|errno|err2str|error|explode_dn|bind|
-            free_result|list|add|rename|read|get_(option|dn|entries|values(_len)?|attributes)|modify(_batch)?|
-            mod_(add|del|replace)
+          start|tls|sort|search|sasl_bind|set_(option|rebind_proc)|(first|next)_(attribute|entry|reference)|
+          connect|control_paged_result(_response)?|count_entries|compare|close|t61_to_8859|8859_to_t61|
+          dn2ufn|delete|unbind|parse_(reference|result)|escape|errno|err2str|error|explode_dn|bind|
+          free_result|list|add|rename|read|get_(option|dn|entries|values(_len)?|attributes)|modify(_batch)?|
+          mod_(add|del|replace)
           )\b
         name: support.function.ldap.php
       - match: \blibxml_(set_(streams_context|external_entity_loader)|clear_errors|disable_entity_loader|use_internal_errors|get_(errors|last_error))\b
         name: support.function.libxml.php
       - match: \b(ezmlm_hash|mail)\b
         name: support.function.mail.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            a?(cos|sin|tan)h?|sqrt|srand|hypot|hexdec|ceil|is_(nan|(in)?finite)|octdec|dec(hex|oct|bin)|deg2rad|
-            pi|pow|exp(m1)?|floor|f(div|mod|pow)|lcg_value|log(1[p0])?|atan2|abs|round|rand|rad2deg|getrandmax|
-            mt_(srand|rand|getrandmax)|max|min|bindec|base_convert|intdiv
+          a?(cos|sin|tan)h?|sqrt|srand|hypot|hexdec|ceil|is_(nan|(in)?finite)|octdec|dec(hex|oct|bin)|deg2rad|
+          pi|pow|exp(m1)?|floor|f(div|mod|pow)|lcg_value|log(1[p0])?|atan2|abs|round|rand|rad2deg|getrandmax|
+          mt_(srand|rand|getrandmax)|max|min|bindec|base_convert|intdiv
           )\b
         name: support.function.math.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           mb_(
-            str(cut|str|to(lower|upper)|istr|ipos|imwidth|pos|width|len|rchr|richr|ripos|rpos|_pad|_split)|
-            substitute_character|substr(_count)?|split|send_mail|http_(input|output)|check_encoding|
-            convert_(case|encoding|kana|variables)|internal_encoding|output_handler|decode_(numericentity|mimeheader)|
-            detect_(encoding|order)|parse_str|preferred_mime_name|encoding_aliases|encode_(numericentity|mimeheader)|
-            ereg(i(_replace)?)?|ereg_(search(_(get(pos|regs)|init|regs|(set)?pos))?|replace(_callback)?|match)|
-            list_encodings|language|regex_(set_options|encoding)|get_info|
-            [lr]?trim|[lu]cfirst|ord|chr|scrub
+          str(cut|str|to(lower|upper)|istr|ipos|imwidth|pos|width|len|rchr|richr|ripos|rpos|_pad|_split)|
+          substitute_character|substr(_count)?|split|send_mail|http_(input|output)|check_encoding|
+          convert_(case|encoding|kana|variables)|internal_encoding|output_handler|decode_(numericentity|mimeheader)|
+          detect_(encoding|order)|parse_str|preferred_mime_name|encoding_aliases|encode_(numericentity|mimeheader)|
+          ereg(i(_replace)?)?|ereg_(search(_(get(pos|regs)|init|regs|(set)?pos))?|replace(_callback)?|match)|
+          list_encodings|language|regex_(set_options|encoding)|get_info|
+          [lr]?trim|[lu]cfirst|ord|chr|scrub
           )\b
         name: support.function.mbstring.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            mcrypt_(
-              cfb|create_iv|cbc|ofb|decrypt|encrypt|ecb|list_(algorithms|modes)|generic(_((de)?init|end))?|
-              enc_(self_test|is_block_(algorithm|algorithm_mode|mode)|
-              get_(supported_key_sizes|(block|iv|key)_size|(algorithms|modes)_name))|
-              get_(cipher_name|(block|iv|key)_size)|
-              module_(close|self_test|is_block_(algorithm|algorithm_mode|mode)|open|
-                      get_(supported_key_sizes|algo_(block|key)_size)))|
-            mdecrypt_generic
+          mcrypt_(
+          cfb|create_iv|cbc|ofb|decrypt|encrypt|ecb|list_(algorithms|modes)|generic(_((de)?init|end))?|
+          enc_(self_test|is_block_(algorithm|algorithm_mode|mode)|
+          get_(supported_key_sizes|(block|iv|key)_size|(algorithms|modes)_name))|
+          get_(cipher_name|(block|iv|key)_size)|
+          module_(close|self_test|is_block_(algorithm|algorithm_mode|mode)|open|
+          get_(supported_key_sizes|algo_(block|key)_size)))|
+          mdecrypt_generic
           )\b
         name: support.function.mcrypt.php
       - match: \bmemcache_debug\b
@@ -8950,30 +8902,28 @@ repository:
         name: support.function.mhash.php
       - match: \b(log_(cmd_(insert|delete|update)|killcursor|write_batch|reply|getmore)|bson_(decode|encode))\b
         name: support.function.mongo.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           mysql_(
-            stat|set_charset|select_db|num_(fields|rows)|connect|client_encoding|close|create_db|escape_string|
-            thread_id|tablename|insert_id|info|data_seek|drop_db|db_(name|query)|unbuffered_query|pconnect|ping|
-            errno|error|query|field_(seek|name|type|table|flags|len)|fetch_(object|field|lengths|assoc|array|row)|
-            free_result|list_(tables|dbs|processes|fields)|affected_rows|result|real_escape_string|
-            get_(client|host|proto|server)_info
+          stat|set_charset|select_db|num_(fields|rows)|connect|client_encoding|close|create_db|escape_string|
+          thread_id|tablename|insert_id|info|data_seek|drop_db|db_(name|query)|unbuffered_query|pconnect|ping|
+          errno|error|query|field_(seek|name|type|table|flags|len)|fetch_(object|field|lengths|assoc|array|row)|
+          free_result|list_(tables|dbs|processes|fields)|affected_rows|result|real_escape_string|
+          get_(client|host|proto|server)_info
           )\b
         name: support.function.mysql.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           mysqli_(
-            ssl_set|store_result|stat|send_(query|long_data)|set_(charset|opt|local_infile_(default|handler))|
-            stmt_(store_result|send_long_data|next_result|close|init|data_seek|prepare|execute|fetch|free_result|
-                  attr_[gs]et|result_metadata|reset|get_(result|warnings)|more_results|bind_(param|result))|
-            select_db|slave_query|savepoint|next_result|change_user|character_set_name|connect|commit|
-            client_encoding|close|thread_safe|init|options|(enable|disable)_(reads_from_master|rpl_parse)|
-            dump_debug_info|debug|data_seek|use_result|ping|poll|param_count|prepare|escape_string|execute|
-            embedded_server_(start|end)|kill|query|field_seek|free_result|autocommit|rollback|report|refresh|
-            fetch(_(object|fields|field(_direct)?|assoc|all|array|row))?|rpl_(parse_enabled|probe|query_type)|
-            release_savepoint|reap_async_query|real_(connect|escape_string|query)|more_results|multi_query|
-            get_(charset|connection_stats|client_(stats|info|version)|cache_stats|warnings|links_stats|metadata)|
-            master_query|bind_(param|result)|begin_transaction
+          ssl_set|store_result|stat|send_(query|long_data)|set_(charset|opt|local_infile_(default|handler))|
+          stmt_(store_result|send_long_data|next_result|close|init|data_seek|prepare|execute|fetch|free_result|
+          attr_[gs]et|result_metadata|reset|get_(result|warnings)|more_results|bind_(param|result))|
+          select_db|slave_query|savepoint|next_result|change_user|character_set_name|connect|commit|
+          client_encoding|close|thread_safe|init|options|(enable|disable)_(reads_from_master|rpl_parse)|
+          dump_debug_info|debug|data_seek|use_result|ping|poll|param_count|prepare|escape_string|execute|
+          embedded_server_(start|end)|kill|query|field_seek|free_result|autocommit|rollback|report|refresh|
+          fetch(_(object|fields|field(_direct)?|assoc|all|array|row))?|rpl_(parse_enabled|probe|query_type)|
+          release_savepoint|reap_async_query|real_(connect|escape_string|query)|more_results|multi_query|
+          get_(charset|connection_stats|client_(stats|info|version)|cache_stats|warnings|links_stats|metadata)|
+          master_query|bind_(param|result)|begin_transaction
           )\b
         name: support.function.mysqli.php
       - match: \bmysqlnd_memcache_(set|get_config)\b
@@ -8984,114 +8934,104 @@ repository:
         name: support.function.mysqlnd-qc.php
       - match: \bmysqlnd_uh_(set_(statement|connection)_proxy|convert_to_mysqlnd)\b
         name: support.function.mysqlnd-uh.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            syslog|socket_(set_(blocking|timeout)|get_status)|set(raw)?cookie|http_response_code|openlog|
-            headers_(list|sent)|header(_(register_callback|remove))?|checkdnsrr|closelog|inet_(ntop|pton)|ip2long|
-            openlog|dns_(check_record|get_(record|mx))|define_syslog_variables|(p)?fsockopen|long2ip|
-            get(servby(name|port)|host(name|by(name(l)?|addr))|protoby(name|number)|mxrr)|
-            http_(clear|get)_last_response_headers|net_get_interfaces|request_parse_body
+          syslog|socket_(set_(blocking|timeout)|get_status)|set(raw)?cookie|http_response_code|openlog|
+          headers_(list|sent)|header(_(register_callback|remove))?|checkdnsrr|closelog|inet_(ntop|pton)|ip2long|
+          openlog|dns_(check_record|get_(record|mx))|define_syslog_variables|(p)?fsockopen|long2ip|
+          get(servby(name|port)|host(name|by(name(l)?|addr))|protoby(name|number)|mxrr)|
+          http_(clear|get)_last_response_headers|net_get_interfaces|request_parse_body
           )\b
         name: support.function.network.php
       - match: \bnsapi_(virtual|response_headers|request_headers)\b
         name: support.function.nsapi.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            oci(statementtype|setprefetch|serverversion|savelob(file)?|numcols|new(collection|cursor|descriptor)|nlogon|
-                column(scale|size|name|type(raw)?|isnull|precision)|coll(size|trim|assign(elem)?|append|getelem|max)|commit|
-                closelob|cancel|internaldebug|definebyname|plogon|parse|error|execute|fetch(statement|into)?|
-                free(statement|collection|cursor|desc)|write(temporarylob|lobtofile)|loadlob|log(on|off)|rowcount|rollback|
-                result|bindbyname)|
-            oci_(statement_type|set_(client_(info|identifier)|prefetch|edition|action|module_name)|server_version|
-                 num_(fields|rows)|new_(connect|collection|cursor|descriptor)|connect|commit|client_version|close|cancel|
-                 internal_debug|define_by_name|pconnect|password_change|parse|error|execute|bind_(array_)?by_name|
-                 field_(scale|size|name|type(_raw)?|is_null|precision)|fetch(_(object|assoc|all|array|row))?|
-                 free_(statement|descriptor)|lob_(copy|is_equal)|rollback|result|get_implicit_resultset)
+          oci(statementtype|setprefetch|serverversion|savelob(file)?|numcols|new(collection|cursor|descriptor)|nlogon|
+          column(scale|size|name|type(raw)?|isnull|precision)|coll(size|trim|assign(elem)?|append|getelem|max)|commit|
+          closelob|cancel|internaldebug|definebyname|plogon|parse|error|execute|fetch(statement|into)?|
+          free(statement|collection|cursor|desc)|write(temporarylob|lobtofile)|loadlob|log(on|off)|rowcount|rollback|
+          result|bindbyname)|
+          oci_(statement_type|set_(client_(info|identifier)|prefetch|edition|action|module_name)|server_version|
+          num_(fields|rows)|new_(connect|collection|cursor|descriptor)|connect|commit|client_version|close|cancel|
+          internal_debug|define_by_name|pconnect|password_change|parse|error|execute|bind_(array_)?by_name|
+          field_(scale|size|name|type(_raw)?|is_null|precision)|fetch(_(object|assoc|all|array|row))?|
+          free_(statement|descriptor)|lob_(copy|is_equal)|rollback|result|get_implicit_resultset)
           )\b
         name: support.function.oci8.php
       - match: \bopcache_(compile_file|invalidate|is_script_cached|reset|get_(status|configuration))\b
         name: support.function.opcache.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           openssl_(
-            sign|spki_(new|export(_challenge)?|verify)|seal|csr_(sign|new|export(_to_file)?|get_(subject|public_key))|
-            cipher_(iv|key)_length|open|dh_compute_key|digest|decrypt|public_(decrypt|encrypt)|encrypt|error_string|
-            pkcs12_(export(_to_file)?|read)|(cms|pkcs7)_(sign|decrypt|encrypt|verify|read)|verify|free_key|random_pseudo_bytes|
-            pkey_(derive|new|export(_to_file)?|free|get_(details|public|private))|private_(decrypt|encrypt)|pbkdf2|
-            get_((cipher|md)_methods|cert_locations|curve_names|(public|private)key)|
-            x509_(check_private_key|checkpurpose|parse|export(_to_file)?|fingerprint|free|read|verify)
+          sign|spki_(new|export(_challenge)?|verify)|seal|csr_(sign|new|export(_to_file)?|get_(subject|public_key))|
+          cipher_(iv|key)_length|open|dh_compute_key|digest|decrypt|public_(decrypt|encrypt)|encrypt|error_string|
+          pkcs12_(export(_to_file)?|read)|(cms|pkcs7)_(sign|decrypt|encrypt|verify|read)|verify|free_key|random_pseudo_bytes|
+          pkey_(derive|new|export(_to_file)?|free|get_(details|public|private))|private_(decrypt|encrypt)|pbkdf2|
+          get_((cipher|md)_methods|cert_locations|curve_names|(public|private)key)|
+          x509_(check_private_key|checkpurpose|parse|export(_to_file)?|fingerprint|free|read|verify)
           )\b
         name: support.function.openssl.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            output_(add_rewrite_var|reset_rewrite_vars)|flush|
-            ob_(start|clean|implicit_flush|end_(clean|flush)|flush|list_handlers|gzhandler|
-                get_(status|contents|clean|flush|length|level))
+          output_(add_rewrite_var|reset_rewrite_vars)|flush|
+          ob_(start|clean|implicit_flush|end_(clean|flush)|flush|list_handlers|gzhandler|
+          get_(status|contents|clean|flush|length|level))
           )\b
         name: support.function.output.php
       - match: \bpassword_(algos|hash|needs_rehash|verify|get_info)\b
         name: support.function.password.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           pcntl_(
-            alarm|async_signals|errno|exec|r?fork|get_last_error|[gs]et(cpuaffinity|priority)|
-            signal(_(dispatch|get_handler))?|sig(procmask|timedwait|waitinfo)|strerror|unshare|
-            wait(p?id)?|wexitstatus|wif(exited|signaled|stopped)|w(stop|term)sig
+          alarm|async_signals|errno|exec|r?fork|get_last_error|[gs]et(cpuaffinity|priority)|
+          signal(_(dispatch|get_handler))?|sig(procmask|timedwait|waitinfo)|strerror|unshare|
+          wait(p?id)?|wexitstatus|wif(exited|signaled|stopped)|w(stop|term)sig
           )\b
         name: support.function.pcntl.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           pg_(
-            socket|send_(prepare|execute|query(_params)?)|set_(client_encoding|error_verbosity)|select|host|
-            num_(fields|rows)|consume_input|connection_(status|reset|busy)|connect(_poll)?|convert|copy_(from|to)|
-            client_encoding|close|cancel_query|tty|transaction_status|trace|insert|options|delete|dbname|untrace|
-            unescape_bytea|update|pconnect|ping|port|put_line|parameter_status|prepare|version|query(_params)?|
-            escape_(string|identifier|literal|bytea)|end_copy|execute|flush|free_result|last_(notice|error|oid)|
-            field_(size|num|name|type(_oid)?|table|is_null|prtlen)|affected_rows|result_(status|seek|error(_field)?)|
-            fetch_(object|assoc|all(_columns)?|array|row|result)|get_(notify|pid|result)|meta_data|
-            lo_(seek|close|create|tell|truncate|import|open|unlink|export|write|read(_all)?)|
+          socket|send_(prepare|execute|query(_params)?)|set_(client_encoding|error_verbosity)|select|host|
+          num_(fields|rows)|consume_input|connection_(status|reset|busy)|connect(_poll)?|convert|copy_(from|to)|
+          client_encoding|close|cancel_query|tty|transaction_status|trace|insert|options|delete|dbname|untrace|
+          unescape_bytea|update|pconnect|ping|port|put_line|parameter_status|prepare|version|query(_params)?|
+          escape_(string|identifier|literal|bytea)|end_copy|execute|flush|free_result|last_(notice|error|oid)|
+          field_(size|num|name|type(_oid)?|table|is_null|prtlen)|affected_rows|result_(status|seek|error(_field)?)|
+          fetch_(object|assoc|all(_columns)?|array|row|result)|get_(notify|pid|result)|meta_data|
+          lo_(seek|close|create|tell|truncate|import|open|unlink|export|write|read(_all)?)|
           )\b
         name: support.function.pgsql.php
       - match: \b(virtual|getallheaders|apache_([gs]etenv|note|child_terminate|lookup_uri|response_headers|reset_timeout|request_headers|get_(version|modules)))\b
         name: support.function.php_apache.php
       - match: \bdom_import_simplexml\b
         name: support.function.php_dom.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           ftp_(
-            ssl_connect|systype|site|size|set_option|nlist|nb_(continue|f?(put|get))|ch(dir|mod)|connect|cdup|close|
-            delete|put|pwd|pasv|exec|quit|f(put|get)|login|alloc|rename|raw(list)?|rmdir|get(_option)?|mdtm|mkdir
+          ssl_connect|systype|site|size|set_option|nlist|nb_(continue|f?(put|get))|ch(dir|mod)|connect|cdup|close|
+          delete|put|pwd|pasv|exec|quit|f(put|get)|login|alloc|rename|raw(list)?|rmdir|get(_option)?|mdtm|mkdir
           )\b
         name: support.function.php_ftp.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           imap_(
-            (create|delete|list|rename|scan)(mailbox)?|status|sort|subscribe|set_quota|set(flag_full|acl)|search|savebody|
-            num_(recent|msg)|check|close|clearflag_full|thread|timeout|open|header(info)?|headers|append|alerts|reopen|
-            8bit|unsubscribe|undelete|utf7_(decode|encode)|utf8|uid|ping|errors|expunge|qprint|gc|
-            fetch(structure|header|text|mime|body)|fetch_overview|lsub|list(scan|subscribed)|last_error|
-            rfc822_(parse_(headers|adrlist)|write_address)|get(subscribed|acl|mailboxes)|get_quota(root)?|
-            msgno|mime_header_decode|mail_(copy|compose|move)|mail|mailboxmsginfo|binary|body(struct)?|base64
+          (create|delete|list|rename|scan)(mailbox)?|status|sort|subscribe|set_quota|set(flag_full|acl)|search|savebody|
+          num_(recent|msg)|check|close|clearflag_full|thread|timeout|open|header(info)?|headers|append|alerts|reopen|
+          8bit|unsubscribe|undelete|utf7_(decode|encode)|utf8|uid|ping|errors|expunge|qprint|gc|
+          fetch(structure|header|text|mime|body)|fetch_overview|lsub|list(scan|subscribed)|last_error|
+          rfc822_(parse_(headers|adrlist)|write_address)|get(subscribed|acl|mailboxes)|get_quota(root)?|
+          msgno|mime_header_decode|mail_(copy|compose|move)|mail|mailboxmsginfo|binary|body(struct)?|base64
           )\b
         name: support.function.php_imap.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           mssql_(
-            select_db|num_(fields|rows)|next_result|connect|close|init|data_seek|pconnect|execute|query|
-            field_(seek|name|type|length)|fetch_(object|field|assoc|array|row|batch)|free_(statement|result)|
-            rows_affected|result|guid_string|get_last_message|min_(error|message)_severity|bind
+          select_db|num_(fields|rows)|next_result|connect|close|init|data_seek|pconnect|execute|query|
+          field_(seek|name|type|length)|fetch_(object|field|assoc|array|row|batch)|free_(statement|result)|
+          rows_affected|result|guid_string|get_last_message|min_(error|message)_severity|bind
           )\b
         name: support.function.php_mssql.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           odbc_(
-            statistics|specialcolumns|setoption|num_(fields|rows)|next_result|connect|columns|columnprivileges|commit|
-            cursor|close(_all)?|tables|tableprivileges|do|data_source|pconnect|primarykeys|procedures|procedurecolumns|
-            prepare|error(msg)?|exec(ute)?|field_(scale|num|name|type|precision|len)|foreignkeys|free_result|
-            fetch_(into|object|array|row)|longreadlen|autocommit|rollback|result(_all)?|gettypeinfo|binmode
+          statistics|specialcolumns|setoption|num_(fields|rows)|next_result|connect|columns|columnprivileges|commit|
+          cursor|close(_all)?|tables|tableprivileges|do|data_source|pconnect|primarykeys|procedures|procedurecolumns|
+          prepare|error(msg)?|exec(ute)?|field_(scale|num|name|type|precision|len)|foreignkeys|free_result|
+          fetch_(into|object|array|row)|longreadlen|autocommit|rollback|result(_all)?|gettypeinfo|binmode
           )\b
         name: support.function.php_odbc.php
       - match: \bpreg_(split|quote|filter|last_error(_msg)?|replace(_callback(_array)?)?|grep|match(_all)?)\b
@@ -9100,21 +9040,19 @@ repository:
         name: support.function.php_spl.php
       - match: \bzip_(close|open|entry_(name|compressionmethod|compressedsize|close|open|filesize|read)|read)\b
         name: support.function.php_zip.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           posix_(
-            strerror|set(s|e?u|[ep]?g)id|ctermid|ttyname|times|isatty|initgroups|uname|errno|kill|e?access|
-            get(sid|cwd|uid|pid|ppid|pwnam|pwuid|pgid|pgrp|euid|egid|login|rlimit|gid|grnam|groups|grgid)|
-            get_last_error|mknod|mkfifo|(sys|f?path)conf|setrlimit
+          strerror|set(s|e?u|[ep]?g)id|ctermid|ttyname|times|isatty|initgroups|uname|errno|kill|e?access|
+          get(sid|cwd|uid|pid|ppid|pwnam|pwuid|pgid|pgrp|euid|egid|login|rlimit|gid|grnam|groups|grgid)|
+          get_last_error|mknod|mkfifo|(sys|f?path)conf|setrlimit
           )\b
         name: support.function.posix.php
       - match: \bset(thread|proc)title\b
         name: support.function.proctitle.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           pspell_(
-            store_replacement|suggest|save_wordlist|new(_(config|personal))?|check|clear_session|
-            config_(save_repl|create|ignore|(data|dict)_dir|personal|runtogether|repl|mode)|add_to_(session|personal)
+          store_replacement|suggest|save_wordlist|new(_(config|personal))?|check|clear_session|
+          config_(save_repl|create|ignore|(data|dict)_dir|personal|runtogether|repl|mode)|add_to_(session|personal)
           )\b
         name: support.function.pspell.php
       - match: \breadline(_(completion_function|clear_history|callback_(handler_(install|remove)|read_char)|info|on_new_line|write_history|list_history|add_history|redisplay|read_history))?\b
@@ -9123,192 +9061,175 @@ repository:
         name: support.function.recode.php
       - match: \brrd(c_disconnect|_(create|tune|info|update|error|version|first|fetch|last(update)?|restore|graph|xport))\b
         name: support.function.rrd.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            shm_((get|has|remove|put)_var|detach|attach|remove)|sem_(acquire|release|remove|get)|ftok|
-            msg_((get|remove|set|stat)_queue|send|queue_exists|receive)
+          shm_((get|has|remove|put)_var|detach|attach|remove)|sem_(acquire|release|remove|get)|ftok|
+          msg_((get|remove|set|stat)_queue|send|queue_exists|receive)
           )\b
         name: support.function.sem.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           session_(
-            status|start|set_(save_handler|cookie_params)|save_path|name|commit|cache_(expire|limiter)|
-            is_registered|id|destroy|decode|unset|unregister|encode|write_close|abort|reset|register(_shutdown)?|
-            (regenerate|create)_id|get_cookie_params|module_name|gc
+          status|start|set_(save_handler|cookie_params)|save_path|name|commit|cache_(expire|limiter)|
+          is_registered|id|destroy|decode|unset|unregister|encode|write_close|abort|reset|register(_shutdown)?|
+          (regenerate|create)_id|get_cookie_params|module_name|gc
           )\b
         name: support.function.session.php
       - match: \bshmop_(size|close|open|delete|write|read)\b
         name: support.function.shmop.php
       - match: \bsimplexml_(import_dom|load_(string|file))\b
         name: support.function.simplexml.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            snmp(walk(oid)?|realwalk|get(next)?|set)|
-            snmp_(set_(valueretrieval|quick_print|enum_print|oid_(numeric_print|output_format))|read_mib|
-                  get_(valueretrieval|quick_print))|
-            snmp[23]_(set|walk|real_walk|get(next)?)
+          snmp(walk(oid)?|realwalk|get(next)?|set)|
+          snmp_(set_(valueretrieval|quick_print|enum_print|oid_(numeric_print|output_format))|read_mib|
+          get_(valueretrieval|quick_print))|
+          snmp[23]_(set|walk|real_walk|get(next)?)
           )\b
         name: support.function.snmp.php
       - match: \b(is_soap_fault|use_soap_error_handler)\b
         name: support.function.soap.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           socket_(
-            accept|addrinfo_(bind|connect|explain|lookup)|atmark|bind|(clear|last)_error|close|cmsg_space|connect|
-            create(_(listen|pair))?|(ex|im)port_stream|[gs]et_option|[gs]etopt|get(peer|sock)name|
-            listen|read|recv(from|msg)?|select|send(msg|to)?|set_(non)?block|shutdown|strerror|write|
-            wsaprotocol_info_(export|import|release)
+          accept|addrinfo_(bind|connect|explain|lookup)|atmark|bind|(clear|last)_error|close|cmsg_space|connect|
+          create(_(listen|pair))?|(ex|im)port_stream|[gs]et_option|[gs]etopt|get(peer|sock)name|
+          listen|read|recv(from|msg)?|select|send(msg|to)?|set_(non)?block|shutdown|strerror|write|
+          wsaprotocol_info_(export|import|release)
           )\b
         name: support.function.sockets.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           sqlite_(
-            single_query|seek|has_(more|prev)|num_(fields|rows)|next|changes|column|current|close|
-            create_(aggregate|function)|open|unbuffered_query|udf_(decode|encode)_binary|popen|prev|
-            escape_string|error_string|exec|valid|key|query|field_name|factory|
-            fetch_(string|single|column_types|object|all|array)|lib(encoding|version)|
-            last_(insert_rowid|error)|array_query|rewind|busy_timeout
+          single_query|seek|has_(more|prev)|num_(fields|rows)|next|changes|column|current|close|
+          create_(aggregate|function)|open|unbuffered_query|udf_(decode|encode)_binary|popen|prev|
+          escape_string|error_string|exec|valid|key|query|field_name|factory|
+          fetch_(string|single|column_types|object|all|array)|lib(encoding|version)|
+          last_(insert_rowid|error)|array_query|rewind|busy_timeout
           )\b
         name: support.function.sqlite.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           sqlsrv_(
-            send_stream_data|server_info|has_rows|num_(fields|rows)|next_result|connect|configure|commit|
-            client_info|close|cancel|prepare|errors|execute|query|field_metadata|fetch(_(array|object))?|
-            free_stmt|rows_affected|rollback|get_(config|field)|begin_transaction
+          send_stream_data|server_info|has_rows|num_(fields|rows)|next_result|connect|configure|commit|
+          client_info|close|cancel|prepare|errors|execute|query|field_metadata|fetch(_(array|object))?|
+          free_stmt|rows_affected|rollback|get_(config|field)|begin_transaction
           )\b
         name: support.function.sqlsrv.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           stats_(
-            harmonic_mean|covariance|standard_deviation|skew|
-            cdf_(noncentral_(chisquare|f)|negative_binomial|chisquare|cauchy|t|uniform|poisson|exponential|f|weibull|
-                 logistic|laplace|gamma|binomial|beta)|
-            stat_(noncentral_t|correlation|innerproduct|independent_t|powersum|percentile|paired_t|gennch|binomial_coef)|
-            dens_(normal|negative_binomial|chisquare|cauchy|t|pmf_(hypergeometric|poisson|binomial)|exponential|f|
-                  weibull|logistic|laplace|gamma|beta)|
-            den_uniform|variance|kurtosis|absolute_deviation|
-            rand_(setall|phrase_to_seeds|ranf|get_seeds|
-                  gen_(noncentral_[ft]|noncenral_chisquare|normal|chisquare|t|int|
-                       i(uniform|poisson|binomial(_negative)?)|exponential|f(uniform)?|gamma|beta))
+          harmonic_mean|covariance|standard_deviation|skew|
+          cdf_(noncentral_(chisquare|f)|negative_binomial|chisquare|cauchy|t|uniform|poisson|exponential|f|weibull|
+          logistic|laplace|gamma|binomial|beta)|
+          stat_(noncentral_t|correlation|innerproduct|independent_t|powersum|percentile|paired_t|gennch|binomial_coef)|
+          dens_(normal|negative_binomial|chisquare|cauchy|t|pmf_(hypergeometric|poisson|binomial)|exponential|f|
+          weibull|logistic|laplace|gamma|beta)|
+          den_uniform|variance|kurtosis|absolute_deviation|
+          rand_(setall|phrase_to_seeds|ranf|get_seeds|
+          gen_(noncentral_[ft]|noncenral_chisquare|normal|chisquare|t|int|
+          i(uniform|poisson|binomial(_negative)?)|exponential|f(uniform)?|gamma|beta))
           )\b
         name: support.function.stats.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           stream_(
-            bucket_(new|prepend|append|make_writeable)|
-            context_(create|[gs]et_(options?|default|params))|copy_to_stream|filter_((ap|pre)pend|register|remove)|
-            get_(contents|filters|line|meta_data|transports|wrappers)|is(atty|_local)|notification_callback|register_wrapper|resolve_include_path|select|
-            set_(blocking|chunk_size|(read|write)_buffer|timeout)|
-            socket_(accept|client|enable_crypto|get_name|pair|recvfrom|sendto|server|shutdown)|
-            supports_lock|wrapper_((un)?register|restore)
+          bucket_(new|prepend|append|make_writeable)|
+          context_(create|[gs]et_(options?|default|params))|copy_to_stream|filter_((ap|pre)pend|register|remove)|
+          get_(contents|filters|line|meta_data|transports|wrappers)|is(atty|_local)|notification_callback|register_wrapper|resolve_include_path|select|
+          set_(blocking|chunk_size|(read|write)_buffer|timeout)|
+          socket_(accept|client|enable_crypto|get_name|pair|recvfrom|sendto|server|shutdown)|
+          supports_lock|wrapper_((un)?register|restore)
           )\b
         name: support.function.streamsfuncs.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            money_format|md5(_file)?|metaphone|bin2hex|sscanf|sha1(_file)?|
-            str(str|c?spn|n(at)?(case)?cmp|chr|coll|(case)?cmp|to(upper|lower)|tok|tr|istr|pos|pbrk|len|rchr|ri?pos|rev)|
-            str_(getcsv|i?replace|pad|repeat|rot13|shuffle|split|word_count|
-              contains|(starts|ends)_with|(in|de)crement)|
-            strip(c?slashes|os)|strip_tags|similar_text|soundex|substr(_(count|compare|replace))?|setlocale|
-            html(specialchars(_decode)?|entities)|html_entity_decode|hex2bin|hebrev(c)?|number_format|nl2br|nl_langinfo|
-            chop|chunk_split|chr|convert_(cyr_string|uu(decode|encode))|count_chars|crypt|crc32|trim|implode|ord|
-            uc(first|words)|join|parse_str|print(f)?|echo|explode|v?[fs]?printf|quoted_printable_(decode|encode)|
-            quotemeta|wordwrap|lcfirst|[lr]trim|localeconv|levenshtein|addc?slashes|get_html_translation_table
+          money_format|md5(_file)?|metaphone|bin2hex|sscanf|sha1(_file)?|
+          str(str|c?spn|n(at)?(case)?cmp|chr|coll|(case)?cmp|to(upper|lower)|tok|tr|istr|pos|pbrk|len|rchr|ri?pos|rev)|
+          str_(getcsv|i?replace|pad|repeat|rot13|shuffle|split|word_count|
+          contains|(starts|ends)_with|(in|de)crement)|
+          strip(c?slashes|os)|strip_tags|similar_text|soundex|substr(_(count|compare|replace))?|setlocale|
+          html(specialchars(_decode)?|entities)|html_entity_decode|hex2bin|hebrev(c)?|number_format|nl2br|nl_langinfo|
+          chop|chunk_split|chr|convert_(cyr_string|uu(decode|encode))|count_chars|crypt|crc32|trim|implode|ord|
+          uc(first|words)|join|parse_str|print(f)?|echo|explode|v?[fs]?printf|quoted_printable_(decode|encode)|
+          quotemeta|wordwrap|lcfirst|[lr]trim|localeconv|levenshtein|addc?slashes|get_html_translation_table
           )\b
         name: support.function.string.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           sybase_(
-            set_message_handler|select_db|num_(fields|rows)|connect|close|deadlock_retry_count|data_seek|
-            unbuffered_query|pconnect|query|field_seek|fetch_(object|field|assoc|array|row)|free_result|
-            affected_rows|result|get_last_message|min_(client|error|message|server)_severity
+          set_message_handler|select_db|num_(fields|rows)|connect|close|deadlock_retry_count|data_seek|
+          unbuffered_query|pconnect|query|field_seek|fetch_(object|field|assoc|array|row)|free_result|
+          affected_rows|result|get_last_message|min_(client|error|message|server)_severity
           )\b
         name: support.function.sybase.php
       - match: \b(taint|is_tainted|untaint)\b
         name: support.function.taint.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            tidy_([gs]etopt|set_encoding|save_config|config_count|clean_repair|is_(xhtml|xml)|diagnose|
-                  (access|error|warning)_count|load_config|reset_config|(parse|repair)_(string|file)|
-                  get_(status|html(_ver)?|head|config|output|opt_doc|root|release|body))|
-            ob_tidyhandler
+          tidy_([gs]etopt|set_encoding|save_config|config_count|clean_repair|is_(xhtml|xml)|diagnose|
+          (access|error|warning)_count|load_config|reset_config|(parse|repair)_(string|file)|
+          get_(status|html(_ver)?|head|config|output|opt_doc|root|release|body))|
+          ob_tidyhandler
           )\b
         name: support.function.tidy.php
       - match: \btoken_(name|get_all)\b
         name: support.function.tokenizer.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           trader_(
-            stoch(f|r|rsi)?|stddev|sin(h)?|sum|sub|set_(compat|unstable_period)|sqrt|sar(ext)?|sma|
-            ht_(sine|trend(line|mode)|dc(period|phase)|phasor)|natr|cci|cos(h)?|correl|
-            cdl(shootingstar|shortline|sticksandwich|stalledpattern|spinningtop|separatinglines|
-                hikkake(mod)?|highwave|homingpigeon|hangingman|harami(cross)?|hammer|concealbabyswall|
-                counterattack|closingmarubozu|thrusting|tasukigap|takuri|tristar|inneck|invertedhammer|
-                identical3crows|2crows|onneck|doji(star)?|darkcloudcover|dragonflydoji|unique3river|
-                upsidegap2crows|3(starsinsouth|inside|outside|whitesoldiers|linestrike|blackcrows)|
-                piercing|engulfing|evening(doji)?star|kicking(bylength)?|longline|longleggeddoji|
-                ladderbottom|advanceblock|abandonedbaby|risefall3methods|rickshawman|gapsidesidewhite|
-                gravestonedoji|xsidegap3methods|morning(doji)?star|mathold|matchinglow|marubozu|
-                belthold|breakaway)|
-            ceil|cmo|tsf|typprice|t3|tema|tan(h)?|trix|trima|trange|obv|div|dema|dx|ultosc|ppo|
-            plus_d[im]|errno|exp|ema|var|kama|floor|wclprice|willr|wma|ln|log10|bop|beta|bbands|
-            linearreg(_(slope|intercept|angle))?|asin|acos|atan|atr|adosc|ad|add|adx(r)?|apo|avgprice|
-            aroon(osc)?|rsi|roc|rocp|rocr(100)?|get_(compat|unstable_period)|min(index)?|minus_d[im]|
-            minmax(index)?|mid(point|price)|mom|mult|medprice|mfi|macd(ext|fix)?|mavp|max(index)?|ma(ma)?
+          stoch(f|r|rsi)?|stddev|sin(h)?|sum|sub|set_(compat|unstable_period)|sqrt|sar(ext)?|sma|
+          ht_(sine|trend(line|mode)|dc(period|phase)|phasor)|natr|cci|cos(h)?|correl|
+          cdl(shootingstar|shortline|sticksandwich|stalledpattern|spinningtop|separatinglines|
+          hikkake(mod)?|highwave|homingpigeon|hangingman|harami(cross)?|hammer|concealbabyswall|
+          counterattack|closingmarubozu|thrusting|tasukigap|takuri|tristar|inneck|invertedhammer|
+          identical3crows|2crows|onneck|doji(star)?|darkcloudcover|dragonflydoji|unique3river|
+          upsidegap2crows|3(starsinsouth|inside|outside|whitesoldiers|linestrike|blackcrows)|
+          piercing|engulfing|evening(doji)?star|kicking(bylength)?|longline|longleggeddoji|
+          ladderbottom|advanceblock|abandonedbaby|risefall3methods|rickshawman|gapsidesidewhite|
+          gravestonedoji|xsidegap3methods|morning(doji)?star|mathold|matchinglow|marubozu|
+          belthold|breakaway)|
+          ceil|cmo|tsf|typprice|t3|tema|tan(h)?|trix|trima|trange|obv|div|dema|dx|ultosc|ppo|
+          plus_d[im]|errno|exp|ema|var|kama|floor|wclprice|willr|wma|ln|log10|bop|beta|bbands|
+          linearreg(_(slope|intercept|angle))?|asin|acos|atan|atr|adosc|ad|add|adx(r)?|apo|avgprice|
+          aroon(osc)?|rsi|roc|rocp|rocr(100)?|get_(compat|unstable_period)|min(index)?|minus_d[im]|
+          minmax(index)?|mid(point|price)|mom|mult|medprice|mfi|macd(ext|fix)?|mavp|max(index)?|ma(ma)?
           )\b
         name: support.function.trader.php
       - match: \buopz_(copy|compose|implement|overload|delete|undefine|extend|function|flags|restore|rename|redefine|backup)\b
         name: support.function.uopz.php
       - match: \b(http_build_query|(raw)?url(decode|encode)|parse_url|get_(headers|meta_tags)|base64_(decode|encode))\b
         name: support.function.url.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            (bool|double|float|int|str)val|debug_zval_dump|empty|get_(debug_type|defined_vars|resource_(id|type))|[gs]ettype|
-            is_(array|bool|callable|countable|double|float|int(eger)?|iterable|long|null|numeric|object|real|resource|scalar|string)|
-            isset|print_r|(un)?serialize|unset|var_(dump|export)
+          (bool|double|float|int|str)val|debug_zval_dump|empty|get_(debug_type|defined_vars|resource_(id|type))|[gs]ettype|
+          is_(array|bool|callable|countable|double|float|int(eger)?|iterable|long|null|numeric|object|real|resource|scalar|string)|
+          isset|print_r|(un)?serialize|unset|var_(dump|export)
           )\b
         name: support.function.var.php
       - match: \bwddx_(serialize_(value|vars)|deserialize|packet_(start|end)|add_vars)\b
         name: support.function.wddx.php
       - match: \bxhprof_(sample_)?(disable|enable)\b
         name: support.function.xhprof.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            utf8_(decode|encode)|
-            xml_(set_((notation|(end|start)_namespace|unparsed_entity)_decl_handler|
-                      (character_data|default|element|external_entity_ref|processing_instruction)_handler|object)|
-                 parse(_into_struct)?|parser_([gs]et_option|create(_ns)?|free)|error_string|
-                 get_(current_((column|line)_number|byte_index)|error_code))
+          utf8_(decode|encode)|
+          xml_(set_((notation|(end|start)_namespace|unparsed_entity)_decl_handler|
+          (character_data|default|element|external_entity_ref|processing_instruction)_handler|object)|
+          parse(_into_struct)?|parser_([gs]et_option|create(_ns)?|free)|error_string|
+          get_(current_((column|line)_number|byte_index)|error_code))
           )\b
         name: support.function.xml.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           xmlrpc_(
-            server_(call_method|create|destroy|add_introspection_data|register_(introspection_callback|method))|
-            is_fault|decode(_request)?|parse_method_descriptions|encode(_request)?|[gs]et_type
+          server_(call_method|create|destroy|add_introspection_data|register_(introspection_callback|method))|
+          is_fault|decode(_request)?|parse_method_descriptions|encode(_request)?|[gs]et_type
           )\b
         name: support.function.xmlrpc.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           xmlwriter_(
-            (end|start|write)_(comment|cdata|dtd(_(attlist|entity|element))?|document|pi|attribute|element)|
-            (start|write)_(attribute|element)_ns|write_raw|set_indent(_string)?|text|output_memory|open_(memory|uri)|
-            full_end_element|flush|
+          (end|start|write)_(comment|cdata|dtd(_(attlist|entity|element))?|document|pi|attribute|element)|
+          (start|write)_(attribute|element)_ns|write_raw|set_indent(_string)?|text|output_memory|open_(memory|uri)|
+          full_end_element|flush|
           )\b
         name: support.function.xmlwriter.php
-      - match: |-
-          (?x)\b
+      - match: (?x)\b
           (
-            zlib_(decode|encode|get_coding_type)|readgzfile|
-            gz(seek|compress|close|tell|inflate|open|decode|deflate|uncompress|puts|passthru|encode|eof|file|
-               write|rewind|read|getc|getss?)|deflate_(add|init)|inflate_(add|get_(read_len|status)|init)
+          zlib_(decode|encode|get_coding_type)|readgzfile|
+          gz(seek|compress|close|tell|inflate|open|decode|deflate|uncompress|puts|passthru|encode|eof|file|
+          write|rewind|read|getc|getss?)|deflate_(add|init)|inflate_(add|get_(read_len|status)|init)
           )\b
         name: support.function.zlib.php
 
@@ -9323,21 +9244,31 @@ repository:
         name: support.function.kernel.ruby
 
       # SQL (T-SQL)
-      - match: \b(avg|checksum_agg|count|count_big|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b
+      - match: \b(approx_count_distinct|approx_percentile_cont|approx_percentile_disc|avg|checksum_agg|count|count_big|group|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b
         name: support.function.aggregate.sql
       - match: \b(cume_dist|first_value|lag|last_value|lead|percent_rank|percentile_cont|percentile_disc)\b
         name: support.function.analytic.sql
+      - match: \b(bit_count|get_bit|left_shift|right_shift|set_bit)\b
+        name: support.function.bitmanipulation.sql
       - match: \b(cast|convert|parse|try_cast|try_convert|try_parse)\b
         name: support.function.conversion.sql
+      - match: \b(collationproperty|tertiary_weights)\b
+        name: support.function.collation.sql
+      - match: \b(asymkey_id|asymkeyproperty|certproperty|cert_id|crypt_gen_random|decryptbyasymkey|decryptbycert|decryptbykey|decryptbykeyautoasymkey|decryptbykeyautocert|decryptbypassphrase|encryptbyasymkey|encryptbycert|encryptbykey|encryptbypassphrase|hashbytes|is_objectsigned|key_guid|key_id|key_name|signbyasymkey|signbycert|symkeyproperty|verifysignedbycert|verifysignedbyasymkey)\b
+        name: support.function.cryptographic.sql
       - match: \b(cursor_status)\b
         name: support.function.cursor.sql
-      - match: \b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_time(stamp)?|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|eomonth|switchoffset|todatetimeoffset|isdate)\b
+      - match: \b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_time(stamp)?|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|datetrunc|eomonth|switchoffset|todatetimeoffset|isdate|date_bucket)\b
         name: support.function.datetime.sql
+      - match: \b(datalength|ident_current|ident_incr|ident_seed|identity|sql_variant_property)\b
+        name: support.function.datatype.sql
       - match: \b(coalesce|nullif)\b
         name: support.function.expression.sql
-      - match: \b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b
+      - match: (?<!@)@@\b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b
         name: support.function.globalvar.sql
-      - match: \b(choose|iif)\b
+      - match: \b(json|isjson|json_object|json_array|json_value|json_query|json_modify|json_path_exists)\b
+        name: support.function.json.sql
+      - match: \b(choose|iif|greatest|least)\b
         name: support.function.logical.sql
       - match: \b(abs|acos|asin|atan|atn2|ceiling|cos|cot|degrees|exp|floor|log|log10|pi|power|radians|rand|round|sign|sin|sqrt|square|tan)\b
         name: support.function.mathematical.sql
@@ -9345,7 +9276,7 @@ repository:
         name: support.function.metadata.sql
       - match: \b(rank|dense_rank|ntile|row_number)\b
         name: support.function.ranking.sql
-      - match: \b(opendatasource|openrowset|openquery|openxml)\b
+      - match: \b(generate_series|opendatasource|openjson|openrowset|openquery|openxml|predict|string_split)\b
         name: support.function.rowset.sql
       - match: \b(certencoded|certprivatekey|current_user|database_principal_id|has_perms_by_name|is_member|is_rolemember|is_srvrolemember|original_login|permissions|pwdcompare|pwdencrypt|schema_id|schema_name|session_user|suser_id|suser_sid|suser_sname|system_user|suser_name|user_id|user_name)\b
         name: support.function.security.sql
@@ -9355,6 +9286,19 @@ repository:
         name: support.function.system.sql
       - match: \b(patindex|textptr|textvalid)\b
         name: support.function.textimage.sql
+      - match: \b(vector_distance|vector_norm|vector_normalize)\b
+        name: support.function.vector.sql
+      - match: \b(xml_data_type|xml_exists|xml_modify|xml_namespaces|xml_schema_collection|xml_value|xmlquery|xmlexists|xmlparse|xmlserialize|xmltable)\b
+        name: support.function.xml.sql
+      - match: \b(backupsetproperty|dbcc|filegroupproperty|indexstats|loginfo|show_continuous_backup_history|show_filestream_catalog|show_statistics|tableproperty|transactionproperty)\b
+        name: support.function.maintenance.sql
+      - match: \b(archive|change_tracking_current_version|change_tracking_is_column_tracked|change_tracking_min_valid_version|fileproperty|fn_virtualfilestats|is_filestream_enabled|is_fulltext_enabled|is_honor_broker_priority_on|is_trustworthy_on|memory_object_address|memory_object_property|sys_fn_cdc_get_all_changes_<table>|sys_fn_cdc_get_net_changes_<table>)\b
+        name: support.function.advanced.sql
+      - match: \b(iif|choose|greatest|least)\b
+        name: support.function.conditional.sql
+
+      - match: \b(abort|abort_after_wait|absent|absolute|accent_sensitivity|acceptable_cursopt|acp|action|activation|add|address|admin|aes_128|aes_192|aes_256|affinity|after|aggregate|algorithm|all_constraints|all_errormsgs|all_indexes|all_levels|all_results|allow_connections|allow_dup_row|allow_encrypted_value_modifications|allow_page_locks|allow_row_locks|allow_snapshot_isolation|alter|altercolumn|always|anonymous|ansi_defaults|ansi_null_default|ansi_null_dflt_off|ansi_null_dflt_on|ansi_nulls|ansi_padding|ansi_warnings|appdomain|append|application|apply|arithabort|arithignore|array|assembly|asymmetric|asynchronous_commit|at|atan2|atomic|attach|attach_force_rebuild_log|attach_rebuild_log|audit|auth_realm|authentication|auto|auto_cleanup|auto_close|auto_create_statistics|auto_drop|auto_shrink|auto_update_statistics|auto_update_statistics_async|automated_backup_preference|automatic|autopilot|availability|availability_mode|backup|backup_priority|base64|basic|batches|batchsize|before|between|bigint|binary|binding|bit|block|blockers|blocksize|bmk|both|break|broker|broker_instance|bucket_count|buffer|buffercount|bulk_logged|by|call|caller|card|case|catalog|catch|cert|certificate|change_retention|change_tracking|change_tracking_context|changes|char|character|character_set|check_expiration|check_policy|checkconstraints|checkindex|checkpoint|checksum|cleanup_policy|clear|clear_port|close|clustered|codepage|collection|column_encryption_key|column_master_key|columnstore|columnstore_archive|colv_80_to_100|colv_100_to_80|commit_differential_base|committed|compatibility_level|compress_all_row_groups|compression|compression_delay|concat_null_yields_null|concatenate|configuration|connect|connection|containment|continue|continue_after_error|contract|contract_name|control|conversation|conversation_group_id|conversation_handle|copy|copy_only|count_rows|counter|create(\\\\s+or\\\\s+alter)?|credential|cross|cryptographic|cryptographic_provider|cube|cursor|cursor_close_on_commit|cursor_default|data|data_compression|data_flush_interval_seconds|data_mirroring|data_purity|data_source|database|database_name|database_snapshot|datafiletype|date_correlation_optimization|date|datefirst|dateformat|date_format|datetime|datetime2|datetimeoffset|day(s)?|db_chaining|dbid|dbidexec|dbo_only|deadlock_priority|deallocate|dec|decimal|declare|decrypt|decrypt_a|decryption|default_database|default_fulltext_language|default_language|default_logon_domain|default_schema|definition|delay|delayed_durability|delimitedtext|density_vector|dependent|des|description|desired_state|desx|differential|digest|disable|disable_broker|disable_def_cnst_chk|disabled|disk|distinct|distributed|distribution|drop|drop_existing|dts_buffers|dump|durability|dynamic|edition|elements|else|emergency|empty|enable|enable_broker|enabled|encoding|encrypted|encrypted_value|encryption|encryption_type|end|endpoint|endpoint_url|enhancedintegrity|entry|error_broker_conversations|errorfile|estimateonly|event|except|exec|executable|execute|exists|expand|expiredate|expiry_date|explicit|external|external_access|failover|failover_mode|failure_condition_level|fast|fast_forward|fastfirstrow|federated_service_account|fetch|field_terminator|fieldterminator|file|filelistonly|filegroup|filegrowth|filename|filestream|filestream_log|filestream_on|filetable|file_format|filter|first_row|fips_flagger|fire_triggers|first|firstrow|float|flush_interval_seconds|fmtonly|following|for|force|force_failover_allow_data_loss|force_service_allow_data_loss|forced|forceplan|formatfile|format_options|format_type|formsof|forward_only|free_cursors|free_exec_context|fullscan|fulltext|fulltextall|fulltextkey|function|generated|get|geography|geometry|global|go|goto|governor|guid|hadoop|hardening|hash|hashed|header_limit|headeronly|health_check_timeout|hidden|hierarchyid|histogram|histogram_steps|hits_cursors|hits_exec_context|hour(s)?|http|identity|identity_value|if|ifnull|ignore|ignore_constraints|ignore_dup_key|ignore_dup_row|ignore_triggers|image|immediate|implicit_transactions|include|include_null_values|incremental|index|inflectional|init|initiator|insensitive|insert|instead|int|integer|integrated|intersect|intermediate|interval_length_minutes|into|inuse_cursors|inuse_exec_context|io|is|isabout|iso_week|isolation|job_tracker_location|json|keep|keep_nulls|keep_replication|keepdefaults|keepfixed|keepidentity|keepnulls|kerberos|key|key_path|key_source|key_store_provider_name|keyset|kill|kilobytes_per_batch|labelonly|langid|language|last|lastrow|leading|legacy_cardinality_estimation|length|level|lifetime|lineage_80_to_100|lineage_100_to_80|listener_ip|listener_port|load|loadhistory|lob_compaction|local|local_service_name|locate|location|lock_escalation|lock_timeout|lockres|log|login|login_type|loop|manual|mark_in_use_for_removal|masked|master|match|matched|max_queue_readers|max_duration|max_outstanding_io_per_volume|maxdop|maxerrors|maxlength|maxtransfersize|max_plans_per_query|max_storage_size_mb|mediadescription|medianame|mediapassword|memogroup|memory_optimized|merge|message|message_forward_size|message_forwarding|microsecond|millisecond|minute(s)?|mirror_address|misses_cursors|misses_exec_context|mixed|modify|money|month|move|multi_user|must_change|name|namespace|nanosecond|native|native_compilation|nchar|ncharacter|nested_triggers|never|new_account|new_broker|newname|next|no|no_browsetable|no_checksum|no_compression|no_infomsgs|no_triggers|no_truncate|nocount|noexec|noexpand|noformat|noinit|nolock|nonatomic|nonclustered|nondurable|none|norecompute|norecovery|noreset|norewind|noskip|not|notification|nounload|now|nowait|ntext|ntlm|nulls|numeric|numeric_roundabort|nvarchar|object|objid|oem|offline|old_account|online|operation_mode|open|openjson|optimistic|option|orc|out|outer|output|over|override|owner|ownership|pad_index|page|page_checksum|page_verify|pagecount|paglock|param|parameter_sniffing|parameter_type_expansion|parameterization|parquet|parseonly|partial|partition|partner|password|path|pause|percentage|permission_set|persisted|period|physical_only|plan_forcing_mode|policy|pool|population|ports|preceding|precision|predicate|presume_abort|primary|primary_role|print|prior|priority |priority_level|private|proc(edure)?|procedure_name|profile|provider|quarter|query_capture_mode|query_governor_cost_limit|query_optimizer_hotfixes|query_store|queue|quoted_identifier|raiserror|range|raw|rcfile|rc2|rc4|rc4_128|rdbms|read_committed_snapshot|read|read_only|read_write|readcommitted|readcommittedlock|readonly|readpast|readuncommitted|readwrite|real|rebuild|receive|recmodel_70backcomp|recompile|reconfigure|recovery|recursive|recursive_triggers|redo_queue|reject_sample_value|reject_type|reject_value|relative|remote|remote_data_archive|remote_proc_transactions|remote_service_name|remove|removed_cursors|removed_exec_context|reorganize|repeat|repeatable|repeatableread|replace|replica|replicated|replnick_100_to_80|replnickarray_80_to_100|replnickarray_100_to_80|required|required_cursopt|resample|reset|resource|resource_manager_location|respect|restart|restore|restricted_user|resume|retaindays|retention|return|revert|rewind|rewindonly|returns|robust|role|rollup|root|round_robin|route|row|rowdump|rowguidcol|rowlock|row_terminator|rows|rows_per_batch|rowsets_only|rowterminator|rowversion|rsa_1024|rsa_2048|rsa_3072|rsa_4096|rsa_512|safe|safety|sample|save|scalar|schema|schemabinding|scoped|scroll|scroll_locks|sddl|second|secexpr|seconds|secondary|secondary_only|secondary_role|secret|security|securityaudit|selective|self|send|sent|sequence|serde_method|serializable|server|service|service_broker|service_name|service_objective|session_timeout|session|sessions|seterror|setopts|sets|shard_map_manager|shard_map_name|sharded|shared_memory|shortest_path|show_statistics|showplan_all|showplan_text|showplan_xml|showplan_xml_with_recompile|shrinkdb|shutdown|sid|signature|simple|single_blob|single_clob|single_nclob|single_user|singleton|site|size|size_based_cleanup_mode|skip|smalldatetime|smallint|smallmoney|snapshot|snapshot_import|snapshotrestorephase|soap|softnuma|sort_in_tempdb|sorted_data|sorted_data_reorg|spatial|sql|sql_bigint|sql_binary|sql_bit|sql_char|sql_date|sql_decimal|sql_double|sql_float|sql_guid|sql_handle|sql_longvarbinary|sql_longvarchar|sql_numeric|sql_real|sql_smallint|sql_time|sql_timestamp|sql_tinyint|sql_tsi_day|sql_tsi_frac_second|sql_tsi_hour|sql_tsi_minute|sql_tsi_month|sql_tsi_quarter|sql_tsi_second|sql_tsi_week|sql_tsi_year|sql_type_date|sql_type_time|sql_type_timestamp|sql_varbinary|sql_varchar|sql_variant|sql_wchar|sql_wlongvarchar|ssl|ssl_port|standard|standby|start|start_date|started|stat_header|state|statement|static|statistics|statistics_incremental|statistics_norecompute|statistics_only|statman|stats|stats_stream|status|stop|stop_on_error|stopat|stopatmark|stopbeforemark|stoplist|stopped|string_delimiter|subject|supplemental_logging|supported|suspend|symmetric|synchronous_commit|synonym|sysname|system|system_time|system_versioning|table|tableresults|tablock|tablockx|take|tape|target|target_index|target_partition|target_recovery_time|tcp|temporal_history_retention|text|textimage_on|then|thesaurus|throw|time|timeout|timestamp|tinyint|to|top|torn_page_detection|track_columns_updated|trailing|tran|transaction|transfer|transform_noise_words|triple_des|triple_des_3key|truncate|trustworthy|try|tsql|two_digit_year_cutoff|type|type_desc|type_warning|tzoffset|uid|unbounded|uncommitted|unique|uniqueidentifier|unlimited|unload|unlock|unsafe|updlock|url|use|useplan|useroptions|use_type_default|using|utcdatetime|valid_xml|validation|value|values|varbinary|varchar|vector|verbose|verifyonly|version|view_metadata|virtual_device|visiblity|wait_at_low_priority|waitfor|webmethod|week|weekday|weight|well_formed_xml|when|while|widechar|widechar_ansi|widenative|window|windows|with|within|within group|witness|without|without_array_wrapper|workload|wsdl|xact_abort|xlock|xml|xmlschema|xquery|xsinil|year|zone)\b
+        name: support.function.legacy.sql
 
       # Python (legacy built-in functions)
       - match: \b(file|reduce|intern|raw_input|unicode|cmp|basestring|execfile|long|xrange)\b
