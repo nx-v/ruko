@@ -170,7 +170,7 @@
                   "include": "#back-references"
                 },
                 {
-                  "include": "#xml-regex-content"
+                  "include": "#escapes-embedded"
                 },
                 {
                   "begin": "\\s*(\\{)",
@@ -186,7 +186,7 @@
                       "include": "#back-references"
                     },
                     {
-                      "include": "#xml-regex-content"
+                      "include": "#escapes-embedded"
                     },
                     {
                       "include": "$self"
@@ -3011,54 +3011,29 @@
           "include": "#unicode-escapes"
         },
         {
-          "match": "\\\\([cm][a-z])",
+          "match": "\\\\([cm][@A-Za-z])",
           "name": "constant.character.control.ruko"
         },
         {
-          "match": "\\\\[abefprnstv]",
+          "match": "\\\\[abefprnstv\\\\'\"`(){}\\[\\]]",
           "name": "constant.character.escape.ruko"
         },
         {
           "include": "#named-escapes"
         },
         {
-          "match": "\\\\\\p{S}",
-          "name": "constant.character.escape.symbol.ruko"
-        },
-        {
-          "match": "\\\\\\p{P}",
-          "name": "constant.character.escape.punctuation.ruko"
-        },
-        {
-          "match": "\\\\[a-zA-Z\\p{C}]",
-          "name": "invalid.illegal.escape.ruko"
-        },
-        {
-          "match": "\\\\\\s",
-          "name": "constant.character.escape.space.ruko"
-        },
-        {
-          "match": "\\\\\\p{L}",
-          "name": "constant.character.escape.letter.ruko"
-        },
-        {
-          "match": "\\\\\\p{N}",
-          "name": "constant.character.escape.number.ruko"
-        },
-        {
-          "match": "\\\\.",
-          "name": "constant.character.escape.other.ruko"
+          "comment": "These sequences are interpreted literally.",
+          "match": "\\\\."
         }
       ]
     },
-    "named-characters": {
-      "name": "string.unquoted.plain.in.ruko",
-      "comment": "Grammar for the Unicode Named Character Mini-Language.",
+    "named-escapes": {
       "patterns": [
         {
           "applyEndPatternLast": true,
-          "name": "constant.other.function.ruko",
-          "begin": "\\b([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b(?=\\{)",
+          "comment": "More [] () {} can be chained for nested named escapes.",
+          "name": "keyword.function.ruko",
+          "begin": "\\\\j(?::([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*))?\\b(?=[(\\[{])",
           "beginCaptures": {
             "1": {
               "patterns": [
@@ -3071,23 +3046,102 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "begin": "(\\{)",
-              "end": "(\\})",
-              "captures": {
-                "1": {
-                  "name": "constant.other.function.ruko"
-                }
-              },
-              "patterns": [
-                {
-                  "include": "#named-characters"
-                }
-              ]
+              "include": "#named-escape-brackets"
             }
           ]
         },
         {
-          "match": "\\b([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b([;,]|(?=\\W))",
+          "match": "(\\\\j:)([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b([;,]|(?=\\W))",
+          "name": "constant.character.escape.ruko",
+          "captures": {
+            "1": {
+              "name": "punctuation.terminator.entity.ruko"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#character-namespace"
+                }
+              ]
+            },
+            "3": {
+              "name": "punctuation.terminator.entity.ruko"
+            }
+          }
+        }
+      ]
+    },
+    "named-escape-brackets": {
+      "patterns": [
+        {
+          "begin": "(\\()\\s*",
+          "end": "\\s*(\\))",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.group.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#named-escape-content"
+            }
+          ]
+        },
+        {
+          "begin": "(\\[)\\s*",
+          "end": "\\s*(\\])",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.sequence.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#named-escape-content"
+            }
+          ]
+        },
+        {
+          "begin": "(\\{)\\s*",
+          "end": "\\s*(\\})",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.block.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#named-escape-content"
+            }
+          ]
+        }
+      ]
+    },
+    "named-escape-content": {
+      "name": "string.unquoted.plain.in.ruko",
+      "patterns": [
+        {
+          "applyEndPatternLast": true,
+          "name": "constant.other.function.ruko",
+          "begin": "\\b([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b(?=[(\\[{])",
+          "beginCaptures": {
+            "1": {
+              "patterns": [
+                {
+                  "include": "#function-namespace"
+                }
+              ]
+            }
+          },
+          "end": "(?=)|$",
+          "patterns": [
+            {
+              "include": "#named-escape-brackets"
+            }
+          ]
+        },
+        {
+          "match": "\\b([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b",
           "name": "constant.character.escape.ruko",
           "captures": {
             "1": {
@@ -3100,13 +3154,20 @@
           }
         },
         {
-          "include": "#xml-regex-content"
+          "match": "\\b[:.](?=[\\p{Pc}\\p{L}]\\w*|[({\\[]|$)",
+          "name": "punctuation.separator.namespace.ruko"
+        },
+        {
+          "include": "#literals"
+        },
+        {
+          "include": "#escapes-embedded"
+        },
+        {
+          "include": "#operators"
         },
         {
           "include": "#punctuation"
-        },
-        {
-          "include": "#illegal"
         }
       ]
     },
@@ -3118,7 +3179,7 @@
         },
         {
           "match": "\\b([\\p{Pc}\\p{L}]\\w*)\\b",
-          "name": "support entity.name.function.member.ruko"
+          "name": "support entity.name.tag.function.ruko"
         }
       ]
     },
@@ -3131,114 +3192,6 @@
         {
           "match": "\\b([\\p{Pc}\\p{L}]\\w*)\\b",
           "name": "constant.character.escape.unicode.ruko"
-        }
-      ]
-    },
-    "named-escapes": {
-      "patterns": [
-        {
-          "applyEndPatternLast": true,
-          "name": "constant.other.function.ruko",
-          "begin": "\\\\j([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b(?=\\{)",
-          "beginCaptures": {
-            "1": {
-              "patterns": [
-                {
-                  "include": "#function-namespace"
-                }
-              ]
-            }
-          },
-          "end": "(?=)|$",
-          "patterns": [
-            {
-              "begin": "(\\{)",
-              "end": "(\\})",
-              "captures": {
-                "1": {
-                  "name": "constant.other.function.ruko"
-                }
-              },
-              "patterns": [
-                {
-                  "include": "#named-characters"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "match": "\\\\j([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b([;,]|(?=\\W))",
-          "name": "constant.character.escape.ruko",
-          "captures": {
-            "1": {
-              "patterns": [
-                {
-                  "include": "#character-namespace"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "begin": "\\\\j{\\s*",
-          "end": "\\s*}",
-          "name": "constant.other.character-class.unicode.ruko",
-          "patterns": [
-            {
-              "applyEndPatternLast": true,
-              "name": "constant.other.function.ruko",
-              "begin": "\\b([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b(?=\\{)",
-              "beginCaptures": {
-                "1": {
-                  "patterns": [
-                    {
-                      "include": "#function-namespace"
-                    }
-                  ]
-                }
-              },
-              "end": "(?=)|$",
-              "patterns": [
-                {
-                  "begin": "(\\{)",
-                  "end": "(\\})",
-                  "captures": {
-                    "1": {
-                      "name": "constant.other.function.ruko"
-                    }
-                  },
-                  "patterns": [
-                    {
-                      "include": "#named-characters"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "match": "\\b([\\p{Pc}\\p{L}]\\w*\\b([:.][\\p{Pc}\\p{L}]\\w*)*)\\b([;,]|(?=\\W))",
-              "name": "constant.character.escape.ruko",
-              "captures": {
-                "1": {
-                  "patterns": [
-                    {
-                      "include": "#character-namespace"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "include": "#xml-regex-content"
-            },
-            {
-              "include": "#punctuation"
-            },
-            {
-              "include": "#illegal"
-            }
-          ]
         }
       ]
     },
@@ -3779,7 +3732,7 @@
                   "include": "#back-references"
                 },
                 {
-                  "include": "#xml-regex-content"
+                  "include": "#escapes-embedded"
                 }
               ]
             }
@@ -5541,9 +5494,13 @@
       }
     },
     "spread-attribute": {
-      "comment": "Spread *attribute",
-      "match": "\\s*(?<!\\*)(\\*\\*?)(?!\\*)\\s*",
-      "name": "keyword.operator.spread.ruko"
+      "comment": "Spread ...attribute",
+      "match": "\\s*(?<!\\.)(\\.\\.\\.)(?=[\\p{Pc}\\p{L}($])",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.spread.ruko"
+        }
+      }
     },
     "xml-entities": {
       "patterns": [
@@ -5624,7 +5581,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -5701,7 +5658,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -5773,7 +5730,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -5845,7 +5802,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -5917,7 +5874,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -5989,7 +5946,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -6061,7 +6018,7 @@
           "include": "#redacted"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -6133,7 +6090,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -6205,7 +6162,7 @@
           "include": "#highlight"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#raw"
@@ -6332,7 +6289,7 @@
       "name": "meta.image.reference.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6352,7 +6309,7 @@
       "name": "meta.link.email.lt-gt.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6372,7 +6329,7 @@
       "name": "meta.link.inet.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6434,7 +6391,7 @@
       "name": "meta.link.inline.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6463,7 +6420,7 @@
       "name": "meta.link.reference.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6489,7 +6446,7 @@
       "name": "meta.link.reference.literal.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6509,7 +6466,7 @@
       "name": "meta.link.reference.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
@@ -6521,7 +6478,7 @@
         "2": {
           "patterns": [
             {
-              "include": "#xml-regex-content"
+              "include": "#escapes-embedded"
             }
           ]
         },
@@ -6533,11 +6490,11 @@
       "name": "markup.inline.raw.string.markdown",
       "patterns": [
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         }
       ]
     },
-    "xml-regex-content": {
+    "escapes-embedded": {
       "patterns": [
         {
           "include": "#string-escapes"
@@ -6559,7 +6516,7 @@
           "include": "#html-tag"
         },
         {
-          "include": "#xml-regex-content"
+          "include": "#escapes-embedded"
         },
         {
           "include": "#evaluated-code"
@@ -12262,7 +12219,7 @@
                   "include": "#symbols"
                 },
                 {
-                  "include": "#xml-regex-content"
+                  "include": "#escapes-embedded"
                 }
               ]
             },
