@@ -2882,7 +2882,7 @@ repository:
     patterns:
       - comment: Numeric Unicode property aliases and canonical names
         match: |-
-          (?x)\b(
+          (?xi)\b(
               cjkAccountingNumeric     | kAccountingNumeric
             | cjkOtherNumeric          | kOtherNumeric
             | cjkPrimaryNumeric        | kPrimaryNumeric
@@ -2891,7 +2891,7 @@ repository:
         name: support.type.property-name.unicode.numeric.ruko
       - comment: String Unicode property aliases and canonical names
         match: |-
-          (?x)\b(
+          (?xi)\b(
               bmg                      | Bidi_Mirroring_Glyph
             | bpb                      | Bidi_Paired_Bracket
             | cf                       | Case_Folding
@@ -2912,7 +2912,7 @@ repository:
         name: support.type.property-name.unicode.string.ruko
       - comment: Catalog Unicode property aliases and canonical names
         match: |-
-          (?x)\b(
+          (?xi)\b(
                 age                      | Age
               | blk                      | Block
               | sc                       | Script
@@ -2921,7 +2921,7 @@ repository:
         name: support.type.property-name.unicode.catalog.ruko
       - comment: Enumerated Unicode property aliases and canonical names
         match: |-
-          (?x)\b(
+          (?xi)\b(
               bc                       | Bidi_Class
             | bpt                      | Bidi_Paired_Bracket_Type
             | ccc                      | Canonical_Combining_Class
@@ -2948,7 +2948,7 @@ repository:
         name: support.type.property-name.unicode.enumerated.ruko
       - comment: Binary Unicode propery aliases and canonical names
         match: |-
-          (?x)\b(
+          (?xi)\b(
               AHex                     | ASCII_Hex_Digit
             | Alpha                    | Alphabetic
             | Bidi_C                   | Bidi_Control
@@ -3031,7 +3031,7 @@ repository:
     patterns:
       - comment: Unicode Script property values
         match: |-
-          (?x)\b(
+          (?xi)\b(
               Adlam                            | Adlam
             | Aegean_Numbers                   | Aegean_Numbers
             | Ahom                             | Ahom
@@ -3394,8 +3394,7 @@ repository:
         begin: |-
           (?x)
           ([\p{Pc}\p{L}]\w*) # property name
-          \s*
-          (?: # operators
+          \s*(?: # operators
               (!=|==?) # equality
             | (~[=!]) # matches
             | ([<>]=?) # relational
@@ -3412,16 +3411,8 @@ repository:
           5: { name: keyword.operator.pattern.ruko }
         name: string.unquoted.attribute-name.ruko
         patterns:
-          - include: '#numbers'
+          - include: '#comments'
           - include: '#strings'
-          - match: \b(\w+)\b
-            captures:
-              1:
-                name: constant.other.attribute-value.identifier.ruko
-                patterns:
-                  - include: '#constants'
-                  - include: '#unicode-property-values'
-                  - include: '#css-property-values'
           - comment: Regular expression patterns
             begin: (/)(?![/*])
             end: (/)(\p{L}*)
@@ -3430,6 +3421,12 @@ repository:
               1: { name: punctuation.definition.regexp.begin.ruko }
               2: { name: punctuation.definition.regexp.end.ruko }
               3: { name: keyword.other.flag.ruko }
+          - include: '#constants'
+          - include: '#numbers'
+          - include: '#unicode-property-values'
+          - include: '#css-property-values'
+          - match: \b(\w+)\b
+            name: constant.other.attribute-value.identifier.ruko
             patterns: [include: '#regexp-patterns']
       - match: \b([\p{Pc}\p{L}]\w*)\b
         name: entity.other.attribute-name.key.ruko
