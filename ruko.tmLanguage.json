@@ -3443,7 +3443,7 @@
               "name": "keyword.operator.arithmetic.sign.ruko"
             },
             "9": {
-              "name": "constant.numeric.range.increment.ruko"
+              "name": "constant.numeric.range.step.ruko"
             }
           }
         },
@@ -4155,12 +4155,51 @@
           "name": "constant.character.escape.ruko"
         },
         {
-          "match": "\\\\[wsdhulqmji]",
+          "comment": "Character classes (uppercase negated):\n- \\d: digit\n- \\s: whitespace\n- \\w: word character\n- \\h: hexadecimal digit\n- \\u: uppercase\n- \\l: lowercase\n- \\i: identifier start\n- \\c: identifier continue\n",
+          "match": "\\\\[wsdhulic]",
           "name": "constant.other.character-class.ruko"
         },
         {
-          "match": "\\\\[WSDHULQMJI]",
+          "match": "\\\\[WSDHULIC]",
           "name": "constant.other.character-class.negated.ruko"
+        },
+        {
+          "begin": "(\\\\q{)",
+          "end": "\\s*(})",
+          "name": "string.quoted.regexp.ruko",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.quote.begin.ruko"
+            },
+            "2": {
+              "name": "punctuation.definition.quote.end.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\|",
+              "name": "keyword.operator.or.ruko"
+            }
+          ]
+        },
+        {
+          "begin": "(\\\\Q)",
+          "end": "\\s*(\\\\E)",
+          "name": "string.quoted.regexp.ruko",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.quote.begin.ruko"
+            },
+            "2": {
+              "name": "punctuation.definition.quote.end.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\|",
+              "name": "keyword.operator.or.ruko"
+            }
+          ]
         },
         {
           "include": "#regexp-groups"
@@ -4170,6 +4209,10 @@
         },
         {
           "include": "#regexp-character-class"
+        },
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.other.ruko"
         },
         {
           "include": "#space"
@@ -4523,15 +4566,22 @@
         },
         {
           "comment": "Absent groups",
-          "begin": "(\\(\\?~)",
+          "begin": "(\\(\\?~(\\|))",
           "end": "\\s*(\\))",
           "name": "meta.group.absent.ruko",
           "captures": {
             "1": {
               "name": "punctuation.definition.group.absent.ruko"
+            },
+            "2": {
+              "name": "punctuation.definition.group.absent.stopper.ruko"
             }
           },
           "patterns": [
+            {
+              "match": "\\|",
+              "name": "punctuation.definition.group.absent.stopper.ruko"
+            },
             {
               "include": "#regexp-patterns"
             }
@@ -4668,6 +4718,44 @@
           "patterns": [
             {
               "include": "#attribute-selectors"
+            }
+          ]
+        },
+        {
+          "begin": "(\\\\q{)",
+          "end": "\\s*(})",
+          "name": "string.quoted.regexp.ruko",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.quote.begin.ruko"
+            },
+            "2": {
+              "name": "punctuation.definition.quote.end.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\|",
+              "name": "keyword.operator.or.ruko"
+            }
+          ]
+        },
+        {
+          "begin": "(\\\\Q)",
+          "end": "\\s*(\\\\E)",
+          "name": "string.quoted.regexp.ruko",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.quote.begin.ruko"
+            },
+            "2": {
+              "name": "punctuation.definition.quote.end.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\|",
+              "name": "keyword.operator.or.ruko"
             }
           ]
         },
