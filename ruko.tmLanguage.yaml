@@ -2180,7 +2180,7 @@ repository:
           6: { name: constant.numeric.range.end.ruko }
           7: { name: keyword.operator.range.ruko }
           8: { name: keyword.operator.arithmetic.sign.ruko }
-          9: { name: constant.numeric.range.increment.ruko }
+          9: { name: constant.numeric.range.step.ruko }
       - name: meta.embedded.placeholder.ruko
         match: |-
           (?x)
@@ -2521,13 +2521,45 @@ repository:
           - include: '#fuzzy-expression'
       - match: \\[abefrntv]
         name: constant.character.escape.ruko
-      - match: \\[wsdhulqmji]
+      - comment: |
+          Character classes (uppercase negated):
+          - \d: digit
+          - \s: whitespace
+          - \w: word character
+          - \h: hexadecimal digit
+          - \u: uppercase
+          - \l: lowercase
+          - \i: identifier start
+          - \c: identifier continue
+        match: \\[wsdhulic]
         name: constant.other.character-class.ruko
-      - match: \\[WSDHULQMJI]
+      - match: \\[WSDHULIC]
         name: constant.other.character-class.negated.ruko
+      - &regexp-quote-lower
+        begin: (\\q{)
+        end: \s*(})
+        name: string.quoted.regexp.ruko
+        captures:
+          1: { name: punctuation.definition.quote.begin.ruko }
+          2: { name: punctuation.definition.quote.end.ruko }
+        patterns:
+          - match: \|
+            name: keyword.operator.or.ruko
+      - &regexp-quote-upper
+        begin: (\\Q)
+        end: \s*(\\E)
+        name: string.quoted.regexp.ruko
+        captures:
+          1: { name: punctuation.definition.quote.begin.ruko }
+          2: { name: punctuation.definition.quote.end.ruko }
+        patterns:
+          - match: \|
+            name: keyword.operator.or.ruko
       - include: '#regexp-groups'
       - include: '#regexp-character-set'
       - include: '#regexp-character-class'
+      - match: \\. # fallback for any other escaped character
+        name: constant.character.escape.other.ruko
       - include: '#space'
 
   regexp-groups:
@@ -2673,12 +2705,16 @@ repository:
           1: { name: punctuation.definition.group.branch.ruko }
         patterns: [include: '#regexp-patterns']
       - comment: Absent groups
-        begin: (\(\?~)
+        begin: (\(\?~(\|))
         end: \s*(\))
         name: meta.group.absent.ruko
         captures:
           1: { name: punctuation.definition.group.absent.ruko }
-        patterns: [include: '#regexp-patterns']
+          2: { name: punctuation.definition.group.absent.stopper.ruko }
+        patterns:
+          - match: \|
+            name: punctuation.definition.group.absent.stopper.ruko
+          - include: '#regexp-patterns'
       - comment: Named groups (angle brackets)
         begin: \(\?(?=<(?![!=]))
         end: \s*(\))
@@ -2728,6 +2764,8 @@ repository:
         end: \s*}
         name: constant.other.character-class.unicode.ruko
         patterns: [include: '#attribute-selectors']
+      - *regexp-quote-lower
+      - *regexp-quote-upper
       - match: (?i)\\([cm][a-z])
         name: constant.character.control.ruko
       - match: (?i)\\p[a-z]{1,2}
