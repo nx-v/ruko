@@ -751,7 +751,7 @@
               "name": "keyword.operator.optional.ruko"
             },
             "2": {
-              "name": "keyword.operator.assert.ruko"
+              "name": "keyword.operator.unwrap.ruko"
             },
             "3": {
               "name": "keyword.operator.accessor.ruko"
@@ -786,7 +786,7 @@
               "name": "keyword.operator.borrow.ruko"
             },
             "6": {
-              "name": "keyword.operator.negation.ruko"
+              "name": "keyword.operator.logical.ruko"
             },
             "7": {
               "name": "keyword.operator.destructor.ruko"
@@ -810,7 +810,7 @@
         },
         {
           "comment": "Infix type operators",
-          "match": "(?x)\n(?<=^|['\"`)}\\]\\w\\s]|\\\\.)\n  (?:\n     (\\+)      # sum\n    |(\\-)      # difference\n    |(\\|)      # union\n    |(\\&)      # intersection\n    |(\\^)      # exclusion\n    |(<:|>:)   # strict super/subtype\n    |(<=|>=)   # super/subtype\n    |(!=|==)   # inequality/equality\n    |(<<|>>)   # variance (i.e. covariant/contravariant)\n    |(===|!==) # identity/non-identity\n    |(=~|!~)   # pattern match/non-pattern match\n    |(:)       # extends/implements\n  )\n(?=['\"`\\w\\s]|\\#?[(\\[{])",
+          "match": "(?x)\n(?<=^|['\"`)}\\]\\w\\s]|\\\\.)\n  (?:\n     (\\+)       # sum\n    |(\\-)       # difference\n    |(\\|)       # union\n    |(\\&)       # intersection\n    |(\\^)       # exclusion\n    |([<>][:=]) # strict super-/subtype\n    |(=[:!])    # equality/inequality\n    |(:[<>])    # variance (i.e. covariant/contravariant)\n    |(=~|!~)    # pattern match/non-pattern match\n    |(::?)      # extends/implements\n    |(\\?)|(!)   # conditionals\n    |(\\+>|<\\+)  # composition\n  )\n(?=['\"`\\w\\s]|\\#?[(\\[{])",
           "captures": {
             "1": {
               "name": "keyword.operator.sum.ruko"
@@ -828,34 +828,37 @@
               "name": "keyword.operator.exclusion.ruko"
             },
             "6": {
-              "name": "keyword.operator.relation.ruko"
+              "name": "keyword.operator.relational.ruko"
             },
             "7": {
-              "name": "keyword.operator.relation.ruko"
+              "name": "keyword.operator.equality.ruko"
             },
             "8": {
-              "name": "keyword.operator.comparison.ruko"
+              "name": "keyword.operator.prototype.ruko"
             },
             "9": {
-              "name": "keyword.operator.coalescing.ruko"
+              "name": "keyword.operator.pattern.ruko"
             },
             "10": {
-              "name": "keyword.operator.comparison.ruko"
+              "name": "keyword.operator.extends.ruko"
             },
             "11": {
-              "name": "keyword.operator.similarity.ruko"
+              "name": "keyword.operator.conditional.ruko"
             },
             "12": {
-              "name": "keyword.operator.prototype.ruko"
+              "name": "keyword.operator.ternary.ruko"
+            },
+            "13": {
+              "name": "keyword.operator.composition.ruko"
             }
           }
         },
         {
           "comment": "Suffix type operators",
-          "match": "(?x)\n(?<=[\\w'\"`)\\]}>]|\\\\.)\n(?:\n   (\\!) # negation\n  |(\\?) # existential\n)\n\\B",
+          "match": "(?x)\n(?<=[\\w'\"`)\\]}>]|\\\\.)\n(?:\n   (\\!) # result type\n  |(\\?) # option type\n)\n\\B",
           "captures": {
             "1": {
-              "name": "keyword.operator.assert.ruko"
+              "name": "keyword.operator.unwrap.ruko"
             },
             "2": {
               "name": "keyword.operator.existential.ruko"
@@ -886,7 +889,7 @@
               "name": "keyword.operator.borrow.ruko"
             },
             "6": {
-              "name": "keyword.operator.negation.ruko"
+              "name": "keyword.operator.logical.ruko"
             },
             "7": {
               "name": "keyword.operator.destructor.ruko"
@@ -910,10 +913,10 @@
         },
         {
           "comment": "Suffix type operators",
-          "match": "(?x)\n(?:\n   (\\!) # negation\n  |(\\?) # existential\n)",
+          "match": "(?x)\n(?:\n   (\\!) # result type\n  |(\\?) # option type\n)",
           "captures": {
             "1": {
-              "name": "keyword.operator.assert.ruko"
+              "name": "keyword.operator.unwrap.ruko"
             },
             "2": {
               "name": "keyword.operator.existential.ruko"
@@ -3401,7 +3404,7 @@
                   "name": "keyword.operator.optional.ruko"
                 },
                 "2": {
-                  "name": "keyword.operator.assert.ruko"
+                  "name": "keyword.operator.unwrap.ruko"
                 },
                 "3": {
                   "name": "keyword.operator.accessor.ruko"
@@ -3586,7 +3589,7 @@
                   "name": "keyword.operator.optional.ruko"
                 },
                 "2": {
-                  "name": "keyword.operator.assert.ruko"
+                  "name": "keyword.operator.unwrap.ruko"
                 },
                 "3": {
                   "name": "keyword.operator.accessor.ruko"
@@ -9466,192 +9469,204 @@
     },
     "infix-operators": {
       "comment": "Infix operators - e.g., x + y",
-      "match": "(?x)\n(?<=^|[\\s({\\[])(?:\n     ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`({\\[)}\\]\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`({\\[)}\\]\\p{Pc}]]*= ) # compound assignment\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|[=>]< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ ) # other operators\n)(?=$|[)}\\]\\s])\n",
+      "match": "(?x)\n(?<=^|[\\s({\\[])(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`({\\[)}\\]\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`({\\[)}\\]\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|[=>]< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ ) # other operators\n)(?=$|[)}\\]\\s])\n",
       "captures": {
         "1": {
           "name": "keyword.operator.assignment.augmented.ruko"
         },
         "2": {
-          "name": "keyword.operator.arrow.ruko"
+          "name": "keyword.operator.optional.ruko"
         },
         "3": {
-          "name": "keyword.operator.logical.ruko"
+          "name": "keyword.operator.unwrap.ruko"
         },
         "4": {
-          "name": "keyword.operator.bitwise.ruko"
+          "name": "keyword.operator.accessor.ruko"
         },
         "5": {
-          "name": "keyword.operator.bitwise.shift.ruko"
+          "name": "keyword.operator.logical.ruko"
         },
         "6": {
-          "name": "keyword.operator.successor.ruko"
+          "name": "keyword.operator.bitwise.ruko"
         },
         "7": {
-          "name": "keyword.operator.arithmetic.ruko"
+          "name": "keyword.operator.bitwise.shift.ruko"
         },
         "8": {
-          "name": "keyword.operator.pipeline.ruko"
+          "name": "keyword.operator.successor.ruko"
         },
         "9": {
-          "name": "keyword.operator.compose.ruko"
+          "name": "keyword.operator.arithmetic.ruko"
         },
         "10": {
-          "name": "keyword.operator.class.ruko"
+          "name": "keyword.operator.pipeline.ruko"
         },
         "11": {
-          "name": "keyword.operator.range.ruko"
+          "name": "keyword.operator.compose.ruko"
         },
         "12": {
-          "name": "keyword.operator.relational.ruko"
+          "name": "keyword.operator.class.ruko"
         },
         "13": {
-          "name": "keyword.operator.dots.ruko"
+          "name": "keyword.operator.range.ruko"
         },
         "14": {
-          "name": "keyword.operator.comparison.ruko"
+          "name": "keyword.operator.relational.ruko"
         },
         "15": {
-          "name": "keyword.operator.similarity.ruko"
+          "name": "keyword.operator.dots.ruko"
         },
         "16": {
-          "name": "keyword.operator.special.ruko"
+          "name": "keyword.operator.comparison.ruko"
         },
         "17": {
-          "name": "keyword.operator.null-coalescing.ruko"
+          "name": "keyword.operator.similarity.ruko"
         },
         "18": {
-          "name": "keyword.operator.coalescing.ruko"
+          "name": "keyword.operator.special.ruko"
         },
         "19": {
-          "name": "keyword.operator.conditional.ruko"
+          "name": "keyword.operator.null-coalescing.ruko"
         },
         "20": {
-          "name": "keyword.operator.ternary.ruko"
+          "name": "keyword.operator.coalescing.ruko"
         },
         "21": {
-          "name": "keyword.operator.macro.ruko"
+          "name": "keyword.operator.conditional.ruko"
         },
         "22": {
-          "name": "keyword.operator.assignment.ruko"
+          "name": "keyword.operator.ternary.ruko"
         },
         "23": {
-          "name": "keyword.operator.arrow.fat.ruko"
+          "name": "keyword.operator.macro.ruko"
         },
         "24": {
-          "name": "keyword.operator.arrow.thin.ruko"
+          "name": "keyword.operator.assignment.ruko"
         },
         "25": {
-          "name": "keyword.operator.arrow.wavy.ruko"
+          "name": "keyword.operator.arrow.fat.ruko"
         },
         "26": {
-          "name": "keyword.operator.math.custom.ruko"
+          "name": "keyword.operator.arrow.thin.ruko"
         },
         "27": {
-          "name": "keyword.operator.currency.custom.ruko"
+          "name": "keyword.operator.arrow.wavy.ruko"
         },
         "28": {
-          "name": "keyword.operator.arrow.ruko"
+          "name": "keyword.operator.math.custom.ruko"
         },
         "29": {
-          "name": "keyword.operator.ascii.custom.ruko"
+          "name": "keyword.operator.currency.custom.ruko"
         },
         "30": {
+          "name": "keyword.operator.ascii.ruko"
+        },
+        "31": {
+          "name": "keyword.operator.arrow.ruko"
+        },
+        "32": {
           "name": "keyword.operator.infix.ruko"
         }
       }
     },
     "interfix-operators": {
       "comment": "Interfix operators - x+y (without spaces)",
-      "match": "(?x)\n(?<=['\"`)}\\]\\w]|\\\\.)(?:\n     ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`({\\[)}\\]\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`({\\[)}\\]\\p{Pc}]]*= ) # compound assignment\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|[=>]< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ ) # other operators\n)(?=(?:['\"`\\w]|\\#?[(\\[{]))\n",
+      "match": "(?x)\n(?<=['\"`)}\\]\\w]|\\\\.)(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`({\\[)}\\]\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`({\\[)}\\]\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|[=>]< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ ) # other operators\n)(?=(?:['\"`\\w]|\\#?[(\\[{]))\n",
       "captures": {
         "1": {
           "name": "keyword.operator.assignment.augmented.ruko"
         },
         "2": {
-          "name": "keyword.operator.arrow.ruko"
+          "name": "keyword.operator.optional.ruko"
         },
         "3": {
-          "name": "keyword.operator.logical.ruko"
+          "name": "keyword.operator.unwrap.ruko"
         },
         "4": {
-          "name": "keyword.operator.bitwise.ruko"
+          "name": "keyword.operator.accessor.ruko"
         },
         "5": {
-          "name": "keyword.operator.bitwise.shift.ruko"
+          "name": "keyword.operator.logical.ruko"
         },
         "6": {
-          "name": "keyword.operator.successor.ruko"
+          "name": "keyword.operator.bitwise.ruko"
         },
         "7": {
-          "name": "keyword.operator.arithmetic.ruko"
+          "name": "keyword.operator.bitwise.shift.ruko"
         },
         "8": {
-          "name": "keyword.operator.pipeline.ruko"
+          "name": "keyword.operator.successor.ruko"
         },
         "9": {
-          "name": "keyword.operator.compose.ruko"
+          "name": "keyword.operator.arithmetic.ruko"
         },
         "10": {
-          "name": "keyword.operator.class.ruko"
+          "name": "keyword.operator.pipeline.ruko"
         },
         "11": {
-          "name": "keyword.operator.range.ruko"
+          "name": "keyword.operator.compose.ruko"
         },
         "12": {
-          "name": "keyword.operator.relational.ruko"
+          "name": "keyword.operator.class.ruko"
         },
         "13": {
-          "name": "keyword.operator.dots.ruko"
+          "name": "keyword.operator.range.ruko"
         },
         "14": {
-          "name": "keyword.operator.comparison.ruko"
+          "name": "keyword.operator.relational.ruko"
         },
         "15": {
-          "name": "keyword.operator.similarity.ruko"
+          "name": "keyword.operator.dots.ruko"
         },
         "16": {
-          "name": "keyword.operator.special.ruko"
+          "name": "keyword.operator.comparison.ruko"
         },
         "17": {
-          "name": "keyword.operator.null-coalescing.ruko"
+          "name": "keyword.operator.similarity.ruko"
         },
         "18": {
-          "name": "keyword.operator.coalescing.ruko"
+          "name": "keyword.operator.special.ruko"
         },
         "19": {
-          "name": "keyword.operator.conditional.ruko"
+          "name": "keyword.operator.null-coalescing.ruko"
         },
         "20": {
-          "name": "keyword.operator.ternary.ruko"
+          "name": "keyword.operator.coalescing.ruko"
         },
         "21": {
-          "name": "keyword.operator.macro.ruko"
+          "name": "keyword.operator.conditional.ruko"
         },
         "22": {
-          "name": "keyword.operator.assignment.ruko"
+          "name": "keyword.operator.ternary.ruko"
         },
         "23": {
-          "name": "keyword.operator.arrow.fat.ruko"
+          "name": "keyword.operator.macro.ruko"
         },
         "24": {
-          "name": "keyword.operator.arrow.thin.ruko"
+          "name": "keyword.operator.assignment.ruko"
         },
         "25": {
-          "name": "keyword.operator.arrow.wavy.ruko"
+          "name": "keyword.operator.arrow.fat.ruko"
         },
         "26": {
-          "name": "keyword.operator.math.custom.ruko"
+          "name": "keyword.operator.arrow.thin.ruko"
         },
         "27": {
-          "name": "keyword.operator.currency.custom.ruko"
+          "name": "keyword.operator.arrow.wavy.ruko"
         },
         "28": {
-          "name": "keyword.operator.arrow.ruko"
+          "name": "keyword.operator.math.custom.ruko"
         },
         "29": {
-          "name": "keyword.operator.ascii.custom.ruko"
+          "name": "keyword.operator.currency.custom.ruko"
         },
         "30": {
+          "name": "keyword.operator.ascii.ruko"
+        },
+        "31": {
+          "name": "keyword.operator.arrow.ruko"
+        },
+        "32": {
           "name": "keyword.operator.interfix.ruko"
         }
       }
@@ -9784,7 +9799,7 @@
             },
             {
               "match": "!",
-              "name": "keyword.operator.assert.ruko"
+              "name": "keyword.operator.unwrap.ruko"
             },
             {
               "match": "\\$",
@@ -12227,7 +12242,7 @@
                   "name": "keyword.operator.optional.ruko"
                 },
                 "2": {
-                  "name": "keyword.operator.assert.ruko"
+                  "name": "keyword.operator.unwrap.ruko"
                 },
                 "3": {
                   "name": "keyword.operator.accessor.ruko"
@@ -12439,7 +12454,7 @@
           "name": "keyword.operator.optional.ruko"
         },
         "2": {
-          "name": "keyword.operator.assert.ruko"
+          "name": "keyword.operator.unwrap.ruko"
         },
         "3": {
           "name": "keyword.operator.accessor.ruko"
@@ -13227,6 +13242,10 @@
           "match": "\\b(?i:SV_DispatchThreadID|SV_DomainLocation|SV_GroupID|SV_GroupIndex|SV_GroupThreadID|SV_GSInstanceID|SV_InsideTessFactor|SV_OutputControlPointID|SV_TessFactor)\\b"
         },
         {
+          "match": "\\b(Object|Any|Junction|Whatever|Capture|MatchSignature|Proxy|Matcher|Package|Module|ClassGrammar|Scalar|Array|Hash|KeyHash|KeySet|KeyBagPair|List|Seq|Range|Set|Bag|Mapping|Void|UndefFailure|Exception|Code|Block|Routine|Sub|MacroMethod|Submethod|Regex|Str|str|Blob|Char|ByteCodepoint|Grapheme|StrPos|StrLen|Version|NumComplex|num|complex|Bit|bit|bool|True|FalseIncreasing|Decreasing|Ordered|Callable|AnyCharPositional|Associative|Ordering|KeyExtractorComparator|OrderingPair|IO|KitchenSink|RoleInt|int|int1|int2|int4|int8|int16|int32|int64Rat|rat|rat1|rat2|rat4|rat8|rat16|rat32|rat64Buf|buf|buf1|buf2|buf4|buf8|buf16|buf32|buf64UInt|uint|uint1|uint2|uint4|uint8|uint16|uint32uint64|Abstraction|utf8|utf16|utf32)\\b",
+          "name": "support.type.perl"
+        },
+        {
           "include": "source.objc#anonymous_pattern_17"
         },
         {
@@ -13319,9 +13338,6 @@
           "include": "source.swift#builtin-global-functions"
         },
         {
-          "include": "source.r#builtin-functions"
-        },
-        {
           "include": "source.objcpp#c_functions"
         },
         {
@@ -13331,20 +13347,24 @@
           "include": "#html-builtins"
         },
         {
-          "match": "(?x)\n\\bon(Rowsinserted|Rowsdelete|Rowenter|Rowexit|Resize|Resizestart|Resizeend|Reset|\nReadystatechange|Mouseout|Mouseover|Mousedown|Mouseup|Mousemove|\nBefore(cut|deactivate|unload|update|paste|print|editfocus|activate)|\nBlur|Scrolltop|Submit|Select|Selectstart|Selectionchange|Hover|Help|\nChange|Contextmenu|Controlselect|Cut|Cellchange|Clock|Close|Deactivate|\nDatasetchanged|Datasetcomplete|Dataavailable|Drop|Drag|Dragstart|Dragover|\nDragdrop|Dragenter|Dragend|Dragleave|Dblclick|Unload|Paste|Propertychange|Error|\nErrorupdate|Keydown|Keyup|Keypress|Focus|Load|Activate|Afterupdate|Afterprint|Abort)\\b",
-          "name": "support.function.event-handler.coffee"
+          "match": "\\b(adprep|append|arp|assoc|at|atmadm|attrib|auditpol|autochk|autoconv|autofmt|bcdboot|bcdedit|bdehdcfg|bitsadmin|bootcfg|brea|cacls|cd|certreq|certutil|change|chcp|chdir|chglogon|chgport|chgusr|chkdsk|chkntfs|choice|cipher|clip|cls|clscluadmin|cluster|cmd|cmdkey|cmstp|color|comp|compact|convert|copy|cprofile|cscript|csvde|date|dcdiag|dcgpofix|dcpromo|defra|del|dfscmd|dfsdiag|dfsrmig|diantz|dir|dirquota|diskcomp|diskcopy|diskpart|diskperf|diskraid|diskshadow|dispdiag|doin|dnscmd|doskey|driverquery|dsacls|dsadd|dsamain|dsdbutil|dsget|dsmgmt|dsmod|dsmove|dsquery|dsrm|edit|endlocal|eraseesentutl|eventcreate|eventquery|eventtriggers|evntcmd|expand|extract|fc|filescrn|find|findstr|finger|flattemp|fonde|forfiles|format|freedisk|fsutil|ftp|ftype|fveupdate|getmac|gettype|gpfixup|gpresult|gpupdate|graftabl|hashgen|hep|helpctr|hostname|icacls|iisreset|inuse|ipconfig|ipxroute|irftp|ismserv|jetpack|klist|ksetup|ktmutil|ktpass|label|ldifd|ldp|lodctr|logman|logoff|lpq|lpr|macfile|makecab|manage-bde|mapadmin|md|mkdir|mklink|mmc|mode|more|mount|mountvol|move|mqbup|mqsvc|mqtgsvc|msdt|msg|msiexec|msinfo32|mstsc|nbtstat|net_computer|net_group|net_localgroup|net_print|net_session|net_share|net_start|net_stop|net_use|net_user|net_view|net|netcfg|netdiag|netdom|netsh|netstat|nfsadmin|nfsshare|nfsstat|nlb|nlbmgr|nltest|nslookup|ntackup|ntcmdprompt|ntdsutil|ntfrsutl|openfiles|pagefileconfig|path|pathping|pause|pbadmin|pentnt|perfmon|ping|pnpunatten|pnputil|popd|powercfg|powershell|powershell_ise|print|prncnfg|prndrvr|prnjobs|prnmngr|prnport|prnqctl|prompt|pubprn|pushd|pushprinterconnections|pwlauncher|qappsrv|qprocess|query|quser|qwinsta|rasdial|rcp|rd|rdpsign|regentc|recover|redircmp|redirusr|reg|regini|regsvr32|relog|ren|rename|rendom|repadmin|repair-bde|replace|reset session|rxec|risetup|rmdir|robocopy|route|rpcinfo|rpcping|rsh|runas|rundll32|rwinsta|sc|schtasks|scp|scwcmd|secedit|serverceipoptin|servrmanagercmd|serverweroptin|setspn|setx|sfc|sftp|shadow|shift|showmount|shutdown|sort|ssh|ssh-add|ssh-agent|ssh-keygen|ssh-keyscan|start|storrept|subst|sxstrace|ysocmgr|systeminfo|takeown|tapicfg|taskkill|tasklist|tcmsetup|telnet|tftp|time|timeout|title|tlntadmn|tpmvscmgr|tpmvscmgr|tacerpt|tracert|tree|tscon|tsdiscon|tsecimp|tskill|tsprof|type|typeperf|tzutil|uddiconfig|umount|unlodctr|ver|verifier|verif|vol|vssadmin|w32tm|waitfor|wbadmin|wdsutil|wecutil|wevtutil|where|whoami|winnt|winnt32|winpop|winrm|winrs|winsat|wlbs|wmic|wscript|wsl|xcopy)\\b",
+          "name": "support.function.batchfile.ruko"
         },
         {
-          "match": "(?x)\n\\b(shift|showModelessDialog|showModalDialog|showHelp|scroll|scrollX|scrollByPages|\nscrollByLines|scrollY|scrollTo|stop|strike|sizeToContent|sidebar|signText|sort|\nsup|sub|substr|substring|splice|split|send|set(Milliseconds|Seconds|Minutes|Hours|\nMonth|Year|FullYear|Date|UTC(Milliseconds|Seconds|Minutes|Hours|Month|FullYear|Date)|\nTime|Hotkeys|Cursor|ZOptions|Active|Resizable|RequestHeader)|search|slice|\nsavePreferences|small|home|handleEvent|navigate|char|charCodeAt|charAt|concat|\ncontextual|confirm|compile|clear|captureEvents|call|createStyleSheet|createPopup|\ncreateEventObject|to(GMTString|UTCString|String|Source|UpperCase|LowerCase|LocaleString)|\ntest|taint|taintEnabled|indexOf|italics|disableExternalCapture|dump|detachEvent|unshift|\nuntaint|unwatch|updateCommands|join|javaEnabled|pop|push|plugins.refresh|paddings|parse|\nprint|prompt|preference|enableExternalCapture|exec|execScript|valueOf|UTC|find|file|\nfileModifiedDate|fileSize|fileCreatedDate|fileUpdatedDate|fixed|fontsize|fontcolor|\nforward|fromCharCode|watch|link|load|lastIndexOf|anchor|attachEvent|atob|apply|alert|\nabort|routeEvents|resize|resizeBy|resizeTo|recalc|returnValue|replace|reverse|reload|\nreleaseCapture|releaseEvents|go|get(Milliseconds|Seconds|Minutes|Hours|Month|Day|Year|FullYear|\nTime|Date|TimezoneOffset|UTC(Milliseconds|Seconds|Minutes|Hours|Day|Month|FullYear|Date)|\nAttention|Selection|ResponseHeader|AllResponseHeaders)|moveBy|moveBelow|moveTo|\nmoveToAbsolute|moveAbove|mergeAttributes|match|margins|btoa|big|bold|borderWidths|blink|back)\\b",
-          "name": "support.function.coffee"
+          "match": "\\b(ARGV|DATA|ENV|SIG|STDERR|STDIN|STDOUT|atan2|bind|binmode|bless|caller|chdir|chmod|chomp|chop|chown|chr|chroot|close|closedir|cmp|connect|cos|crypt|dbmclose|dbmopen|defined|delete|dump|each|endgrent|endhostent|endnetent|endprotoent|endpwent|endservent|eof|eq|eval|exec|exists|exp|fcntl|fileno|flock|fork|formline|ge|getc|getgrent|getgrgid|getgrnam|gethostbyaddr|gethostbyname|gethostent|getlogin|getnetbyaddr|getnetbyname|getnetent|getpeername|getpgrp|getppid|getpriority|getprotobyname|getprotobynumber|getprotoent|getpwent|getpwnam|getpwuid|getservbyname|getservbyport|getservent|getsockname|getsockopt|glob|gmtime|grep|gt|hex|import|index|int|ioctl|join|keys|kill|lc|lcfirst|le|length|link|listen|local|localtime|log|lstat|lt|m|map|mkdir|msgctl|msgget|msgrcv|msgsnd|ne|no|oct|open|opendir|ord|pack|pipe|pop|pos|print|printf|push|quotemeta|rand|read|readdir|readlink|recv|ref|rename|reset|reverse|rewinddir|rindex|rmdir|s|say|scalar|seek|seekdir|semctl|semget|semop|send|setgrent|sethostent|setnetent|setpgrp|setpriority|setprotoent|setpwent|setservent|setsockopt|shift|shmctl|shmget|shmread|shmwrite|shutdown|sin|sleep|socket|socketpair|sort|splice|split|sprintf|sqrt|srand|stat|study|substr|symlink|syscall|sysopen|sysread|system|syswrite|tell|telldir|tie|tied|time|times|tr|truncate|uc|ucfirst|umask|undef|unlink|unpack|unshift|untie|utime|values|vec|waitpid|wantarray|warn|write|y|eager|hyper|substr|index|rindex|grep|map|sort|join|lines|hints|chmod|split|reduce|min|max|reverse|truncate|zip|cat|roundrobin|classify|first|sum|keys|values|pairs|defined|delete|exists|elems|end|kv|any|all|one|wrap|shape|key|value|name|pop|push|shift|splice|unshift|floor|ceiling|abs|exp|log|log10|rand|sign|sqrt|sin|cos|tan|round|strand|roots|cis|unpolar|polar|atan2|pick|chop|p5chop|chomp|p5chomp|lc|lcfirst|uc|ucfirst|capitalize|normalize|pack|unpack|quotemeta|comb|samecase|sameaccent|chars|nfd|nfc|nfkd|nfkc|printf|sprintf|caller|evalfile|run|runinstead|nothing|want|bless|chr|ord|gmtime|time|eof|localtime|gethost|getpw|chroot|getlogin|getpeername|kill|fork|wait|perl|graphs|codes|bytes|clone|print|open|read|write|readline|say|seek|close|opendir|readdir|slurp|spurt|shell|run|pos|fmt|vec|link|unlink|symlink|uniq|pair|asin|atan|sec|cosec|cotan|asec|acosec|acotan|sinh|cosh|tanh|asinh|done|acos|acosh|atanh|sech|cosech|cotanh|sech|acosech|acotanh|asech|ok|nok|plan_ok|dies_ok|lives_ok|skip|todo|pass|flunk|force_todo|use_ok|isa_ok|diag|is_deeply|isnt|like|skip_rest|unlike|cmp_ok|eval_dies_ok|nok_error|eval_lives_ok|approx|is_approx|throws_ok|version_lt|plan|EVAL|succ|pred|times|nonce|once|signature|new|connect|operator|undef|undefine|sleep|from|to|infix|postfix|prefix|circumfix|postcircumfix|minmax|lazy|count|unwrap|getc|pi|e|context|void|quasi|body|each|contains|rewinddir|subst|can|isa|flush|arity|assuming|rewind|callwith|callsame|nextwith|nextsame|attr|eval_elsewhere|none|srand|trim|trim_start|trim_end|lastcall|WHAT|WHERE|HOW|WHICH|VAR|WHO|WHENCE|ACCEPTS|REJECTS|not|true|iterator|by|re|im|invert|flip|gist|flat|tree|is_prime|throws_like|trans)\\b",
+          "name": "support.function.perl"
         },
         {
-          "match": "(?x)\n\\b(acceptNode|add|addEventListener|addTextTrack|adoptNode|after|animate|append|\nappendChild|appendData|before|blur|canPlayType|captureStream|\ncaretPositionFromPoint|caretRangeFromPoint|checkValidity|clear|click|\ncloneContents|cloneNode|cloneRange|close|closest|collapse|\ncompareBoundaryPoints|compareDocumentPosition|comparePoint|contains|\nconvertPointFromNode|convertQuadFromNode|convertRectFromNode|createAttribute|\ncreateAttributeNS|createCaption|createCDATASection|createComment|\ncreateContextualFragment|createDocument|createDocumentFragment|\ncreateDocumentType|createElement|createElementNS|createEntityReference|\ncreateEvent|createExpression|createHTMLDocument|createNodeIterator|\ncreateNSResolver|createProcessingInstruction|createRange|createShadowRoot|\ncreateTBody|createTextNode|createTFoot|createTHead|createTreeWalker|delete|\ndeleteCaption|deleteCell|deleteContents|deleteData|deleteRow|deleteTFoot|\ndeleteTHead|detach|disconnect|dispatchEvent|elementFromPoint|elementsFromPoint|\nenableStyleSheetsForSet|entries|evaluate|execCommand|exitFullscreen|\nexitPointerLock|expand|extractContents|fastSeek|firstChild|focus|forEach|get|\ngetAll|getAnimations|getAttribute|getAttributeNames|getAttributeNode|\ngetAttributeNodeNS|getAttributeNS|getBoundingClientRect|getBoxQuads|\ngetClientRects|getContext|getDestinationInsertionPoints|getElementById|\ngetElementsByClassName|getElementsByName|getElementsByTagName|\ngetElementsByTagNameNS|getItem|getNamedItem|getSelection|getStartDate|\ngetVideoPlaybackQuality|has|hasAttribute|hasAttributeNS|hasAttributes|\nhasChildNodes|hasFeature|hasFocus|importNode|initEvent|insertAdjacentElement|\ninsertAdjacentHTML|insertAdjacentText|insertBefore|insertCell|insertData|\ninsertNode|insertRow|intersectsNode|isDefaultNamespace|isEqualNode|\nisPointInRange|isSameNode|item|key|keys|lastChild|load|lookupNamespaceURI|\nlookupPrefix|matches|move|moveAttribute|moveAttributeNode|moveChild|\nmoveNamedItem|namedItem|nextNode|nextSibling|normalize|observe|open|\nparentNode|pause|play|postMessage|prepend|preventDefault|previousNode|\npreviousSibling|probablySupportsContext|queryCommandEnabled|\nqueryCommandIndeterm|queryCommandState|queryCommandSupported|queryCommandValue|\nquerySelector|querySelectorAll|registerContentHandler|registerElement|\nregisterProtocolHandler|releaseCapture|releaseEvents|remove|removeAttribute|\nremoveAttributeNode|removeAttributeNS|removeChild|removeEventListener|\nremoveItem|replace|replaceChild|replaceData|replaceWith|reportValidity|\nrequestFullscreen|requestPointerLock|reset|scroll|scrollBy|scrollIntoView|\nscrollTo|seekToNextFrame|select|selectNode|selectNodeContents|set|setAttribute|\nsetAttributeNode|setAttributeNodeNS|setAttributeNS|setCapture|\nsetCustomValidity|setEnd|setEndAfter|setEndBefore|setItem|setNamedItem|\nsetRangeText|setSelectionRange|setSinkId|setStart|setStartAfter|setStartBefore|\nslice|splitText|stepDown|stepUp|stopImmediatePropagation|stopPropagation|\nsubmit|substringData|supports|surroundContents|takeRecords|terminate|toBlob|\ntoDataURL|toggle|toString|values|write|writeln)\\b",
-          "name": "support.function.dom.coffee"
+          "match": "\\b(abort|at_exit|autoload|binding|callcc|caller|caller_locations|chomp|chop|eval|exec|exit|fork|format|gets|global_variables|gsub|lambda|load|local_variables|open|p|print|printf|proc|putc|puts|rand|readline|readlines|select|set_trace_func|sleep|spawn|sprintf|srand|sub|syscall|system|test|trace_var|trap|untrace_var|warn|autoload|exit)\\b",
+          "name": "support.function.kernel.ruby"
         },
         {
-          "match": "(?x)\n\\b(isNaN|isFinite|eval|uneval|parseInt|parseFloat|decodeURI|\ndecodeURIComponent|encodeURI|encodeURIComponent|escape|unescape|require|\nset(Interval|Timeout)|clear(Interval|Timeout))\\b",
-          "name": "support.function.coffee"
+          "match": "\\b(assert|collectgarbage|dofile|error|getfenv|getmetatable|ipairs|load|loadfile|loadstring|module|next|pairs|pcall|print|rawequal|rawget|rawlen|rawset|require|select|setfenv|setmetatable|tonumber|tostring|type|unpack|xpcall)\\b",
+          "name": "support.function.lua"
+        },
+        {
+          "match": "\\b(coroutine\\.(create|isyieldable|close|resume|running|status|wrap|yield)|string\\.(byte|char|dump|find|format|gmatch|gsub|len|lower|match|pack|packsize|rep|reverse|sub|unpack|upper)|table\\.(concat|insert|maxn|move|pack|remove|sort|unpack)|math\\.(abs|acos|asin|atan2?|ceil|cosh?|deg|exp|floor|fmod|frexp|ldexp|log|log10|max|min|modf|pow|rad|random|randomseed|sinh?|sqrt|tanh?|tointeger|type)|io\\.(close|flush|input|lines|open|output|popen|read|tmpfile|type|write)|os\\.(clock|date|difftime|execute|exit|getenv|remove|rename|setlocale|time|tmpname)|package\\.(loadlib|seeall|searchpath)|debug\\.(debug|[gs]etfenv|[gs]ethook|getinfo|[gs]etlocal|[gs]etmetatable|getregistry|[gs]etupvalue|[gs]etuservalue|set[Cc]stacklimit|traceback|upvalueid|upvaluejoin)|bit32\\.(arshift|band|bnot|bor|btest|bxor|extract|replace|lrotate|lshift|rrotate|rshift)|utf8\\.(char|codes|codepoint|len|offset))\\b",
+          "name": "support.function.library.lua"
         },
         {
           "match": "(?x)\\b apc_( store|sma_info|compile_file|clear_cache|cas|cache_info|inc|dec|define_constants|delete(_file)?| exists|fetch|load_constants|add|bin_(dump|load)(file)? )\\b",
@@ -13885,6 +13905,46 @@
         {
           "match": "\\b(abort|abort_after_wait|absent|absolute|accent_sensitivity|acceptable_cursopt|acp|action|activation|add|address|admin|aes_128|aes_192|aes_256|affinity|after|aggregate|algorithm|all_constraints|all_errormsgs|all_indexes|all_levels|all_results|allow_connections|allow_dup_row|allow_encrypted_value_modifications|allow_page_locks|allow_row_locks|allow_snapshot_isolation|alter|altercolumn|always|anonymous|ansi_defaults|ansi_null_default|ansi_null_dflt_off|ansi_null_dflt_on|ansi_nulls|ansi_padding|ansi_warnings|appdomain|append|application|apply|arithabort|arithignore|array|assembly|asymmetric|asynchronous_commit|at|atan2|atomic|attach|attach_force_rebuild_log|attach_rebuild_log|audit|auth_realm|authentication|auto|auto_cleanup|auto_close|auto_create_statistics|auto_drop|auto_shrink|auto_update_statistics|auto_update_statistics_async|automated_backup_preference|automatic|autopilot|availability|availability_mode|backup|backup_priority|base64|basic|batches|batchsize|before|between|bigint|binary|binding|bit|block|blockers|blocksize|bmk|both|break|broker|broker_instance|bucket_count|buffer|buffercount|bulk_logged|by|call|caller|card|case|catalog|catch|cert|certificate|change_retention|change_tracking|change_tracking_context|changes|char|character|character_set|check_expiration|check_policy|checkconstraints|checkindex|checkpoint|checksum|cleanup_policy|clear|clear_port|close|clustered|codepage|collection|column_encryption_key|column_master_key|columnstore|columnstore_archive|colv_80_to_100|colv_100_to_80|commit_differential_base|committed|compatibility_level|compress_all_row_groups|compression|compression_delay|concat_null_yields_null|concatenate|configuration|connect|connection|containment|continue|continue_after_error|contract|contract_name|control|conversation|conversation_group_id|conversation_handle|copy|copy_only|count_rows|counter|create(\\\\\\\\s+or\\\\\\\\s+alter)?|credential|cross|cryptographic|cryptographic_provider|cube|cursor|cursor_close_on_commit|cursor_default|data|data_compression|data_flush_interval_seconds|data_mirroring|data_purity|data_source|database|database_name|database_snapshot|datafiletype|date_correlation_optimization|date|datefirst|dateformat|date_format|datetime|datetime2|datetimeoffset|day(s)?|db_chaining|dbid|dbidexec|dbo_only|deadlock_priority|deallocate|dec|decimal|declare|decrypt|decrypt_a|decryption|default_database|default_fulltext_language|default_language|default_logon_domain|default_schema|definition|delay|delayed_durability|delimitedtext|density_vector|dependent|des|description|desired_state|desx|differential|digest|disable|disable_broker|disable_def_cnst_chk|disabled|disk|distinct|distributed|distribution|drop|drop_existing|dts_buffers|dump|durability|dynamic|edition|elements|else|emergency|empty|enable|enable_broker|enabled|encoding|encrypted|encrypted_value|encryption|encryption_type|end|endpoint|endpoint_url|enhancedintegrity|entry|error_broker_conversations|errorfile|estimateonly|event|except|exec|executable|execute|exists|expand|expiredate|expiry_date|explicit|external|external_access|failover|failover_mode|failure_condition_level|fast|fast_forward|fastfirstrow|federated_service_account|fetch|field_terminator|fieldterminator|file|filelistonly|filegroup|filegrowth|filename|filestream|filestream_log|filestream_on|filetable|file_format|filter|first_row|fips_flagger|fire_triggers|first|firstrow|float|flush_interval_seconds|fmtonly|following|for|force|force_failover_allow_data_loss|force_service_allow_data_loss|forced|forceplan|formatfile|format_options|format_type|formsof|forward_only|free_cursors|free_exec_context|fullscan|fulltext|fulltextall|fulltextkey|function|generated|get|geography|geometry|global|go|goto|governor|guid|hadoop|hardening|hash|hashed|header_limit|headeronly|health_check_timeout|hidden|hierarchyid|histogram|histogram_steps|hits_cursors|hits_exec_context|hour(s)?|http|identity|identity_value|if|ifnull|ignore|ignore_constraints|ignore_dup_key|ignore_dup_row|ignore_triggers|image|immediate|implicit_transactions|include|include_null_values|incremental|index|inflectional|init|initiator|insensitive|insert|instead|int|integer|integrated|intersect|intermediate|interval_length_minutes|into|inuse_cursors|inuse_exec_context|io|is|isabout|iso_week|isolation|job_tracker_location|json|keep|keep_nulls|keep_replication|keepdefaults|keepfixed|keepidentity|keepnulls|kerberos|key|key_path|key_source|key_store_provider_name|keyset|kill|kilobytes_per_batch|labelonly|langid|language|last|lastrow|leading|legacy_cardinality_estimation|length|level|lifetime|lineage_80_to_100|lineage_100_to_80|listener_ip|listener_port|load|loadhistory|lob_compaction|local|local_service_name|locate|location|lock_escalation|lock_timeout|lockres|log|login|login_type|loop|manual|mark_in_use_for_removal|masked|master|match|matched|max_queue_readers|max_duration|max_outstanding_io_per_volume|maxdop|maxerrors|maxlength|maxtransfersize|max_plans_per_query|max_storage_size_mb|mediadescription|medianame|mediapassword|memogroup|memory_optimized|merge|message|message_forward_size|message_forwarding|microsecond|millisecond|minute(s)?|mirror_address|misses_cursors|misses_exec_context|mixed|modify|money|month|move|multi_user|must_change|name|namespace|nanosecond|native|native_compilation|nchar|ncharacter|nested_triggers|never|new_account|new_broker|newname|next|no|no_browsetable|no_checksum|no_compression|no_infomsgs|no_triggers|no_truncate|nocount|noexec|noexpand|noformat|noinit|nolock|nonatomic|nonclustered|nondurable|none|norecompute|norecovery|noreset|norewind|noskip|not|notification|nounload|now|nowait|ntext|ntlm|nulls|numeric|numeric_roundabort|nvarchar|object|objid|oem|offline|old_account|online|operation_mode|open|openjson|optimistic|option|orc|out|outer|output|over|override|owner|ownership|pad_index|page|page_checksum|page_verify|pagecount|paglock|param|parameter_sniffing|parameter_type_expansion|parameterization|parquet|parseonly|partial|partition|partner|password|path|pause|percentage|permission_set|persisted|period|physical_only|plan_forcing_mode|policy|pool|population|ports|preceding|precision|predicate|presume_abort|primary|primary_role|print|prior|priority |priority_level|private|proc(edure)?|procedure_name|profile|provider|quarter|query_capture_mode|query_governor_cost_limit|query_optimizer_hotfixes|query_store|queue|quoted_identifier|raiserror|range|raw|rcfile|rc2|rc4|rc4_128|rdbms|read_committed_snapshot|read|read_only|read_write|readcommitted|readcommittedlock|readonly|readpast|readuncommitted|readwrite|real|rebuild|receive|recmodel_70backcomp|recompile|reconfigure|recovery|recursive|recursive_triggers|redo_queue|reject_sample_value|reject_type|reject_value|relative|remote|remote_data_archive|remote_proc_transactions|remote_service_name|remove|removed_cursors|removed_exec_context|reorganize|repeat|repeatable|repeatableread|replace|replica|replicated|replnick_100_to_80|replnickarray_80_to_100|replnickarray_100_to_80|required|required_cursopt|resample|reset|resource|resource_manager_location|respect|restart|restore|restricted_user|resume|retaindays|retention|return|revert|rewind|rewindonly|returns|robust|role|rollup|root|round_robin|route|row|rowdump|rowguidcol|rowlock|row_terminator|rows|rows_per_batch|rowsets_only|rowterminator|rowversion|rsa_1024|rsa_2048|rsa_3072|rsa_4096|rsa_512|safe|safety|sample|save|scalar|schema|schemabinding|scoped|scroll|scroll_locks|sddl|second|secexpr|seconds|secondary|secondary_only|secondary_role|secret|security|securityaudit|selective|self|send|sent|sequence|serde_method|serializable|server|service|service_broker|service_name|service_objective|session_timeout|session|sessions|seterror|setopts|sets|shard_map_manager|shard_map_name|sharded|shared_memory|shortest_path|show_statistics|showplan_all|showplan_text|showplan_xml|showplan_xml_with_recompile|shrinkdb|shutdown|sid|signature|simple|single_blob|single_clob|single_nclob|single_user|singleton|site|size|size_based_cleanup_mode|skip|smalldatetime|smallint|smallmoney|snapshot|snapshot_import|snapshotrestorephase|soap|softnuma|sort_in_tempdb|sorted_data|sorted_data_reorg|spatial|sql|sql_bigint|sql_binary|sql_bit|sql_char|sql_date|sql_decimal|sql_double|sql_float|sql_guid|sql_handle|sql_longvarbinary|sql_longvarchar|sql_numeric|sql_real|sql_smallint|sql_time|sql_timestamp|sql_tinyint|sql_tsi_day|sql_tsi_frac_second|sql_tsi_hour|sql_tsi_minute|sql_tsi_month|sql_tsi_quarter|sql_tsi_second|sql_tsi_week|sql_tsi_year|sql_type_date|sql_type_time|sql_type_timestamp|sql_varbinary|sql_varchar|sql_variant|sql_wchar|sql_wlongvarchar|ssl|ssl_port|standard|standby|start|start_date|started|stat_header|state|statement|static|statistics|statistics_incremental|statistics_norecompute|statistics_only|statman|stats|stats_stream|status|stop|stop_on_error|stopat|stopatmark|stopbeforemark|stoplist|stopped|string_delimiter|subject|supplemental_logging|supported|suspend|symmetric|synchronous_commit|synonym|sysname|system|system_time|system_versioning|table|tableresults|tablock|tablockx|take|tape|target|target_index|target_partition|target_recovery_time|tcp|temporal_history_retention|text|textimage_on|then|thesaurus|throw|time|timeout|timestamp|tinyint|to|top|torn_page_detection|track_columns_updated|trailing|tran|transaction|transfer|transform_noise_words|triple_des|triple_des_3key|truncate|trustworthy|try|tsql|two_digit_year_cutoff|type|type_desc|type_warning|tzoffset|uid|unbounded|uncommitted|unique|uniqueidentifier|unlimited|unload|unlock|unsafe|updlock|url|use|useplan|useroptions|use_type_default|using|utcdatetime|valid_xml|validation|value|values|varbinary|varchar|vector|verbose|verifyonly|version|view_metadata|virtual_device|visiblity|wait_at_low_priority|waitfor|webmethod|week|weekday|weight|well_formed_xml|when|while|widechar|widechar_ansi|widenative|window|windows|with|within|within group|witness|without|without_array_wrapper|workload|wsdl|xact_abort|xlock|xml|xmlschema|xquery|xsinil|year|zone)\\b",
           "name": "support.function.legacy.sql"
+        },
+        {
+          "match": "\\b(abbreviate|abs|acos|acosh|activeBindingFunction|addNA|addTaskCallback|agrep|agrepl|alist|all|all\\.equal|all\\.equal\\.character|all\\.equal\\.default|all\\.equal\\.environment|all\\.equal\\.envRefClass|all\\.equal\\.factor|all\\.equal\\.formula|all\\.equal\\.function|all\\.equal\\.language|all\\.equal\\.list|all\\.equal\\.numeric|all\\.equal\\.POSIXt|all\\.equal\\.raw|all\\.names|all\\.vars|allowInterrupts|any|anyDuplicated|anyDuplicated\\.array|anyDuplicated\\.data\\.frame|anyDuplicated\\.default|anyDuplicated\\.matrix|anyNA|anyNA\\.data\\.frame|anyNA\\.numeric_version|anyNA\\.POSIXlt|aperm|aperm\\.default|aperm\\.table|append|apply|Arg|args|array|array2DF|arrayInd|as\\.array|as\\.array\\.default|as\\.call|as\\.character|as\\.character\\.condition|as\\.character\\.Date|as\\.character\\.default|as\\.character\\.error|as\\.character\\.factor|as\\.character\\.hexmode|as\\.character\\.numeric_version|as\\.character\\.octmode|as\\.character\\.POSIXt|as\\.character\\.srcref|as\\.complex|as\\.data\\.frame|as\\.data\\.frame\\.array|as\\.data\\.frame\\.AsIs|as\\.data\\.frame\\.character|as\\.data\\.frame\\.complex|as\\.data\\.frame\\.data\\.frame|as\\.data\\.frame\\.Date|as\\.data\\.frame\\.default|as\\.data\\.frame\\.difftime|as\\.data\\.frame\\.factor|as\\.data\\.frame\\.integer|as\\.data\\.frame\\.list|as\\.data\\.frame\\.logical|as\\.data\\.frame\\.matrix|as\\.data\\.frame\\.model\\.matrix|as\\.data\\.frame\\.noquote|as\\.data\\.frame\\.numeric|as\\.data\\.frame\\.numeric_version|as\\.data\\.frame\\.ordered|as\\.data\\.frame\\.POSIXct|as\\.data\\.frame\\.POSIXlt|as\\.data\\.frame\\.raw|as\\.data\\.frame\\.table|as\\.data\\.frame\\.ts|as\\.data\\.frame\\.vector|as\\.Date|as\\.Date\\.character|as\\.Date\\.default|as\\.Date\\.factor|as\\.Date\\.numeric|as\\.Date\\.POSIXct|as\\.Date\\.POSIXlt|as\\.difftime|as\\.double|as\\.double\\.difftime|as\\.double\\.POSIXlt|as\\.environment|as\\.expression|as\\.expression\\.default|as\\.factor|as\\.function|as\\.function\\.default|as\\.hexmode|as\\.integer|as\\.list|as\\.list\\.data\\.frame|as\\.list\\.Date|as\\.list\\.default|as\\.list\\.difftime|as\\.list\\.environment|as\\.list\\.factor|as\\.list\\.function|as\\.list\\.numeric_version|as\\.list\\.POSIXct|as\\.list\\.POSIXlt|as\\.logical|as\\.logical\\.factor|as\\.matrix|as\\.matrix\\.data\\.frame|as\\.matrix\\.default|as\\.matrix\\.noquote|as\\.matrix\\.POSIXlt|as\\.name|as\\.null|as\\.null\\.default|as\\.numeric|as\\.numeric_version|as\\.octmode|as\\.ordered|as\\.package_version|as\\.pairlist|as\\.POSIXct|as\\.POSIXct\\.Date|as\\.POSIXct\\.default|as\\.POSIXct\\.numeric|as\\.POSIXct\\.POSIXlt|as\\.POSIXlt|as\\.POSIXlt\\.character|as\\.POSIXlt\\.Date|as\\.POSIXlt\\.default|as\\.POSIXlt\\.factor|as\\.POSIXlt\\.numeric|as\\.POSIXlt\\.POSIXct|as\\.qr|as\\.raw|as\\.single|as\\.single\\.default|as\\.symbol|as\\.table|as\\.table\\.default|as\\.vector|as\\.vector\\.data\\.frame|as\\.vector\\.factor|as\\.vector\\.POSIXlt|asin|asinh|asNamespace|asplit|asS3|asS4|assign|atan|atan2|atanh|attach|attachNamespace|attr|attr\\.all\\.equal|attributes|autoload|autoloader|backsolve|balancePOSIXlt|baseenv|basename|besselI|besselJ|besselK|besselY|beta|bindingIsActive|bindingIsLocked|bindtextdomain|bitwAnd|bitwNot|bitwOr|bitwShiftL|bitwShiftR|bitwXor|body|bquote|break|browser|browserCondition|browserSetDebug|browserText|builtins|by|by\\.data\\.frame|by\\.default|bzfile|c|c\\.Date|c\\.difftime|c\\.factor|c\\.noquote|c\\.numeric_version|c\\.POSIXct|c\\.POSIXlt|c\\.warnings|call|callCC|capabilities|casefold|cat|cbind|cbind\\.data\\.frame|ceiling|char\\.expand|character|charmatch|charToRaw|chartr|chkDots|chol|chol\\.default|chol2inv|choose|chooseOpsMethod|chooseOpsMethod\\.default|class|clearPushBack|close|close\\.connection|close\\.srcfile|close\\.srcfilealias|closeAllConnections|col|colMeans|colnames|colSums|commandArgs|comment|complex|computeRestarts|conditionCall|conditionCall\\.condition|conditionMessage|conditionMessage\\.condition|conflictRules|conflicts|Conj|contributors|cos|cosh|cospi|crossprod|Cstack_info|cummax|cummin|cumprod|cumsum|curlGetHeaders|cut|cut\\.Date|cut\\.default|cut\\.POSIXt|data\\.class|data\\.frame|data\\.matrix|date|debug|debuggingState|debugonce|declare|default\\.stringsAsFactors|delayedAssign|deparse|deparse1|det|detach|determinant|determinant\\.matrix|dget|diag|diff|diff\\.Date|diff\\.default|diff\\.difftime|diff\\.POSIXt|difftime|digamma|dim|dim\\.data\\.frame|dimnames|dimnames\\.data\\.frame|dir|dir\\.create|dir\\.exists|dirname|do\\.call|dontCheck|double|dput|dQuote|drop|droplevels|droplevels\\.data\\.frame|droplevels\\.factor|dump|duplicated|duplicated\\.array|duplicated\\.data\\.frame|duplicated\\.default|duplicated\\.matrix|duplicated\\.numeric_version|duplicated\\.POSIXlt|duplicated\\.warnings|dyn\\.load|dyn\\.unload|dynGet|eapply|eigen|emptyenv|enc2native|enc2utf8|encodeString|Encoding|endsWith|enquote|env\\.profile|environment|environmentIsLocked|environmentName|errorCondition|eval|eval\\.parent|evalq|Exec|exists|exp|expand\\.grid|expm1|expression|extSoftVersion|factor|factorial|fifo|file|file\\.access|file\\.append|file\\.choose|file\\.copy|file\\.create|file\\.exists|file\\.info|file\\.link|file\\.mode|file\\.mtime|file\\.path|file\\.remove|file\\.rename|file\\.show|file\\.size|file\\.symlink|Filter|Find|find\\.package|findInterval|findPackageEnv|findRestart|floor|flush|flush\\.connection|for|force|forceAndCall|formals|format|format\\.AsIs|format\\.data\\.frame|format\\.Date|format\\.default|format\\.difftime|format\\.factor|format\\.hexmode|format\\.info|format\\.libraryIQR|format\\.numeric_version|format\\.octmode|format\\.packageInfo|format\\.POSIXct|format\\.POSIXlt|format\\.pval|format\\.summaryDefault|formatC|formatDL|forwardsolve|function|gamma|gc|gc\\.time|gcinfo|gctorture|gctorture2|get|get0|getAllConnections|getCallingDLL|getCallingDLLe|getConnection|getDLLRegisteredRoutines|getDLLRegisteredRoutines\\.character|getDLLRegisteredRoutines\\.DLLInfo|getElement|geterrmessage|getExportedValue|getHook|getLoadedDLLs|getNamespace|getNamespaceExports|getNamespaceImports|getNamespaceInfo|getNamespaceName|getNamespaceUsers|getNamespaceVersion|getNativeSymbolInfo|getOption|getRversion|getSrcLines|getTaskCallbackNames|gettext|gettextf|getwd|gl|globalCallingHandlers|globalenv|gregexec|gregexpr|grep|grepl|grepRaw|grepv|grouping|gsub|gzcon|gzfile|I|iconv|iconvlist|icuGetCollate|icuSetCollate|identical|identity|if|ifelse|Im|importIntoEnv|infoRDS|inherits|integer|interaction|interactive|intersect|intToBits|intToUtf8|inverse\\.rle|invisible|invokeRestart|invokeRestartInteractively|is\\.array|is\\.atomic|is\\.call|is\\.character|is\\.complex|is\\.data\\.frame|is\\.double|is\\.element|is\\.environment|is\\.expression|is\\.factor|is\\.finite|is\\.finite\\.POSIXlt|is\\.function|is\\.infinite|is\\.infinite\\.POSIXlt|is\\.integer|is\\.language|is\\.list|is\\.loaded|is\\.logical|is\\.matrix|is\\.na|is\\.na\\.data\\.frame|is\\.na\\.numeric_version|is\\.na\\.POSIXlt|is\\.name|is\\.nan|is\\.nan\\.POSIXlt|is\\.null|is\\.numeric|is\\.numeric_version|is\\.numeric\\.Date|is\\.numeric\\.difftime|is\\.numeric\\.POSIXt|is\\.object|is\\.ordered|is\\.package_version|is\\.pairlist|is\\.primitive|is\\.qr|is\\.R|is\\.raw|is\\.recursive|is\\.single|is\\.symbol|is\\.table|is\\.unsorted|is\\.vector|isa|isatty|isBaseNamespace|isdebugged|isFALSE|isIncomplete|isNamespace|isNamespaceLoaded|ISOdate|ISOdatetime|isOpen|isRestart|isS4|isSeekable|isSymmetric|isSymmetric\\.matrix|isTRUE|jitter|julian|julian\\.Date|julian\\.POSIXt|kappa|kappa\\.default|kappa\\.lm|kappa\\.qr|kronecker|l10n_info|La_library|La_version|La\\.svd|labels|labels\\.default|lapply|lazyLoad|lazyLoadDBexec|lazyLoadDBfetch|lbeta|lchoose|length|length\\.POSIXlt|lengths|levels|levels\\.default|lfactorial|lgamma|libcurlVersion|library|library\\.dynam|library\\.dynam\\.unload|licence|license|list|list\\.dirs|list\\.files|list2DF|list2env|load|loadedNamespaces|loadingNamespaceInfo|loadNamespace|local|lockBinding|lockEnvironment|log|log10|log1p|log2|logb|logical|lower\\.tri|ls|make\\.names|make\\.unique|makeActiveBinding|Map|mapply|margin\\.table|marginSums|mat\\.or\\.vec|match|match\\.arg|match\\.call|match\\.fun|Math\\.data\\.frame|Math\\.Date|Math\\.difftime|Math\\.factor|Math\\.POSIXt|matrix|max|max\\.col|mean|mean\\.Date|mean\\.default|mean\\.difftime|mean\\.POSIXct|mean\\.POSIXlt|mem\\.maxNSize|mem\\.maxVSize|memCompress|memDecompress|memory\\.profile|merge|merge\\.data\\.frame|merge\\.default|message|mget|min|missing|Mod|mode|months|months\\.Date|months\\.POSIXt|mtfrm|mtfrm\\.default|mtfrm\\.POSIXct|mtfrm\\.POSIXlt|nameOfClass|nameOfClass\\.default|names|names\\.POSIXlt|namespaceExport|namespaceImport|namespaceImportClasses|namespaceImportFrom|namespaceImportMethods|nargs|nchar|ncol|NCOL|Negate|new\\.env|next|NextMethod|ngettext|nlevels|noquote|norm|normalizePath|nrow|NROW|nullfile|numeric|numeric_version|numToBits|numToInts|nzchar|objects|oldClass|OlsonNames|on\\.exit|open|open\\.connection|open\\.srcfile|open\\.srcfilealias|open\\.srcfilecopy|Ops\\.data\\.frame|Ops\\.Date|Ops\\.difftime|Ops\\.factor|Ops\\.numeric_version|Ops\\.ordered|Ops\\.POSIXt|options|order|ordered|outer|package_version|packageEvent|packageHasNamespace|packageNotFoundError|packageStartupMessage|packBits|pairlist|parent\\.env|parent\\.frame|parse|parseNamespaceFile|paste|paste0|path\\.expand|path\\.package|pcre_config|pipe|plot|pmatch|pmax|pmax\\.int|pmin|pmin\\.int|polyroot|pos\\.to\\.env|Position|pretty|pretty\\.default|prettyNum|print|print\\.AsIs|print\\.by|print\\.condition|print\\.connection|print\\.data\\.frame|print\\.Date|print\\.default|print\\.difftime|print\\.Dlist|print\\.DLLInfo|print\\.DLLInfoList|print\\.DLLRegisteredRoutines|print\\.eigen|print\\.factor|print\\.function|print\\.hexmode|print\\.libraryIQR|print\\.listof|print\\.NativeRoutineList|print\\.noquote|print\\.numeric_version|print\\.octmode|print\\.packageInfo|print\\.POSIXct|print\\.POSIXlt|print\\.proc_time|print\\.restart|print\\.rle|print\\.simple\\.list|print\\.srcfile|print\\.srcref|print\\.summary\\.table|print\\.summary\\.warnings|print\\.summaryDefault|print\\.table|print\\.warnings|prmatrix|proc\\.time|prod|prop\\.table|proportions|provideDimnames|psigamma|pushBack|pushBackLength|q|qr|qr\\.coef|qr\\.default|qr\\.fitted|qr\\.Q|qr\\.qty|qr\\.qy|qr\\.R|qr\\.resid|qr\\.solve|qr\\.X|quarters|quarters\\.Date|quarters\\.POSIXt|quit|quote|R_compiled_by|R_system_version|R\\.home|R\\.Version|range|range\\.Date|range\\.default|range\\.POSIXct|rank|rapply|raw|rawConnection|rawConnectionValue|rawShift|rawToBits|rawToChar|rbind|rbind\\.data\\.frame|rcond|Re|read\\.dcf|readBin|readChar|readline|readLines|readRDS|readRenviron|Recall|Reduce|reg\\.finalizer|regexec|regexpr|registerS3method|registerS3methods|regmatches|remove|removeTaskCallback|rep|rep_len|rep\\.Date|rep\\.difftime|rep\\.factor|rep\\.int|rep\\.numeric_version|rep\\.POSIXct|rep\\.POSIXlt|repeat|replace|replicate|require|requireNamespace|restartDescription|restartFormals|retracemem|return|returnValue|rev|rev\\.default|rle|rm|RNGkind|RNGversion|round|round\\.Date|round\\.POSIXt|row|row\\.names|row\\.names\\.data\\.frame|row\\.names\\.default|rowMeans|rownames|rowsum|rowsum\\.data\\.frame|rowsum\\.default|rowSums|sample|sample\\.int|sapply|save|save\\.image|saveRDS|scale|scale\\.default|scan|search|searchpaths|seek|seek\\.connection|seq|seq_along|seq_len|seq\\.Date|seq\\.default|seq\\.int|seq\\.POSIXt|sequence|sequence\\.default|serialize|serverSocket|set\\.seed|setdiff|setequal|setHook|setNamespaceInfo|setSessionTimeLimit|setTimeLimit|setwd|showConnections|shQuote|sign|signalCondition|signif|simpleCondition|simpleError|simpleMessage|simpleWarning|simplify2array|sin|single|sinh|sink|sink\\.number|sinpi|slice\\.index|socketAccept|socketConnection|socketSelect|socketTimeout|solve|solve\\.default|solve\\.qr|sort|sort_by|sort_by\\.data\\.frame|sort_by\\.default|sort\\.default|sort\\.int|sort\\.list|sort\\.POSIXlt|source|split|split\\.data\\.frame|split\\.Date|split\\.default|split\\.POSIXct|sprintf|sqrt|sQuote|srcfile|srcfilealias|srcfilecopy|srcref|standardGeneric|startsWith|stderr|stdin|stdout|stop|stopifnot|storage\\.mode|str2expression|str2lang|strftime|strptime|strrep|strsplit|strtoi|strtrim|structure|strwrap|sub|subset|subset\\.data\\.frame|subset\\.default|subset\\.matrix|substitute|substr|substring|sum|summary|summary\\.connection|summary\\.data\\.frame|Summary\\.data\\.frame|summary\\.Date|Summary\\.Date|summary\\.default|summary\\.difftime|Summary\\.difftime|summary\\.factor|Summary\\.factor|summary\\.matrix|Summary\\.numeric_version|Summary\\.ordered|summary\\.POSIXct|Summary\\.POSIXct|summary\\.POSIXlt|Summary\\.POSIXlt|summary\\.proc_time|summary\\.srcfile|summary\\.srcref|summary\\.table|summary\\.warnings|suppressMessages|suppressPackageStartupMessages|suppressWarnings|suspendInterrupts|svd|sweep|switch|sys\\.call|sys\\.calls|Sys\\.chmod|Sys\\.Date|sys\\.frame|sys\\.frames|sys\\.function|Sys\\.getenv|Sys\\.getlocale|Sys\\.getpid|Sys\\.glob|Sys\\.info|sys\\.load\\.image|Sys\\.localeconv|sys\\.nframe|sys\\.on\\.exit|sys\\.parent|sys\\.parents|Sys\\.readlink|sys\\.save\\.image|Sys\\.setenv|Sys\\.setFileTime|Sys\\.setLanguage|Sys\\.setlocale|Sys\\.sleep|sys\\.source|sys\\.status|Sys\\.time|Sys\\.timezone|Sys\\.umask|Sys\\.unsetenv|Sys\\.which|system|system\\.file|system\\.time|system2|t|t\\.data\\.frame|t\\.default|table|tabulate|Tailcall|tan|tanh|tanpi|tapply|taskCallbackManager|tcrossprod|tempdir|tempfile|textConnection|textConnectionValue|tolower|topenv|toString|toString\\.default|toupper|trace|traceback|tracemem|tracingState|transform|transform\\.data\\.frame|transform\\.default|trigamma|trimws|trunc|trunc\\.Date|trunc\\.POSIXt|truncate|truncate\\.connection|try|tryCatch|tryInvokeRestart|typeof|unCfillPOSIXlt|unclass|undebug|union|unique|unique\\.array|unique\\.data\\.frame|unique\\.default|unique\\.matrix|unique\\.numeric_version|unique\\.POSIXlt|unique\\.warnings|units|units\\.difftime|unix\\.time|unlink|unlist|unloadNamespace|unlockBinding|unname|unserialize|unsplit|untrace|untracemem|unz|upper\\.tri|url|use|UseMethod|utf8ToInt|validEnc|validUTF8|vapply|vector|Vectorize|warning|warningCondition|warnings|weekdays|weekdays\\.Date|weekdays\\.POSIXt|which|which\\.max|which\\.min|while|with|with\\.default|withAutoprint|withCallingHandlers|within|within\\.data\\.frame|within\\.list|withRestarts|withVisible|write|write\\.dcf|writeBin|writeChar|writeLines|xor|xpdrows\\.data\\.frame|xtfrm|xtfrm\\.AsIs|xtfrm\\.data\\.frame|xtfrm\\.Date|xtfrm\\.default|xtfrm\\.difftime|xtfrm\\.factor|xtfrm\\.numeric_version|xtfrm\\.POSIXct|xtfrm\\.POSIXlt|xzfile|zapsmall|zstdfile)\\b",
+          "name": "support.function.base.r"
+        },
+        {
+          "match": "\\b(abline|arrows|assocplot|axis|Axis|axis\\.Date|Axis\\.Date|Axis\\.default|axis\\.POSIXct|Axis\\.POSIXt|Axis\\.table|axTicks|barplot|barplot\\.default|barplot\\.formula|box|boxplot|boxplot\\.default|boxplot\\.formula|boxplot\\.matrix|bxp|cdplot|cdplot\\.default|cdplot\\.formula|clip|close\\.screen|co\\.intervals|contour|contour\\.default|coplot|curve|dotchart|erase\\.screen|extendDateTimeFormat|filled\\.contour|fourfoldplot|frame|grconvertX|grconvertY|grid|hist|hist\\.Date|hist\\.default|hist\\.POSIXt|identify|identify\\.default|image|image\\.default|layout|layout\\.show|lcm|legend|lines|lines\\.default|lines\\.formula|lines\\.histogram|lines\\.table|locator|matlines|matplot|matpoints|mosaicplot|mosaicplot\\.default|mosaicplot\\.formula|mtext|pairs|pairs\\.default|pairs\\.formula|panel\\.smooth|par|persp|persp\\.default|pie|piechart|plot\\.data\\.frame|plot\\.default|plot\\.design|plot\\.factor|plot\\.formula|plot\\.function|plot\\.histogram|plot\\.new|plot\\.raster|plot\\.table|plot\\.window|plot\\.xy|plotHclust|points|points\\.default|points\\.formula|points\\.table|polygon|polypath|rasterImage|rect|rug|screen|segments|smoothScatter|spineplot|spineplot\\.default|spineplot\\.formula|split\\.screen|stars|stem|strheight|stripchart|stripchart\\.default|stripchart\\.formula|strwidth|sunflowerplot|sunflowerplot\\.default|sunflowerplot\\.formula|symbols|text|text\\.default|text\\.formula|title|xinch|xspline|xyinch|yinch|zaxis)\\b",
+          "name": "support.function.graphics.r"
+        },
+        {
+          "match": "\\b(adjustcolor|anyNA\\.raster|as\\.graphicsAnnot|as\\.matrix\\.raster|as\\.raster|as\\.raster\\.array|as\\.raster\\.character|as\\.raster\\.logical|as\\.raster\\.matrix|as\\.raster\\.numeric|as\\.raster\\.raster|as\\.raster\\.raw|axisTicks|bitmap|bmp|boxplot\\.stats|c2to3|cairo_pdf|cairo_ps|cairoFT|cairoSymbolFont|cairoVersion|check_gs_type|check\\.options|checkFont|checkFont\\.CIDFont|checkFont\\.default|checkFont\\.Type1Font|checkFontInUse|checkIntFormat|checkQuartzFont|checkSymbolFont|checkX11Font|chromaticAdaptation|chull|CIDFont|cm|cm\\.colors|col2rgb|colorConverter|colorRamp|colorRampPalette|colors|colours|comparePangoVersion|contourLines|convertColor|densCols|dev\\.capabilities|dev\\.capture|dev\\.control|dev\\.copy|dev\\.copy2eps|dev\\.copy2pdf|dev\\.cur|dev\\.displaylist|dev\\.flush|dev\\.hold|dev\\.interactive|dev\\.list|dev\\.new|dev\\.next|dev\\.off|dev\\.prev|dev\\.print|dev\\.set|dev\\.size|dev2bitmap|devAskNewPage|deviceIsInteractive|embedFonts|embedGlyphs|extendrange|getGraphicsEvent|getGraphicsEventEnv|glyphAnchor|glyphFont|glyphFontList|glyphHeight|glyphHeightBottom|glyphInfo|glyphJust|glyphJust\\.character|glyphJust\\.GlyphJust|glyphJust\\.numeric|glyphWidth|glyphWidthLeft|graphics\\.off|gray|gray\\.colors|grey|grey\\.colors|grSoftVersion|guessEncoding|hcl|hcl\\.colors|hcl\\.pals|heat\\.colors|hsv|initPSandPDFfonts|invertStyle|is\\.na\\.raster|is\\.raster|isPDF|jpeg|make\\.rgb|mapCharWeight|mapStyle|mapWeight|matchEncoding|matchEncoding\\.CIDFont|matchEncoding\\.Type1Font|matchFont|n2mfrow|nclass\\.FD|nclass\\.scott|nclass\\.Sturges|Ops\\.raster|optionSymbolFont|palette|palette\\.colors|palette\\.match|palette\\.pals|pangoVersion|pattern|pdf|pdf\\.options|pdfFonts|pictex|png|postscript|postscriptFonts|pow3|prettyDate|print\\.colorConverter|print\\.raster|print\\.recordedplot|print\\.RGBcolorConverter|print\\.RGlyphFont|printFont|printFont\\.CIDFont|printFont\\.Type1Font|printFonts|ps\\.options|quartz|quartz\\.options|quartz\\.save|quartzFont|quartzFonts|rainbow|recordGraphics|recordPalette|recordPlot|replayPlot|restoreRecordedPlot|rgb|rgb2hsv|RGBcolorConverter|savePlot|seqDtime|setEPS|setFonts|setGraphicsEventEnv|setGraphicsEventHandlers|setPS|setQuartzFonts|setX11Fonts|svg|symbolfamilyDefault|symbolType1support|terrain\\.colors|tiff|topo\\.colors|trans3d|trunc_POSIXt|Type1Font|vectorizeConverter|warnLogCoords|x11|X11|X11\\.options|X11Font|X11FontError|X11Fonts|xfig|xy\\.coords|xyTable|xyz\\.coords)\\b",
+          "name": "support.function.graphics.ext.r"
+        },
+        {
+          "match": "\\b(addNextMethod|allNames|Arith|as|asMethodDefinition|assignClassDef|assignMethodsMetaData|balanceMethodsList|bind_activation|cacheGenericsMetaData|cacheMetaData|cacheMethod|cacheOnAssign|callGeneric|callNextMethod|canCoerce|cbind|cbind2|checkAtAssignment|checkSlotAssignment|classesToAM|classGeneratorFunction|classLabel|classMetaName|className|coerce|Compare|completeClassDefinition|completeExtends|completeSubclasses|Complex|conformMethod|defaultDumpName|defaultPrototype|dispatchIsInternal|doPrimitiveMethod|dumpMethod|dumpMethods|el|elNamed|empty\\.dump|emptyMethodsList|envRefInferField|envRefSetField|evalOnLoad|evalqOnLoad|evalSource|existsFunction|existsMethod|extends|externalRefMethod|finalDefaultMethod|findClass|findFunction|findMethod|findMethods|findMethodSignatures|findUnique|fixPre1\\.8|formalArgs|fromNextMethod|functionBody|generic\\.skeleton|genericForBasic|getAllSuperClasses|getClass|getClassDef|getClasses|getDataPart|getFunction|getGeneric|getGenericFromCall|getGenerics|getGroup|getGroupMembers|getLoadActions|getMethod|getMethods|getMethodsAndAccessors|getMethodsForDispatch|getMethodsMetaData|getPackageName|getRefClass|getRefSuperClasses|getSlots|getValidity|hasArg|hasLoadAction|hasMethod|hasMethods|implicitGeneric|inBasicFuns|inferProperties|inheritedSlotNames|inheritedSubMethodLists|initFieldArgs|initialize|initMethodDispatch|initRefFields|insertClassMethods|insertMethod|insertMethodInEmptyList|insertSource|installClassMethod|is|isBaseFun|isClass|isClassDef|isClassUnion|isGeneric|isGrammarSymbol|isGroup|isMixin|isRematched|isS3Generic|isSealedClass|isSealedMethod|isVirtualClass|isXS3Class|kronecker|languageEl|listFromMethods|loadMethod|Logic|makeClassMethod|makeClassRepresentation|makeEnvRefMethods|makeExtends|makeGeneric|makeMethodsList|makePrototypeFromClassDef|makeStandardGeneric|matchDefaults|matchSignature|Math|Math2|matrixOps|mergeMethods|metaNameUndo|method\\.skeleton|MethodAddCoerce|methodSignatureMatrix|MethodsList|MethodsListSelect|methodsPackageMetaName|missingArg|multipleClasses|new|newBasic|newClassRepresentation|newEmptyObject|Ops|outerLabels|packageSlot|possibleExtends|printClassRepresentation|printPropertiesList|prohibitGeneric|promptClass|promptMethods|prototype|Quote|rbind|rbind2|reconcilePropertiesAndPrototype|refClassFields|refClassInformation|refClassMethods|refClassPrompt|refObjectClass|registerImplicitGenerics|rematchDefinition|removeClass|removeGeneric|removeMethod|removeMethods|representation|requireMethods|resetClass|resetGeneric|S3Class|S3forS4Methods|S3Part|sealClass|selectMethod|selectSuperClasses|setAs|setCacheOnAssign|setClass|setClassUnion|setDataPart|setGeneric|setGenericImplicit|setGroupGeneric|setIs|setLoadAction|setLoadActions|setMethod|setNames|setOldClass|setPackageName|setPackageSlot|setPrimitiveMethods|setRefClass|setReplaceMethod|setValidity|show|showClass|showClassMethod|showDefault|showExtends|showExtraSlots|showMethods|showRefClassDef|signature|SignatureMethod|sigToEnv|slot|slotNames|slotsFromS3|substituteDirect|substituteFunctionArgs|Summary|superClassDepth|superClassMethodName|tableNames|testInheritedMethods|testVirtual|tryNew|unRematchDefinition|useMTable|validObject|validSlotNames)\\b",
+          "name": "support.function.method.r"
+        },
+        {
+          "match": "\\b(acf|acf2AR|add\\.scope|add1|add1\\.default|add1\\.glm|add1\\.lm|add1\\.mlm|addmargins|aggregate|aggregate\\.data\\.frame|aggregate\\.default|aggregate\\.formula|aggregate\\.ts|AIC|AIC\\.default|AIC\\.logLik|alias|alias\\.formula|alias\\.lm|anova|anova\\.glm|anova\\.glmlist|anova\\.lm|anova\\.lmlist|anova\\.loess|anova\\.mlm|anova\\.mlmlist|anova\\.nls|anovalist\\.nls|ansari\\.test|ansari\\.test\\.default|ansari\\.test\\.formula|aov|approx|approxfun|ar|ar\\.burg|ar\\.burg\\.default|ar\\.burg\\.mts|ar\\.mle|ar\\.ols|ar\\.yw|ar\\.yw\\.default|ar\\.yw\\.mts|arima|arima\\.sim|arima0|arima0\\.diag|ARMAacf|ARMAtoMA|as\\.data\\.frame\\.aovproj|as\\.data\\.frame\\.ftable|as\\.data\\.frame\\.logLik|as\\.dendrogram|as\\.dendrogram\\.dendrogram|as\\.dendrogram\\.hclust|as\\.dist|as\\.dist\\.default|as\\.formula|as\\.hclust|as\\.hclust\\.default|as\\.hclust\\.dendrogram|as\\.hclust\\.twins|as\\.matrix\\.dist|as\\.matrix\\.ftable|as\\.stepfun|as\\.stepfun\\.default|as\\.stepfun\\.isoreg|as\\.table\\.ftable|as\\.ts|as\\.ts\\.default|asOneSidedFormula|assert_NULL_or_prob|ave|bandwidth\\.kernel|bartlett\\.test|bartlett\\.test\\.default|bartlett\\.test\\.formula|BIC|BIC\\.default|BIC\\.logLik|binom\\.test|binomial|binomInitialize|biplot|biplot\\.default|biplot\\.prcomp|biplot\\.princomp|Box\\.test|bw_pair_cnts|bw\\.bcv|bw\\.nrd|bw\\.nrd0|bw\\.SJ|bw\\.ucv|C|cancor|case\\.names|case\\.names\\.default|case\\.names\\.lm|cbind\\.ts|ccf|check_exact|chisq\\.test|cmdscale|coef|coef\\.aov|coef\\.Arima|coef\\.default|coef\\.listof|coef\\.maov|coef\\.nls|coefficients|complete\\.cases|confint|confint\\.default|confint\\.glm|confint\\.lm|confint\\.nls|confint\\.profile\\.glm|confint\\.profile\\.nls|constrOptim|contr\\.helmert|contr\\.poly|contr\\.SAS|contr\\.sum|contr\\.treatment|contrasts|convolve|cooks\\.distance|cooks\\.distance\\.glm|cooks\\.distance\\.lm|cophenetic|cophenetic\\.default|cophenetic\\.dendrogram|cor|cor\\.test|cor\\.test\\.default|cor\\.test\\.formula|cov|cov\\.wt|cov2cor|covratio|cpgram|cut\\.dendrogram|cutree|cycle|cycle\\.default|cycle\\.ts|D|dbeta|dbinom|dcauchy|dchisq|decompose|delete\\.response|deltat|deltat\\.default|dendrapply|density|density\\.default|deparse2|deriv|deriv\\.default|deriv\\.formula|deriv3|deriv3\\.default|deriv3\\.formula|deviance|deviance\\.default|deviance\\.glm|deviance\\.lm|deviance\\.mlm|deviance\\.nls|dexp|df|df\\.kernel|df\\.residual|df\\.residual\\.default|df\\.residual\\.nls|DF2formula|dfbeta|dfbeta\\.lm|dfbetas|dfbetas\\.lm|dffits|dgamma|dgeom|dhyper|diff\\.ts|diffinv|diffinv\\.default|diffinv\\.ts|diffinv\\.vector|dist|dlnorm|dlogis|dmultinom|dnbinom|dnorm|dpois|drop\\.scope|drop\\.terms|drop1|drop1\\.default|drop1\\.glm|drop1\\.lm|drop1\\.mlm|dsignrank|dt|dummy\\.coef|dummy\\.coef\\.aovlist|dummy\\.coef\\.lm|dunif|dweibull|dwilcox|ecdf|eff\\.aovlist|effects|effects\\.glm|effects\\.lm|embed|end|end\\.default|estVar|estVar\\.mlm|estVar\\.SSD|expand\\.model\\.frame|extractAIC|extractAIC\\.aov|extractAIC\\.coxph|extractAIC\\.glm|extractAIC\\.lm|extractAIC\\.negbin|extractAIC\\.survreg|factanal|factanal\\.fit\\.mle|factor\\.scope|family|family\\.glm|family\\.lm|fft|filter|fisher\\.test|fitted|fitted\\.default|fitted\\.isoreg|fitted\\.kmeans|fitted\\.nls|fitted\\.smooth\\.spline|fitted\\.values|fivenum|fligner\\.test|fligner\\.test\\.default|fligner\\.test\\.formula|format_perc|format\\.dist|format\\.ftable|formula|formula\\.character|formula\\.data\\.frame|formula\\.default|formula\\.formula|formula\\.glm|formula\\.lm|formula\\.nls|formula\\.terms|frequency|frequency\\.default|friedman\\.test|friedman\\.test\\.default|friedman\\.test\\.formula|ftable|ftable\\.default|ftable\\.formula|Gamma|gaussian|get_all_vars|getCall|getCall\\.default|getInitial|getInitial\\.default|getInitial\\.formula|getInitial\\.selfStart|glm|glm\\.control|glm\\.fit|hasTsp|hat|hatvalues|hatvalues\\.lm|hatvalues\\.smooth\\.spline|hclust|head\\.ts|heatmap|HL|HoltWinters|hyman_filter|identify\\.hclust|influence|influence\\.glm|influence\\.lm|influence\\.measures|integrate|interaction\\.plot|inverse\\.gaussian|IQR|is\\.empty\\.model|is\\.leaf|is\\.mts|is\\.stepfun|is\\.ts|is\\.tskernel|isoreg|KalmanForecast|KalmanLike|KalmanRun|KalmanSmooth|kernapply|kernapply\\.default|kernapply\\.ts|kernapply\\.tskernel|kernapply\\.vector|kernel|kmeans|knots|knots\\.stepfun|kruskal\\.test|kruskal\\.test\\.default|kruskal\\.test\\.formula|ks\\.test|ks\\.test\\.default|ks\\.test\\.formula|ksmooth|labels\\.dendrogram|labels\\.dist|labels\\.lm|labels\\.terms|lag|lag\\.default|lag\\.plot|line|lines\\.isoreg|lines\\.stepfun|lines\\.ts|lm|lm\\.fit|lm\\.influence|lm\\.wfit|loadings|loess|loess\\.control|loess\\.smooth|logLik|logLik\\.Arima|logLik\\.glm|logLik\\.lm|logLik\\.logLik|logLik\\.nls|loglin|lowess|ls\\.diag|ls\\.print|lsfit|mad|mahalanobis|make\\.link|make\\.tables\\.aovproj|make\\.tables\\.aovprojlist|makeARIMA|makepredictcall|makepredictcall\\.default|makepredictcall\\.poly|manova|mantelhaen\\.test|mauchly\\.test|mauchly\\.test\\.mlm|mauchly\\.test\\.SSD|mcnemar\\.test|median|median\\.default|medpolish|merge\\.dendrogram|midcache\\.dendrogram|model\\.extract|model\\.frame|model\\.frame\\.aovlist|model\\.frame\\.default|model\\.frame\\.glm|model\\.frame\\.lm|model\\.matrix|model\\.matrix\\.default|model\\.matrix\\.lm|model\\.offset|model\\.response|model\\.tables|model\\.tables\\.aov|model\\.tables\\.aovlist|model\\.weights|monthplot|monthplot\\.default|monthplot\\.stl|monthplot\\.StructTS|monthplot\\.ts|mood\\.test|mood\\.test\\.default|mood\\.test\\.formula|mvfft|na\\.action|na\\.action\\.default|na\\.contiguous|na\\.contiguous\\.default|na\\.exclude|na\\.exclude\\.data\\.frame|na\\.exclude\\.default|na\\.fail|na\\.fail\\.default|na\\.omit|na\\.omit\\.data\\.frame|na\\.omit\\.default|na\\.omit\\.ts|na\\.pass|napredict|napredict\\.default|napredict\\.exclude|naprint|naprint\\.default|naprint\\.exclude|naprint\\.omit|naresid|naresid\\.default|naresid\\.exclude|nextn|nleaves|nlm|nlminb|nls|nls_port_fit|nls\\.control|nlsModel|nlsModel\\.plinear|NLSstAsymptotic|NLSstAsymptotic\\.sortedXyData|NLSstClosestX|NLSstClosestX\\.sortedXyData|NLSstLfAsymptote|NLSstLfAsymptote\\.sortedXyData|NLSstRtAsymptote|NLSstRtAsymptote\\.sortedXyData|nobs|nobs\\.default|nobs\\.dendrogram|nobs\\.glm|nobs\\.lm|nobs\\.logLik|nobs\\.nls|numericDeriv|offset|oneway\\.test|Ops\\.ts|optim|optimHess|optimise|optimize|order\\.dendrogram|p\\.adjust|pacf|pacf\\.default|Pair|pairs\\.profile|pairwise\\.prop\\.test|pairwise\\.t\\.test|pairwise\\.table|pairwise\\.wilcox\\.test|pbeta|pbinom|pbirthday|pcauchy|pchisq|pexp|pf|pgamma|pgeom|phyper|Pillai|pkolmogorov|pkolmogorov_one_asymp|pkolmogorov_one_exact|pkolmogorov_two_asymp|pkolmogorov_two_exact|plclust|plnorm|plogis|plot\\.acf|plot\\.decomposed\\.ts|plot\\.dendrogram|plot\\.density|plot\\.ecdf|plot\\.hclust|plot\\.HoltWinters|plot\\.isoreg|plot\\.lm|plot\\.medpolish|plot\\.mlm|plot\\.ppr|plot\\.prcomp|plot\\.princomp|plot\\.profile|plot\\.profile\\.nls|plot\\.spec|plot\\.spec\\.coherency|plot\\.spec\\.phase|plot\\.stepfun|plot\\.stl|plot\\.ts|plot\\.tskernel|plot\\.TukeyHSD|plotNode|plotNodeLimit|pnbinom|pnorm|pointwise|poisson|poisson\\.test|poly|polym|port_get_named_v|port_msg|power|power\\.anova\\.test|power\\.prop\\.test|power\\.t\\.test|PP\\.test|ppoints|ppois|ppr|ppr\\.default|ppr\\.formula|prcomp|prcomp\\.default|prcomp\\.formula|predict|predict\\.ar|predict\\.Arima|predict\\.arima0|predict\\.glm|predict\\.HoltWinters|predict\\.lm|predict\\.loess|predict\\.mlm|predict\\.nls|predict\\.poly|predict\\.ppr|predict\\.prcomp|predict\\.princomp|predict\\.smooth\\.spline|predict\\.smooth\\.spline\\.fit|predict\\.StructTS|predLoess|preplot|princomp|princomp\\.default|princomp\\.formula|print\\.acf|print\\.anova|print\\.aov|print\\.aovlist|print\\.ar|print\\.Arima|print\\.arima0|print\\.dendrogram|print\\.density|print\\.dist|print\\.dummy_coef|print\\.dummy_coef_list|print\\.ecdf|print\\.factanal|print\\.family|print\\.formula|print\\.ftable|print\\.glm|print\\.hclust|print\\.HoltWinters|print\\.htest|print\\.infl|print\\.integrate|print\\.isoreg|print\\.kmeans|print\\.lm|print\\.loadings|print\\.loess|print\\.logLik|print\\.medpolish|print\\.mtable|print\\.nls|print\\.pairwise\\.htest|print\\.power\\.htest|print\\.ppr|print\\.prcomp|print\\.princomp|print\\.smooth\\.spline|print\\.stepfun|print\\.stl|print\\.StructTS|print\\.summary\\.aov|print\\.summary\\.aovlist|print\\.summary\\.ecdf|print\\.summary\\.glm|print\\.summary\\.lm|print\\.summary\\.loess|print\\.summary\\.manova|print\\.summary\\.nls|print\\.summary\\.ppr|print\\.summary\\.prcomp|print\\.summary\\.princomp|print\\.tables_aov|print\\.terms|print\\.ts|print\\.tskernel|print\\.TukeyHSD|print\\.tukeyline|print\\.tukeysmooth|print\\.xtabs|printCoefmat|profile|profile\\.glm|profile\\.nls|profiler|profiler\\.nls|proj|Proj|proj\\.aov|proj\\.aovlist|proj\\.default|proj\\.lm|promax|prop\\.test|prop\\.trend\\.test|psignrank|psmirnov|psmirnov_asymp|psmirnov_exact|psmirnov_simul|pt|ptukey|punif|pweibull|pwilcox|qbeta|qbinom|qbirthday|qcauchy|qchisq|qexp|qf|qgamma|qgeom|qhyper|qlnorm|qlogis|qnbinom|qnorm|qpois|qqline|qqnorm|qqnorm\\.default|qqplot|qr\\.influence|qr\\.lm|qsignrank|qsmirnov|qt|qtukey|quade\\.test|quade\\.test\\.default|quade\\.test\\.formula|quantile|quantile\\.default|quantile\\.ecdf|quantile\\.POSIXt|quasi|quasibinomial|quasipoisson|qunif|qweibull|qwilcox|r2dtable|Rank|rbeta|rbinom|rcauchy|rchisq|read\\.ftable|rect\\.hclust|reformulate|regularize\\.values|relevel|relevel\\.default|relevel\\.factor|relevel\\.ordered|reorder|reorder\\.default|reorder\\.dendrogram|replications|reshape|resid|residuals|residuals\\.default|residuals\\.glm|residuals\\.HoltWinters|residuals\\.isoreg|residuals\\.lm|residuals\\.nls|residuals\\.smooth\\.spline|residuals\\.tukeyline|rev\\.dendrogram|rexp|rf|rgamma|rgeom|rhyper|rlnorm|rlogis|rmultinom|rnbinom|rnorm|Roy|rpois|rsignrank|rsmirnov|rstandard|rstandard\\.glm|rstandard\\.lm|rstudent|rstudent\\.glm|rstudent\\.lm|rt|runif|runmed|rweibull|rwilcox|rWishart|safe_pchisq|safe_pf|scatter\\.smooth|screeplot|screeplot\\.default|sd|se\\.aov|se\\.aovlist|se\\.contrast|se\\.contrast\\.aov|se\\.contrast\\.aovlist|selfStart|selfStart\\.default|selfStart\\.formula|setNames|shapiro\\.test|sigma|sigma\\.default|sigma\\.glm|sigma\\.mlm|simpleLoess|simulate|simulate\\.lm|smooth|smooth\\.spline|smoothEnds|sortedXyData|sortedXyData\\.default|spec\\.ar|spec\\.pgram|spec\\.taper|spectrum|sphericity|spl_coef_conv|spline|splinefun|splinefunH|splinefunH0|SSasymp|SSasympOff|SSasympOrig|SSbiexp|SSD|SSD\\.mlm|SSfol|SSfpl|SSgompertz|SSlogis|SSmicmen|SSweibull|start|start\\.default|stat\\.anova|step|stepfun|stl|str\\.dendrogram|str\\.logLik|StructTS|summary\\.aov|summary\\.aovlist|summary\\.ecdf|summary\\.glm|summary\\.infl|summary\\.lm|summary\\.loess|summary\\.manova|summary\\.mlm|summary\\.nls|summary\\.ppr|summary\\.prcomp|summary\\.princomp|summary\\.stepfun|summary\\.stl|summary\\.tukeysmooth|supsmu|symnum|t\\.test|t\\.test\\.default|t\\.test\\.formula|t\\.ts|tail\\.ts|termplot|terms|terms\\.aovlist|terms\\.default|terms\\.formula|terms\\.terms|Thin\\.col|Thin\\.row|time|time\\.default|time\\.ts|toeplitz|toeplitz2|Tr|ts|ts\\.intersect|ts\\.plot|ts\\.union|tsdiag|tsdiag\\.Arima|tsdiag\\.arima0|tsdiag\\.StructTS|tsp|tsSmooth|tsSmooth\\.StructTS|TukeyHSD|TukeyHSD\\.aov|uniroot|update|update\\.default|update\\.formula|update\\.packageStatus|var|var\\.test|var\\.test\\.default|var\\.test\\.formula|variable\\.names|variable\\.names\\.default|variable\\.names\\.lm|varimax|vcov|vcov\\.aov|vcov\\.Arima|vcov\\.glm|vcov\\.lm|vcov\\.mlm|vcov\\.nls|vcov\\.summary\\.glm|vcov\\.summary\\.lm|weighted\\.mean|weighted\\.mean\\.Date|weighted\\.mean\\.default|weighted\\.mean\\.difftime|weighted\\.mean\\.POSIXct|weighted\\.mean\\.POSIXlt|weighted\\.residuals|weights|weights\\.default|weights\\.glm|weights\\.nls|wilcox\\.test|wilcox\\.test\\.default|wilcox\\.test\\.formula|Wilks|window|window\\.default|window\\.ts|write\\.ftable|xtabs)\\b",
+          "name": "support.function.stat.r"
+        },
+        {
+          "match": "\\b(adist|alarm|apropos|aregexec|argNames|argsAnywhere|as\\.bibentry|as\\.bibentry\\.bibentry|as\\.bibentry\\.citation|as\\.character\\.person|as\\.character\\.roman|as\\.data\\.frame\\.bibentry|as\\.data\\.frame\\.citation|as\\.data\\.frame\\.person|as\\.environment\\.hashtab|as\\.person|as\\.person\\.default|as\\.personList|as\\.personList\\.default|as\\.personList\\.person|as\\.relistable|as\\.roman|asDateBuilt|askYesNo|aspell|aspell_filter_LaTeX_commands_from_Aspell_tex_filter_info|aspell_filter_LaTeX_worker|aspell_find_dictionaries|aspell_find_program|aspell_inspect_context|aspell_package|aspell_package_C_files|aspell_package_description|aspell_package_pot_files|aspell_package_R_files|aspell_package_Rd_files|aspell_package_vignettes|aspell_query_wiktionary_categories|aspell_R_C_files|aspell_R_manuals|aspell_R_R_files|aspell_R_Rd_files|aspell_R_vignettes|aspell_update_dictionary|aspell_write_personal_dictionary_file|assignInMyNamespace|assignInNamespace|attachedPackageCompletions|available\\.packages|bibentry|blank_out_character_ranges|blank_out_ignores_in_lines|blank_out_regexp_matches|browseEnv|browseURL|browseVignettes|bug\\.report|bug\\.report\\.info|c\\.bibentry|c\\.person|capture\\.output|changedFiles|charClass|check_for_XQuartz|check_screen_device|checkCRAN|checkHT|chooseBioCmirror|chooseCRANmirror|citation|cite|citeNatbib|citEntry|citFooter|citHeader|close\\.socket|close\\.txtProgressBar|clrhash|combn|compareVersion|conformToProto|contrib\\.url|correctFilenameToken|count\\.fields|create\\.post|data|data\\.entry|dataentry|de|de\\.ncols|de\\.restore|de\\.setup|debugcall|debugger|defaultUserAgent|demo|download\\.file|download\\.packages|dump\\.frames|edit|edit\\.data\\.frame|edit\\.default|edit\\.matrix|edit\\.vignette|emacs|example|expr2token|file_test|file\\.edit|fileCompletionPreferred|fileCompletions|fileSnapshot|filter_packages_by_depends_predicates|find|find_files_in_directories|findCRANmirror|findExactMatches|findFuzzyMatches|findGeneric|findLineNum|findMatches|fix|fixInNamespace|flush\\.console|fnLineNum|format\\.aspell|format\\.aspell_inspect_context|format\\.bibentry|format\\.citation|format\\.hashtab|format\\.MethodsFunction|format\\.news_db|format\\.object_size|format\\.person|format\\.roman|formatOL|formatUL|functionArgs|fuzzyApropos|get_parse_data_for_message_strings|getAnywhere|getCRANmirrors|getDependencies|getFromNamespace|gethash|getIsFirstArg|getKnownS3generics|getParseData|getParseText|getRcode|getRcode\\.vignette|getS3method|getSrcByte|getSrcDirectory|getSrcfile|getSrcFilename|getSrcLocation|getSrcref|getTxtProgressBar|glob2rx|globalVariables|hashtab|hasName|head|head\\.array|head\\.default|head\\.ftable|head\\.function|head\\.matrix|help|help\\.request|help\\.search|help\\.start|helpCompletions|history|hsearch_db|hsearch_db_concepts|hsearch_db_keywords|index\\.search|inFunction|install\\.packages|installed\\.packages|is\\.hashtab|is\\.relistable|isBasePkg|isInsideQuotes|isS3method|isS3stdGeneric|keywordCompletions|length\\.hashtab|limitedLabels|loadedPackageCompletions|loadhistory|localeToCharset|ls\\.str|lsf\\.str|macDynLoads|maintainer|make_sysdata_rda|make\\.packages\\.html|make\\.socket|makeRegexpSafe|makeRweaveLatexCodeRunner|makeUserAgent|maphash|matchAvailableTopics|memory\\.limit|memory\\.size|menu|merge_demo_index|merge_vignette_index|methods|mirror2html|modifyList|new\\.packages|news|normalCompletions|nsl|numhash|object\\.size|offline_help_helper|old\\.packages|Ops\\.roman|package\\.skeleton|packageDate|packageDescription|packageName|packageStatus|packageVersion|page|person|personList|pico|print\\.aspell|print\\.aspell_inspect_context|print\\.bibentry|print\\.Bibtex|print\\.browseVignettes|print\\.changedFiles|print\\.citation|print\\.fileSnapshot|print\\.findLineNumResult|print\\.getAnywhere|print\\.hashtab|print\\.help_files_with_topic|print\\.hsearch|print\\.hsearch_db|print\\.Latex|print\\.ls_str|print\\.MethodsFunction|print\\.news_db|print\\.object_size|print\\.packageDescription|print\\.packageIQR|print\\.packageStatus|print\\.person|print\\.roman|print\\.sessionInfo|print\\.socket|print\\.summary\\.packageStatus|print\\.vignette|printhsearchInternal|process\\.events|prompt|prompt\\.data\\.frame|prompt\\.default|promptData|promptImport|promptPackage|rc\\.getOption|rc\\.options|rc\\.settings|rc\\.status|read\\.csv|read\\.csv2|read\\.delim|read\\.delim2|read\\.DIF|read\\.fortran|read\\.fwf|read\\.socket|read\\.table|readCitationFile|recover|registerNames|regquote|relist|relist\\.default|relist\\.factor|relist\\.list|relist\\.matrix|remhash|remove\\.packages|removeSource|rep\\.bibentry|rep\\.person|rep\\.roman|resolvePkgType|Rprof|Rprof_memory_summary|Rprofmem|RShowDoc|RSiteSearch|rtags|rtags\\.file|Rtangle|RtangleFinish|RtangleRuncode|RtangleSetup|RtangleWritedoc|RweaveChunkPrefix|RweaveEvalWithOpt|RweaveLatex|RweaveLatexFinish|RweaveLatexOptions|RweaveLatexRuncode|RweaveLatexSetup|RweaveLatexWritedoc|RweaveTryStop|savehistory|select\\.list|sessionInfo|setBreakpoint|sethash|setIsFirstArg|setRepositories|setTxtProgressBar|shorten\\.to\\.string|simplifyRepos|sort\\.bibentry|specialCompletions|specialFunctionArgs|specialOpCompletionsHelper|specialOpLocs|stack|stack\\.data\\.frame|stack\\.default|Stangle|str|str\\.data\\.frame|str\\.Date|str\\.default|str\\.hashtab|str\\.POSIXt|str2logical|strcapture|strextract|strOptions|strslice|subset\\.news_db|substr_with_tabs|summary\\.aspell|summary\\.packageStatus|Summary\\.roman|summaryRprof|suppressForeignCheck|Sweave|SweaveGetSyntax|SweaveHooks|SweaveParseOptions|SweaveReadFile|SweaveSyntConv|tail|tail\\.array|tail\\.default|tail\\.ftable|tail\\.function|tail\\.matrix|tar|timestamp|toBibtex|toBibtex\\.bibentry|toBibtex\\.person|toLatex|toLatex\\.sessionInfo|toLatexPDlist|topicName|transform\\.bibentry|txtProgressBar|type\\.convert|type\\.convert\\.data\\.frame|type\\.convert\\.default|type\\.convert\\.list|typhash|undebugcall|unique\\.bibentry|unique\\.person|unlist\\.relistable|unstack|unstack\\.data\\.frame|unstack\\.default|untar|untar2|unzip|update\\.packages|update\\.packageStatus|upgrade|upgrade\\.packageStatus|url\\.show|URLdecode|URLencode|vi|View|vignette|warnErrList|write\\.csv|write\\.csv2|write\\.ctags|write\\.etags|write\\.socket|write\\.table|wsbrowser|xedit|xemacs|zip)\\b",
+          "name": "support.function.misc.r"
+        },
+        {
+          "match": "\\bon(Rowsinserted|Rowsdelete|Rowenter|Rowexit|Resize|Resizestart|Resizeend|Reset|Readystatechange|Mouseout|Mouseover|Mousedown|Mouseup|Mousemove|Before(cut|deactivate|unload|update|paste|print|editfocus|activate)|Blur|Scrolltop|Submit|Select|Selectstart|Selectionchange|Hover|Help|Change|Contextmenu|Controlselect|Cut|Cellchange|Clock|Close|Deactivate|Datasetchanged|Datasetcomplete|Dataavailable|Drop|Drag|Dragstart|Dragover|Dragdrop|Dragenter|Dragend|Dragleave|Dblclick|Unload|Paste|Propertychange|Error|Errorupdate|Keydown|Keyup|Keypress|Focus|Load|Activate|Afterupdate|Afterprint|Abort)\\b",
+          "name": "support.function.event-handler.coffee"
+        },
+        {
+          "match": "\\b(shift|showModelessDialog|showModalDialog|showHelp|scroll|scrollX|scrollByPages|scrollByLines|scrollY|scrollTo|stop|strike|sizeToContent|sidebar|signText|sort|sup|sub|substr|substring|splice|split|send|set(Milliseconds|Seconds|Minutes|Hours|Month|Year|FullYear|Date|UTC(Milliseconds|Seconds|Minutes|Hours|Month|FullYear|Date)|Time|Hotkeys|Cursor|ZOptions|Active|Resizable|RequestHeader)|search|slice|savePreferences|small|home|handleEvent|navigate|char|charCodeAt|charAt|concat|contextual|confirm|compile|clear|captureEvents|call|createStyleSheet|createPopup|createEventObject|to(GMTString|UTCString|String|Source|UpperCase|LowerCase|LocaleString)|test|taint|taintEnabled|indexOf|italics|disableExternalCapture|dump|detachEvent|unshift|untaint|unwatch|updateCommands|join|javaEnabled|pop|push|plugins.refresh|paddings|parse|print|prompt|preference|enableExternalCapture|exec|execScript|valueOf|UTC|find|file|fileModifiedDate|fileSize|fileCreatedDate|fileUpdatedDate|fixed|fontsize|fontcolor|forward|fromCharCode|watch|link|load|lastIndexOf|anchor|attachEvent|atob|apply|alert|abort|routeEvents|resize|resizeBy|resizeTo|recalc|returnValue|replace|reverse|reload|releaseCapture|releaseEvents|go|get(Milliseconds|Seconds|Minutes|Hours|Month|Day|Year|FullYear|Time|Date|TimezoneOffset|UTC(Milliseconds|Seconds|Minutes|Hours|Day|Month|FullYear|Date)|Attention|Selection|ResponseHeader|AllResponseHeaders)|moveBy|moveBelow|moveTo|moveToAbsolute|moveAbove|mergeAttributes|match|margins|btoa|big|bold|borderWidths|blink|back)\\b",
+          "name": "support.function.coffee"
+        },
+        {
+          "match": "\\b(acceptNode|add|addEventListener|addTextTrack|adoptNode|after|animate|append|appendChild|appendData|before|blur|canPlayType|captureStream|caretPositionFromPoint|caretRangeFromPoint|checkValidity|clear|click|cloneContents|cloneNode|cloneRange|close|closest|collapse|compareBoundaryPoints|compareDocumentPosition|comparePoint|contains|convertPointFromNode|convertQuadFromNode|convertRectFromNode|createAttribute|createAttributeNS|createCaption|createCDATASection|createComment|createContextualFragment|createDocument|createDocumentFragment|createDocumentType|createElement|createElementNS|createEntityReference|createEvent|createExpression|createHTMLDocument|createNodeIterator|createNSResolver|createProcessingInstruction|createRange|createShadowRoot|createTBody|createTextNode|createTFoot|createTHead|createTreeWalker|delete|deleteCaption|deleteCell|deleteContents|deleteData|deleteRow|deleteTFoot|deleteTHead|detach|disconnect|dispatchEvent|elementFromPoint|elementsFromPoint|enableStyleSheetsForSet|entries|evaluate|execCommand|exitFullscreen|exitPointerLock|expand|extractContents|fastSeek|firstChild|focus|forEach|get|getAll|getAnimations|getAttribute|getAttributeNames|getAttributeNode|getAttributeNodeNS|getAttributeNS|getBoundingClientRect|getBoxQuads|getClientRects|getContext|getDestinationInsertionPoints|getElementById|getElementsByClassName|getElementsByName|getElementsByTagName|getElementsByTagNameNS|getItem|getNamedItem|getSelection|getStartDate|getVideoPlaybackQuality|has|hasAttribute|hasAttributeNS|hasAttributes|hasChildNodes|hasFeature|hasFocus|importNode|initEvent|insertAdjacentElement|insertAdjacentHTML|insertAdjacentText|insertBefore|insertCell|insertData|insertNode|insertRow|intersectsNode|isDefaultNamespace|isEqualNode|isPointInRange|isSameNode|item|key|keys|lastChild|load|lookupNamespaceURI|lookupPrefix|matches|move|moveAttribute|moveAttributeNode|moveChild|moveNamedItem|namedItem|nextNode|nextSibling|normalize|observe|open|parentNode|pause|play|postMessage|prepend|preventDefault|previousNode|previousSibling|probablySupportsContext|queryCommandEnabled|queryCommandIndeterm|queryCommandState|queryCommandSupported|queryCommandValue|querySelector|querySelectorAll|registerContentHandler|registerElement|registerProtocolHandler|releaseCapture|releaseEvents|remove|removeAttribute|removeAttributeNode|removeAttributeNS|removeChild|removeEventListener|removeItem|replace|replaceChild|replaceData|replaceWith|reportValidity|requestFullscreen|requestPointerLock|reset|scroll|scrollBy|scrollIntoView|scrollTo|seekToNextFrame|select|selectNode|selectNodeContents|set|setAttribute|setAttributeNode|setAttributeNodeNS|setAttributeNS|setCapture|setCustomValidity|setEnd|setEndAfter|setEndBefore|setItem|setNamedItem|setRangeText|setSelectionRange|setSinkId|setStart|setStartAfter|setStartBefore|slice|splitText|stepDown|stepUp|stopImmediatePropagation|stopPropagation|submit|substringData|supports|surroundContents|takeRecords|terminate|toBlob|toDataURL|toggle|toString|values|write|writeln)\\b",
+          "name": "support.function.dom.coffee"
+        },
+        {
+          "match": "\\b(isNaN|isFinite|eval|uneval|parseInt|parseFloat|decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|escape|unescape|require|set(Interval|Timeout)|clear(Interval|Timeout))\\b",
+          "name": "support.function.coffee"
         },
         {
           "match": "\\b(file|reduce|intern|raw_input|unicode|cmp|basestring|execfile|long|xrange)\\b",
