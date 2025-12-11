@@ -768,7 +768,7 @@
         },
         {
           "comment": "Prefix type operators",
-          "match": "(?x)\n\\s*\n(?:\n   (\\*) # pointer\n  |(\\&) # reference\n  |(\\%) # format\n  |(\\@) # decorator\n  |(\\^) # borrow\n  |(\\!) # negation\n  |(\\~) # destructor\n  |(\\?) # optional\n  |(\\\\) # lifetime\n  |(\\-) # negation\n  |(\\+) # arithmetic\n  |(\\.\\.\\.) # spread\n)\n(?=[\\w'\"`]|\\#?[(\\[{<])",
+          "match": "(?x)\n\\s*\n(?:\n   (\\*) # pointer\n  |(\\&) # reference\n  |(\\%) # format\n  |(\\@) # decorator\n  |(\\^) # borrow\n  |(\\!) # negation\n  |(\\~) # destructor\n  |(\\?) # optional\n  |(\\\\) # lifetime\n  |(\\-) # negation\n  |(\\+) # arithmetic\n  |(\\.{3}) # spread\n)\n(?=[\\w'\"`]|\\#?[(\\[{<])",
           "captures": {
             "1": {
               "name": "keyword.operator.pointer.ruko"
@@ -871,7 +871,7 @@
       "patterns": [
         {
           "comment": "Prefix type operators",
-          "match": "(?x)\n(?:\n   (\\*) # pointer\n  |(\\&) # reference\n  |(\\%) # format\n  |(\\@) # decorator\n  |(\\^) # borrow\n  |(\\!) # negation\n  |(\\~) # destructor\n  |(\\?) # optional\n  |(\\\\) # lifetime\n  |(\\-) # negation\n  |(\\+) # arithmetic\n  |(\\.\\.\\.) # spread\n)",
+          "match": "(?x)\n(?:\n   (\\*) # pointer\n  |(\\&) # reference\n  |(\\%) # format\n  |(\\@) # decorator\n  |(\\^) # borrow\n  |(\\!) # negation\n  |(\\~) # destructor\n  |(\\?) # optional\n  |(\\\\) # lifetime\n  |(\\-) # negation\n  |(\\+) # arithmetic\n  |(\\.{3}) # spread\n)",
           "captures": {
             "1": {
               "name": "keyword.operator.pointer.ruko"
@@ -5408,13 +5408,13 @@
           "name": "punctuation.separator.key-value.ruko"
         },
         "3": {
-          "name": "punctuation.definition.style-block.ruko"
+          "name": "punctuation.definition.block.ruko"
         }
       },
       "end": "\\s*(})\\s*",
       "endCaptures": {
         "1": {
-          "name": "punctuation.definition.style-block.ruko"
+          "name": "punctuation.definition.block.ruko"
         }
       },
       "name": "meta.attribute.style.ruko",
@@ -5586,7 +5586,7 @@
     },
     "spread-attribute": {
       "comment": "Spread ...attribute",
-      "match": "\\s*(?<!\\.)(\\.\\.\\.)(?=[\\p{Pc}\\p{L}($])",
+      "match": "\\s*(?<!\\.)(\\.{3})(?=[\\p{Pc}\\p{L}($])",
       "captures": {
         "1": {
           "name": "punctuation.definition.spread.ruko"
@@ -5621,7 +5621,7 @@
               "name": "constant.character.entity.named.ruko"
             },
             "9": {
-              "name": "constant.character.entity.ruko"
+              "name": "invalid.illegal.entity.ruko"
             },
             "10": {
               "name": "punctuation.definition.entity.ruko"
@@ -9719,7 +9719,7 @@
     "special-operators": {
       "patterns": [
         {
-          "match": "(?<=(?:^|[,;]|\\#?[(\\[{])\\s*)(\\.\\.\\.?)(?=[\\p{P}\\p{S}&&[^,;'\"`\\\\({\\[)}\\]\\p{Pc}]]*(?:['\"`\\w]|\\#?[(\\[{]))",
+          "match": "(?<=(?:^|[,;]|\\#?[(\\[{])\\s*)(\\.{3})(?=[\\p{P}\\p{S}&&[^,;'\"`\\\\({\\[)}\\]\\p{Pc}]]*(?:['\"`\\w]|\\#?[(\\[{]))",
           "captures": {
             "1": {
               "name": "keyword.operator.spread.ruko"
@@ -12587,6 +12587,7 @@
               "match": "(?x)\n(?: # Regular variables\n    (\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # Leading underscore\n  | ([\\p{L}&&\\P{Ll}][\\w&&\\P{Ll}]*) # Screaming snake case\n  | ((?:[\\p{Pc}\\p{L}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n  | ([\\p{Pc}\\p{L}]\\w*) # Camel or snake case\n)",
               "captures": {
                 "1": {
+                  "name": "entity.name.tag.directive.ruko",
                   "patterns": [
                     {
                       "include": "#type-names"
@@ -12594,10 +12595,10 @@
                     {
                       "include": "#support-functions"
                     }
-                  ],
-                  "name": "entity.name.tag.ruko"
+                  ]
                 },
                 "2": {
+                  "name": "entity.name.function.tagged-template.ruko",
                   "patterns": [
                     {
                       "include": "#type-names"
@@ -12605,10 +12606,10 @@
                     {
                       "include": "#support-functions"
                     }
-                  ],
-                  "name": "entity.name.tag.ruko support.class.component.ruko"
+                  ]
                 },
                 "3": {
+                  "name": "entity.name.function.method.ruko",
                   "patterns": [
                     {
                       "include": "#type-names"
@@ -12616,10 +12617,10 @@
                     {
                       "include": "#support-functions"
                     }
-                  ],
-                  "name": "entity.name.class.builtin.ruko"
+                  ]
                 },
                 "4": {
+                  "name": "entity.name.function.member.ruko",
                   "patterns": [
                     {
                       "include": "#type-names"
@@ -12627,8 +12628,7 @@
                     {
                       "include": "#support-functions"
                     }
-                  ],
-                  "name": "entity.name.function.member.ruko"
+                  ]
                 }
               }
             }
