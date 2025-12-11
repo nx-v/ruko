@@ -423,28 +423,32 @@ repository:
 
   type-variables:
     match: |-
-      (?x) \s* \b
+      (?x) \s*\b
 
       (?!
         (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (?: # keywords
-          [io]n|of|[ai]s|by|has|old|new|del
-          |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-          |va[rl]|mut|let|const|dyn
-          |use|echo|run|eval|expr
-          |func|pro[pc]|type|class|actor|trait
-          |inter|enum|module|schema|struct|record
-          |union|iter|macro|query|elem|temp|oper
-          |object|realm|style|script|quote
-          |[gd]o|defer|with|from|where
-          |if|else|then|guard|when
-          |for|loop|while|goto|move
-          |try|throw|catch|switch
-          |match|case|pass|def|defer
-          |break|skip|redo|retry
-          |return|yield|await|scope|safe
-          |import|export|intern|extern
+          # wordlike operators
+          [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+          |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+          # declaration keywords
+          |va[rl]|dyn|mut|let|const
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter
+          |module|schema|struct|record|object|union|macro
+          |query|quote|style|script|entity|temp|oper|realm
+
+          # control flow keywords
+          |if|else|[tw]hen|guard|with|unless
+          |for|while|loop|goto|break|skip|redo|until
+          |try|switch|[cm]atch|case|def|throw|raise|error
+          |return|yield|await|move|goto|pass|defer
+          |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+          # miscellaneous keywords
           |debug|assert|check|decl
+          |use|echo|eval|expr|scope
+          |begin|end|prev|next
         )
         \b
       )
@@ -533,7 +537,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                va[rl]|mut|let|const|dyn
+                va[rl]|dyn|mut|let|const
                 |case
               )
             \b
@@ -558,9 +562,9 @@ repository:
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
-              (?: # expression keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
+              (?: # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -582,9 +586,9 @@ repository:
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
-              (?: # expression keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
+              (?: # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -678,7 +682,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                va[rl]|mut|let|const|dyn
+                va[rl]|dyn|mut|let|const
                 |case
               )
             \b
@@ -739,7 +743,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                va[rl]|mut|let|const|dyn
+                va[rl]|dyn|mut|let|const
                 |case
               )
             \b
@@ -2116,23 +2120,27 @@ repository:
           (?!
             (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
             (?: # keywords
-              [io]n|of|[ai]s|by|has|old|new|del
-              |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-              |va[rl]|mut|let|const|dyn
-              |use|echo|run|eval|expr
-              |func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|schema|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
-              |[gd]o|defer|with|from|where
-              |if|else|then|guard|when
-              |for|loop|while|goto|move
-              |try|throw|catch|switch
-              |match|case|pass|def|defer
-              |break|skip|redo|retry
-              |return|yield|await|scope|safe
-              |import|export|intern|extern
+              # wordlike operators
+              [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+              |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+              # declaration keywords
+              |va[rl]|dyn|mut|let|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro
+              |query|quote|style|script|entity|temp|oper|realm
+
+              # control flow keywords
+              |if|else|[tw]hen|guard|with|unless
+              |for|while|loop|goto|break|skip|redo|until
+              |try|switch|[cm]atch|case|def|throw|raise|error
+              |return|yield|await|move|goto|pass|defer
+              |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+              # miscellaneous keywords
               |debug|assert|check|decl
+              |use|echo|eval|expr|scope
+              |begin|end|prev|next
             )
             \b
           )
@@ -2196,23 +2204,27 @@ repository:
                 (?!
                   (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
-                    [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                    |va[rl]|mut|let|const|dyn
-                    |use|echo|run|eval|expr
-                    |func|pro[pc]|type|class|actor|trait
-                    |inter|enum|module|schema|struct|record
-                    |union|iter|macro|query|elem|temp|oper
-                    |object|realm|style|script|quote
-                    |[gd]o|defer|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def|defer
-                    |break|skip|redo|retry
-                    |return|yield|await|scope|safe
-                    |import|export|intern|extern
+                    # wordlike operators
+                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                    # declaration keywords
+                    |va[rl]|dyn|mut|let|const
+                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                    |module|schema|struct|record|object|union|macro
+                    |query|quote|style|script|entity|temp|oper|realm
+
+                    # control flow keywords
+                    |if|else|[tw]hen|guard|with|unless
+                    |for|while|loop|goto|break|skip|redo|until
+                    |try|switch|[cm]atch|case|def|throw|raise|error
+                    |return|yield|await|move|goto|pass|defer
+                    |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                    # miscellaneous keywords
                     |debug|assert|check|decl
+                    |use|echo|eval|expr|scope
+                    |begin|end|prev|next
                   )
                   \b
                 )
@@ -4325,23 +4337,27 @@ repository:
               (?!
                 (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                 (?: # keywords
-                  [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                  |va[rl]|mut|let|const|dyn
-                  |use|echo|run|eval|expr
-                  |func|pro[pc]|type|class|actor|trait
-                  |inter|enum|module|schema|struct|record
-                  |union|iter|macro|query|elem|temp|oper
-                  |object|realm|style|script|quote
-                  |[gd]o|defer|with|from|where
-                  |if|else|then|guard|when
-                  |for|loop|while|goto|move
-                  |try|throw|catch|switch
-                  |match|case|pass|def|defer
-                  |break|skip|redo|retry
-                  |return|yield|await|scope|safe
-                  |import|export|intern|extern
+                  # wordlike operators
+                  [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                  |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                  # declaration keywords
+                  |va[rl]|dyn|mut|let|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |module|schema|struct|record|object|union|macro
+                  |query|quote|style|script|entity|temp|oper|realm
+
+                  # control flow keywords
+                  |if|else|[tw]hen|guard|with|unless
+                  |for|while|loop|goto|break|skip|redo|until
+                  |try|switch|[cm]atch|case|def|throw|raise|error
+                  |return|yield|await|move|goto|pass|defer
+                  |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                  # miscellaneous keywords
                   |debug|assert|check|decl
+                  |use|echo|eval|expr|scope
+                  |begin|end|prev|next
                 )
                 \b
               )
@@ -4666,17 +4682,28 @@ repository:
       - include: $self
 
   style-pair:
-    begin: (?<=^|[;,{\[(])\s*\b([\p{Pd}\w]+)\b(:)\s*
-    end: (?=[;,}\])]|$)
-    name: meta.property.css.ruko
-    beginCaptures:
-      1:
-        name: support.type.property-name.ruko
-        patterns: [include: '#css-property-keys']
-      2: { name: punctuation.separator.key-value.ruko }
     patterns:
-      - include: '#style-property-values'
-      - include: '#space'
+      - begin: (?<=^|[;,{\[(])\s*\b([\p{Pd}\w]+)\b(:)\s*
+        end: (?=[;,}\])])|$
+        name: meta.property.css.ruko
+        beginCaptures:
+          1:
+            name: support.type.property-name.ruko
+            patterns: [include: '#css-property-keys']
+          2: { name: punctuation.separator.key-value.ruko }
+        patterns:
+          - include: '#style-property-values'
+          - include: '#space'
+      - applyEndPatternLast: true
+
+      - begin: (?<=(?:[)}\]\w'"`]|\\.)>*)(:)\s*
+        end: (?=[;,}\])])|$
+        name: meta.property.css.ruko
+        beginCaptures:
+          1: { name: punctuation.separator.key-value.ruko }
+        patterns:
+          - include: '#style-property-values'
+          - include: '#space'
 
   style-properties:
     patterns:
@@ -4722,7 +4749,7 @@ repository:
       - include: '#tag-names'
 
   style-selectors:
-    define: &style-selectors
+    define: &attribute-selectors
       applyEndPatternLast: true
       end: (?=)|$
       patterns:
@@ -4731,7 +4758,7 @@ repository:
           end: (>)
           name: meta.brace.angle.ruko
           captures:
-            1: { name: punctuation.definition.expression.ruko }
+            1: { name: punctuation.definition.variable.ruko }
           patterns:
             - include: '#style-property-values'
             - include: $self
@@ -4740,40 +4767,40 @@ repository:
       - match: \s*([@#&*|%.:~^?]|::)(?=[\w$'"`])
         name: punctuation.definition.entity.ruko
       - begin: \s*(?<=#)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.other.attribute-name.id.ruko
       - begin: \s*(?<=\.)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.other.attribute-name.class.ruko
       - begin: \s*(?<=::)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.other.attribute-name.pseudo-component.ruko
       - begin: \s*(?<=~)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.other.attribute-name.key.ruko
       - begin: \s*(?<=@)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.decorator.ruko
       - begin: \s*(?<=&)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.type.anchor.ruko
       - begin: \s*(?<=\*)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.type.alias.ruko
       - begin: \s*(?<=%)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.function.ruko
       - begin: \s*(?<=\|)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.method.ruko
       - begin: \s*(?<=:)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.procedure.ruko
       - begin: \s*(?<=\^)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.property.ruko
       - begin: \s*(?<=\?)\b
-        <<: *style-selectors
+        <<: *attribute-selectors
         name: entity.name.predicate.ruko
 
   # Comments
@@ -5077,23 +5104,27 @@ repository:
                 (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
                 \b
                   (?: # keywords
-                    [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                    |va[rl]|mut|let|const|dyn
-                    |use|echo|run|eval|expr
-                    |func|pro[pc]|type|class|actor|trait
-                    |inter|enum|module|schema|struct|record
-                    |union|iter|macro|query|elem|temp|oper
-                    |object|realm|style|script|quote
-                    |[gd]o|defer|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def|defer
-                    |break|skip|redo|retry
-                    |return|yield|await|scope|safe
-                    |import|export|intern|extern
+                    # wordlike operators
+                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                    # declaration keywords
+                    |va[rl]|dyn|mut|let|const
+                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                    |module|schema|struct|record|object|union|macro
+                    |query|quote|style|script|entity|temp|oper|realm
+
+                    # control flow keywords
+                    |if|else|[tw]hen|guard|with|unless
+                    |for|while|loop|goto|break|skip|redo|until
+                    |try|switch|[cm]atch|case|def|throw|raise|error
+                    |return|yield|await|move|goto|pass|defer
+                    |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                    # miscellaneous keywords
                     |debug|assert|check|decl
+                    |use|echo|eval|expr|scope
+                    |begin|end|prev|next
                   )
                 \b
               ) \s*
@@ -5106,25 +5137,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             (?:
               \b[\p{Pc}\p{L}]\w*\b # identifier
@@ -5169,23 +5203,27 @@ repository:
                 (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
                 \b
                   (?: # keywords
-                    [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                    |va[rl]|mut|let|const|dyn
-                    |use|echo|run|eval|expr
-                    |func|pro[pc]|type|class|actor|trait
-                    |inter|enum|module|schema|struct|record
-                    |union|iter|macro|query|elem|temp|oper
-                    |object|realm|style|script|quote
-                    |[gd]o|defer|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def|defer
-                    |break|skip|redo|retry
-                    |return|yield|await|scope|safe
-                    |import|export|intern|extern
+                    # wordlike operators
+                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                    # declaration keywords
+                    |va[rl]|dyn|mut|let|const
+                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                    |module|schema|struct|record|object|union|macro
+                    |query|quote|style|script|entity|temp|oper|realm
+
+                    # control flow keywords
+                    |if|else|[tw]hen|guard|with|unless
+                    |for|while|loop|goto|break|skip|redo|until
+                    |try|switch|[cm]atch|case|def|throw|raise|error
+                    |return|yield|await|move|goto|pass|defer
+                    |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                    # miscellaneous keywords
                     |debug|assert|check|decl
+                    |use|echo|eval|expr|scope
+                    |begin|end|prev|next
                   )
                 \b
               ) \s*
@@ -5198,25 +5236,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             (?:
               \b[\p{Pc}\p{L}]\w*\b # identifier
@@ -5240,30 +5281,33 @@ repository:
                 (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
           )
           (?! # function name
-            \s* \b
+            \s*\b
             # ignore all keywords
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             \b[\p{Pc}\p{L}]\w*\b # identifier
             : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
@@ -5275,7 +5319,7 @@ repository:
             | \s* (?:\w*|[\\$\#%]*)['"] # quoted string literals
             | \s*`\N # unquoted string literals
             | \s+ :[\p{Pc}\p{L}]\w* # symbols
-            | \s* \b\d # numbers
+            | \s*\b\d # numbers
             | \s+ \#? [(\[] # opening brackets
             | \s+ [\p{P}\p{S}&&[^.,;'"`/\\({\[)}\]\p{Pc}]] # prefix operators except slashes
                   [\p{P}\p{S}&&[^,;'"`({\[)}\]\p{Pc}]]* # followed by other operators
@@ -5298,23 +5342,27 @@ repository:
                 (?!
                   (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
-                    [io]n|of|[ai]s|by|has|old|new|del
-                    |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                    |va[rl]|mut|let|const|dyn
-                    |use|echo|run|eval|expr
-                    |func|pro[pc]|type|class|actor|trait
-                    |inter|enum|module|schema|struct|record
-                    |union|iter|macro|query|elem|temp|oper
-                    |object|realm|style|script|quote
-                    |[gd]o|defer|with|from|where
-                    |if|else|then|guard|when
-                    |for|loop|while|goto|move
-                    |try|throw|catch|switch
-                    |match|case|pass|def|defer
-                    |break|skip|redo|retry
-                    |return|yield|await|scope|safe
-                    |import|export|intern|extern
+                    # wordlike operators
+                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                    # declaration keywords
+                    |va[rl]|dyn|mut|let|const
+                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                    |module|schema|struct|record|object|union|macro
+                    |query|quote|style|script|entity|temp|oper|realm
+
+                    # control flow keywords
+                    |if|else|[tw]hen|guard|with|unless
+                    |for|while|loop|goto|break|skip|redo|until
+                    |try|switch|[cm]atch|case|def|throw|raise|error
+                    |return|yield|await|move|goto|pass|defer
+                    |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                    # miscellaneous keywords
                     |debug|assert|check|decl
+                    |use|echo|eval|expr|scope
+                    |begin|end|prev|next
                   )
                   \b
                 )
@@ -5344,25 +5392,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             (?:
               \b[\p{Pc}\p{L}]\w*\b # identifier
@@ -5536,12 +5587,10 @@ repository:
               | [(|]\. \s # uncurried function
               | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
                 \b (?: # declaration keywords
-                  va[rl]|mut|let|const|dyn
-                  |func|pro[pc]|type|class|actor|trait
-                  |inter|enum|module|schema|struct|record
-                  |union|iter|macro|query|elem|temp|oper
-                  |object|realm|style|script|quote
-                  |given|use|as
+                  va[rl]|dyn|mut|let|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |module|schema|struct|record|object|union|macro
+                  |query|quote|style|script|entity|temp|oper|realm
                 ) \b
                 (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.)
             ) \s*
@@ -5607,12 +5656,10 @@ repository:
           | [(|]\. \s # uncurried function
           | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
             \b (?: # declaration keywords
-              va[rl]|mut|let|const|dyn
-              |func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|schema|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
-              |given|use|as
+              va[rl]|dyn|mut|let|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro
+              |query|quote|style|script|entity|temp|oper|realm
             ) \b
             (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.)
         ) \s*
@@ -5778,25 +5825,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             \b[\p{Pc}\p{L}]\w*\b # identifier
           )
@@ -6069,15 +6119,12 @@ repository:
       )
       (?=
         \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-        (?:
-          va[rl]|mut|let|const|dyn
-          |func|pro[pc]|type|class|actor|trait
-          |inter|enum|module|schema|struct|record
-          |union|iter|macro|query|elem|temp|oper
-          |object|realm|style|script|quote
-          |import|export|intern|extern
-          |scope
-        )
+        (?: # declaration keywords
+          va[rl]|dyn|mut|let|const
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter
+          |module|schema|struct|record|object|union|macro
+          |query|quote|style|script|entity|temp|oper|realm
+        ) 
         \b\s*
       )
     captures:
@@ -6094,25 +6141,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             \b[\p{Pc}\p{L}]\w*\b # identifier
           )
@@ -6121,25 +6171,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             [\p{Pc}\p{L}]\w*
           )
@@ -6328,42 +6381,39 @@ repository:
     patterns:
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)\b\s*
         name: keyword.other.declare.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(va[rl]|mut|let|const|dyn)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(va[rl]|dyn|mut|let|const)\b\s*
         name: storage.type.ruko
       - match: |-
           (?x)
           \s*
-            (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-            (
-              func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|schema|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
-            )
-            \b
-          \s*
+          (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b (?: # declaration keywords
+            va[rl]|dyn|mut|let|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |module|schema|struct|record|object|union|macro
+            |query|quote|style|script|entity|temp|oper|realm
+          ) \b\s*
         name: storage.type.$1.ruko
 
   general-keywords:
     comment: general keywords
     patterns:
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if|else|guard|when)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if|else|when|guard|with|unless)\b\s*
         name: keyword.control.conditional.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for|loop|while)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for|while|loop|goto|break|skip|redo|until)\b\s*
         name: keyword.control.loop.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|throw|catch|then)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|throw|catch|then|raise|error|retry)\b\s*
         name: keyword.control.trycatch.ruko
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(match|case|def)\b\s*
+        name: keyword.control.match.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(switch|case|def)\b\s*
         name: keyword.control.switch.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(match)\b\s*
-        name: keyword.control.match.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(break|skip|redo|retry|return|await|scope|yield|goto|move|pass|safe)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(return|yield|await|move|goto|pass|defer)\b\s*
         name: keyword.control.flow.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(import|export|intern|extern)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:im|ex)(?:port|tern))\b\s*
         name: keyword.control.module.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([gd]o|defer|ref|deref|with|from)\b\s*
         name: keyword.control.$1.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|use|echo|run|eval|init)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|decl|use|echo|eval|expr|begin|end|prev|next)\b\s*
         name: keyword.other.$1.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(where)\b\s*
         name: keyword.control.validate.ruko
@@ -6387,6 +6437,7 @@ repository:
   keywords:
     patterns:
       - include: '#module-expression'
+      - include: '#loop-expression'
       - include: '#control-expression'
       - include: '#query-expression'
       - include: '#validation-expression'
@@ -6396,9 +6447,19 @@ repository:
       - include: '#expression-keywords'
       - include: '#general-keywords'
 
-  control-expression:
+  loop-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(break|skip|redo|retry|scope|goto|move|pass)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(break|skip|redo)\b\s*
+    end: (?=)|$
+    beginCaptures:
+      1: { name: keyword.control.loop.ruko }
+    patterns:
+      - match: *entity-name
+        name: constant.other.label.ruko
+
+  flow-expression:
+    applyEndPatternLast: true
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(retry|goto|move|pass)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.flow.ruko }
@@ -6408,7 +6469,7 @@ repository:
 
   extern-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(intern|extern)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:in|ex)tern)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.module.ruko }
@@ -6418,7 +6479,7 @@ repository:
 
   module-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(import|export)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:im|ex)port)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.module.ruko }
@@ -6471,25 +6532,28 @@ repository:
             (?!
               (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                |va[rl]|mut|let|const|dyn
-                |use|echo|run|eval|expr
-                |func|pro[pc]|type|class|actor|trait
-                |inter|enum|module|schema|struct|record
-                |union|iter|macro|query|elem|temp|oper
-                |object|realm|style|script|quote
-                |[gd]o|defer|with|from|where
-                |if|else|then|guard|when
-                |for|loop|while|goto|move
-                |try|throw|catch|switch
-                |match|case|pass|def|defer
-                |break|skip|redo|retry
-                |return|yield|await|scope|safe
-                |import|export|intern|extern
+                # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                # declaration keywords
+                |va[rl]|dyn|mut|let|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro
+                |query|quote|style|script|entity|temp|oper|realm
+
+                # control flow keywords
+                |if|else|[tw]hen|guard|with|unless
+                |for|while|loop|goto|break|skip|redo|until
+                |try|switch|[cm]atch|case|def|throw|raise|error
+                |return|yield|await|move|goto|pass|defer
+                |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                # miscellaneous keywords
                 |debug|assert|check|decl
-              )
-              \b
+                |use|echo|eval|expr|scope
+                |begin|end|prev|next
+              ) \b
             )
             \b[\p{Pc}\p{L}]\w*\b # identifier
           )
@@ -6777,7 +6841,7 @@ repository:
           - match: *entity-name
             name: entity.name.script.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(elem)\b\s*
+        begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(entity)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.component.ruko }
@@ -6788,7 +6852,7 @@ repository:
             name: entity.name.component.ruko
             patterns: [include: '#html-tags']
       - applyEndPatternLast: true
-        begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(va[rl]|mut|let|const|dyn)\b\s*
+        begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(va[rl]|dyn|mut|let|const)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.variable.ruko }
@@ -7047,23 +7111,27 @@ repository:
               (?!
                 (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                 (?: # keywords
-                  [io]n|of|[ai]s|by|has|old|new|del
-                  |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-                  |va[rl]|mut|let|const|dyn
-                  |use|echo|run|eval|expr
-                  |func|pro[pc]|type|class|actor|trait
-                  |inter|enum|module|schema|struct|record
-                  |union|iter|macro|query|elem|temp|oper
-                  |object|realm|style|script|quote
-                  |[gd]o|defer|with|from|where
-                  |if|else|then|guard|when
-                  |for|loop|while|goto|move
-                  |try|throw|catch|switch
-                  |match|case|pass|def|defer
-                  |break|skip|redo|retry
-                  |return|yield|await|scope|safe
-                  |import|export|intern|extern
+                  # wordlike operators
+                  [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                  |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+                  # declaration keywords
+                  |va[rl]|dyn|mut|let|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |module|schema|struct|record|object|union|macro
+                  |query|quote|style|script|entity|temp|oper|realm
+
+                  # control flow keywords
+                  |if|else|[tw]hen|guard|with|unless
+                  |for|while|loop|goto|break|skip|redo|until
+                  |try|switch|[cm]atch|case|def|throw|raise|error
+                  |return|yield|await|move|goto|pass|defer
+                  |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+                  # miscellaneous keywords
                   |debug|assert|check|decl
+                  |use|echo|eval|expr|scope
+                  |begin|end|prev|next
                 )
                 \b
               )
@@ -7103,11 +7171,10 @@ repository:
           \s*
           (?=
             \b
-            (?: # Function types
-              func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|schema|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
+            (?: # declaration keywords
+              func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro
+              |query|quote|style|script|entity|temp|oper|realm
             )
             \b
           )
@@ -7177,11 +7244,10 @@ repository:
           \s*
           (?=
             \b
-            (?: # Function types
-              func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|schema|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
+            (?: # declaration keywords
+              func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro
+              |query|quote|style|script|entity|temp|oper|realm
             )
             \b
           )
@@ -7332,7 +7398,7 @@ repository:
               1: { name: keyword.operator.assignment.ruko }
 
   try-clause:
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|then)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|then|raise)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
     name: meta.try.ruko
     beginCaptures:
@@ -7345,7 +7411,7 @@ repository:
       - include: $self
 
   catch-clause:
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(catch)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(catch|error)\b\s*
     end: \s*(?=[,;)}\]])|$
     name: meta.catch.ruko
     beginCaptures:
@@ -7382,13 +7448,13 @@ repository:
             beginCaptures:
               1: { name: keyword.control.error.ruko }
             patterns: [include: '#types']
-          - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if\s+not|if|when\s+not|when|guard|as)\b\s*
+          - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|as)\b\s*
             name: keyword.control.error.ruko
           - include: '#type-keywords'
           - include: $self
 
   for-clause:
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for|while\s+not|while)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for(?:ever|\s+each)?|(?:while|until)(?:\s+not)?|loop)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
     name: meta.for.ruko
     beginCaptures:
@@ -7401,7 +7467,7 @@ repository:
       - include: $self
 
   if-clause:
-    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if\s+not|if|when\s+not|when|guard)\b\s*
+    begin: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|guard)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[,;)}\]])|$
     name: meta.if.ruko
     beginCaptures:
@@ -7451,7 +7517,7 @@ repository:
             beginCaptures:
               1: { name: keyword.control.match.ruko }
             patterns: [include: '#types']
-          - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if\s+not|if|when\s+not|when|guard|as)\b\s*
+          - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|as)\b\s*
             name: keyword.control.match.ruko
           - include: '#type-keywords'
           - include: $self
@@ -7494,7 +7560,7 @@ repository:
             beginCaptures:
               1: { name: keyword.control.switch.ruko }
             patterns: [include: '#types']
-          - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if\s+not|if|when\s+not|when|guard|as)\b\s*
+          - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|as)\b\s*
             name: keyword.control.switch.ruko
           - include: '#type-keywords'
           - include: $self
@@ -7647,11 +7713,10 @@ repository:
           \s*
           (?=
             \b
-            (?: # Function types
-              func|pro[pc]|type|class|actor|trait
-              |inter|enum|module|schema|struct|record
-              |union|iter|macro|query|elem|temp|oper
-              |object|realm|style|script|quote
+            (?: # declaration keywords
+              func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro
+              |query|quote|style|script|entity|temp|oper|realm
             )
             \b
           )
@@ -7754,23 +7819,27 @@ repository:
         (?!
           (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
           (?: # keywords
-            [io]n|of|[ai]s|by|has|old|new|del
-            |unset|ref|deref|n?and|x?n?or|c?n?imply|not
-            |va[rl]|mut|let|const|dyn
-            |use|echo|run|eval|expr
-            |func|pro[pc]|type|class|actor|trait
-            |inter|enum|module|schema|struct|record
-            |union|iter|macro|query|elem|temp|oper
-            |object|realm|style|script|quote
-            |[gd]o|defer|with|from|where
-            |if|else|then|guard|when
-            |for|loop|while|goto|move
-            |try|throw|catch|switch
-            |match|case|pass|def|defer
-            |break|skip|redo|retry
-            |return|yield|await|scope|safe
-            |import|export|intern|extern
+            # wordlike operators
+            [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+            |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+
+            # declaration keywords
+            |va[rl]|dyn|mut|let|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |module|schema|struct|record|object|union|macro
+            |query|quote|style|script|entity|temp|oper|realm
+
+            # control flow keywords
+            |if|else|[tw]hen|guard|with|unless
+            |for|while|loop|goto|break|skip|redo|until
+            |try|switch|[cm]atch|case|def|throw|raise|error
+            |return|yield|await|move|goto|pass|defer
+            |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+            # miscellaneous keywords
             |debug|assert|check|decl
+            |use|echo|eval|expr|scope
+            |begin|end|prev|next
           )
           \b
         )
@@ -7952,7 +8021,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                va[rl]|mut|let|const|dyn
+                va[rl]|dyn|mut|let|const
                 |case
               )
             \b
@@ -7976,9 +8045,9 @@ repository:
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
-              (?: # expression keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
+              (?: # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -8000,9 +8069,9 @@ repository:
           (?<=
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
-              (?: # expression keywords
-                [io]n|of|[ai]s|by|has|old|new|del
-                |unset|ref|deref|n?and|x?n?or|c?n?imply|not
+              (?: # wordlike operators
+                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
+                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
               )
             \b
             (?:$|[,;'"({\[)}\]\s]) # beside a delimiter or space
@@ -8092,7 +8161,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                va[rl]|mut|let|const|dyn
+                va[rl]|dyn|mut|let|const
                 |case
               )
             \b
@@ -8149,7 +8218,7 @@ repository:
             (?:^|[,;'"({\[)}\]\s]) # beside a delimiter or space
             \b
               (?: # destructuring keywords
-                va[rl]|mut|let|const|dyn
+                va[rl]|dyn|mut|let|const
                 |case
               )
             \b
@@ -8867,7 +8936,7 @@ repository:
         name: support.function.network.php
       - match: \bnsapi_(virtual|response_headers|request_headers)\b
         name: support.function.nsapi.php
-      - match: (?x)\b(oci(statementtype|setprefetch|serverversion|savelob(file)?|numcols|new(collection|cursor|descriptor)|nlogon|column(scale|size|name|type(raw)?|isnull|precision)|coll(size|trim|assign(elem)?|append|getelem|max)|commit|closelob|cancel|internaldebug|definebyname|plogon|parse|error|execute|fetch(statement|into)?|free(statement|collection|cursor|desc)|write(temporarylob|lobtofile)|loadlob|log(on|off)|rowcount|rollback|result|bindbyname)|oci_(statement_type|set_(client_(info|identifier)|prefetch|edition|action|module_name)|server_version|num_(fields|rows)|new_(connect|collection|cursor|descriptor)|connect|commit|client_version|close|cancel|internal_debug|define_by_name|pconnect|password_change|parse|error|execute|bind_(array_)?by_name|field_(scale|size|name|type(_raw)?|is_null|precision)|fetch(_(object|assoc|all|array|row))?|free_(statement|descriptor)|lob_(copy|is_equal)|rollback|result|get_implicit_resultset))\b
+      - match: (?x)\b(oci(statementtype|setprefetch|serverversion|savelob(file)?|numcols|new(collection|cursor|descriptor)|nlogon|column(scale|size|name|type(raw)?|isnull|precision)|coll(size|trim|assign(entity)?|append|getelem|max)|commit|closelob|cancel|internaldebug|definebyname|plogon|parse|error|execute|fetch(statement|into)?|free(statement|collection|cursor|desc)|write(temporarylob|lobtofile)|loadlob|log(on|off)|rowcount|rollback|result|bindbyname)|oci_(statement_type|set_(client_(info|identifier)|prefetch|edition|action|module_name)|server_version|num_(fields|rows)|new_(connect|collection|cursor|descriptor)|connect|commit|client_version|close|cancel|internal_debug|define_by_name|pconnect|password_change|parse|error|execute|bind_(array_)?by_name|field_(scale|size|name|type(_raw)?|is_null|precision)|fetch(_(object|assoc|all|array|row))?|free_(statement|descriptor)|lob_(copy|is_equal)|rollback|result|get_implicit_resultset))\b
         name: support.function.oci8.php
       - match: \bopcache_(compile_file|invalidate|is_script_cached|reset|get_(status|configuration))\b
         name: support.function.opcache.php
