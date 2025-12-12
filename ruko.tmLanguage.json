@@ -3698,7 +3698,7 @@
     },
     "regexps": {
       "applyEndPatternLast": true,
-      "begin": "(?x)(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"({\\[)}\\]\\s]) # beside a delimiter or space\n      [\\p{Pc}\\p{L}]\\w*  # keyword or identifier\n  ) \\s*\n) \\s*\n(?=/['\"`\\w\\\\(\\[{]|/$)",
+      "begin": "(?x)(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"({\\[)}\\]\\s]) # beside a delimiter or space\n      [\\p{Pc}\\p{L}]\\w*\\s  # keyword or identifier\n  ) \\s*\n) \\s*\n(?=/['\"`\\w\\\\(\\[{]|/$)",
       "end": "(?=)|$",
       "name": "meta.regexp.ruko",
       "patterns": [
@@ -5170,7 +5170,7 @@
     "xml": {
       "applyEndPatternLast": true,
       "comment": "Only captured when next to opening brackets, commas, semicolons, keywords, and operators. XML also supports functional components.",
-      "begin": "(?x)(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"({\\[)}\\]\\s]) # beside a delimiter or space\n      [\\p{Pc}\\p{L}]\\w*  # keyword or identifier\n  ) \\s*\n) \\s*\n(?=<[\\p{Pc}\\p{L}($])",
+      "begin": "(?x)(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"({\\[)}\\]\\s]) # beside a delimiter or space\n      [\\p{Pc}\\p{L}]\\w*\\s  # keyword or identifier\n  ) \\s*\n) \\s*\n(?=<[\\p{Pc}\\p{L}($])",
       "end": "(?=)|$",
       "patterns": [
         {
@@ -10309,7 +10309,11 @@
           "name": "keyword.control.module.ruko"
         },
         {
-          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b([gd]o|defer|ref|deref|with|from)\\b\\s*",
+          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(where)\\b\\s*",
+          "name": "keyword.control.validate.ruko"
+        },
+        {
+          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b([gd]o|defer|ref|deref|with|begin|end|from)\\b\\s*",
           "name": "keyword.control.$1.ruko"
         },
         {
@@ -10317,12 +10321,8 @@
           "name": "keyword.other.declare.ruko"
         },
         {
-          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(debug|assert|check|use|echo|eval|expr|scope|begin|end|prev|next)\\b\\s*",
+          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(debug|assert|check|use|echo|eval|expr|scope|prev|next)\\b\\s*",
           "name": "keyword.other.$1.ruko"
-        },
-        {
-          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(where)\\b\\s*",
-          "name": "keyword.control.validate.ruko"
         }
       ]
     },
@@ -11712,7 +11712,7 @@
     "argument-list": {
       "comment": "Function argument list starting and ending with |",
       "name": "meta.function.arguments.ruko",
-      "begin": "(?x)\n(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"({\\[)}\\]\\s]) # beside a delimiter or space\n      [\\p{Pc}\\p{L}]\\w*  # keyword or identifier\n  ) \\s*\n) \\s*\n(\\|) (?=\n  (?: \\#?[(\\[{] )? # opening bracket\n  (?: [;,] \\s* )* # optional separators\n  (?:\n    ((?:[*&%@^!~?\\\\\\-+]|\\.{3})*) # any sigils\n    (\\b[\\p{Pc}\\p{L}]\\w*\\b) # identifier\n    ([!?]*) # optional sigils\n    \\s*\n  )+ (?: [)\\]}] )? # closing bracket\n)",
+      "begin": "(?x)\n(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`({\\[)}\\]\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"({\\[)}\\]\\s]) # beside a delimiter or space\n      [\\p{Pc}\\p{L}]\\w*\\s  # keyword or identifier\n  ) \\s*\n) \\s*\n(\\|) (?=\n  (?: \\#?[(\\[{] )? # opening bracket\n  (?: [;,] \\s* )* # optional separators\n  (?:\n    ((?:[*&%@^!~?\\\\\\-+]|\\.{3})*) # any sigils\n    (\\b[\\p{Pc}\\p{L}]\\w*\\b) # identifier\n    ([!?]*) # optional sigils\n    \\s*\n  )+ (?: [)\\]}] )? # closing bracket\n)",
       "captures": {
         "1": {
           "name": "punctuation.separator.arguments.ruko"
