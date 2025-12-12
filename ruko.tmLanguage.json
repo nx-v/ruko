@@ -5343,13 +5343,10 @@
           "include": "#style-attribute"
         },
         {
-          "include": "#attribute-directive"
-        },
-        {
           "include": "#attribute-assignment"
         },
         {
-          "include": "#attribute-names"
+          "include": "#style-selectors"
         },
         {
           "include": "#literals"
@@ -5386,18 +5383,6 @@
         }
       ]
     },
-    "attribute-directive": {
-      "match": "\\s*([@#&*%|:?])([\\p{Pc}\\p{L}][\\p{Pd}\\w]*)\\b\\s*",
-      "name": "meta.attribute.directive.ruko",
-      "captures": {
-        "1": {
-          "name": "punctuation.definition.directive.ruko"
-        },
-        "2": {
-          "name": "entity.other.attribute-name.directive.ruko"
-        }
-      }
-    },
     "style-attribute": {
       "begin": "\\s*(style)\\s*(=)\\s*({)\\s*",
       "beginCaptures": {
@@ -5426,65 +5411,9 @@
     },
     "attribute-assignment": {
       "applyEndPatternLast": true,
-      "begin": "\\s*([\\p{Pc}\\p{L}][\\p{Pd}\\w]*)\\s*(=)",
+      "begin": "\\s*(=)",
       "beginCaptures": {
         "1": {
-          "name": "entity.other.attribute-name.ruko",
-          "patterns": [
-            {
-              "match": "\\s*(?<=\\@)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "keyword.control.at-rule.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\#)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.id.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\.)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.class.ruko"
-            },
-            {
-              "match": "\\s*(?<=::)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.pseudo-component.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\~)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.key.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\&)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.type.anchor.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\*)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.type.alias.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\%)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.function.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\|)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.method.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\:)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.procedure.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\^)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.property.ruko"
-            },
-            {
-              "match": "\\s*(?<=\\?)[\\p{Pc}\\p{L}]\\w*\\b\\s*",
-              "name": "entity.other.attribute-name.ruko entity.name.predicate.ruko"
-            },
-            {
-              "include": "#css-property-keys"
-            }
-          ]
-        },
-        "2": {
           "name": "punctuation.separator.key-value.ruko"
         }
       },
@@ -8401,7 +8330,12 @@
         "end": "(?=)|$",
         "patterns": [
           {
-            "match": "[\\p{Pd}\\w]+"
+            "match": "[\\p{Pd}\\w]+",
+            "patterns": [
+              {
+                "include": "#css-property-keys"
+              }
+            ]
           },
           {
             "begin": "(<)",
@@ -8429,12 +8363,51 @@
           "name": "punctuation.definition.entity.ruko"
         },
         {
+          "begin": "\\s*(?<=[~\\s])\\b",
+          "applyEndPatternLast": true,
+          "end": "(?=)|$",
+          "patterns": [
+            {
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
+            },
+            {
+              "begin": "(<)",
+              "end": "(>)",
+              "name": "meta.brace.angle.ruko",
+              "captures": {
+                "1": {
+                  "name": "punctuation.definition.variable.ruko"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "#style-property-values"
+                },
+                {
+                  "include": "$self"
+                }
+              ]
+            }
+          ],
+          "name": "entity.other.attribute-name.key.ruko"
+        },
+        {
           "begin": "\\s*(?<=#)\\b",
           "applyEndPatternLast": true,
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8463,7 +8436,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8492,7 +8470,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8516,41 +8499,17 @@
           "name": "entity.other.attribute-name.pseudo-component.ruko"
         },
         {
-          "begin": "\\s*(?<=~)\\b",
-          "applyEndPatternLast": true,
-          "end": "(?=)|$",
-          "patterns": [
-            {
-              "match": "[\\p{Pd}\\w]+"
-            },
-            {
-              "begin": "(<)",
-              "end": "(>)",
-              "name": "meta.brace.angle.ruko",
-              "captures": {
-                "1": {
-                  "name": "punctuation.definition.variable.ruko"
-                }
-              },
-              "patterns": [
-                {
-                  "include": "#style-property-values"
-                },
-                {
-                  "include": "$self"
-                }
-              ]
-            }
-          ],
-          "name": "entity.other.attribute-name.key.ruko"
-        },
-        {
           "begin": "\\s*(?<=@)\\b",
           "applyEndPatternLast": true,
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8579,7 +8538,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8608,7 +8572,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8637,7 +8606,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8666,7 +8640,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8695,7 +8674,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8724,7 +8708,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -8753,7 +8742,12 @@
           "end": "(?=)|$",
           "patterns": [
             {
-              "match": "[\\p{Pd}\\w]+"
+              "match": "[\\p{Pd}\\w]+",
+              "patterns": [
+                {
+                  "include": "#css-property-keys"
+                }
+              ]
             },
             {
               "begin": "(<)",
@@ -10391,7 +10385,7 @@
           "include": "#loop-expression"
         },
         {
-          "include": "#control-expression"
+          "include": "#flow-expression"
         },
         {
           "include": "#query-expression"

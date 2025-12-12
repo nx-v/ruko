@@ -3621,9 +3621,8 @@ repository:
         name: punctuation.definition.entity.ruko
       - include: '#spread-attribute'
       - include: '#style-attribute'
-      - include: '#attribute-directive'
       - include: '#attribute-assignment'
-      - include: '#attribute-names'
+      - include: '#style-selectors'
       - include: '#literals'
       - include: '#hex-colors'
       - include: '#embedded-expressions'
@@ -3635,13 +3634,6 @@ repository:
       - include: '#comments'
       - include: '#punctuation'
       - include: '#space'
-
-  attribute-directive:
-    match: \s*([@#&*%|:?])([\p{Pc}\p{L}][\p{Pd}\w]*)\b\s*
-    name: meta.attribute.directive.ruko
-    captures:
-      1: { name: punctuation.definition.directive.ruko }
-      2: { name: entity.other.attribute-name.directive.ruko }
 
   style-attribute:
     begin: \s*(style)\s*(=)\s*({)\s*
@@ -3657,8 +3649,27 @@ repository:
 
   attribute-assignment:
     applyEndPatternLast: true
-    begin: \s*([\p{Pc}\p{L}][\p{Pd}\w]*)\s*(=)
+    begin: \s*(=)
     beginCaptures:
+      1: { name: punctuation.separator.key-value.ruko }
+    end: (?=)|$
+    name: meta.attribute.assignment.ruko
+    patterns: [include: '#attribute-values']
+
+  attribute-values:
+    patterns:
+      - include: '#brackets'
+      - include: '#embedded-expressions'
+      - include: '#literals'
+      - include: '#css-property-values'
+      - include: '#hex-colors'
+      - include: '#unicode-property-values'
+      - *attribute-identifier
+
+  attribute-names:
+    match: \s*([\p{Pc}\p{L}][\p{Pd}\w]*)\b(?!\s*=)\s*
+    name: meta.attribute.boolean.ruko
+    captures:
       1: &attribute-name
         name: entity.other.attribute-name.ruko
         patterns:
@@ -3687,26 +3698,6 @@ repository:
           - match: \s*(?<=\?)[\p{Pc}\p{L}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.predicate.ruko
           - include: '#css-property-keys'
-      2: { name: punctuation.separator.key-value.ruko }
-    end: (?=)|$
-    name: meta.attribute.assignment.ruko
-    patterns: [include: '#attribute-values']
-
-  attribute-values:
-    patterns:
-      - include: '#brackets'
-      - include: '#embedded-expressions'
-      - include: '#literals'
-      - include: '#css-property-values'
-      - include: '#hex-colors'
-      - include: '#unicode-property-values'
-      - *attribute-identifier
-
-  attribute-names:
-    match: \s*([\p{Pc}\p{L}][\p{Pd}\w]*)\b(?!\s*=)\s*
-    name: meta.attribute.boolean.ruko
-    captures:
-      1: *attribute-name
 
   spread-attribute:
     comment: Spread ...attribute
@@ -4754,6 +4745,7 @@ repository:
       end: (?=)|$
       patterns:
         - match: '[\p{Pd}\w]+'
+          patterns: [include: '#css-property-keys']
         - begin: (<)
           end: (>)
           name: meta.brace.angle.ruko
@@ -4766,6 +4758,9 @@ repository:
     patterns:
       - match: \s*([@#&*|%.:~^?]|::)(?=[\w$'"`])
         name: punctuation.definition.entity.ruko
+      - begin: \s*(?<=[~\s])\b
+        <<: *attribute-selectors
+        name: entity.other.attribute-name.key.ruko
       - begin: \s*(?<=#)\b
         <<: *attribute-selectors
         name: entity.other.attribute-name.id.ruko
@@ -4775,9 +4770,6 @@ repository:
       - begin: \s*(?<=::)\b
         <<: *attribute-selectors
         name: entity.other.attribute-name.pseudo-component.ruko
-      - begin: \s*(?<=~)\b
-        <<: *attribute-selectors
-        name: entity.other.attribute-name.key.ruko
       - begin: \s*(?<=@)\b
         <<: *attribute-selectors
         name: entity.name.decorator.ruko
@@ -6438,7 +6430,7 @@ repository:
     patterns:
       - include: '#module-expression'
       - include: '#loop-expression'
-      - include: '#control-expression'
+      - include: '#flow-expression'
       - include: '#query-expression'
       - include: '#validation-expression'
       - include: '#extern-expression'
