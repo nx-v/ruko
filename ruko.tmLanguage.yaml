@@ -4247,7 +4247,7 @@ repository:
     begin: ^\s*(;)(?!>)\s+
     end: (?=|$)
     beginCaptures:
-      1: { name: punctuation.definition.evaluated-code.markdown }
+      1: { name: fenced_code.block.language.markdown }
       2: { name: meta.evaluated-code.markdown }
     name: meta.evaluated-code.markdown
     patterns: [include: $self]
@@ -6394,7 +6394,9 @@ repository:
         name: keyword.control.module.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([gd]o|defer|ref|deref|with|from)\b\s*
         name: keyword.control.$1.ruko
-      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|decl|use|echo|eval|expr|begin|end|prev|next)\b\s*
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)\b\s*
+        name: keyword.other.declare.ruko
+      - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|use|echo|eval|expr|scope|begin|end|prev|next)\b\s*
         name: keyword.other.$1.ruko
       - match: \s*(?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(where)\b\s*
         name: keyword.control.validate.ruko
@@ -7794,38 +7796,7 @@ repository:
       \b\s*
 
       ([?!][:>]?=?|[:>])? # message access operator
-      ( # Message name
-        \b
-        # ignore all keywords
-        (?!
-          (?<!\b\.)(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-          (?: # keywords
-            # wordlike operators
-            [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-            |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
-
-            # declaration keywords
-            |va[rl]|dyn|mut|let|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
-            |module|schema|struct|record|object|union|macro
-            |query|quote|style|script|entity|temp|oper|realm
-
-            # control flow keywords
-            |if|else|[tw]hen|guard|with|unless
-            |for|while|loop|goto|break|skip|redo|until
-            |try|switch|[cm]atch|case|def|throw|raise|error
-            |return|yield|await|move|goto|pass|defer
-            |[gd]o|from|where|(?:im|ex)(?:port|tern)
-
-            # miscellaneous keywords
-            |debug|assert|check|decl
-            |use|echo|eval|expr|scope
-            |begin|end|prev|next
-          )
-          \b
-        )
-        \b[\p{Pc}\p{L}]\w*\b # identifier
-      )
+      (\b[\p{Pc}\p{L}]\w*\b) # message name
       (?=:(?:\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$))
     end: (?=)|$
     name: meta.message.ruko
@@ -8161,7 +8132,7 @@ repository:
       - begin: |-
           (?x)
           (?<= # literal
-              (?: [\w'"`)}\]] | \\.) >* !?
+              (?: [\w'"`)}\]] | \\.) >* [!~]? \s*
             | [^\s.]\.=?|[?!:]:=?
           )
           (\#?\()\s*
