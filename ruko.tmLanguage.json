@@ -5130,8 +5130,8 @@
     "splice-brackets": {
       "patterns": [
         {
-          "begin": "\\s*(<\\{)",
-          "end": "(\\}>)",
+          "begin": "\\s*(<{)",
+          "end": "(}>)",
           "name": "meta.splicing.ruko",
           "captures": {
             "1": {
@@ -6774,7 +6774,7 @@
         },
         {
           "begin": "(\\[)\\s*",
-          "end": "\\s*(\\])\\s*",
+          "end": "\\s*(\\])",
           "captures": {
             "1": {
               "name": "punctuation.definition.directive.ruko"
@@ -6791,7 +6791,7 @@
         },
         {
           "begin": "({)\\s*",
-          "end": "\\s*(})\\s*",
+          "end": "\\s*(})",
           "captures": {
             "1": {
               "name": "punctuation.definition.mapping.ruko"
@@ -6950,11 +6950,11 @@
               "include": "#css-property-values"
             },
             {
-              "match": "([\\p{Pc}\\p{L}]\\w*)\\b(?=[.:])",
+              "match": "\\b([\\p{Pc}\\p{L}]\\w*)\\b(?=[.:])",
               "name": "constant.other.ruko"
             },
             {
-              "match": "([\\p{Pc}\\p{L}]\\w*)\\b",
+              "match": "\\b([\\p{Pc}\\p{L}]\\w*)\\b",
               "name": "constant.language.ruko"
             },
             {
@@ -8166,164 +8166,6 @@
         }
       ]
     },
-    "style-pair": {
-      "patterns": [
-        {
-          "begin": "(?<=^|[;,{\\[(])\\s*\\b([\\p{Pd}\\w]+)\\b(:)\\s*",
-          "end": "(?=[;,}\\])])|$",
-          "name": "meta.property.css.ruko",
-          "beginCaptures": {
-            "1": {
-              "name": "support.type.property-name.ruko",
-              "patterns": [
-                {
-                  "include": "#css-property-keys"
-                }
-              ]
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.ruko"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#style-property-values"
-            },
-            {
-              "include": "#space"
-            }
-          ]
-        },
-        {
-          "applyEndPatternLast": true
-        },
-        {
-          "begin": "(?<=(?:[)}\\]\\w'\"`]|\\\\.)>*)(:)\\s*",
-          "end": "(?=[;,}\\])])|$",
-          "name": "meta.property.css.ruko",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.separator.key-value.ruko"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#style-property-values"
-            },
-            {
-              "include": "#space"
-            }
-          ]
-        }
-      ]
-    },
-    "style-properties": {
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#style-pair"
-        },
-        {
-          "include": "#embedded"
-        },
-        {
-          "include": "#clauses"
-        },
-        {
-          "include": "#declarations"
-        },
-        {
-          "include": "#keywords"
-        },
-        {
-          "include": "#style-rules"
-        },
-        {
-          "include": "#style-block"
-        },
-        {
-          "include": "#space"
-        },
-        {
-          "include": "$self"
-        }
-      ]
-    },
-    "style-rules": {
-      "patterns": [
-        {
-          "include": "#type-operators"
-        },
-        {
-          "begin": "\\s*(\\()\\s*",
-          "end": "\\s*(\\))",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.parameters.ruko"
-            }
-          },
-          "patterns": [
-            {
-              "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(as)\\b\\s*",
-              "name": "keyword.operator.expression.as.ruko"
-            },
-            {
-              "include": "#clauses"
-            },
-            {
-              "include": "#constants"
-            },
-            {
-              "include": "#declarations"
-            },
-            {
-              "include": "#expression-keywords"
-            },
-            {
-              "include": "#style-pair"
-            },
-            {
-              "include": "#call-arguments"
-            },
-            {
-              "include": "$self"
-            }
-          ]
-        },
-        {
-          "begin": "\\s*(\\[)\\s*",
-          "end": "\\s*(\\])\\s*",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.selector.ruko"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#attribute-selectors"
-            },
-            {
-              "include": "$self"
-            }
-          ]
-        },
-        {
-          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(from|to|except|only|as)\\b\\s*",
-          "name": "keyword.operator.expression.ruko"
-        },
-        {
-          "include": "#style-selectors"
-        },
-        {
-          "include": "#format-syntax"
-        },
-        {
-          "include": "#tag-names"
-        }
-      ]
-    },
     "style-selectors": {
       "define": {
         "applyEndPatternLast": true,
@@ -8769,6 +8611,139 @@
             }
           ],
           "name": "entity.name.predicate.ruko"
+        }
+      ]
+    },
+    "style-pair": {
+      "begin": "(?<=^|[;,{\\[(])\\s*\\b([\\p{Pd}\\w]+)\\b(:)\\s*",
+      "end": "(?=[;,}\\])])|$",
+      "name": "meta.property.css.ruko",
+      "beginCaptures": {
+        "1": {
+          "name": "support.type.property-name.ruko",
+          "patterns": [
+            {
+              "include": "#css-property-keys"
+            }
+          ]
+        },
+        "2": {
+          "name": "punctuation.separator.key-value.ruko"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#style-property-values"
+        },
+        {
+          "include": "#space"
+        }
+      ]
+    },
+    "style-properties": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#style-pair"
+        },
+        {
+          "include": "#embedded"
+        },
+        {
+          "include": "#clauses"
+        },
+        {
+          "include": "#declarations"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#style-rules"
+        },
+        {
+          "include": "#style-block"
+        },
+        {
+          "include": "#space"
+        },
+        {
+          "include": "$self"
+        }
+      ]
+    },
+    "style-rules": {
+      "patterns": [
+        {
+          "include": "#type-operators"
+        },
+        {
+          "begin": "\\s*(\\()\\s*",
+          "end": "\\s*(\\))",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.parameters.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(as)\\b\\s*",
+              "name": "keyword.operator.expression.as.ruko"
+            },
+            {
+              "include": "#clauses"
+            },
+            {
+              "include": "#constants"
+            },
+            {
+              "include": "#declarations"
+            },
+            {
+              "include": "#expression-keywords"
+            },
+            {
+              "include": "#style-pair"
+            },
+            {
+              "include": "#call-arguments"
+            },
+            {
+              "include": "$self"
+            }
+          ]
+        },
+        {
+          "begin": "\\s*(\\[)\\s*",
+          "end": "\\s*(\\])\\s*",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.selector.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#attribute-selectors"
+            },
+            {
+              "include": "$self"
+            }
+          ]
+        },
+        {
+          "match": "\\s*(?<!\\b\\.)(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(from|to|except|only|as)\\b\\s*",
+          "name": "keyword.operator.expression.ruko"
+        },
+        {
+          "include": "#style-selectors"
+        },
+        {
+          "include": "#format-syntax"
+        },
+        {
+          "include": "#tag-names"
         }
       ]
     },
