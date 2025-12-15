@@ -1,300 +1,146 @@
-// Ruko is a programming, script, markup and styling
-// language I'm making that compiles to HTML/CSS/JS,
-// WebAssembly, and WebGPU shaders (GLSL, WGSL).
+// function call with different argument types
+funcName(arg1: 10, &mut arg2: 2, stat arg3: {k: v} as MyType)
+v = #{a: pub|*a| a + 1}
 
-// This file implements the Mersenne Twister
-// pseudorandom number generator (MT19937),
-// translated from the original C code by
-// Makoto Matsumoto and Takuji Nishimura,
-// see http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html.
+// regex examples
+/\p{sc=Han}+/
+/\p{blk=UCAS_Ext_A}+/ 
+/\p{name~=/(SMILING|GRINNING) FACE/}/g
 
-// Its syntax is inspired by Haskell, Rust and Kotlin,
-// hence the name "HaRuKo", clipped to just "Ruko".
-// but also is named after the character
-// Haruko Haruhara from the anime "FLCL".
 
-// Syntax is kind of similar to Haskell, Rust, and Kotlin 
-// (hence forming the name "HaRuKo", clipped to "Ruko"),
-// but also has influences from modern and not-so-modern
-// languages like Elm, F#, Scala, Go, Swift, Zig, Nim, Ocaml,
-// Crystal, OCaml, Python, Ruby, ECMAScript, TypeScript,
-// Java, C#, C, C++, D, V, Lua, Julia, Ada, Pascal, Vala,
-// Delphi, Eiffel, QML, Reason, ReScript, Lisp, Clojure,
-// Smalltalk, Objective-C, Lua, Bash, PowerShell, SQL,
-// R, PHP, Perl, Haxe, Dart, Java, PHP, Solidity, Motoko,
-// and other languages.
 
-// I don't know if anyone will ever use this language, 
-// other than me, but I made it mainly as a personal project 
-// to experiment with language and compiler design, as well
-// as the first step towards making my own game engine and LSP
-// for it, along with IDE support, to make developing my game
-//' nu-Eden: Sundered Skies' using just web technologies,
-// without having to juggle multiple languages, frameworks 
-// and tools (HTML, CSS, JS/TS, WebAssembly, GLSL/WGSL, etc.)
-// around like everyone else does.
+let randomString = |repeat, seed = 3**32|: str
+  // objective c method call style
+  [/[\da-z]/i random: seed, repeat toIter:() join: ""] 
+print randomString
 
-script rs {
-  use std::{io, fs, time};
-  pub mut rand: &MTRand;
+// css codegen example
+style {
+  for i in arr: .item-<i> {
+    color: if i % 2 == 0: red else blue
+    width: (100 + i * 10)px
+    opacity: i / len arr
+  }
+  additional_style: true
 }
 
-export* class MTRand {
-  import std.{io, fs, time}.*
+for (items) as let (item, index):
+  print $"Item $index: $item.name"
 
-  pub:
-    enum N = 624
-    enum SAVE = N + 1
+// jsx with inline code
+<div>
+; for item in items:
+  <span .item-<item.id|>fn>-x=$item.id> $item.name </>
+</>
 
-  prot:
-    enum M = 397
-    prop state: u32[N]
-    prop pNext: &u32
-    prop left: i32
-    stat mut differ: u32 = 0
+// cursed c++ pointers
+struct Node {
+  let value: i32
+  let _next: *Node
 
-    proc n(oneSeed: u32) = $seed(oneSeed)
-    proc n(bigSeed: &u32, seedLength: u32 = N) = 
-      $seed(bigSeed, seedLength)
-    proc n() = $seed()
-    proc n(o: &MTRand) {
-      for i in 0..<N: $state[i] = o.state[i]
-      $left = o.left
-      $pNext = &$state[N - $left]
+  proc new(value: i32): *Node {
+    let node = malloc Node
+    node.value = value
+    node._next = null
+    return node
+  }
+}
+
+a $"x = $var1 and y = \e${var2 + 10}{""
+
+// Ruko PRNG implementation
+class RukoPRNG : PRNG {
+  const N = 624
+  const M = 397
+
+  mut state: [u32; N]
+  mut left: i32 = 0
+  mut p_next: &u32 = &state[0]
+
+  proc seed_from_urandom(): void {
+    let ur = open("/dev/urandom", :read)
+    if ur is Error {
+      let t = time.now().to_unix()
+      let c = time.clock.to_nanosecs()
+      $seed <| $hash t c
+      return
     }
 
-    proc randInt(): u32 {
-      if $left == 0: $reload()
-      $left -= 1
-
-      mut s1: u32 = *$pNext
-      $pNext += 1
-
-      s1 ^= (s1 >> 11)
-      s1 ^= (s1 << 7) & 0x9d2c5680
-      s1 ^= (s1 << 15) & 0xefc60000
-
-      s1 ^ (s1 >> 18) // implicit return
-    }
-
-    proc randInt(n: u32): u32 {
-      mut used = n
-      for i in 0..5:
-        used |= used >> (1 << i)
-
-      mut i: u32
-      loop {
-        i = $randInt() & used
-      } while i > n
-
-      i // implicit return
-    }
-
-    proc rand(): f64 =
-      ($randInt() as f64) * (1.0 / 0xffffffff.0)
-    proc rand(n: f64): f64 =
-      $rand() * n
-    proc randExc(): f64 =
-      ($randInt() as f64) * (1.0 / 0x100000000.0)
-    proc randExc(n: f64): f64 =
-      $randExc() * n
-    proc randDblExc(): f64 =
-      (($randInt() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
-    proc randDblExc(n: f64): f64 =
-      $randDblExc() * n
-
-    proc rand53(): f64 {
-      let a = $randInt() >> 5 // 27 bits
-      let b = $randInt() >> 6 // 26 bits
-      (a as f64 * 0x4000000.0 + b as f64) * (1.0 / 0x20000000000000.0)
-    }
-
-    proc genrand_int31(): u32 = $randInt() >> 1
-    proc genrand_real1(): f64 = $randDblExc()
-    proc genrand_real2(): f64 = $rand()
-    proc genrand_real3(): f64 = $randExc()
-    proc genrand_res53(): f64 = $rand53()
-
-    proc randNorm(mean: f64 = 0.0, stdDev: f64 = 1.0): f64 {
-      mut x: f64, y: f64, r: f64
-
-      loop {
-        x = 2.0 * $rand() - 1.0
-        y = 2.0 * $rand() - 1.0
-        r = x ** 2 + y ** 2
-      } while r >= 1.0 || r == 0.0
-
-      let s = sqrt(-2.0 * log(r) / r)
-      mean + x * s * stdDev
-    }
-
-    proc seed(oneSeed: u32): void {
-      $initialize(oneSeed)
-      $reload()
-    }
-
-    proc seed(bigSeed: &u32, seedLength: u32 = N): void {
-      $initialize(19650218)
-
-      mut i: i32 = 1
-      mut j: u32 = 0
-      mut k: i32 = if N > seedLength: N else seedLength
-
-      for in 0..<k {
-        $state[i] = $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1664525)
-        $state[i] += (bigSeed[j] & 0xffffffff) + j
-        $state[i] &= 0xffffffff
-
-        i += 1; j += 1
-
-        if i >= N {$state.0 = $state[N - 1]; i = 1}
-        if j >= seedLength: j = 0
-      }
-
-      for in 0..<N - 1 {
-        $state[i] = $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1566083941)
-        $state[i] -= i
-        $state[i] &= 0xffffffff
-
-        i += 1
-        if i >= N {$state.0 = $state[N - 1]; i = 1}
-      }
-
-      $state.0 = 0x80000000
-      $reload()
-    }
-
-    proc seed(): void {
-      let ur = fs.open('../dev/urandom', fmRead)
-
-      if (ur?) {
-        mut big: u32[N]
-        mut ok = true
-        for i in 0..<N {
-          let bytes = ur.get.readBytes(4)
-          if bytes.len != 4 {ok = false; break}
-          big[i] = bytes.toU32 0
-        }
-        ur.get.close()
-        if ok: $seed(&big.0, N)
-      }
-
-      let t = time.now().toUnix()
-      let c = time.clock.toNanoseconds()
-      $seed($hash(t, c))
-    }
-
-    proc initialize(oneSeed: u32): void {
-      $state.0 = oneSeed & 0xffffffff
-
-      for i in 1..<N {
-        let x = $state[i - 1] ^ ($state[i - 1] >> 30)
-        $state[i] = (1812433253 * x + i) & 0xffffffff
-      }
-    }
-
-    proc reload(): void {
-      mut p = &$state.0
-
-      for in 0..<(N - M) {
-        p.0 = $twist(p[M], p.0, p.1)
-        p += 1
-      }
-
-      for in 0..<(M - 1) {
-        p.0 = $twist(p[M - N], p.0, p.1)
-        p += 1
-      }
-
-      p.0 = $twist(p[M - N], p.0, $state.0)
-      $left = N
-      $pNext = &$state.0
-    }
-
-    proc save(saveArray: &u32): void {
-      mut sa = saveArray
-      for i in 0..<N: sa[i] = $state[i]
-      sa[N] = $left
-    }
-
-    proc load(loadArray: &u32): void {
-      mut la = loadArray
-      for i in 0..<N: $state[i] = la[i]
-      $left = la[N]
-      $pNext = &$state[N - $left]
-    }
-
-    proc hash(t: time.time, c: time.clock): u32 {
-      mut h1: u32 = 0
-      let tb = t as &u8
-      for i in 0..<sizeof(time.time) {
-        h1 *= u8.maxValue + 2
-        h1 += tb[i] as u32
-      }
-
-      mut h2: u32 = 0
-      let cb = c as &u8
-      for i in 0..<sizeof(time.clock) {
-        h2 *= u8.maxValue + 2
-        h2 += cb[i] as u32
-      }
-
-      let out = (h1 + MTRand.differ) ^ h2
-      MTRand.differ += 1
-      out
-    }
-
-    proc twist(m: u32, s0: u32, s1: u32): u32 =
-      m ^ ($mixBits(s0), s1 >> 1) ^ $magic(s1)
-
-    proc mixBits(u: u32, v: u32): u32 =
-      (u & 0x80000000) | (v & 0x7fffffff)
-
-    proc magic(u: u32): u32 =
-      if (u & 1) != 0: 0x9908b0df else 0x0
-
-    proc n(): &MTRand = *self
-
-    right oper prec 4 (
-      oStream: &io.OutputStream
-    ) <- (
-      mtRand: &MTRand
-    ): &io.OutputStream {
-      for i in 0..<N:
-        oStream.writeStr(mtRand.state[i] as str # '\t')
-      oStream.writeStr(mtRand.left as str)
-      oStream
-    }
-
-    left oper prec 4 (
-      iStream: &io.InputStream
-    ) -> (
-      mtRand: &MTRand
-    ): &io.InputStream {
+    mut big: [u32; N]
+    scope {
+      let file = ur
       for i in 0..<N {
-        let line = iStream.readLine()
-        mtRand.state[i] = line as u32
+        mut buf: [u8; 4]
+        let read_bytes = file.read <| &mut buf
+        if read_bytes != 4 {
+          let t = time.now().to_unix()
+          let c = time.clock.to_nanosecs()
+          $seed <| $hash t c
+          return
+        }
+        big[i] = *cast<*const u32> &buf[0]
       }
-
-      let line = iStream.readLine()
-      mtRand.left = line as i32
-      mtRand.pNext = &mtRand.state[N - mtRand.left]
-      iStream
     }
 
-    right oper prec 1 =(o: &MTRand): &MTRand {
-      if *self == o: return *self
-      for i in 0..<N: $state[i] = o.state[i]
-      $left = o.left
-      $pNext = &$state[N - $left]
-      return *self
-    }
+    $seed &big.0 N
+  }
+
+  proc twist(u: u32, v: u32, w: u32): u32 {
+    let x = (u & 0x80000000) | (v & 0x7fffffff)
+    let xA = x >> 1
+    if x % 2 != 0: xA ^= 0x9908b0df
+    return xA ^ w
+  }
+
+  proc ~RukoPRNG(): void {
+    // destructor
+  }
 }
 
-rand = new MTRand
-rand.seed()
+struct SpiderMan {
+  prop finger: *SpiderMan
+}
+proc main(): void {
+  mut A: *SpiderMan = new SpiderMan
+  mut B: *SpiderMan = new SpiderMan
+  A->finger = B
+  B->finger = A
+  return
+}
 
-rand -> fs.open('mtstate.txt', fmWrite).get.close()
-rand <- fs.open('mtstate.txt', fmRead).get.close()
+// infix function syntax
+let sortedPowerSet = |arr| 0 ..< 1 << len arr
+  \sort\ (|a, b| (-) ([a, b] \map\
+      |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
+    ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1))
+  \map\ (|e| arr \filter\ |, i| (e >> i) & 1)
+
+func sortedPowerSet(arr: i32[]): i32[][] {
+  mut result: i32[][] = new i32[][]
+  let n: i32 = arr.len
+
+  for let i in 0 ..< 1 << n {
+    mut subset: i32[] = new i32[]
+    for let j in 0..<n if (i >> j) & 1:
+      subset.push arr[j]
+    result.push subset
+  }
+
+  [result sort: |a: i32[], b: i32[]|: i32 {
+    for let x, y in a.iter() \zip\ b.iter() if x != y:
+      return x \cmp\ y
+    a.len \cmp\ b.len
+  }]
+
+  result
+}
+
+sortedPowerSet 1..<20 |> print
+
+for let i in sortedPowerSet [1...16]:
+  echo i
+
+let formatPowerSet = |a: i32[][]|: str =
+  a.iter(_iter: from let (subset: i32[]) in a
+    select '[' ++ [subset map: str x join: ','] ++ ']'
+  ).join ', '
