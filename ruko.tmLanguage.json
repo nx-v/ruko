@@ -810,7 +810,7 @@
         },
         {
           "comment": "Infix type operators",
-          "match": "(?x)\n(?<=^|['\"`)}\\]\\w\\s]|\\\\.)\n  (?:\n     (\\+)       # sum\n    |(\\-)       # difference\n    |(\\|)       # union\n    |(\\&)       # intersection\n    |(\\^)       # exclusion\n    |([<>][:=]) # strict super-/subtype\n    |(=[:!])    # equality/inequality\n    |(:[<>])    # variance (i.e. covariant/contravariant)\n    |(=~|!~)    # pattern match/non-pattern match\n    |(::?)      # extends/implements\n    |(\\?)|(!)   # conditionals\n    |(\\+>|<\\+)  # composition\n  )\n(?=['\"`\\w\\s]|\\#?[(\\[{])",
+          "match": "(?x)\n(?<=^|['\"`)}\\]\\w\\s]|\\\\.)\n  (?:\n     (\\+)       # sum\n    |(\\-)       # difference\n    |(\\|)       # union\n    |(\\&)       # intersection\n    |(\\^)       # exclusion\n    |([<>][:=]) # strict super-/subtype\n    |(=[:!])    # equality/inequality\n    |(:[<>])    # variance (i.e. covariant/contravariant)\n    |([=!]~)    # pattern match/non-pattern match\n    |(::?)      # extends/implements\n    |(\\?)|(!)   # conditionals\n    |(\\+>|<\\+)  # composition\n  )\n(?=['\"`\\w\\s]|\\#?[(\\[{])",
           "captures": {
             "1": {
               "name": "keyword.operator.sum.ruko"
@@ -9489,6 +9489,94 @@
         }
       ]
     },
+    "selector-calls": {
+      "applyEndPatternLast": true,
+      "begin": "(?x)\n(?<= # literal\n  (?:\n      ^ # start of line\n    | [\\w'\"`)}\\]] # literals and closing brackets\n    | \\\\. # escape sequences\n    | [?!:]:\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # identifiers\n    | [?!-]>\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # identifiers\n    | [?!]?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # argument list terminator\n  )\n  \\s*\n)\n\n\\b\\s*\n\n([?!]?[:>]?=?) # message accessor\n(\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # message name\n(?=:(?:\\s*(?:[,;'\"`)}\\]\\w\\s]|\\#?[(\\[{]|\\\\.)|$))",
+      "end": "(?=)|$",
+      "name": "meta.message.ruko",
+      "beginCaptures": {
+        "1": {
+          "patterns": [
+            {
+              "match": "(?x)\n(?:\n  (\\?[:>]?=?) | # 1: optional access/unwrap\n  (![:>]?=?) | # 2: assert/unwrap operator\n  ([:>]?=?) # 3: access operator\n)",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.optional.ruko"
+                },
+                "2": {
+                  "name": "keyword.operator.unwrap.ruko"
+                },
+                "3": {
+                  "name": "keyword.operator.accessor.ruko"
+                }
+              }
+            }
+          ]
+        },
+        "2": {
+          "patterns": [
+            {
+              "match": "(?x)\n(?: # Regular variables\n    (\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # Leading underscore\n  | ([\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # Screaming snake case\n  | ((?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n  | ([\\p{Pc}\\p{L}\\p{Nl}]\\w*) # Camel or snake case\n)",
+              "captures": {
+                "1": {
+                  "name": "entity.name.tag.directive.ruko",
+                  "patterns": [
+                    {
+                      "include": "#type-names"
+                    },
+                    {
+                      "include": "#support-functions"
+                    }
+                  ]
+                },
+                "2": {
+                  "name": "entity.name.function.tagged-template.ruko",
+                  "patterns": [
+                    {
+                      "include": "#type-names"
+                    },
+                    {
+                      "include": "#support-functions"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "entity.name.function.method.ruko",
+                  "patterns": [
+                    {
+                      "include": "#type-names"
+                    },
+                    {
+                      "include": "#support-functions"
+                    }
+                  ]
+                },
+                "4": {
+                  "name": "entity.name.function.member.ruko",
+                  "patterns": [
+                    {
+                      "include": "#type-names"
+                    },
+                    {
+                      "include": "#support-functions"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "patterns": [
+        {
+          "include": "#brackets"
+        },
+        {
+          "match": "(:)(?=\\s*(?:[,;'\"`)}\\]\\w\\s]|\\#?[(\\[{]|\\\\.)|$)",
+          "name": "punctuation.separator.key-value.ruko"
+        }
+      ]
+    },
     "call-arguments": {
       "patterns": [
         {
@@ -12584,94 +12672,6 @@
         }
       ]
     },
-    "message-passing": {
-      "applyEndPatternLast": true,
-      "begin": "(?x)\n(?<= # literal\n  (?:\n      ^ # start of line\n    | [\\w'\"`)}\\]] # literals and closing brackets\n    | \\\\. # escape sequences\n    | [?!:]:\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifiers\n    | [?!]\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifiers\n    | ; # argument list terminator\n  )\n  \\s*\n)\n\n\\b\\s*\n\n([?!][:>]?=?|[:>])? # message access operator\n(\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # message name\n(?=:(?:\\s*(?:[,;'\"`)}\\]\\w\\s]|\\#?[(\\[{]|\\\\.)|$))",
-      "end": "(?=)|$",
-      "name": "meta.message.ruko",
-      "beginCaptures": {
-        "1": {
-          "patterns": [
-            {
-              "match": "(?x)\n(?:\n  (\\?[:>]?=?) | # 1: optional access/unwrap\n  (![:>]?=?) | # 2: assert/unwrap operator\n  ([:>]?=? ) # 3: access operator\n)",
-              "captures": {
-                "1": {
-                  "name": "keyword.operator.optional.ruko"
-                },
-                "2": {
-                  "name": "keyword.operator.unwrap.ruko"
-                },
-                "3": {
-                  "name": "keyword.operator.accessor.ruko"
-                }
-              }
-            }
-          ]
-        },
-        "2": {
-          "patterns": [
-            {
-              "match": "(?x)\n(?: # Regular variables\n    (\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # Leading underscore\n  | ([\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # Screaming snake case\n  | ((?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n  | ([\\p{Pc}\\p{L}\\p{Nl}]\\w*) # Camel or snake case\n)",
-              "captures": {
-                "1": {
-                  "name": "entity.name.tag.directive.ruko",
-                  "patterns": [
-                    {
-                      "include": "#type-names"
-                    },
-                    {
-                      "include": "#support-functions"
-                    }
-                  ]
-                },
-                "2": {
-                  "name": "entity.name.function.tagged-template.ruko",
-                  "patterns": [
-                    {
-                      "include": "#type-names"
-                    },
-                    {
-                      "include": "#support-functions"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "entity.name.function.method.ruko",
-                  "patterns": [
-                    {
-                      "include": "#type-names"
-                    },
-                    {
-                      "include": "#support-functions"
-                    }
-                  ]
-                },
-                "4": {
-                  "name": "entity.name.function.member.ruko",
-                  "patterns": [
-                    {
-                      "include": "#type-names"
-                    },
-                    {
-                      "include": "#support-functions"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      },
-      "patterns": [
-        {
-          "include": "#brackets"
-        },
-        {
-          "match": "(:)(?=\\s*(?:[,;'\"`)}\\]\\w\\s]|\\#?[(\\[{]|\\\\.)|$)",
-          "name": "punctuation.separator.key-value.ruko"
-        }
-      ]
-    },
     "punctuation": {
       "patterns": [
         {
@@ -13230,7 +13230,7 @@
           },
           "patterns": [
             {
-              "include": "#message-passing"
+              "include": "#selector-calls"
             },
             {
               "include": "#punctuation"
@@ -13251,7 +13251,7 @@
           },
           "patterns": [
             {
-              "include": "#message-passing"
+              "include": "#selector-calls"
             },
             {
               "include": "#punctuation"
@@ -13293,7 +13293,7 @@
           },
           "patterns": [
             {
-              "include": "#message-passing"
+              "include": "#selector-calls"
             },
             {
               "include": "#punctuation"
@@ -13314,7 +13314,7 @@
           },
           "patterns": [
             {
-              "include": "#message-passing"
+              "include": "#selector-calls"
             },
             {
               "include": "#punctuation"

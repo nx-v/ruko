@@ -855,7 +855,7 @@ repository:
               |([<>][:=]) # strict super-/subtype
               |(=[:!])    # equality/inequality
               |(:[<>])    # variance (i.e. covariant/contravariant)
-              |(=~|!~)    # pattern match/non-pattern match
+              |([=!]~)    # pattern match/non-pattern match
               |(::?)      # extends/implements
               |(\?)|(!)   # conditionals
               |(\+>|<\+)  # composition
@@ -5546,6 +5546,74 @@ repository:
       - include: '#variables'
       - include: '#interfix-operators'
 
+  # Objective-C-style messages
+
+  selector-calls:
+    applyEndPatternLast: true
+    begin: |-
+      (?x)
+      (?<= # literal
+        (?:
+            ^ # start of line
+          | [\w'"`)}\]] # literals and closing brackets
+          | \\. # escape sequences
+          | [?!:]:\b[\p{Pc}\p{L}\p{Nl}]\w*\b:? # identifiers
+          | [?!-]>\b[\p{Pc}\p{L}\p{Nl}]\w*\b:? # identifiers
+          | [?!]?\b[\p{Pc}\p{L}\p{Nl}]\w*\b:? # argument list terminator
+        )
+        \s*
+      )
+
+      \b\s*
+
+      ([?!]?[:>]?=?) # message accessor
+      (\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # message name
+      (?=:(?:\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$))
+    end: (?=)|$
+    name: meta.message.ruko
+    beginCaptures:
+      1:
+        patterns:
+          - &message-accessor-operators
+            match: |-
+              (?x)
+              (?:
+                (\?[:>]?=?) | # 1: optional access/unwrap
+                (![:>]?=?) | # 2: assert/unwrap operator
+                ([:>]?=?) # 3: access operator
+              )
+            captures:
+              1: { name: keyword.operator.optional.ruko }
+              2: { name: keyword.operator.unwrap.ruko }
+              3: { name: keyword.operator.accessor.ruko }
+      2:
+        patterns:
+          - match: |-
+              (?x)
+              (?: # Regular variables
+                  (\p{Pc}+\w*(?!\p{Pc}+)\b) # Leading underscore
+                | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # Screaming snake case
+                | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
+                | ([\p{Pc}\p{L}\p{Nl}]\w*) # Camel or snake case
+              )
+            captures:
+              1:
+                name: entity.name.tag.directive.ruko
+                patterns: *builtin-names
+              2:
+                name: entity.name.function.tagged-template.ruko
+                patterns: *builtin-names
+              3:
+                name: entity.name.function.method.ruko
+                patterns: *builtin-names
+              4:
+                name: entity.name.function.member.ruko
+                patterns: *builtin-names
+    patterns:
+      - include: '#brackets'
+      - match: (:)(?=\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$)
+        name: punctuation.separator.key-value.ruko
+
   # Variables
 
   call-arguments:
@@ -7775,74 +7843,6 @@ repository:
       - include: '#comments'
       - include: '#line-continuation'
 
-  # Objective-C-style messages
-
-  message-passing:
-    applyEndPatternLast: true
-    begin: |-
-      (?x)
-      (?<= # literal
-        (?:
-            ^ # start of line
-          | [\w'"`)}\]] # literals and closing brackets
-          | \\. # escape sequences
-          | [?!:]:\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifiers
-          | [?!]\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifiers
-          | ; # argument list terminator
-        )
-        \s*
-      )
-
-      \b\s*
-
-      ([?!][:>]?=?|[:>])? # message access operator
-      (\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # message name
-      (?=:(?:\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$))
-    end: (?=)|$
-    name: meta.message.ruko
-    beginCaptures:
-      1:
-        patterns:
-          - &message-accessor-operators
-            match: |-
-              (?x)
-              (?:
-                (\?[:>]?=?) | # 1: optional access/unwrap
-                (![:>]?=?) | # 2: assert/unwrap operator
-                ([:>]?=? ) # 3: access operator
-              )
-            captures:
-              1: { name: keyword.operator.optional.ruko }
-              2: { name: keyword.operator.unwrap.ruko }
-              3: { name: keyword.operator.accessor.ruko }
-      2:
-        patterns:
-          - match: |-
-              (?x)
-              (?: # Regular variables
-                  (\p{Pc}+\w*(?!\p{Pc}+)\b) # Leading underscore
-                | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # Screaming snake case
-                | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-                | ([\p{Pc}\p{L}\p{Nl}]\w*) # Camel or snake case
-              )
-            captures:
-              1:
-                name: entity.name.tag.directive.ruko
-                patterns: *builtin-names
-              2:
-                name: entity.name.function.tagged-template.ruko
-                patterns: *builtin-names
-              3:
-                name: entity.name.function.method.ruko
-                patterns: *builtin-names
-              4:
-                name: entity.name.function.member.ruko
-                patterns: *builtin-names
-    patterns:
-      - include: '#brackets'
-      - match: (:)(?=\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$)
-        name: punctuation.separator.key-value.ruko
-
   # Punctuation
 
   punctuation:
@@ -8205,7 +8205,7 @@ repository:
         captures:
           1: { name: punctuation.definition.sequence.ruko }
         patterns:
-          - include: '#message-passing'
+          - include: '#selector-calls'
           - include: '#punctuation'
           - include: $self
       - begin: |-
@@ -8227,7 +8227,7 @@ repository:
         captures:
           1: { name: punctuation.definition.array.ruko }
         patterns:
-          - include: '#message-passing'
+          - include: '#selector-calls'
           - include: '#punctuation'
           - include: $self
       - begin: |-
@@ -8251,7 +8251,7 @@ repository:
         captures:
           1: { name: punctuation.definition.sequence.ruko }
         patterns:
-          - include: '#message-passing'
+          - include: '#selector-calls'
           - include: '#punctuation'
           - include: $self
       - begin: (\[)\s*
@@ -8260,7 +8260,7 @@ repository:
         captures:
           1: { name: punctuation.definition.array.ruko }
         patterns:
-          - include: '#message-passing'
+          - include: '#selector-calls'
           - include: '#punctuation'
           - include: $self
 
