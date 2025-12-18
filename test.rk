@@ -14,6 +14,10 @@ let randomString = |repeat, seed = 3**32|: str
   [/[\da-z]/i random: seed, repeat toIter: join: ""] 
 print randomString
 
+style `style {
+  a:
+}
+
 // css codegen example
 style {
   for i in arr: .item-<i> {
@@ -30,72 +34,26 @@ for (items) as let (item, index):
 // jsx with inline code
 <div>
 ; for item in items:
-  <span .item-<item.id|>fn>-x=$item.id> $item.name </>
+  <span .item-<item.id>-style=$item.id>$item.name</>
 </>
 
 // cursed c++ pointers
 struct Node {
   let value: i32
-  let _next: *Node
+  let next: *Node
 
   proc new(value: i32): *Node {
     let node = malloc Node
     node.value = value
-    node._next = null
+    node.next = null
     return node
   }
 }
 
-a $"x = $var1 and y = \e${var2 + 10}{""
-
-// Ruko PRNG implementation
-class RukoPRNG : PRNG {
-  const N = 624
-  const M = 397
-
-  mut state: [u32; N]
-  mut left: i32 = 0
-  mut p_next: &u32 = &state[0]
-
-  proc seed_from_urandom(): void {
-    let ur = open("/dev/urandom", :read)
-    if ur is Error {
-      let t = time.now().to_unix()
-      let c = time.clock.to_nanosecs()
-      $seed <| $hash t c
-      return
-    }
-
-    mut big: [u32; N]
-    scope {
-      let file = ur
-      for i in 0..<N {
-        mut buf: [u8; 4]
-        let read_bytes = file.read <| &mut buf
-        if read_bytes != 4 {
-          let t = time.now().to_unix()
-          let c = time.clock.to_nanosecs()
-          $seed <| $hash t c
-          return
-        }
-        big[i] = *cast<*const u32> &buf[0]
-      }
-    }
-
-    $seed &big.0 N
-  }
-
-  proc twist(u: u32, v: u32, w: u32): u32 {
-    let x = (u & 0x80000000) | (v & 0x7fffffff)
-    let xA = x >> 1
-    if x % 2 != 0: xA ^= 0x9908b0df
-    return xA ^ w
-  }
-
-  proc ~RukoPRNG(): void {
-    // destructor
-  }
-}
+// Stropping
+`const `let var x: `in i32 = 10
+scope `for for let x in [x alloc: init: release:]:
+  print x
 
 struct SpiderMan {
   prop finger: *SpiderMan
