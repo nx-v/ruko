@@ -14,13 +14,54 @@ let randomString = |repeat, seed = 3**32|: str
   [/[\da-z]/i random: seed, repeat toIter: join: ""] 
 print randomString
 
+// SVG path
 style `style {
-  a:
+  x: 0x64px
+  y: 0x64px
+  background: blue
+  color: #ff5733
+  path: `M\ 10\ 10\
+    H\ 90\
+    V\ 90\
+    H\ 10\
+    Z // end of string
+  customKey: addedValue
+  dynamic[key][subkey]: dynamicValue
+
+  @media (max-width: 600px)
+    background: red
+
+  @keyframes slidein
+    `from(transform: translateX 0%)
+    `to(transform: translateX 100%)
+
+  @fontFace
+    fontFamily: `MyFont
+    src: url 'myfont.woff2', format :woff2
+
+  ^hover
+    color: green
+
+  &active
+    color: yellow
+
+  /* Nested selectors */
+  .container {
+    display: flex
+    flexDirection: column
+
+    .item {
+      margin: 10px
+      padding: 5px
+    }
+  }
+
+  animation: slideIn 3s easeInOut infinite alternate
 }
 
 // css codegen example
 style {
-  for i in arr: .item-<i> {
+  for let i in arr: .item-[i] {
     color: if i % 2 == 0: red else blue
     width: (100 + i * 10)px
     opacity: i / len arr
@@ -28,13 +69,13 @@ style {
   additional_style: true
 }
 
-for (items) as let (item, index):
+for items as let item, index:
   print $"Item $index: $item.name"
 
 // jsx with inline code
 <div>
 ; for item in items:
-  <span .item-<item.id>-style=$item.id>$item.name</>
+  <span .item-[item.id]=$item.id>$item.name</>
 </>
 
 // cursed c++ pointers
@@ -55,6 +96,12 @@ struct Node {
 scope `for for let x in [x alloc: init: release:]:
   print x
 
+// weird ass jsx for loop
+<for let=i in=(0..10)>
+  ; print i
+</for>
+
+// spoderman finger pointing
 struct SpiderMan {
   prop finger: *SpiderMan
 }
@@ -73,6 +120,7 @@ let sortedPowerSet = |arr| 0 ..< 1 << len arr
     ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1))
   \map\ (|e| arr \filter\ |, i| (e >> i) & 1)
 
+// infix and smalltalk function calls
 func sortedPowerSet(arr: i32[]): i32[][] {
   mut result: i32[][] = new i32[][]
   let n: i32 = arr.len
