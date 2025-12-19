@@ -43,252 +43,252 @@ export* class MTRand {
   import std.{io, fs, time}.*
 
   pub:
-    enum N = 624
-    enum SAVE = N + 1
+  enum N = 624
+  enum SAVE = N + 1
 
   prot:
-    enum M = 397
-    prop state: u32[N]
-    prop p_next: &u32
-    prop left: i32
-    stat mut differ: u32 = 0
+  enum M = 397
+  prop state: u32[N]
+  prop p_next: &u32
+  prop left: i32
+  stat mut differ: u32 = 0
 
-    proc n(one_seed: u32) = $seed(one_seed)
-    proc n(big_seed: &u32, seed_length: u32 = N) = 
-      $seed(big_seed, seed_length)
-    proc n() = $seed()
-    proc n(o: &MTRand) {
-      for i in 0..<N: $state[i] = o.state[i]
-      $left = o.left
-      $p_next = &$state[N - $left]
+  proc n(one_seed: u32) = $seed(one_seed)
+  proc n(big_seed: &u32, seed_length: u32 = N) =
+    $seed(big_seed, seed_length)
+  proc n() = $seed()
+  proc n(o: &MTRand) {
+    for i in 0..<N: $state[i] = o.state[i]
+    $left = o.left
+    $p_next = &$state[N - $left]
+  }
+
+  proc rand_int(): u32 {
+    if $left == 0: $reload()
+    $left -= 1
+
+    mut s1: u32 = *$p_next
+    $p_next += 1
+
+    s1 ^= (s1 >> 11)
+    s1 ^= (s1 << 7) & 0x9d2c5680
+    s1 ^= (s1 << 15) & 0xefc60000
+
+    s1 ^ (s1 >> 18) // implicit return
+  }
+
+  proc rand_int(n: u32): u32 {
+    mut used = n
+    for i in 0..5:
+      used |= used >> (1 << i)
+
+    mut i: u32
+    loop i = $rand_int() & used while i > n
+
+    i // implicit return
+  }
+
+  proc rand(): f64 =
+    ($rand_int() as f64) * (1.0 / 0xffffffff.0)
+  proc rand(n: f64): f64 =
+    $rand() * n
+  proc rand_exc(): f64 =
+    ($rand_int() as f64) * (1.0 / 0x100000000.0)
+  proc rand_exc(n: f64): f64 =
+    $rand_exc() * n
+  proc rand_dbl_exc(): f64 =
+    (($rand_int() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
+  proc rand_dbl_exc(n: f64): f64 =
+    $rand_dbl_exc() * n
+
+  proc rand_53(): f64 {
+    let a = $rand_int() >> 5 // 27 bits
+    let b = $rand_int() >> 6 // 26 bits
+    (a as f64 * 0x4000000.0 + b as f64) * (1.0 / 0x20000000000000.0) // implicit return
+  }
+
+  proc genrand_int_31(): u32 = $rand_int() >> 1
+  proc genrand_real_1(): f64 = $rand_dbl_exc()
+  proc genrand_real_2(): f64 = $rand()
+  proc genrand_real_3(): f64 = $rand_exc()
+  proc genrand_res_53(): f64 = $rand_53()
+
+  proc rand_norm(mean: f64 = 0.0, std_dev: f64 = 1.0): f64 {
+    mut x: f64, y: f64, r: f64
+
+    loop {
+      x = 2.0 * $rand() - 1.0
+      y = 2.0 * $rand() - 1.0
+      r = x ** 2 + y ** 2
+    } while r >= 1.0 || r == 0.0
+
+    let s = sqrt(-2.0 * log(r) / r)
+    mean + x * s * std_dev // implicit return
+  }
+
+  proc seed(one_seed: u32): void {
+    $initialize(one_seed)
+    $reload()
+  }
+
+  proc seed(big_seed: &u32, seed_length: u32 = N): void {
+    $initialize(19650218)
+
+    mut i: i32 = 1
+    mut j: u32 = 0
+    mut k: i32 = if N > seed_length: N else seed_length
+
+    for in 0..<k {
+      $state[i] = $state[i] ^
+        (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1664525)
+      $state[i] += (big_seed[j] & 0xffffffff) + j
+      $state[i] &= 0xffffffff
+
+      i += 1; j += 1
+
+      if i >= N {$state.0 = $state[N - 1]; i = 1}
+      if j >= seed_length: j = 0
     }
 
-    proc rand_int(): u32 {
-      if $left == 0: $reload()
-      $left -= 1
+    for in 0..<N - 1 {
+      $state[i] = $state[i] ^
+        (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1566083941)
+      $state[i] -= i
+      $state[i] &= 0xffffffff
 
-      mut s1: u32 = *$p_next
-      $p_next += 1
-
-      s1 ^= (s1 >> 11)
-      s1 ^= (s1 << 7) & 0x9d2c5680
-      s1 ^= (s1 << 15) & 0xefc60000
-
-      s1 ^ (s1 >> 18) // implicit return
+      i += 1
+      if i >= N {$state.0 = $state[N - 1]; i = 1}
     }
 
-    proc rand_int(n: u32): u32 {
-      mut used = n
-      for i in 0..5:
-        used |= used >> (1 << i)
+    $state.0 = 0x80000000
+    $reload()
+  }
 
-      mut i: u32
-      loop i = $rand_int() & used while i > n
+  proc seed(): void {
+    let ur = fs.open('../dev/urandom', fmRead)
 
-      i // implicit return
-    }
-
-    proc rand(): f64 =
-      ($rand_int() as f64) * (1.0 / 0xffffffff.0)
-    proc rand(n: f64): f64 =
-      $rand() * n
-    proc rand_exc(): f64 =
-      ($rand_int() as f64) * (1.0 / 0x100000000.0)
-    proc rand_exc(n: f64): f64 =
-      $rand_exc() * n
-    proc rand_dbl_exc(): f64 =
-      (($rand_int() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
-    proc rand_dbl_exc(n: f64): f64 =
-      $rand_dbl_exc() * n
-
-    proc rand_53(): f64 {
-      let a = $rand_int() >> 5 // 27 bits
-      let b = $rand_int() >> 6 // 26 bits
-      (a as f64 * 0x4000000.0 + b as f64) * (1.0 / 0x20000000000000.0) // implicit return
-    }
-
-    proc genrand_int_31(): u32 = $rand_int() >> 1
-    proc genrand_real_1(): f64 = $rand_dbl_exc()
-    proc genrand_real_2(): f64 = $rand()
-    proc genrand_real_3(): f64 = $rand_exc()
-    proc genrand_res_53(): f64 = $rand_53()
-
-    proc rand_norm(mean: f64 = 0.0, std_dev: f64 = 1.0): f64 {
-      mut x: f64, y: f64, r: f64
-
-      loop {
-        x = 2.0 * $rand() - 1.0
-        y = 2.0 * $rand() - 1.0
-        r = x ** 2 + y ** 2
-      } while r >= 1.0 || r == 0.0
-
-      let s = sqrt(-2.0 * log(r) / r)
-      mean + x * s * std_dev // implicit return
-    }
-
-    proc seed(one_seed: u32): void {
-      $initialize(one_seed)
-      $reload()
-    }
-
-    proc seed(big_seed: &u32, seed_length: u32 = N): void {
-      $initialize(19650218)
-
-      mut i: i32 = 1
-      mut j: u32 = 0
-      mut k: i32 = if N > seed_length: N else seed_length
-
-      for in 0..<k {
-        $state[i] = $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1664525)
-        $state[i] += (big_seed[j] & 0xffffffff) + j
-        $state[i] &= 0xffffffff
-
-        i += 1; j += 1
-
-        if i >= N {$state.0 = $state[N - 1]; i = 1}
-        if j >= seed_length: j = 0
-      }
-
-      for in 0..<N - 1 {
-        $state[i] = $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1566083941)
-        $state[i] -= i
-        $state[i] &= 0xffffffff
-
-        i += 1
-        if i >= N {$state.0 = $state[N - 1]; i = 1}
-      }
-
-      $state.0 = 0x80000000
-      $reload()
-    }
-
-    proc seed(): void {
-      let ur = fs.open('../dev/urandom', fmRead)
-
-      if ?ur {
-        mut big: u32[N]
-        mut ok = true
-        for i in 0..<N {
-          let bytes = ur.get.read_bytes(4)
-          if bytes.len != 4 {ok = false; break}
-          big[i] = bytes.to_u32(0)
-        }
-        ur.get.close()
-        if ok: $seed(&big.0, N)
-      }
-
-      let t = time.now().to_unix()
-      let c = time.clock.to_nanosecs()
-      $seed($hash(t, c))
-    }
-
-    proc initialize(one_seed: u32): void {
-      $state.0 = one_seed & 0xffffffff
-
-      for i in 1..<N {
-        let x = $state[i - 1] ^ ($state[i - 1] >> 30)
-        $state[i] = (1812433253 * x + i) & 0xffffffff
-      }
-    }
-
-    proc reload(): void {
-      mut p = &$state.0
-
-      for in 0..<(N - M) {
-        p.0 = $twist(p[M], p.0, p.1)
-        p += 1
-      }
-
-      for in 0..<(M - 1) {
-        p.0 = $twist(p[M - N], p.0, p.1)
-        p += 1
-      }
-
-      p.0 = $twist(p[M - N], p.0, $state.0)
-      $left = N
-      $p_next = &$state.0
-    }
-
-    proc save(save_array: &u32): void {
-      mut sa = save_array
-      for i in 0..<N: sa[i] = $state[i]
-      sa[N] = $left
-    }
-
-    proc load(load_array: &u32): void {
-      mut la = load_array
-      for i in 0..<N: $state[i] = la[i]
-      $left = la[N]
-      $p_next = &$state[N - $left]
-    }
-
-    proc hash(t: time.time, c: time.clock): u32 {
-      mut h1: u32 = 0
-      let tb = t as &u8
-      for i in 0..<sizeof(time.time) {
-        h1 *= u8.max_value + 2
-        h1 += tb[i] as u32
-      }
-
-      mut h2: u32 = 0
-      let cb = c as &u8
-      for i in 0..<sizeof(time.clock) {
-        h2 *= u8.max_value + 2
-        h2 += cb[i] as u32
-      }
-
-      let out = (h1 + MTRand.differ) ^ h2
-      MTRand.differ += 1
-      out // implicit return
-    }
-
-    proc twist(m: u32, s0: u32, s1: u32): u32 =
-      m ^ ($mix_bits(s0), s1 >> 1) ^ $magic(s1)
-
-    proc mix_bits(u: u32, v: u32): u32 =
-      (u & 0x80000000) | (v & 0x7fffffff)
-
-    proc magic(u: u32): u32 =
-      if (u & 1) != 0: 0x9908b0df else 0x0
-
-    proc n(): &MTRand = *self
-
-    right oper prec 4 (
-      o_stream: &io.OutputStream
-    ) <- (
-      mt_rand: &MTRand
-    ): &io.OutputStream {
-      for i in 0..<N:
-        o_stream.write_str(mt_rand.state[i] as str ++ '\t')
-      o_stream.write_str(mt_rand.left as str)
-      o_stream // implicit return
-    }
-
-    left oper prec 4 (
-      i_stream: &io.InputStream
-    ) -> (
-      mt_rand: &MTRand
-    ): &io.InputStream {
+    if ?ur {
+      mut big: u32[N]
+      mut ok = true
       for i in 0..<N {
-        let line = i_stream.read_line()
-        mt_rand.state[i] = line as u32
+        let bytes = ur.get.read_bytes(4)
+        if bytes.len != 4 {ok = false; break}
+        big[i] = bytes.to_u32(0)
       }
+      ur.get.close()
+      if ok: $seed(&big.0, N)
+    }
 
+    let t = time.now().to_unix()
+    let c = time.clock.to_nanosecs()
+    $seed($hash(t, c))
+  }
+
+  proc initialize(one_seed: u32): void {
+    $state.0 = one_seed & 0xffffffff
+
+    for i in 1..<N {
+      let x = $state[i - 1] ^ ($state[i - 1] >> 30)
+      $state[i] = (1812433253 * x + i) & 0xffffffff
+    }
+  }
+
+  proc reload(): void {
+    mut p = &$state.0
+
+    for in 0..<(N - M) {
+      p.0 = $twist(p[M], p.0, p.1)
+      p += 1
+    }
+
+    for in 0..<(M - 1) {
+      p.0 = $twist(p[M - N], p.0, p.1)
+      p += 1
+    }
+
+    p.0 = $twist(p[M - N], p.0, $state.0)
+    $left = N
+    $p_next = &$state.0
+  }
+
+  proc save(save_array: &u32): void {
+    mut sa = save_array
+    for i in 0..<N: sa[i] = $state[i]
+    sa[N] = $left
+  }
+
+  proc load(load_array: &u32): void {
+    mut la = load_array
+    for i in 0..<N: $state[i] = la[i]
+    $left = la[N]
+    $p_next = &$state[N - $left]
+  }
+
+  proc hash(t: time.time, c: time.clock): u32 {
+    mut h1: u32 = 0
+    let tb = t as &u8
+    for i in 0..<sizeof(time.time) {
+      h1 *= u8.max_value + 2
+      h1 += tb[i] as u32
+    }
+
+    mut h2: u32 = 0
+    let cb = c as &u8
+    for i in 0..<sizeof(time.clock) {
+      h2 *= u8.max_value + 2
+      h2 += cb[i] as u32
+    }
+
+    let out = (h1 + MTRand.differ) ^ h2
+    MTRand.differ += 1
+    out // implicit return
+  }
+
+  proc twist(m: u32, s0: u32, s1: u32): u32 =
+    m ^ ($mix_bits(s0), s1 >> 1) ^ $magic(s1)
+
+  proc mix_bits(u: u32, v: u32): u32 =
+    (u & 0x80000000) | (v & 0x7fffffff)
+
+  proc magic(u: u32): u32 =
+    if (u & 1) != 0: 0x9908b0df else 0x0
+
+  proc n(): &MTRand = *self
+
+  right oper prec 4 (
+    o_stream: &io.OutputStream
+  ) <- (
+    mt_rand: &MTRand
+  ): &io.OutputStream {
+    for i in 0..<N:
+      o_stream.write_str(mt_rand.state[i] as str ++ '\t')
+    o_stream.write_str(mt_rand.left as str)
+    o_stream // implicit return
+  }
+
+  left oper prec 4 (
+    i_stream: &io.InputStream
+  ) -> (
+    mt_rand: &MTRand
+  ): &io.InputStream {
+    for i in 0..<N {
       let line = i_stream.read_line()
-      mt_rand.left = line as i32
-      mt_rand.p_next = &mt_rand.state[N - mt_rand.left]
-      i_stream // implicit return
+      mt_rand.state[i] = line as u32
     }
 
-    right oper prec 1 =(o: &MTRand): &MTRand {
-      if *self == o: return *self
-      for i in 0..<N: $state[i] = o.state[i]
-      $left = o.left
-      $p_next = &$state[N - $left]
-      *self // implicit return
-    }
+    let line = i_stream.read_line()
+    mt_rand.left = line as i32
+    mt_rand.p_next = &mt_rand.state[N - mt_rand.left]
+    i_stream // implicit return
+  }
+
+  right oper prec 1 =(o: &MTRand): &MTRand {
+    if *self == o: return *self
+    for i in 0..<N: $state[i] = o.state[i]
+    $left = o.left
+    $p_next = &$state[N - $left]
+    *self // implicit return
+  }
 }
 
 rand = new MTRand

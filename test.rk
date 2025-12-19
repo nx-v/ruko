@@ -1,6 +1,4 @@
-// function call with different argument types
-funcName(arg1: 10, &mut arg2: 2, stat arg3: {k: v} as MyType)
-v = #{a: pub|*a| a + 1}
+
 
 // regex examples
 /\p{sc=Han}+/
@@ -10,11 +8,57 @@ v = #{a: pub|*a| a + 1}
 /\p{Script=Hiragana}+/m
 /\p{Emoji_Presentation}+/gi
 
-let randomString = |repeat, seed = 3**32|: str
+// generating a random string
+let randomString |repeat, seed = 3**32|: str =
   [/[\da-z]/i random: seed, repeat toIter: join: ""] 
 print randomString
 
-// SVG path
+// infix function syntax
+let sortedPowerSet = |arr| 0 ..< 1 << len arr
+  \sort\ (|a, b| (-) ([a, b] \map\
+      |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
+    ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1))
+  \map\ (|e| arr \filter\ |, i| (e >> i) & 1)
+
+// infix and smalltalk function calls
+func sortedPowerSet(arr: i32[]): i32[][] {
+  mut result: i32[][] = new i32[][]
+  let n: i32 = arr.len
+
+  for let i in 0 ..< 1 << n {
+    mut subset: i32[] = new i32[]
+    for let j in 0..<n if (i >> j) & 1:
+      subset.push arr[j]
+    result.push subset
+  }
+
+  [result sort: |a: i32[], b: i32[]|: i32 {
+    for let x, y in a.iter() \zip\ b.iter() if x != y:
+      return x \cmp\ y
+    a.len \cmp\ b.len
+  }]
+
+  result
+}
+
+// Using the function
+sortedPowerSet 1..<20 |> echo
+for let i in sortedPowerSet [1...16]:
+  echo i
+
+// LINQ-style queries
+let formatPowerSet = |a: i32[][]|: str =
+  a.iter(_iter: from let (subset: i32[]) in a
+    select '[' ++ [subset map: str x join: ','] ++ ']'
+  ).join ', '
+
+print <| formatPowerSet sortedPowerSet [1..<10]
+
+// function call with different argument types
+funcName(arg1: 10, &mut arg2: 2, stat arg3: {k: v} as MyType)
+v = #{a: pub|*a| a + 1}
+
+// Style DSL example
 style `style {
   x: 0x64px
   y: 0x64px
@@ -91,62 +135,14 @@ struct Node {
   }
 }
 
-// Stropping
+// stropping
 `const `let var x: `in i32 = 10
 scope `for for let x in [x alloc: init: release:]:
   print x
 
-// weird ass jsx for loop
-<for let=i in=(0..10)>
-  ; print i
-</for>
-
-// spoderman finger pointing
-struct SpiderMan {
-  prop finger: *SpiderMan
-}
-proc main(): void {
-  mut A: *SpiderMan = new SpiderMan
-  mut B: *SpiderMan = new SpiderMan
-  A->finger = B
-  B->finger = A
-  return
-}
-
-// infix function syntax
-let sortedPowerSet = |arr| 0 ..< 1 << len arr
-  \sort\ (|a, b| (-) ([a, b] \map\
-      |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
-    ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1))
-  \map\ (|e| arr \filter\ |, i| (e >> i) & 1)
-
-// infix and smalltalk function calls
-func sortedPowerSet(arr: i32[]): i32[][] {
-  mut result: i32[][] = new i32[][]
-  let n: i32 = arr.len
-
-  for let i in 0 ..< 1 << n {
-    mut subset: i32[] = new i32[]
-    for let j in 0..<n if (i >> j) & 1:
-      subset.push arr[j]
-    result.push subset
-  }
-
-  [result sort: |a: i32[], b: i32[]|: i32 {
-    for let x, y in a.iter() \zip\ b.iter() if x != y:
-      return x \cmp\ y
-    a.len \cmp\ b.len
-  }]
-
-  result
-}
-
-sortedPowerSet 1..<20 |> print
-
-for let i in sortedPowerSet [1...16]:
-  echo i
-
-let formatPowerSet = |a: i32[][]|: str =
-  a.iter(_iter: from let (subset: i32[]) in a
-    select '[' ++ [subset map: str x join: ','] ++ ']'
-  ).join ', '
+// JSX control structures
+<for let=$i in=(0...10)>
+  <if (x % 2 == 0)>
+    ; print i
+  </>
+</>
