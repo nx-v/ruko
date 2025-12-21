@@ -3,7 +3,7 @@ scopeName: source.spwn # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
 patterns: [include: "#core"]
 
-# Last updated: December 9, 2025
+# Last updated: December 21, 2025
 #
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
@@ -466,7 +466,7 @@ repository:
             (\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
           | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
           | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-          | ([\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
+          | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
         )
         |
         (?<!
@@ -1997,12 +1997,12 @@ repository:
       - applyEndPatternLast: true
         comment: More [] () {} can be chained for nested named escapes.
         name: keyword.function.ruko
-        begin: \\j(?::([\p{Pc}\p{L}\p{Nl}]\w*\b([:.][\p{Pc}\p{L}\p{Nl}]\w*)*))?\b(?=[(\[{])
+        begin: \\j(?::(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*))?\b(?=[(\[{])
         beginCaptures:
           1: { patterns: [include: "#function-namespace"] }
         end: (?=)|$
         patterns: [include: "#named-escape-brackets"]
-      - match: (\\j:)([\p{Pc}\p{L}\p{Nl}]\w*\b([:.][\p{Pc}\p{L}\p{Nl}]\w*)*)\b([;,]|(?=\W))
+      - match: (\\j:)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b([,;]|(?=\W))
         name: constant.character.escape.ruko
         captures:
           1: { name: punctuation.terminator.entity.ruko }
@@ -2032,16 +2032,16 @@ repository:
     patterns:
       - applyEndPatternLast: true
         name: constant.other.function.ruko
-        begin: \b([\p{Pc}\p{L}\p{Nl}]\w*\b([:.][\p{Pc}\p{L}\p{Nl}]\w*)*)\b(?=[(\[{])
+        begin: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b(?=[(\[{])
         beginCaptures:
           1: { patterns: [include: "#function-namespace"] }
         end: (?=)|$
         patterns: [include: "#named-escape-brackets"]
-      - match: \b([\p{Pc}\p{L}\p{Nl}]\w*\b([:.][\p{Pc}\p{L}\p{Nl}]\w*)*)\b
+      - match: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b
         name: constant.character.escape.ruko
         captures:
           1: { patterns: [include: "#character-namespace"] }
-      - match: \b[:.](?=[\p{Pc}\p{L}\p{Nl}]\w*|[({\[]|$)
+      - match: \b[:.](?=`?\b[\p{Pc}\p{L}\p{Nl}]\w*|[({\[]|$)
         name: punctuation.separator.namespace.ruko
       - include: "#literals"
       - include: "#escapes-embedded"
@@ -2393,7 +2393,7 @@ repository:
           | \#? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            [\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
         ) \s*
       ) \s*
       (?=/['"`\w\\(\[{]|/$)
@@ -3048,7 +3048,7 @@ repository:
           | \#? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            [\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
         ) \s*
       ) \s*
       (?=<[\p{Pc}\p{L}\p{Nl}($])
@@ -3094,7 +3094,7 @@ repository:
               `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
               (?:[?!:]:|[?!]?\.|[?!-]>) # qualified name separator
             )*
-            [\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
             \b
           )?
           (?=[,;'"`()\[\]{}/>\s])
@@ -3220,29 +3220,29 @@ repository:
       1: &attribute-name
         name: entity.other.attribute-name.ruko
         patterns:
-          - match: \s*(?<=\@)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\@)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: keyword.control.at-rule.ruko
-          - match: \s*(?<=\#)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\#)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.id.ruko
-          - match: \s*(?<=\.)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\.)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.class.ruko
-          - match: \s*(?<=::)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=::)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.pseudo-component.ruko
-          - match: \s*(?<=\~)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\~)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.key.ruko
-          - match: \s*(?<=\&)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\&)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.type.anchor.ruko
-          - match: \s*(?<=\*)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.type.alias.ruko
-          - match: \s*(?<=\%)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\%)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.function.ruko
-          - match: \s*(?<=\|)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\|)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.method.ruko
-          - match: \s*(?<=\:)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\:)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.procedure.ruko
-          - match: \s*(?<=\^)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\^)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.property.ruko
-          - match: \s*(?<=\?)[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
+          - match: \s*(?<=\?)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*
             name: entity.other.attribute-name.ruko entity.name.predicate.ruko
           - include: "#css-property-keys"
 
@@ -3809,7 +3809,7 @@ repository:
       1: { name: punctuation.definition.tag.ruko }
     patterns:
       - comment: Tag name
-        match: (?<=<)\b([\p{Pc}\p{L}\p{Nl}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)[\p{Pc}\p{L}\p{Nl}]\w*)*)\b
+        match: (?<=<)\b(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b
         captures:
           1:
             name: entity.name.tag.ruko
@@ -3922,7 +3922,7 @@ repository:
       - include: source.css.scss#constant_optional
 
   property-name:
-    match: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?:(?:(?:[?!:]:|[?!]?\.|[?!-]>)?[\p{Pc}\p{L}\p{Nl}]\w*)*)\b)
+    match: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?:(?:(?:[?!:]:|[?!]?\.|[?!-]>)?`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b)
     name: meta.property-name.ruko
     captures:
       1:
@@ -3978,7 +3978,7 @@ repository:
               4: { name: constant.other.color.alpha-value.hex.css }
 
   tag-names:
-    match: \s*\b([\p{Pc}\p{L}\p{Nl}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)?[\p{Pc}\p{L}\p{Nl}]\w*)*)\b\s*
+    match: \s*\b(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?:(?:[?!:]:|[?!]?\.|[?!-]>)?`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b\s*
     name: entity.name.tag.ruko
     captures:
       1:
@@ -4593,7 +4593,7 @@ repository:
        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
         (?:
           (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-          [\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+          `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
         )*
       )
       \b
@@ -4604,7 +4604,7 @@ repository:
           | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~] \#? [({] # macro and destructor calls
           | (?:\w*|[\\$\#%]*)['"] | `\s*(?=\N) # strings
-          | :[\p{Pc}\p{L}\p{Nl}]\w* # symbols
+          | :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
         )
       )
     captures:
@@ -4699,7 +4699,7 @@ repository:
             `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
             (?:
               (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-              [\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
             )*
           )
           \b
@@ -4798,7 +4798,7 @@ repository:
             `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
             (?:
               (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-              [\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
             )*
           )
           \b
@@ -4855,7 +4855,7 @@ repository:
             | \s* (?:\w*|[`$\#%]*)['"] # quoted string literals
             | \s* `\N # unquoted string literals
             | \s* \b\d # numbers
-            | \s+ :[\p{Pc}\p{L}\p{Nl}]\w* # symbols
+            | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
             | \s+ \#? [(\[] # opening brackets
             | \s+ /['"`\w\\(\[{] # regexp literal
             | \s+ <[\p{Pc}\p{L}\p{Nl}(\[{$] # XML tag component name or splice expression
@@ -4863,7 +4863,7 @@ repository:
                   [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
                   (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
             | \s+ \|(?: \#?[(\[{] )? # opening bracket
-                (?: [;,] \s* )* # optional separators
+                (?: [,;] \s* )* # optional separators
                 (?:
                   ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
                   (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
@@ -4903,7 +4903,7 @@ repository:
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
                 (?:
                   (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                  [\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
                 )*
               )
               \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
@@ -4953,7 +4953,7 @@ repository:
               `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
               (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
             )*
-            [\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
           )
           \b
         captures:
@@ -4975,7 +4975,7 @@ repository:
               (\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
             | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
             | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-            | ([\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
+            | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
           )
         \b
         (?= 
@@ -5044,7 +5044,7 @@ repository:
                   (\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
                 | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
                 | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-                | ([\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
+                | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
               )
             \b
             (?=
@@ -5158,7 +5158,7 @@ repository:
               ^ # start of line
               | (?:^ | [^|]) \| # open pipe
               | \#?[({\[] # open bracket
-              | [;,] # separator
+              | [,;] # separator
               | [(|]\. \s # uncurried function
               | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
                 \b (?: # declaration keywords
@@ -5191,7 +5191,7 @@ repository:
             $ | \s* (?: # end of line
               | [)}\]] # close bracket or pipe
               | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.) # pipe
-              | [;,] # separator
+              | [,;] # separator
               | (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b # as keyword (aliasing)
               | \s (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
             )
@@ -5227,7 +5227,7 @@ repository:
           ^ # start of line
           | (?:^ | [^|]) \| # open pipe
           | \#?[({\[] # open bracket
-          | [;,] # separator
+          | [,;] # separator
           | [(|]\. \s # uncurried function
           | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
             \b (?: # declaration keywords
@@ -5310,7 +5310,7 @@ repository:
                 (\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
               | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
               | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-              | ([\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
+              | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
             )
             |
             (?<!
@@ -5732,7 +5732,7 @@ repository:
       - name: storage.modifier.ruko
         match: |-
           (?x)
-          \s*\b
+          \s*
           (
             # ignore all keywords
             (?!
@@ -5791,7 +5791,7 @@ repository:
                 |begin|end
               ) \b
             )
-            [\p{Pc}\p{L}\p{Nl}]\w*
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w*
           )
         captures:
           1: { patterns: [include: "#modifiers"] }
@@ -6425,7 +6425,7 @@ repository:
           - match: *entity-name
             name: entity.name.style.ruko
       - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(oper)\b\s*
-        end: (:?=(?:\s+|$)(?!\#?[(\[{]))|(?=\#?{|[;,]|$)
+        end: (:?=(?:\s+|$)(?!\#?[(\[{]))|(?=\#?{|[,;]|$)
         beginCaptures:
           1: { name: storage.type.operator.ruko }
         endCaptures:
@@ -6771,7 +6771,7 @@ repository:
               (?:
               \s*
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                [\p{Pc}\p{L}\p{Nl}]\w*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
             )*
@@ -6805,7 +6805,7 @@ repository:
               (?:
               \s*
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                [\p{Pc}\p{L}\p{Nl}]\w*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
             )*
@@ -6814,7 +6814,7 @@ repository:
           \s*
           (\|) (?=
             (?: \#?[(\[{] )? # opening bracket
-            (?: [;,] \s* )* # optional separators
+            (?: [,;] \s* )* # optional separators
             (?:
               ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
               (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
@@ -6844,7 +6844,7 @@ repository:
               (?:
               \s*
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                [\p{Pc}\p{L}\p{Nl}]\w*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
             )*
@@ -6879,7 +6879,7 @@ repository:
               (?:
               \s*
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                [\p{Pc}\p{L}\p{Nl}]\w*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
             )*
@@ -6888,7 +6888,7 @@ repository:
           \s*
           (\|) (?=
             (?: \#?[(\[{] )? # opening bracket
-            (?: [;,] \s* )* # optional separators
+            (?: [,;] \s* )* # optional separators
             (?:
               ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
               (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
@@ -6919,12 +6919,12 @@ repository:
           | \#? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            [\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
         ) \s*
       ) \s*
       (\|) (?=
         (?: \#?[(\[{] )? # opening bracket
-        (?: [;,] \s* )* # optional separators
+        (?: [,;] \s* )* # optional separators
         (?:
           ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
           (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
@@ -7239,7 +7239,7 @@ repository:
       - include: "#object-argument"
       - include: "#object-labels"
       - include: "#object-key"
-      - match: "[;,]"
+      - match: "[,;]"
         name: punctuation.separator.mapping.ruko
       - include: "#binding-pattern"
       - include: "#illegal"
@@ -7252,7 +7252,7 @@ repository:
       1: { name: punctuation.definition.binding-pattern.tuple.ruko }
     patterns:
       - include: "#object-labels"
-      - match: "[;,]"
+      - match: "[,;]"
         name: punctuation.separator.arguments.ruko
       - include: "#binding-pattern"
       - include: "#illegal"
@@ -7265,7 +7265,7 @@ repository:
       1: { name: punctuation.definition.binding-pattern.array.ruko }
     patterns:
       - include: "#object-labels"
-      - match: "[;,]"
+      - match: "[,;]"
         name: punctuation.separator.sequence.ruko
       - include: "#binding-pattern"
       - include: "#illegal"
@@ -7314,7 +7314,7 @@ repository:
               (?:
               \s*
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                [\p{Pc}\p{L}\p{Nl}]\w*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
             )*
@@ -7348,7 +7348,7 @@ repository:
               (?:
               \s*
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                [\p{Pc}\p{L}\p{Nl}]\w*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
             )*
@@ -7357,7 +7357,7 @@ repository:
           \s*
           (\|) (?=
             (?: \#?[(\[{] )? # opening bracket
-            (?: [;,] \s* )* # optional separators
+            (?: [,;] \s* )* # optional separators
             (?:
               ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
               (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
