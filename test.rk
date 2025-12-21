@@ -13,10 +13,10 @@ print randomString
 
 // infix function syntax
 let sortedPowerSet = |arr| 0 ..< 1 << len arr
-  \sort\ (|a, b| (-) ([a, b] \map\
+  \sort\ |a, b| (-) ([a, b] \map\
       |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
-    ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1))
-  \map\ (|e| arr \filter\ |, i| (e >> i) & 1)
+    ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1)
+  \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // infix and smalltalk function calls
 func sortedPowerSet(arr: i32[]): i32[][] {
@@ -32,11 +32,65 @@ func sortedPowerSet(arr: i32[]): i32[][] {
 
   [result sort: |a: i32[], b: i32[]|: i32 {
     for let x, y in a.iter() \zip\ b.iter() if x != y:
-      return x \cmp\ y
-    a.len \cmp\ b.len
+      return x <=> y
+    a.len <=> b.len
   }]
 
   result
+}
+
+// Shader Language example
+shader MazeGenerator {
+  shader<group 0, binding 0> var<uniform> uniforms: Uniforms
+  shader<group 0, binding 1> var<storage, read_write> walls
+  struct Uniforms {
+    prop maze_size: u32
+    prop num_walls: u32
+  }
+  struct WallsArray {
+    prop values: u32[]
+  }
+  shader<group 0, binding 2> var<storage, read_write> walls_array: WallsArray
+
+  func get_cell_index(cell_coords: Vec2<i32>): i32 {
+    let size: i32 = i32 uniforms.maze_size
+    return cell_coords.y * size + cell_coords.x
+  }
+
+  func coin_flip(p: Vec2<f32>): f32 {
+    mut p3: Vec3<f32> = fract (Vec3 p.xyx * 0.1031)
+    p3 = p3 + dot p3 (p3.yzx + 33.33)
+    return step 0.5 (fract (p3.x + p3.y) * p3.z)
+  }
+
+  // Carve walls for a given cell at random
+  proc random_carve_cell_walls(cell_coords: Vec2<i32>) {
+    let cell_index: i32 = get_cell_index(cell_coords)
+
+    let size: i32 = i32 uniforms.maze_size
+    let num_walls: i32 = i32 uniforms.num_walls
+
+    const t_wall_type: i32 = 0 // top
+    const r_wall_type: i32 = 1 // right
+    const b_wall_type: i32 = 0 // bottom
+    const l_wall_type: i32 = 1 // left
+
+    // is_on_edge -> Vec2(is_most_left_edge, is_most_bottom_edge)
+    mut is_on_edge: Vec2<bool> = cell_coords == Vec2 0
+
+    // main body: bottom and left edges
+    let bottom_not_left: f32 = coin_flip (Vec2<f32> cell_coords)
+    let b_wall_index: i32 = cell_index * 2 + b_wall_type
+    let l_wall_index: i32 = cell_index * 2 + l_wall_type
+    let carve_bottom: f32 = mix bottom_not_left 1.0 (f32 is_on_edge.x)
+    let carve_left: f32 = mix (1.0 - bottom_not_left) 1.0 (f32 is_on_edge.y)
+    walls_array.values[b_wall_index] = u32 bottom_not_left
+    walls_array.values[l_wall_index] = u32 (1.0 - bottom_not_left)
+  }
+
+  comp proc<threadGroup 8 8> main(id: Vec3<u32>) {
+    random_carve_cell_walls (Vec2<i32> id.xy)
+  }
 }
 
 // Using the function
