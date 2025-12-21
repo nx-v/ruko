@@ -432,17 +432,17 @@ repository:
         (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (?: # keywords
           # wordlike operators
-          [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-          |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+          |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
           # declaration keywords
           |va[rl]|dyn|mut|let|const
           |func|pro[pc]|type|class|actor|trait|enum|in?ter
           |module|schema|struct|record|object|union|macro
-          |query|quote|style|script|entity|temp|oper|realm
+          |query|quote|style|script|compo|temp|oper|realm
 
           # control flow keywords
-          |if|else|[tw]hen|guard|with|unless
+          |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
           |for|while|loop|goto|break|skip|redo|until
           |try|switch|[cm]atch|case|def|throw|raise|error
           |return|yield|await|move|goto|pass|defer
@@ -565,8 +565,8 @@ repository:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
               (?: # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -589,8 +589,8 @@ repository:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
               (?: # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -788,8 +788,16 @@ repository:
         name: storage.type.implements.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(infer|as)\b\s*
         name: keyword.operator.expression.$1.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:i|ha)s(?:\s+not))\b\s*
-        name: keyword.operator.expression.is.ruko
+      - &in-of-expression
+        match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(?:(not)\s+)?([io]n|of)\b\s*
+        captures:
+          1: { name: keyword.operator.expression.logical.ruko }
+          2: { name: keyword.operator.expression.$2.ruko }
+      - &is-has-expression
+        match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(is|has)(?:\s+(not))?\b\s*
+        captures:
+          1: { name: keyword.operator.expression.$1.ruko }
+          2: { name: keyword.operator.expression.logical.ruko }
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((inst|value|pair|type|name|size|key)of)\b\s*
         name: keyword.operator.expression.$1.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(instof)\b\s*
@@ -1230,14 +1238,14 @@ repository:
           (?<!\b[\\.])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
           (?: # keywords
             # wordlike operators
-            [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-            |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+            |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
             # declaration keywords
             |va[rl]|dyn|mut|let|const
             |func|pro[pc]|type|class|actor|trait|enum|in?ter
             |module|schema|struct|record|object|union|macro
-            |query|quote|style|script|entity|temp|oper|realm
+            |query|quote|style|script|compo|temp|oper|realm
 
             # control flow keywords
             |if|else|els?if|[tw]hen|guard|with|unless
@@ -2161,17 +2169,17 @@ repository:
             (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
             (?: # keywords
               # wordlike operators
-              [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-              |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+              |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
               # declaration keywords
               |va[rl]|dyn|mut|let|const
               |func|pro[pc]|type|class|actor|trait|enum|in?ter
               |module|schema|struct|record|object|union|macro
-              |query|quote|style|script|entity|temp|oper|realm
+              |query|quote|style|script|compo|temp|oper|realm
 
               # control flow keywords
-              |if|else|[tw]hen|guard|with|unless
+              |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
               |for|while|loop|goto|break|skip|redo|until
               |try|switch|[cm]atch|case|def|throw|raise|error
               |return|yield|await|move|goto|pass|defer
@@ -2245,17 +2253,17 @@ repository:
                   (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                   (?: # keywords
                     # wordlike operators
-                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                    [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                    |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                     # declaration keywords
                     |va[rl]|dyn|mut|let|const
                     |func|pro[pc]|type|class|actor|trait|enum|in?ter
                     |module|schema|struct|record|object|union|macro
-                    |query|quote|style|script|entity|temp|oper|realm
+                    |query|quote|style|script|compo|temp|oper|realm
 
                     # control flow keywords
-                    |if|else|[tw]hen|guard|with|unless
+                    |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                     |for|while|loop|goto|break|skip|redo|until
                     |try|switch|[cm]atch|case|def|throw|raise|error
                     |return|yield|await|move|goto|pass|defer
@@ -2923,8 +2931,7 @@ repository:
         name: constant.other.character-set.posix.ruko
         captures:
           1: { name: punctuation.definition.character-class.posix.ruko }
-        patterns:
-          - include: "#attribute-selectors"
+        patterns: [include: "#attribute-selectors"]
       - begin: (\[\^)
         end: \s*(\])
         name: constant.other.character-set.negated.ruko
@@ -2973,25 +2980,26 @@ repository:
           3: { name: keyword.operator.match.ruko }
           4: { name: keyword.operator.relation.ruko }
           5: { name: keyword.operator.pattern.ruko }
-        name: string.unquoted.attribute-name.ruko
+        name: string.unquoted.attribute-value.ruko
         patterns:
           - include: "#comments"
           - include: "#strings"
           - comment: Regular expression patterns
             begin: (/)(?![/*])
             end: (/)(\p{L}*)
-            name: string.regexp.attribute-value.ruko
+            name: string.unquoted.attribute-value.ruko
             captures:
               1: { name: punctuation.definition.regexp.begin.ruko }
               2: { name: punctuation.definition.regexp.end.ruko }
               3: { name: keyword.other.flag.ruko }
+            patterns: [include: "#regexp-patterns"]
           - include: "#constants"
           - include: "#numbers"
           - include: "#unicode-property-values"
           - include: "#css-property-values"
           - &attribute-identifier
             match: \b[\p{Pd}\w]+\b
-            name: constant.other.attribute-value.identifier.ruko
+            name: constant.other.attribute-value.ruko
       - match: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*)\b
         name: entity.other.attribute-name.key.ruko
       - match: '&&|\|\||\^\^|!'
@@ -3717,27 +3725,27 @@ repository:
       2:
         patterns:
           - applyEndPatternLast: true
-            begin: (?<=\######\s*)
+            begin: (?<=\#{6}\s*)
             end: (?=|$)
             name: heading.6.markdown entity.name.section.markdown
             patterns: [include: "#markdown"]
           - applyEndPatternLast: true
-            begin: (?<=\#####\s*)
+            begin: (?<=\#{5}\s*)
             end: (?=|$)
             name: heading.5.markdown entity.name.section.markdown
             patterns: [include: "#markdown"]
           - applyEndPatternLast: true
-            begin: (?<=\####\s*)
+            begin: (?<=\#{4}\s*)
             end: (?=|$)
             name: heading.4.markdown entity.name.section.markdown
             patterns: [include: "#markdown"]
           - applyEndPatternLast: true
-            begin: (?<=\###\s*)
+            begin: (?<=\#{3}\s*)
             end: (?=|$)
             name: heading.3.markdown entity.name.section.markdown
             patterns: [include: "#markdown"]
           - applyEndPatternLast: true
-            begin: (?<=\##\s*)
+            begin: (?<=\#{2}\s*)
             end: (?=|$)
             name: heading.2.markdown entity.name.section.markdown
             patterns: [include: "#markdown"]
@@ -3876,17 +3884,17 @@ repository:
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                 (?: # keywords
                   # wordlike operators
-                  [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                  |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                  |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                   # declaration keywords
                   |va[rl]|dyn|mut|let|const
                   |func|pro[pc]|type|class|actor|trait|enum|in?ter
                   |module|schema|struct|record|object|union|macro
-                  |query|quote|style|script|entity|temp|oper|realm
+                  |query|quote|style|script|compo|temp|oper|realm
 
                   # control flow keywords
-                  |if|else|[tw]hen|guard|with|unless
+                  |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                   |for|while|loop|goto|break|skip|redo|until
                   |try|switch|[cm]atch|case|def|throw|raise|error
                   |return|yield|await|move|goto|pass|defer
@@ -4600,9 +4608,9 @@ repository:
       (?=
         \s*
         (?:
-            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
           | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~] \#? [({] # macro and destructor calls
+          | [!~] \#?[({] # macro and destructor calls
           | (?:\w*|[\\$\#%]*)['"] | `\s*(?=\N) # strings
           | :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
         )
@@ -4642,17 +4650,17 @@ repository:
                 \b
                   (?: # keywords
                     # wordlike operators
-                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                    [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                    |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                     # declaration keywords
                     |va[rl]|dyn|mut|let|const
                     |func|pro[pc]|type|class|actor|trait|enum|in?ter
                     |module|schema|struct|record|object|union|macro
-                    |query|quote|style|script|entity|temp|oper|realm
+                    |query|quote|style|script|compo|temp|oper|realm
 
                     # control flow keywords
-                    |if|else|[tw]hen|guard|with|unless
+                    |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                     |for|while|loop|goto|break|skip|redo|until
                     |try|switch|[cm]atch|case|def|throw|raise|error
                     |return|yield|await|move|goto|pass|defer
@@ -4674,17 +4682,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -4741,17 +4749,17 @@ repository:
                 \b
                   (?: # keywords
                     # wordlike operators
-                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                    [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                    |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                     # declaration keywords
                     |va[rl]|dyn|mut|let|const
                     |func|pro[pc]|type|class|actor|trait|enum|in?ter
                     |module|schema|struct|record|object|union|macro
-                    |query|quote|style|script|entity|temp|oper|realm
+                    |query|quote|style|script|compo|temp|oper|realm
 
                     # control flow keywords
-                    |if|else|[tw]hen|guard|with|unless
+                    |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                     |for|while|loop|goto|break|skip|redo|until
                     |try|switch|[cm]atch|case|def|throw|raise|error
                     |return|yield|await|move|goto|pass|defer
@@ -4773,17 +4781,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -4802,6 +4810,9 @@ repository:
             )*
           )
           \b
+          (?!
+            : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
+          )
           (?! # infix operator
             \s+
               (?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
@@ -4823,17 +4834,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -4849,64 +4860,68 @@ repository:
             : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
           )
           (?=
-              (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#? [({] # C-style function call
-            | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-            | [!~] \#? [({] # macro and destructor calls
-            | \s* (?:\w*|[`$\#%]*)['"] # quoted string literals
-            | \s* `\N # unquoted string literals
-            | \s* \b\d # numbers
-            | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
-            | \s+ \#? [(\[] # opening brackets
-            | \s+ /['"`\w\\(\[{] # regexp literal
-            | \s+ <[\p{Pc}\p{L}\p{Nl}(\[{$] # XML tag component name or splice expression
-            | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
-                  [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
-                  (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-            | \s+ \|(?: \#?[(\[{] )? # opening bracket
-                (?: [,;] \s* )* # optional separators
-                (?:
-                  ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
-                  (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
-                  ([!?]*) # optional sigils
-                  \s*
-                )
-            | \s+ [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-              (?: # identifier
-                # ignore all keywords
-                (?!
-                  (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-                  (?: # keywords
-                    # wordlike operators
-                    [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                    |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+              | [!~] \#?[({] # macro and destructor calls
+              | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
+              | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
+            (?:
+                \s+ (?:\w*|[`$\#%]*)['"] # strings
+              | \s+ \b\d # numbers
+              | \s+ `\N # unquoted strings / stropped identifiers
+              | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
+              | \s+ \#? [(\[] # opening brackets
+              | \s+ /['"`\w\\(\[{] # regexp literal
+              | \s+ <[\p{Pc}\p{L}\p{Nl}(\[{$] # XML tag component name or splice expression
+              | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+                    [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+                    (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+              | \s+ \|(?: \#?[(\[{] )? # opening bracket
+                    (?: [,;] \s* )* # optional separators
+                    (?:
+                      ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
+                      (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+                      ([!?]*) # optional sigils
+                      \s*
+                    )
+              | \s+ [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+                (?: # identifier
+                  # ignore all keywords
+                  (?!
+                    (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                    (?: # keywords
+                      # wordlike operators
+                      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                      |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
-                    # declaration keywords
-                    |va[rl]|dyn|mut|let|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
-                    |module|schema|struct|record|object|union|macro
-                    |query|quote|style|script|entity|temp|oper|realm
+                      # declaration keywords
+                      |va[rl]|dyn|mut|let|const
+                      |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                      |module|schema|struct|record|object|union|macro
+                      |query|quote|style|script|compo|temp|oper|realm
 
-                    # control flow keywords
-                    |if|else|[tw]hen|guard|with|unless
-                    |for|while|loop|goto|break|skip|redo|until
-                    |try|switch|[cm]atch|case|def|throw|raise|error
-                    |return|yield|await|move|goto|pass|defer
-                    |[gd]o|from|where|(?:im|ex)(?:port|tern)
+                      # control flow keywords
+                      |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
+                      |for|while|loop|goto|break|skip|redo|until
+                      |try|switch|[cm]atch|case|def|throw|raise|error
+                      |return|yield|await|move|goto|pass|defer
+                      |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
-                    # miscellaneous keywords
-                    |debug|assert|check|decl
-                    |use|echo|eval|expr|scope
-                    |begin|end
+                      # miscellaneous keywords
+                      |debug|assert|check|decl
+                      |use|echo|eval|expr|scope
+                      |begin|end
+                    )
+                    \b
                   )
-                  \b
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                  (?:
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  )*
                 )
-                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                (?:
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
-                )*
-              )
-              \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+                \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+            )
           )
         captures:
           1:
@@ -4927,17 +4942,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -4979,7 +4994,7 @@ repository:
           )
         \b
         (?= 
-            [!~]? \#? [({] # opening macro, destructor, or function call
+            [!~]? \#?[({] # opening macro, destructor, or function call
           | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
         )
         |
@@ -4997,7 +5012,7 @@ repository:
           )
         \b
           (?=  
-              [!~]? \#? [({] # opening macro, destructor, or function call
+              [!~]? \#?[({] # opening macro, destructor, or function call
             | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
           )
       )
@@ -5165,7 +5180,7 @@ repository:
                   va[rl]|dyn|mut|let|const
                   |func|pro[pc]|type|class|actor|trait|enum|in?ter
                   |module|schema|struct|record|object|union|macro
-                  |query|quote|style|script|entity|temp|oper|realm
+                  |query|quote|style|script|compo|temp|oper|realm
                 ) \b
                 (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.)
             ) \s*
@@ -5234,7 +5249,7 @@ repository:
               va[rl]|dyn|mut|let|const
               |func|pro[pc]|type|class|actor|trait|enum|in?ter
               |module|schema|struct|record|object|union|macro
-              |query|quote|style|script|entity|temp|oper|realm
+              |query|quote|style|script|compo|temp|oper|realm
             ) \b
             (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.)
         ) \s*
@@ -5400,17 +5415,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -5453,7 +5468,7 @@ repository:
         | ( [<>]=?|<=?> ) # relational
         | ( \.\.+|··+ ) # dots
         | ( [!=]==? ) # comparison
-        | ( ~[=!]|[=!]~|[=>]< ) # similarity
+        | ( ~[=!]|[=!]~|<>|>< ) # similarity
         | ( <[/*|+$:]>?|[/*|+$:]> ) #
         | ( \?\?\?? ) # null-coalescing
         | ( !!!? ) # coalescing
@@ -5525,7 +5540,7 @@ repository:
         | ( [<>]=?|<=?> ) # relational
         | ( \.\.+|··+ ) # dots
         | ( [!=]==? ) # comparison
-        | ( ~[=!]|[=!]~|[=>]< ) # similarity
+        | ( ~[=!]|[=!]~|<>|>< ) # similarity
         | ( <[/*|+$:]>?|[/*|+$:]> ) #
         | ( \?\?\?? ) # null-coalescing
         | ( !!!? ) # coalescing
@@ -5688,17 +5703,17 @@ repository:
             (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
             (?: # keywords
               # wordlike operators
-              [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-              |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+              |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
               # declaration keywords
               |va[rl]|dyn|mut|let|const
               |func|pro[pc]|type|class|actor|trait|enum|in?ter
               |module|schema|struct|record|object|union|macro
-              |query|quote|style|script|entity|temp|oper|realm
+              |query|quote|style|script|compo|temp|oper|realm
 
               # control flow keywords
-              |if|else|[tw]hen|guard|with|unless
+              |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
               |for|while|loop|goto|break|skip|redo|until
               |try|switch|[cm]atch|case|def|throw|raise|error
               |return|yield|await|move|goto|pass|defer
@@ -5720,7 +5735,7 @@ repository:
           va[rl]|dyn|mut|let|const
           |func|pro[pc]|type|class|actor|trait|enum|in?ter
           |module|schema|struct|record|object|union|macro
-          |query|quote|style|script|entity|temp|oper|realm
+          |query|quote|style|script|compo|temp|oper|realm
         ) 
         \b\s*
       )
@@ -5739,17 +5754,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -5769,17 +5784,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -5987,7 +6002,7 @@ repository:
             va[rl]|dyn|mut|let|const
             |func|pro[pc]|type|class|actor|trait|enum|in?ter
             |module|schema|struct|record|object|union|macro
-            |query|quote|style|script|entity|temp|oper|realm
+            |query|quote|style|script|compo|temp|oper|realm
           ) \b\s*
         name: storage.type.$1.ruko
 
@@ -5999,7 +6014,7 @@ repository:
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for|while|loop|goto|break|skip|redo|until)\b\s*
         name: keyword.control.loop.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|throw|catch|then|raise|error|retry)\b\s*
-        name: keyword.control.trycatch.ruko
+        name: keyword.control.error.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(match|case|def)\b\s*
         name: keyword.control.match.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(switch|case|def)\b\s*
@@ -6010,8 +6025,10 @@ repository:
         name: keyword.control.module.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(where)\b\s*
         name: keyword.control.validate.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([gd]o|defer|ref|deref|with|begin|end|from)\b\s*
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([gd]o|defer|ref|begin|end|from)\b\s*
         name: keyword.control.$1.ruko
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(when)\b\s*
+        name: keyword.control.signal.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)\b\s*
         name: keyword.other.declare.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|use|echo|eval|expr|scope)\b\s*
@@ -6020,15 +6037,13 @@ repository:
   expression-keywords:
     comment: expression keywords
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|off?|[ai]s|has|new|old|to|by|(?:de)?ref|[gs]et)\b\s*
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|off?|[ai]s|has|new|old|to|by|(?:de)?ref|[gs]et|[iou]nto)\b\s*
         name: keyword.operator.expression.$1.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(not\s+)?([io]n|of)\b\s*
-        name: keyword.operator.expression.$2.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:i|ha)s(?:\s+not)?)\b\s*
-        name: keyword.operator.expression.is.ruko
+      - *in-of-expression
+      - *is-has-expression
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(del)\b\s*
         name: keyword.operator.expression.delete.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(un[gs]et)\b\s*
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(unset)\b\s*
         name: keyword.operator.expression.void.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(n?and|x?n?or|c?n?imply|not)\b\s*
         name: keyword.operator.expression.logical.ruko
@@ -6143,17 +6158,17 @@ repository:
               (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
               (?: # keywords
                 # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                 # declaration keywords
                 |va[rl]|dyn|mut|let|const
                 |func|pro[pc]|type|class|actor|trait|enum|in?ter
                 |module|schema|struct|record|object|union|macro
-                |query|quote|style|script|entity|temp|oper|realm
+                |query|quote|style|script|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|else|[tw]hen|guard|with|unless
+                |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                 |for|while|loop|goto|break|skip|redo|until
                 |try|switch|[cm]atch|case|def|throw|raise|error
                 |return|yield|await|move|goto|pass|defer
@@ -6450,7 +6465,7 @@ repository:
           - match: *entity-name
             name: entity.name.script.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(entity)\b\s*
+        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(compo)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.component.ruko }
@@ -6721,17 +6736,17 @@ repository:
                 (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
                 (?: # keywords
                   # wordlike operators
-                  [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                  |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                  |[gs]et|unset|n?and|x?n?or|c?n?imply|not
 
                   # declaration keywords
                   |va[rl]|dyn|mut|let|const
                   |func|pro[pc]|type|class|actor|trait|enum|in?ter
                   |module|schema|struct|record|object|union|macro
-                  |query|quote|style|script|entity|temp|oper|realm
+                  |query|quote|style|script|compo|temp|oper|realm
 
                   # control flow keywords
-                  |if|else|[tw]hen|guard|with|unless
+                  |(?:el)?(?:if|un)|[tw]hen|guard|with|unless
                   |for|while|loop|goto|break|skip|redo|until
                   |try|switch|[cm]atch|case|def|throw|raise|error
                   |return|yield|await|move|goto|pass|defer
@@ -6783,7 +6798,7 @@ repository:
             (?: # declaration keywords
               func|pro[pc]|type|class|actor|trait|enum|in?ter
               |module|schema|struct|record|object|union|macro
-              |query|quote|style|script|entity|temp|oper|realm
+              |query|quote|style|script|compo|temp|oper|realm
             )
             \b
           )
@@ -6856,7 +6871,7 @@ repository:
             (?: # declaration keywords
               func|pro[pc]|type|class|actor|trait|enum|in?ter
               |module|schema|struct|record|object|union|macro
-              |query|quote|style|script|entity|temp|oper|realm
+              |query|quote|style|script|compo|temp|oper|realm
             )
             \b
           )
@@ -6957,26 +6972,9 @@ repository:
       - include: "#switch-clause"
       - include: "#catch-clause"
       - include: "#with-clause"
+      - include: "#when-clause"
       - include: "#try-clause"
       - include: "#type-clause"
-      - include: "#new-clause"
-
-  new-clause:
-    applyEndPatternLast: true
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(old|new)\b
-    end: (?=)|$
-    beginCaptures:
-      1: { name: keyword.operator.expression.$1.ruko }
-    patterns:
-      - match: *entity-name
-        name: entity.name.instance.ruko
-      - include: "#type-clause"
-      - include: "#type-keywords"
-      - include: "#type-square-brackets"
-      - include: "#generics"
-      - include: "#parameter-brackets"
-      - include: "#namespace-separators"
-      - include: "#round-brackets"
 
   do-clause:
     match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(do)\b\s*
@@ -6985,16 +6983,27 @@ repository:
   type-clause:
     patterns:
       - applyEndPatternLast: true
+        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(old|new)\b
+        end: (?=)|$
+        beginCaptures:
+          1: { name: keyword.operator.expression.$1.ruko }
+        patterns:
+          - match: *entity-name
+            name: entity.name.instance.ruko
+          - include: "#parameter-brackets"
+          - include: "#types"
+      - applyEndPatternLast: true
         begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: keyword.operator.expression.as.ruko }
         patterns: [include: "#types"]
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:i|ha)s(?:\s+not))\b\s*
+        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(is|has)(?:\s+(not))?\b\s*
         end: (?=)|$
-        beginCaptures:
-          1: { name: keyword.operator.expression.is.ruko }
+        captures:
+          1: { name: keyword.operator.expression.$1.ruko }
+          2: { name: keyword.operator.expression.logical.ruko }
         patterns: [include: "#types"]
       - applyEndPatternLast: true
         begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(type)\b\s*
@@ -7053,12 +7062,12 @@ repository:
         patterns:
           - include: "#argument-list"
           - applyEndPatternLast: true
-            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:i|ha)s(?:\s+not)?)\b\s*
+            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:is|has)(?:\s+not)?)\b\s*
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.error.ruko }
             patterns: [include: "#types"]
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|as)\b\s*
+          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|(?:el)?(?:if|un)|if\s+not|unless)\b\s*
             name: keyword.control.error.ruko
           - include: "#type-keywords"
           - include: $self
@@ -7122,12 +7131,12 @@ repository:
         patterns:
           - include: "#argument-list"
           - applyEndPatternLast: true
-            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:i|ha)s(?:\s+not)?)\b\s*
+            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:is|has)(?:\s+not)?)\b\s*
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.match.ruko }
             patterns: [include: "#types"]
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|as)\b\s*
+          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|(?:el)?(?:if|un)|if\s+not|unless)\b\s*
             name: keyword.control.match.ruko
           - include: "#type-keywords"
           - include: $self
@@ -7165,15 +7174,28 @@ repository:
         patterns:
           - include: "#argument-list"
           - applyEndPatternLast: true
-            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:i|ha)s(?:\s+not)?)\b\s*
+            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:is|has)(?:\s+not)?)\b\s*
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.switch.ruko }
             patterns: [include: "#types"]
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:if|when|unless)(?:\s+not)?|as)\b\s*
+          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|(?:el)?(?:if|un)|if\s+not|unless)\b\s*
             name: keyword.control.switch.ruko
           - include: "#type-keywords"
           - include: $self
+
+  when-clause:
+    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(when)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    name: meta.if.ruko
+    beginCaptures:
+      1: { name: keyword.control.signal.ruko }
+    endCaptures:
+      1: { name: punctuation.terminator.colon.ruko }
+    patterns:
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
+        name: keyword.control.signal.ruko
+      - include: $self
 
   with-clause:
     begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(with)\b\s*
@@ -7326,7 +7348,7 @@ repository:
             (?: # declaration keywords
               func|pro[pc]|type|class|actor|trait|enum|in?ter
               |module|schema|struct|record|object|union|macro
-              |query|quote|style|script|entity|temp|oper|realm
+              |query|quote|style|script|compo|temp|oper|realm
             )
             \b
           )
@@ -7557,8 +7579,8 @@ repository:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
               (?: # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -7581,8 +7603,8 @@ repository:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
               (?: # wordlike operators
-                [io]n|off?|[ai]s|has|new|old|del|(?:de)?ref|to
-                |(?:un)?[gs]et|n?and|x?n?or|c?n?imply|not|by
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+                |[gs]et|unset|n?and|x?n?or|c?n?imply|not
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
