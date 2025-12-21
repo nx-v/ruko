@@ -45,51 +45,51 @@ shader MazeGenerator {
   shader<group 0, binding 1> mut<storage> walls
   struct Uniforms {
     prop maze_size: u32
-    prop num_walls: u32
+    prop numWalls: u32
   }
   struct WallsArray {
     prop values: u32[]
   }
-  shader<group 0, binding 2> mut<storage> walls_array: WallsArray
+  shader<group 0, binding 2> mut<storage> wallsArray: WallsArray
 
-  func get_cell_index(cell_coords: Vec2<i32>): i32 {
+  func getCellIndex(cellCoords: Vec2<i32>): i32 {
     let size: i32 = i32 uniforms.maze_size
-    return cell_coords.y * size + cell_coords.x
+    return cellCoords.y * size + cellCoords.x
   }
 
-  func coin_flip(p: Vec2<f32>): f32 {
+  func coinFlip(p: Vec2<f32>): f32 {
     mut p3: Vec3<f32> = fract (Vec3 p.xyx * 0.1031)
     p3 = p3 + dot p3 (p3.yzx + 33.33)
     return step 0.5 (fract (p3.x + p3.y) * p3.z)
   }
 
   // Carve walls for a given cell at random
-  proc random_carve_cell_walls(cell_coords: Vec2<i32>) {
-    let cell_index: i32 = get_cell_index(cell_coords)
+  proc randomCarveCellWalls(cellCoords: Vec2<i32>) {
+    let cellIndex: i32 = getCellIndex(cellCoords)
 
     let size: i32 = i32 uniforms.maze_size
-    let num_walls: i32 = i32 uniforms.num_walls
+    let numWalls: i32 = i32 uniforms.numWalls
 
-    const t_wall_type: i32 = 0 // top
-    const r_wall_type: i32 = 1 // right
-    const b_wall_type: i32 = 0 // bottom
-    const l_wall_type: i32 = 1 // left
+    const tWallType: i32 = 0 // top
+    const rWallType: i32 = 1 // right
+    const bWallType: i32 = 0 // bottom
+    const lWallType: i32 = 1 // left
 
     // is_on_edge -> Vec2(is_most_left_edge, is_most_bottom_edge)
-    mut is_on_edge: Vec2<bool> = cell_coords == Vec2 0
+    mut isOnEdge: Vec2<bool> = cellCoords == Vec2 0
 
     // main body: bottom and left edges
-    let bottom_not_left: f32 = coin_flip (Vec2<f32> cell_coords)
-    let b_wall_index: i32 = cell_index * 2 + b_wall_type
-    let l_wall_index: i32 = cell_index * 2 + l_wall_type
-    let carve_bottom: f32 = mix bottom_not_left 1.0 (f32 is_on_edge.x)
-    let carve_left: f32 = mix (1.0 - bottom_not_left) 1.0 (f32 is_on_edge.y)
-    walls_array.values[b_wall_index] = u32 bottom_not_left
-    walls_array.values[l_wall_index] = u32 (1.0 - bottom_not_left)
+    let bottomNotLeft: f32 = coinFlip (Vec2<f32> cellCoords)
+    let bWallIndex: i32 = cellIndex * 2 + bWallType
+    let lWallIndex: i32 = cellIndex * 2 + lWallType
+    let carve_bottom: f32 = mix bottomNotLeft 1.0 (f32 isOnEdge.x)
+    let carve_left: f32 = mix (1.0 - bottomNotLeft) 1.0 (f32 isOnEdge.y)
+    wallsArray.values[bWallIndex] = u32 bottomNotLeft
+    wallsArray.values[lWallIndex] = u32 (1.0 - bottomNotLeft)
   }
 
-  comp proc<threadGroup 8 8> main(id: Vec3<u32>) {
-    random_carve_cell_walls (Vec2<i32> id.xy)
+  comp proc<threadGroup 8 8> main(%id: Vec3<u32>) {
+    randomCarveCellWalls (Vec2<i32> %id.xy)
   }
 }
 
