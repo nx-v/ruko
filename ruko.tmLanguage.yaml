@@ -842,7 +842,7 @@ repository:
         captures: &prefix-type-operator-captures
           1: { name: keyword.operator.pointer.ruko }
           2: { name: keyword.operator.reference.ruko }
-          3: { name: keyword.operator.format.ruko }
+          3: { name: keyword.operator.private.ruko }
           4: { name: keyword.operator.decorator.ruko }
           5: { name: keyword.operator.borrow.ruko }
           6: { name: keyword.operator.logical.ruko }
@@ -983,7 +983,7 @@ repository:
   # Numbers
 
   unit-suffix:
-    match: (?<=['")}\]\w]|\\.)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*)\b
+    match: (?<=['")}\]\w]|\\.)(`?[\p{Pc}\p{L}\p{Nl}]\w*)\b
     name: keyword.other.unit.ruko
 
   byte-shift-suffix:
@@ -7661,9 +7661,9 @@ repository:
           (?x)
           (?<=
             (?:
-                [,;({\[]
-              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s*
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
+                [,;({\[] # beside opening bracket or separator
+              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s* # beside key-value separator
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # beside other operators
             )
             \s*
           )
@@ -7682,9 +7682,9 @@ repository:
           (?x)
           (?<=
             (?:
-                [,;({\[]
-              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s*
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
+                [,;({\[] # beside opening bracket or separator
+              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s* # beside key-value separator
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # beside other operators
             )
             \s*
           )
@@ -7748,9 +7748,9 @@ repository:
           - include: $self
       - begin: |-
           (?x)
-          (?<= # literal
-              (?: [\w'"`)}\]] | \\.) >* [!~]? \s*
-            | [^\s.]\.=?|[?!:]:=?
+          (?<= 
+              (?:['"`)}\]\w]|\\.) # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
           (\#?\()\s*
         end: \s*(\))
@@ -7849,9 +7849,9 @@ repository:
           - include: $self
       - begin: |-
           (?x)
-          (?<= # literal
-              (?: [\w'"`)}\]] | \\.)
-            | [^\s.]\.=?|[?!:]:=?
+          (?<= 
+              (?:['"`)}\]\w]|\\.) # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
           (\#?\[)\s*
         end: \s*(\])
