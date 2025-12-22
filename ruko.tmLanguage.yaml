@@ -8686,64 +8686,160 @@ repository:
       - include: "#variables"
 
   type-names:
-    comment: Names for built-in types
+    comment: Names for built-in types;
     patterns:
-      - comment: Primitive classes
+      - comment: |-
+          Scalar primitive types
+          bool: 0 or 1
+          rune: unicode codepoint
+          char: UTF-8 character
+          str: UTF-8 string
+          sym: interned string (symbol)
+          blob: byte array
+          unit: empty value
+          num: numeric value (int, real, etc)
+          nat: natural number (0, 1, 2, ...);+
+          int: signed integer
+          rat: rational number (p/q)
+          real: floating point number
+          imag: imaginary number (bi)
+          comp: complex number (a + bi)
+          quat: quaternion (a + bi + cj + dk)
+          oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
         match: |-
-          (?x)\s*(?<![?!]?\.|[?!:]:)\b(
-            # upper flat case
-            Bool|Char|Rune|Str|Sym|Text|Buf
-            |(Big)?(Num|Nat|U?Int|Float|Frac|Real|Imag|Complex)
-            # lower flat case
-            |bool|char|rune|str|sym|text|buf
-            |(big)?(num|nat|u?int|float|frac|real|imag|complex)
-            # suffixed numeric types
-            # i: signed integer
-            # u: unsigned integer
-            # f: floating point
-            # j: imaginary float
-            # c: complex float (real+imaginary)
-            |(?i:[iufjc]\d+)
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[uU]nit
+            |[nN]um|[nN]at|[iI]nt|[rR]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
+            |(?i:[nifrjqco])\d+ # match num types with bit sizes like i32, f64, etc
           )\b
         name: support.type.builtin.primitive.ruko
-      - comment: Data query classes
+      - comment: |-
+          Vector primitive types
+          Array: fixed-size array
+          Tuple: fixed-size heterogeneous array
+          List: single-linked list
+          DList: double-linked list
+          Set: unordered collection of unique items
+          Map: key-value associative array
+          Mat: mathematical matrix
+          Vec: mathematical vector
+          Grid: 2D array
+          Stack: LIFO collection
+          Heap: priority queue
+          Queue: FIFO collection
+          Deque: double-ended queue
+          Ring: circular buffer
+          Graph: set of nodes and edges
+          DGraph: directed graph that may have cycles
+          Dag: directed acyclic graph
+          Tree: hierarchical collection
+          Trie: prefix tree
+          Slice: dynamic array
+          Span: view over a contiguous sequence
+          Stream: sequence of data elements
+          Chan: communication channel
         match: |-
-          (?x)\s*(?<![?!]?\.|[?!:]:)\b(
-            Array|Tuple|Set|Map|Object|Seq|Record|Dict
-            |Proc|Range|Stack|Heap|Queue|Tree|Trie|Graph
-            |Future|Stream|RegExp|Func|Buffer|FSe[tq]
-            # lower flat case
-            |array|tuple|set|map|object|seq|record|dict
-            |proc|range|stack|heap|queue|tree|trie|graph
-            |future|stream|regexp|func|buffer|fse[tq]
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [aA]rray|[tT]uple|[dD]?list|[sS]et|[mM]ap|[mM]at|[vV]ec|[gG]rid
+            |[sS]tack|[hH]eap|[qQ]ueue|[dD]eque|[rR]ing|[dD]?graph|[dD]ag
+            |[tT]r[ie]e|[sS]tream|[cC]han|[sS]lice|[sS]pan
           )\b
         name: support.type.builtin.ruko
-      - comment: Constant/algebraic classes
+      - comment: Error types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([oO]ption|[rR]esult|[eE]rror|[eE]xception)\b
+        name: support.class.error.ruko
+      - comment: |-
+          Algebraic primitive types
+          Option: optional value
+          Either: value of one of two possible types
+          Result: success or error value
+          Pair: tuple of two values
+          Some: wrapper for an existing value
+          None: absence of a value
+          Left: left value of an Either type
+          Right: right value of an Either type
+          Just: wrapper for an existing value
+          Ok: success value
+          Err: error value
+          Fail: failure value
+          Void: empty type
+          True/False: boolean values
+          Maybe: optional value
+          Any/All/Each/Every: universal quantifiers
         match: |-
-          (?x)\s*(?<![?!]?\.|[?!:]:)\b(
-            True|False|Null|Void|NaN|Inf|Empty|Unit
-            |Any|Mixed|Just|Some|None|Never|(Im)?pure|Const|Undef
-            # lower flat case
-            |true|false|null|void|nan|inf|empty|unit
-            |any|mixed|just|some|none|never|(im)?pure|const|undef
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [oO]ption|[eE]ither|[rR]esult|[pP]air|[sS]ome|[nN]one
+            |[lL]eft|[rR]ight|[jJ]ust|[oO]k|[eE]rr|[fF]ail|[vV]oid
+            |[tT]rue|[fF]alse|[mM]aybe|[aA]ny|[aA]ll|[eE]ach|[eE]very
           )\b
         name: support.type.primitive.ruko
-      - comment: Error classes | BaseError, etc
-        match: \s*\b((\p{Lu}[\w&&\P{Lu}]*)+)?(Error|Exception)\b
-        name: support.class.error.ruko
-      - comment: Interface classes | IEnumerable, etc
-        match: \s*\bI((\p{Lu}[\w&&\P{Lu}]*)+)\b
-        name: entity.name.interface.ruko
-      - comment: Namespace classes | NSString, etc
-        match: \s*\bNS((\p{Lu}[\w&&\P{Lu}]*)+)\b
-        name: entity.name.namespace.ruko
-      - comment: Trait classes | Serializable, Loggable etc
-        match: \s*\b((\p{Lu}[\w&&\P{Lu}]*)+)able\b
-        name: support.class.trait.ruko
-      - comment: Algebraic data types
-        match: \s*\b(Some|None|Just|Ok|Err|Left|Right)\b\s*
-        name: support.class.algebraic.ruko
-      - include: "#support-classes"
+      - comment: Concurrent primitive types
+        match: |-
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [fF]uture|[pP]romise|[lL]ock|[mM]utex|[sS]emaphore
+            |[cC]ondition|[wW]aitGroup|[bB]arrier|[wW]orker|[tT]hread
+            |[pP]rocess|[jJ]ob|[qQ]uery|[eE]vent|[mM]ailbox|[sS]ignal
+            |[cCgG]oroutine|[aA]ctor|[cC]hannel|[rR]outine|[cC]oordinator
+            |[sS]cheduler|[tT]ask|[eE]xecutor
+          )\b
+        name: support.class.concurrent.ruko
+      - comment: File and IO types
+        match: |-
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [fF]ile|[fF]older|[dD]ir|[pP]ath|[sS]tream|[bB]uffer
+            |[rR]eader|[wW]riter|[sS]erializer|[dD]eserializer
+            |[lL]ogger|[tT]erminal|[cC]onsole|[iI]nput|[oO]utput
+            |[eE]ncoder|[dD]ecoder|[eE]mitter|[rR]eceiver
+            |[fF]ormatter|[pP]arser|[qQ]ueue|[sS]ocket
+            |[iI]O|[cC]hannel|[cC]ommunicator|[cC]onnection
+            |[cC]lient|[sS]erver|[pP]rotocol|[mM]essage
+            |[tT]ransport|[sS]ession|[rR]esource
+          )\b
+        name: support.class.io.ruko
+      - comment: Network types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]ocket|[hH]ttp|[uU]dp|[tT]cp)\b
+        name: support.class.network.ruko
+      - comment: Date and Time types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([dD]ate|[tT]ime|[dD]atetime|[tT]imestamp)\b
+        name: support.class.datetime.ruko
+      - comment: Pattern matching types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([rR]egex|[pP]attern|[mM]atcher)\b
+        name: support.class.pattern.ruko
+      - comment: Serialization types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]erializer|[dD]eserializer|[eE]ncoder|[dD]ecoder)\b
+        name: support.class.serialization.ruko
+      - comment: Shader types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]hader|[mM]aterial|[tT]exture|[sS]ampler|[bB]uffer)\b
+        name: support.class.shader.ruko
+      - comment: Database types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([dD]atabase|[cC]onnection|[qQ]uery|[rR]esultSet|[tT]ransaction)\b
+        name: support.class.database.ruko
+      - comment: Cryptography types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]ipher|[hH]ash|[sS]ignature|[kK]ey|[sS]sl|[tT]ls)\b
+        name: support.class.crypto.ruko
+      - comment: Graphics types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]anvas|[iI]mage|[sS]prite|[bB]itmap|[fF]ont|[cC]olor)\b
+        name: support.class.graphics.ruko
+      - comment: Audio types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]ound|[mM]usic|[aA]udio|[bB]uffer|[sS]ource|[lL]istener)\b
+        name: support.class.audio.ruko
+      - comment: Physics types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([bB]ody|[cC]ollider|[sS]hape|[fF]orce|[vV]ector\d+|[qQ]uaternion)\b
+        name: support.class.physics.ruko
+      - comment: AI and Machine Learning types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([nN]euralNet|[mM]odel|[dD]ataset|[lL]ayer|[aA]lgorithm)\b
+        name: support.class.ai.ruko
+      - comment: Web development types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([rR]equest|[rR]esponse|[sS]ession|[cC]ookie|[hH]andler)\b
+        name: support.class.web.ruko
+      - comment: Testing types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([tT]estCase|[mM]ock|[sS]py|[aA]ssertion|[fF]ixture)\b
+        name: support.class.testing.ruko
+      - comment: Miscellaneous types
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]onfig|[sS]ettings|[lL]ogger|[eE]vent|[mM]anager)\b
+        name: support.class.misc.ruko
+      - comment: Include built-in classes from other languages to improve recognition
+        include: "#support-classes"
 
   support-classes:
     comment: Ruko probably won't have a large set of built-in classes,
@@ -8877,7 +8973,7 @@ repository:
       - include: "#html-builtins"
 
       # Batchfile
-      - match: \b(adprep|append|arp|assoc|at|atmadm|attrib|auditpol|autochk|autoconv|autofmt|bcdboot|bcdedit|bdehdcfg|bitsadmin|bootcfg|brea|cacls|cd|certreq|certutil|change|chcp|chdir|chglogon|chgport|chgusr|chkdsk|chkntfs|choice|cipher|clip|cls|clscluadmin|cluster|cmd|cmdkey|cmstp|color|comp|compact|convert|copy|cprofile|cscript|csvde|date|dcdiag|dcgpofix|dcpromo|defra|del|dfscmd|dfsdiag|dfsrmig|diantz|dir|dirquota|diskcomp|diskcopy|diskpart|diskperf|diskraid|diskshadow|dispdiag|doin|dnscmd|doskey|driverquery|dsacls|dsadd|dsamain|dsdbutil|dsget|dsmgmt|dsmod|dsmove|dsquery|dsrm|edit|endlocal|eraseesentutl|eventcreate|eventquery|eventtriggers|evntcmd|expand|extract|fc|filescrn|find|findstr|finger|flattemp|fonde|forfiles|format|freedisk|fsutil|ftp|ftype|fveupdate|getmac|gettype|gpfixup|gpresult|gpupdate|graftabl|hashgen|hep|helpctr|hostname|icacls|iisreset|inuse|ipconfig|ipxroute|irftp|ismserv|jetpack|klist|ksetup|ktmutil|ktpass|label|ldifd|ldp|lodctr|logman|logoff|lpq|lpr|macfile|makecab|manage-bde|mapadmin|md|mkdir|mklink|mmc|mode|more|mount|mountvol|move|mqbup|mqsvc|mqtgsvc|msdt|msg|msiexec|msinfo32|mstsc|nbtstat|net_computer|net_group|net_localgroup|net_print|net_session|net_share|net_start|net_stop|net_use|net_user|net_view|net|netcfg|netdiag|netdom|netsh|netstat|nfsadmin|nfsshare|nfsstat|nlb|nlbmgr|nltest|nslookup|ntackup|ntcmdprompt|ntdsutil|ntfrsutl|openfiles|pagefileconfig|path|pathping|pause|pbadmin|pentnt|perfmon|ping|pnpunatten|pnputil|popd|powercfg|powershell|powershell_ise|print|prncnfg|prndrvr|prnjobs|prnmngr|prnport|prnqctl|prompt|pubprn|pushd|pushprinterconnections|pwlauncher|qappsrv|qprocess|query|quser|qwinsta|rasdial|rcp|rd|rdpsign|regentc|recover|redircmp|redirusr|reg|regini|regsvr32|relog|ren|rename|rendom|repadmin|repair-bde|replace|reset session|rxec|risetup|rmdir|robocopy|route|rpcinfo|rpcping|rsh|runas|rundll32|rwinsta|sc|schtasks|scp|scwcmd|secedit|serverceipoptin|servrmanagercmd|serverweroptin|setspn|setx|sfc|sftp|shadow|shift|showmount|shutdown|sort|ssh|ssh-add|ssh-agent|ssh-keygen|ssh-keyscan|start|storrept|subst|sxstrace|ysocmgr|systeminfo|takeown|tapicfg|taskkill|tasklist|tcmsetup|telnet|tftp|time|timeout|title|tlntadmn|tpmvscmgr|tpmvscmgr|tacerpt|tracert|tree|tscon|tsdiscon|tsecimp|tskill|tsprof|type|typeperf|tzutil|uddiconfig|umount|unlodctr|ver|verifier|verif|vol|vssadmin|w32tm|waitfor|wbadmin|wdsutil|wecutil|wevtutil|where|whoami|winnt|winnt32|winpop|winrm|winrs|winsat|wlbs|wmic|wscript|wsl|xcopy)\b
+      - match: \b(adprep|append|arp|assoc|at|atmadm|attrib|auditpol|autochk|autoconv|autofmt|bcdboot|bcdedit|bdehdcfg|bitsadmin|bootcfg|brea|cacls|cd|certreq|certutil|change|chcp|chdir|chglogon|chgport|chgusr|chkdsk|chkntfs|choice|cipher|clip|cls|clscluadmin|cluster|cmd|cmdkey|cmstp|color|comp|compact|convert|copy|cprofile|cscript|csvde|date|dcdiag|dcgpofix|dcpromo|defra|del|dfscmd|dfsdiag|dfsrmig|diantz|dir|dirquota|diskcomp|diskcopy|diskpart|diskperf|diskraid|diskshadow|dispdiag|doin|dnscmd|doskey|driverquery|dsacls|dsadd|dsamain|dsdbutil|dsget|dsmgmt|dsmod|dsmove|dsquery|dsrm|edit|endlocal|eraseesentutl|eventcreate|eventquery|eventtriggers|evntcmd|expand|extract|fc|filescrn|find|findstr|finger|flattemp|fonde|forfiles|format|freedisk|fsutil|ftp|ftype|fveupdate|getmac|gettype|gpfixup|gpresult|gpupdate|graftabl|hashgen|hep|helpctr|hostname|icacls|iisreset|inuse|ipconfig|ipxroute|irftp|ismserv|jetpack|klist|ksetup|ktmutil|ktpass|label|ldifd|ldp|lodctr|logman|logoff|lpq|lpr|macfile|makecab|manage_bde|mapadmin|md|mkdir|mklink|mmc|mode|more|mount|mountvol|move|mqbup|mqsvc|mqtgsvc|msdt|msg|msiexec|msinfo32|mstsc|nbtstat|net_computer|net_group|net_localgroup|net_print|net_session|net_share|net_start|net_stop|net_use|net_user|net_view|net|netcfg|netdiag|netdom|netsh|netstat|nfsadmin|nfsshare|nfsstat|nlb|nlbmgr|nltest|nslookup|ntackup|ntcmdprompt|ntdsutil|ntfrsutl|openfiles|pagefileconfig|path|pathping|pause|pbadmin|pentnt|perfmon|ping|pnpunatten|pnputil|popd|powercfg|powershell|powershell_ise|print|prncnfg|prndrvr|prnjobs|prnmngr|prnport|prnqctl|prompt|pubprn|pushd|pushprinterconnections|pwlauncher|qappsrv|qprocess|query|quser|qwinsta|rasdial|rcp|rd|rdpsign|regentc|recover|redircmp|redirusr|reg|regini|regsvr32|relog|ren|rename|rendom|repadmin|repair_bde|replace|reset_session|rxec|risetup|rmdir|robocopy|route|rpcinfo|rpcping|rsh|runas|rundll32|rwinsta|sc|schtasks|scp|scwcmd|secedit|serverceipoptin|servrmanagercmd|serverweroptin|setspn|setx|sfc|sftp|shadow|shift|showmount|shutdown|sort|ssh|ssh_add|ssh_agent|ssh_keygen|ssh_keyscan|start|storrept|subst|sxstrace|ysocmgr|systeminfo|takeown|tapicfg|taskkill|tasklist|tcmsetup|telnet|tftp|time|timeout|title|tlntadmn|tpmvscmgr|tpmvscmgr|tacerpt|tracert|tree|tscon|tsdiscon|tsecimp|tskill|tsprof|type|typeperf|tzutil|uddiconfig|umount|unlodctr|ver|verifier|verif|vol|vssadmin|w32tm|waitfor|wbadmin|wdsutil|wecutil|wevtutil|where|whoami|winnt|winnt32|winpop|winrm|winrs|winsat|wlbs|wmic|wscript|wsl|xcopy)\b
         name: support.function.batchfile.ruko
 
       # Perl
@@ -9203,8 +9299,11 @@ repository:
       - match: \b(isNaN|isFinite|eval|uneval|parseInt|parseFloat|decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|escape|unescape|require|set(Interval|Timeout)|clear(Interval|Timeout))\b
         name: support.function.builtin.coffee
 
-      - include: source.swift#builtin-functions
-      - include: source.swift#builtin-global-functions
+      # Python Built-in Functions
       - include: source.python#builtin-functions
       - include: source.python#builtin-types
       - include: source.python#magic-function-names
+
+      # Swift Built-in Functions
+      - include: source.swift#builtin-functions
+      - include: source.swift#builtin-global-functions

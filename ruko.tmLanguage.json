@@ -1,11 +1,7 @@
 {
   "name": "Ruko",
   "scopeName": "source.spwn",
-  "fileTypes": [
-    "ruko",
-    "rk",
-    "spwn"
-  ],
+  "fileTypes": ["ruko", "rk", "spwn"],
   "patterns": [
     {
       "include": "#core"
@@ -13622,49 +13618,110 @@
       ]
     },
     "type-names": {
-      "comment": "Names for built-in types",
+      "comment": "Names for built-in types;",
       "patterns": [
         {
-          "comment": "Primitive classes",
-          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:)\\b(\n  # upper flat case\n  Bool|Char|Rune|Str|Sym|Text|Buf\n  |(Big)?(Num|Nat|U?Int|Float|Frac|Real|Imag|Complex)\n  # lower flat case\n  |bool|char|rune|str|sym|text|buf\n  |(big)?(num|nat|u?int|float|frac|real|imag|complex)\n  # suffixed numeric types\n  # i: signed integer\n  # u: unsigned integer\n  # f: floating point\n  # j: imaginary float\n  # c: complex float (real+imaginary)\n  |(?i:[iufjc]\\d+)\n)\\b",
+          "comment": "Scalar primitive types\nbool: 0 or 1\nrune: unicode codepoint\nchar: UTF-8 character\nstr: UTF-8 string\nsym: interned string (symbol)\nblob: byte array\nunit: empty value\nnum: numeric value (int, real, etc)\nnat: natural number (0, 1, 2, ...);+\nint: signed integer\nrat: rational number (p/q)\nreal: floating point number\nimag: imaginary number (bi)\ncomp: complex number (a + bi)\nquat: quaternion (a + bi + cj + dk)\noct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b(\n  [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[uU]nit\n  |[nN]um|[nN]at|[iI]nt|[rR]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct\n  |(?i:[nifrjqco])\\d+ # match num types with bit sizes like i32, f64, etc\n)\\b",
           "name": "support.type.builtin.primitive.ruko"
         },
         {
-          "comment": "Data query classes",
-          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:)\\b(\n  Array|Tuple|Set|Map|Object|Seq|Record|Dict\n  |Proc|Range|Stack|Heap|Queue|Tree|Trie|Graph\n  |Future|Stream|RegExp|Func|Buffer|FSe[tq]\n  # lower flat case\n  |array|tuple|set|map|object|seq|record|dict\n  |proc|range|stack|heap|queue|tree|trie|graph\n  |future|stream|regexp|func|buffer|fse[tq]\n)\\b",
+          "comment": "Vector primitive types\nArray: fixed-size array\nTuple: fixed-size heterogeneous array\nList: single-linked list\nDList: double-linked list\nSet: unordered collection of unique items\nMap: key-value associative array\nMat: mathematical matrix\nVec: mathematical vector\nGrid: 2D array\nStack: LIFO collection\nHeap: priority queue\nQueue: FIFO collection\nDeque: double-ended queue\nRing: circular buffer\nGraph: set of nodes and edges\nDGraph: directed graph that may have cycles\nDag: directed acyclic graph\nTree: hierarchical collection\nTrie: prefix tree\nSlice: dynamic array\nSpan: view over a contiguous sequence\nStream: sequence of data elements\nChan: communication channel",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b(\n  [aA]rray|[tT]uple|[dD]?list|[sS]et|[mM]ap|[mM]at|[vV]ec|[gG]rid\n  |[sS]tack|[hH]eap|[qQ]ueue|[dD]eque|[rR]ing|[dD]?graph|[dD]ag\n  |[tT]r[ie]e|[sS]tream|[cC]han|[sS]lice|[sS]pan\n)\\b",
           "name": "support.type.builtin.ruko"
         },
         {
-          "comment": "Constant/algebraic classes",
-          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:)\\b(\n  True|False|Null|Void|NaN|Inf|Empty|Unit\n  |Any|Mixed|Just|Some|None|Never|(Im)?pure|Const|Undef\n  # lower flat case\n  |true|false|null|void|nan|inf|empty|unit\n  |any|mixed|just|some|none|never|(im)?pure|const|undef\n)\\b",
-          "name": "support.type.primitive.ruko"
-        },
-        {
-          "comment": "Error classes | BaseError, etc",
-          "match": "\\s*\\b((\\p{Lu}[\\w&&\\P{Lu}]*)+)?(Error|Exception)\\b",
+          "comment": "Error types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([oO]ption|[rR]esult|[eE]rror|[eE]xception)\\b",
           "name": "support.class.error.ruko"
         },
         {
-          "comment": "Interface classes | IEnumerable, etc",
-          "match": "\\s*\\bI((\\p{Lu}[\\w&&\\P{Lu}]*)+)\\b",
-          "name": "entity.name.interface.ruko"
+          "comment": "Algebraic primitive types\nOption: optional value\nEither: value of one of two possible types\nResult: success or error value\nPair: tuple of two values\nSome: wrapper for an existing value\nNone: absence of a value\nLeft: left value of an Either type\nRight: right value of an Either type\nJust: wrapper for an existing value\nOk: success value\nErr: error value\nFail: failure value\nVoid: empty type\nTrue/False: boolean values\nMaybe: optional value\nAny/All/Each/Every: universal quantifiers",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b(\n  [oO]ption|[eE]ither|[rR]esult|[pP]air|[sS]ome|[nN]one\n  |[lL]eft|[rR]ight|[jJ]ust|[oO]k|[eE]rr|[fF]ail|[vV]oid\n  |[tT]rue|[fF]alse|[mM]aybe|[aA]ny|[aA]ll|[eE]ach|[eE]very\n)\\b",
+          "name": "support.type.primitive.ruko"
         },
         {
-          "comment": "Namespace classes | NSString, etc",
-          "match": "\\s*\\bNS((\\p{Lu}[\\w&&\\P{Lu}]*)+)\\b",
-          "name": "entity.name.namespace.ruko"
+          "comment": "Concurrent primitive types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b(\n  [fF]uture|[pP]romise|[lL]ock|[mM]utex|[sS]emaphore\n  |[cC]ondition|[wW]aitGroup|[bB]arrier|[wW]orker|[tT]hread\n  |[pP]rocess|[jJ]ob|[qQ]uery|[eE]vent|[mM]ailbox|[sS]ignal\n  |[cCgG]oroutine|[aA]ctor|[cC]hannel|[rR]outine|[cC]oordinator\n  |[sS]cheduler|[tT]ask|[eE]xecutor\n)\\b",
+          "name": "support.class.concurrent.ruko"
         },
         {
-          "comment": "Trait classes | Serializable, Loggable etc",
-          "match": "\\s*\\b((\\p{Lu}[\\w&&\\P{Lu}]*)+)able\\b",
-          "name": "support.class.trait.ruko"
+          "comment": "File and IO types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b(\n  [fF]ile|[fF]older|[dD]ir|[pP]ath|[sS]tream|[bB]uffer\n  |[rR]eader|[wW]riter|[sS]erializer|[dD]eserializer\n  |[lL]ogger|[tT]erminal|[cC]onsole|[iI]nput|[oO]utput\n  |[eE]ncoder|[dD]ecoder|[eE]mitter|[rR]eceiver\n  |[fF]ormatter|[pP]arser|[qQ]ueue|[sS]ocket\n  |[iI]O|[cC]hannel|[cC]ommunicator|[cC]onnection\n  |[cC]lient|[sS]erver|[pP]rotocol|[mM]essage\n  |[tT]ransport|[sS]ession|[rR]esource\n)\\b",
+          "name": "support.class.io.ruko"
         },
         {
-          "comment": "Algebraic data types",
-          "match": "\\s*\\b(Some|None|Just|Ok|Err|Left|Right)\\b\\s*",
-          "name": "support.class.algebraic.ruko"
+          "comment": "Network types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([sS]ocket|[hH]ttp|[uU]dp|[tT]cp)\\b",
+          "name": "support.class.network.ruko"
         },
         {
+          "comment": "Date and Time types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([dD]ate|[tT]ime|[dD]atetime|[tT]imestamp)\\b",
+          "name": "support.class.datetime.ruko"
+        },
+        {
+          "comment": "Pattern matching types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([rR]egex|[pP]attern|[mM]atcher)\\b",
+          "name": "support.class.pattern.ruko"
+        },
+        {
+          "comment": "Serialization types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([sS]erializer|[dD]eserializer|[eE]ncoder|[dD]ecoder)\\b",
+          "name": "support.class.serialization.ruko"
+        },
+        {
+          "comment": "Shader types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([sS]hader|[mM]aterial|[tT]exture|[sS]ampler|[bB]uffer)\\b",
+          "name": "support.class.shader.ruko"
+        },
+        {
+          "comment": "Database types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([dD]atabase|[cC]onnection|[qQ]uery|[rR]esultSet|[tT]ransaction)\\b",
+          "name": "support.class.database.ruko"
+        },
+        {
+          "comment": "Cryptography types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([cC]ipher|[hH]ash|[sS]ignature|[kK]ey|[sS]sl|[tT]ls)\\b",
+          "name": "support.class.crypto.ruko"
+        },
+        {
+          "comment": "Graphics types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([cC]anvas|[iI]mage|[sS]prite|[bB]itmap|[fF]ont|[cC]olor)\\b",
+          "name": "support.class.graphics.ruko"
+        },
+        {
+          "comment": "Audio types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([sS]ound|[mM]usic|[aA]udio|[bB]uffer|[sS]ource|[lL]istener)\\b",
+          "name": "support.class.audio.ruko"
+        },
+        {
+          "comment": "Physics types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([bB]ody|[cC]ollider|[sS]hape|[fF]orce|[vV]ector\\d+|[qQ]uaternion)\\b",
+          "name": "support.class.physics.ruko"
+        },
+        {
+          "comment": "AI and Machine Learning types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([nN]euralNet|[mM]odel|[dD]ataset|[lL]ayer|[aA]lgorithm)\\b",
+          "name": "support.class.ai.ruko"
+        },
+        {
+          "comment": "Web development types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([rR]equest|[rR]esponse|[sS]ession|[cC]ookie|[hH]andler)\\b",
+          "name": "support.class.web.ruko"
+        },
+        {
+          "comment": "Testing types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([tT]estCase|[mM]ock|[sS]py|[aA]ssertion|[fF]ixture)\\b",
+          "name": "support.class.testing.ruko"
+        },
+        {
+          "comment": "Miscellaneous types",
+          "match": "(?x)\\s*(?<![?!]?\\.|[?!:]:|[?!-]>)\\b([cC]onfig|[sS]ettings|[lL]ogger|[eE]vent|[mM]anager)\\b",
+          "name": "support.class.misc.ruko"
+        },
+        {
+          "comment": "Include built-in classes from other languages to improve recognition",
           "include": "#support-classes"
         }
       ]
@@ -13920,7 +13977,7 @@
           "include": "#html-builtins"
         },
         {
-          "match": "\\b(adprep|append|arp|assoc|at|atmadm|attrib|auditpol|autochk|autoconv|autofmt|bcdboot|bcdedit|bdehdcfg|bitsadmin|bootcfg|brea|cacls|cd|certreq|certutil|change|chcp|chdir|chglogon|chgport|chgusr|chkdsk|chkntfs|choice|cipher|clip|cls|clscluadmin|cluster|cmd|cmdkey|cmstp|color|comp|compact|convert|copy|cprofile|cscript|csvde|date|dcdiag|dcgpofix|dcpromo|defra|del|dfscmd|dfsdiag|dfsrmig|diantz|dir|dirquota|diskcomp|diskcopy|diskpart|diskperf|diskraid|diskshadow|dispdiag|doin|dnscmd|doskey|driverquery|dsacls|dsadd|dsamain|dsdbutil|dsget|dsmgmt|dsmod|dsmove|dsquery|dsrm|edit|endlocal|eraseesentutl|eventcreate|eventquery|eventtriggers|evntcmd|expand|extract|fc|filescrn|find|findstr|finger|flattemp|fonde|forfiles|format|freedisk|fsutil|ftp|ftype|fveupdate|getmac|gettype|gpfixup|gpresult|gpupdate|graftabl|hashgen|hep|helpctr|hostname|icacls|iisreset|inuse|ipconfig|ipxroute|irftp|ismserv|jetpack|klist|ksetup|ktmutil|ktpass|label|ldifd|ldp|lodctr|logman|logoff|lpq|lpr|macfile|makecab|manage-bde|mapadmin|md|mkdir|mklink|mmc|mode|more|mount|mountvol|move|mqbup|mqsvc|mqtgsvc|msdt|msg|msiexec|msinfo32|mstsc|nbtstat|net_computer|net_group|net_localgroup|net_print|net_session|net_share|net_start|net_stop|net_use|net_user|net_view|net|netcfg|netdiag|netdom|netsh|netstat|nfsadmin|nfsshare|nfsstat|nlb|nlbmgr|nltest|nslookup|ntackup|ntcmdprompt|ntdsutil|ntfrsutl|openfiles|pagefileconfig|path|pathping|pause|pbadmin|pentnt|perfmon|ping|pnpunatten|pnputil|popd|powercfg|powershell|powershell_ise|print|prncnfg|prndrvr|prnjobs|prnmngr|prnport|prnqctl|prompt|pubprn|pushd|pushprinterconnections|pwlauncher|qappsrv|qprocess|query|quser|qwinsta|rasdial|rcp|rd|rdpsign|regentc|recover|redircmp|redirusr|reg|regini|regsvr32|relog|ren|rename|rendom|repadmin|repair-bde|replace|reset session|rxec|risetup|rmdir|robocopy|route|rpcinfo|rpcping|rsh|runas|rundll32|rwinsta|sc|schtasks|scp|scwcmd|secedit|serverceipoptin|servrmanagercmd|serverweroptin|setspn|setx|sfc|sftp|shadow|shift|showmount|shutdown|sort|ssh|ssh-add|ssh-agent|ssh-keygen|ssh-keyscan|start|storrept|subst|sxstrace|ysocmgr|systeminfo|takeown|tapicfg|taskkill|tasklist|tcmsetup|telnet|tftp|time|timeout|title|tlntadmn|tpmvscmgr|tpmvscmgr|tacerpt|tracert|tree|tscon|tsdiscon|tsecimp|tskill|tsprof|type|typeperf|tzutil|uddiconfig|umount|unlodctr|ver|verifier|verif|vol|vssadmin|w32tm|waitfor|wbadmin|wdsutil|wecutil|wevtutil|where|whoami|winnt|winnt32|winpop|winrm|winrs|winsat|wlbs|wmic|wscript|wsl|xcopy)\\b",
+          "match": "\\b(adprep|append|arp|assoc|at|atmadm|attrib|auditpol|autochk|autoconv|autofmt|bcdboot|bcdedit|bdehdcfg|bitsadmin|bootcfg|brea|cacls|cd|certreq|certutil|change|chcp|chdir|chglogon|chgport|chgusr|chkdsk|chkntfs|choice|cipher|clip|cls|clscluadmin|cluster|cmd|cmdkey|cmstp|color|comp|compact|convert|copy|cprofile|cscript|csvde|date|dcdiag|dcgpofix|dcpromo|defra|del|dfscmd|dfsdiag|dfsrmig|diantz|dir|dirquota|diskcomp|diskcopy|diskpart|diskperf|diskraid|diskshadow|dispdiag|doin|dnscmd|doskey|driverquery|dsacls|dsadd|dsamain|dsdbutil|dsget|dsmgmt|dsmod|dsmove|dsquery|dsrm|edit|endlocal|eraseesentutl|eventcreate|eventquery|eventtriggers|evntcmd|expand|extract|fc|filescrn|find|findstr|finger|flattemp|fonde|forfiles|format|freedisk|fsutil|ftp|ftype|fveupdate|getmac|gettype|gpfixup|gpresult|gpupdate|graftabl|hashgen|hep|helpctr|hostname|icacls|iisreset|inuse|ipconfig|ipxroute|irftp|ismserv|jetpack|klist|ksetup|ktmutil|ktpass|label|ldifd|ldp|lodctr|logman|logoff|lpq|lpr|macfile|makecab|manage_bde|mapadmin|md|mkdir|mklink|mmc|mode|more|mount|mountvol|move|mqbup|mqsvc|mqtgsvc|msdt|msg|msiexec|msinfo32|mstsc|nbtstat|net_computer|net_group|net_localgroup|net_print|net_session|net_share|net_start|net_stop|net_use|net_user|net_view|net|netcfg|netdiag|netdom|netsh|netstat|nfsadmin|nfsshare|nfsstat|nlb|nlbmgr|nltest|nslookup|ntackup|ntcmdprompt|ntdsutil|ntfrsutl|openfiles|pagefileconfig|path|pathping|pause|pbadmin|pentnt|perfmon|ping|pnpunatten|pnputil|popd|powercfg|powershell|powershell_ise|print|prncnfg|prndrvr|prnjobs|prnmngr|prnport|prnqctl|prompt|pubprn|pushd|pushprinterconnections|pwlauncher|qappsrv|qprocess|query|quser|qwinsta|rasdial|rcp|rd|rdpsign|regentc|recover|redircmp|redirusr|reg|regini|regsvr32|relog|ren|rename|rendom|repadmin|repair_bde|replace|reset_session|rxec|risetup|rmdir|robocopy|route|rpcinfo|rpcping|rsh|runas|rundll32|rwinsta|sc|schtasks|scp|scwcmd|secedit|serverceipoptin|servrmanagercmd|serverweroptin|setspn|setx|sfc|sftp|shadow|shift|showmount|shutdown|sort|ssh|ssh_add|ssh_agent|ssh_keygen|ssh_keyscan|start|storrept|subst|sxstrace|ysocmgr|systeminfo|takeown|tapicfg|taskkill|tasklist|tcmsetup|telnet|tftp|time|timeout|title|tlntadmn|tpmvscmgr|tpmvscmgr|tacerpt|tracert|tree|tscon|tsdiscon|tsecimp|tskill|tsprof|type|typeperf|tzutil|uddiconfig|umount|unlodctr|ver|verifier|verif|vol|vssadmin|w32tm|waitfor|wbadmin|wdsutil|wecutil|wevtutil|where|whoami|winnt|winnt32|winpop|winrm|winrs|winsat|wlbs|wmic|wscript|wsl|xcopy)\\b",
           "name": "support.function.batchfile.ruko"
         },
         {
@@ -14524,12 +14581,6 @@
           "name": "support.function.builtin.coffee"
         },
         {
-          "include": "source.swift#builtin-functions"
-        },
-        {
-          "include": "source.swift#builtin-global-functions"
-        },
-        {
           "include": "source.python#builtin-functions"
         },
         {
@@ -14537,6 +14588,12 @@
         },
         {
           "include": "source.python#magic-function-names"
+        },
+        {
+          "include": "source.swift#builtin-functions"
+        },
+        {
+          "include": "source.swift#builtin-global-functions"
         }
       ]
     }
