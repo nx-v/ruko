@@ -1,6 +1,6 @@
 // regex examples
 /\p{sc=Han}+/
-/\p{blk=UCAS_Ext_A}+/ 
+/\p{blk=UCAS_Ext_A}+/
 /\p{name~=/(SMILING|GRINNING) FACE/}/g
 /\p{InGreek}+/i
 /\p{Script=Hiragana}+/m
@@ -8,7 +8,7 @@
 
 // generating a random string
 let randomString |repeat, seed = 3**32|: str =
-  [/[\da-z]/i random: seed, repeat toIter: join: ''] 
+  [/[\da-z]/i random: seed, repeat toIter: join: '']
 print randomString
 
 // infix function syntax
@@ -48,7 +48,7 @@ shader MazeGenerator {
   storage mut<group 0, binding 2> wallsArray: WallsArray
 
   func getCellIndex(cellCoords: Vec2<i32>): i32 {
-    let size: i32 = i32 uniforms.mazeSize
+    let size = i32 uniforms.mazeSize
     return cellCoords.y * size + cellCoords.x
   }
 
@@ -86,9 +86,7 @@ shader MazeGenerator {
   compute proc<threadGroup 8 8> main(%id: Vec3<n32>) {
     randomCarveCellWalls <| Vec2<i32> %id.xy
   }
-}
 
-sortedPowerSet 1..<20 |> echo
 for let i in sortedPowerSet [1...16]:
   echo i
 
@@ -192,6 +190,11 @@ scope `for for let x in [x alloc: init: release:]:
 // JSX control structures
 <for let=$i in=(0...10)>
   <if (x % 2 == 0)>
-    ; print i
+    ; print i +
+    <span>Even: {i}</span>
+  </>
+  <else>
+    ; print i -
+    <span>Odd: {i}</span>
   </>
 </>

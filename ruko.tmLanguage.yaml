@@ -50,7 +50,7 @@ patterns: [include: "#core"]
 #   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
 #   - [x] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
 # - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
-#   AsciiDoc and other lightweight markup languages for inspiration.
+#   ASCIIDoc and other lightweight markup languages for inspiration.
 #   - [x] Headings and subheadings
 #   - [x] Deleted and inserted text ~~deleted~~ ++inserted++
 #   - [x] Superscript ^super^
@@ -4655,13 +4655,15 @@ repository:
                   | [)\]}] # closing bracket
                 ) \s*
               | # infix operator
-                \s+ (?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                \s+ (?:
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                   (?:[\p{P}\p{S}]*
                     [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                   )?
                 ) \s+
               | # primary operator
-                \b (?:[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                \b (?:
+                  [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
                   (?:[\p{P}\p{S}]*
                     [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
                   )?
@@ -4755,13 +4757,15 @@ repository:
                   | [)\]}] # closing bracket
                 ) \s*
               | # infix operator
-                \s+ (?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                \s+ (?:
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                   (?:[\p{P}\p{S}]*
                     [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                   )?
                 ) \s+
               | # primary operator
-                \b (?:[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                \b (?:
+                  [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
                   (?:[\p{P}\p{S}]*
                     [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
                   )?
@@ -4839,12 +4843,11 @@ repository:
           )
           (?! # infix operator
             \s+
-              (?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-              (?:[\p{P}\p{S}]*
-                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-              )?
-              (?=\s|$)
-            )
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+            (?=\s|$)
           )
           (?! # function name
             \s+ \\ # infix function operator
@@ -5475,76 +5478,127 @@ repository:
       - include: $self
 
   infix-operators:
-    comment: Infix operators - e.g., x + y
-    match: |
-      (?x)
-      (?<=^|[\s({\[])(?:
-          ( [\p{P}\p{S}&&[^~<=>.,:;!''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-        | ( \?[.:>] ) # optional
-        | ( ![.:>] ) # mandatory
-        | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|§§|¦¦|¤¤|\#\#|¶¶ ) # logical
-        | ( [&|^§¦¤#¶] ) # bitwise
-        | ( <<[<>]?|[<>]?>> ) # bitwise shift
-        | ( \+\+|--|××|÷÷|%%|\# ) # string
-        | ( [+\-×÷][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-        | ( <[-=]?\||\|[-=]?> ) # pipeline
-        | ( <\+|\+>|∘ ) # compose
-        | ( [<>][:!]|[:!][<>] ) # class
-        | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-        | ( [<>]=?|<=?> ) # relational
-        | ( \.\.+|··+ ) # dots
-        | ( [!=]==? ) # comparison
-        | ( ~[=!]|[=!]~|<>|>< ) # similarity
-        | ( <[/*|+$:]>?|[/*|+$:]> ) #
-        | ( \?\?\?? ) # null-coalescing
-        | ( !!!? ) # coalescing
-        | ( \?:? ) # conditional
-        | ( !:? ) # ternary
-        | ( [.:$]|:::? ) # macro
-        | ( :?:?= ) # assignment
-        | ( ==?>|<== ) # fat arrow
-        | ( --?>|<--? ) # thin arrow
-        | ( ~~?>|<~~? ) # wavy arrow
-        | ( \p{Sm}+ ) # math symbols
-        | ( \p{Sc}+ ) # currency symbols
-        | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
-        | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-        | ( [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # other operators
-      )(?=$|[)}\]\s])
-    captures:
-      1: { name: keyword.operator.assignment.augmented.ruko }
-      2: { name: keyword.operator.optional.ruko }
-      3: { name: keyword.operator.unwrap.ruko }
-      4: { name: keyword.operator.accessor.ruko }
-      5: { name: keyword.operator.logical.ruko }
-      6: { name: keyword.operator.bitwise.ruko }
-      7: { name: keyword.operator.bitwise.shift.ruko }
-      8: { name: keyword.operator.successor.ruko }
-      9: { name: keyword.operator.arithmetic.ruko }
-      10: { name: keyword.operator.pipeline.ruko }
-      11: { name: keyword.operator.compose.ruko }
-      12: { name: keyword.operator.class.ruko }
-      13: { name: keyword.operator.range.ruko }
-      14: { name: keyword.operator.relational.ruko }
-      15: { name: keyword.operator.dots.ruko }
-      16: { name: keyword.operator.comparison.ruko }
-      17: { name: keyword.operator.similarity.ruko }
-      18: { name: keyword.operator.special.ruko }
-      19: { name: keyword.operator.null-coalescing.ruko }
-      20: { name: keyword.operator.coalescing.ruko }
-      21: { name: keyword.operator.conditional.ruko }
-      22: { name: keyword.operator.ternary.ruko }
-      23: { name: keyword.operator.macro.ruko }
-      24: { name: keyword.operator.assignment.ruko }
-      25: { name: keyword.operator.arrow.fat.ruko }
-      26: { name: keyword.operator.arrow.thin.ruko }
-      27: { name: keyword.operator.arrow.wavy.ruko }
-      28: { name: keyword.operator.math.custom.ruko }
-      29: { name: keyword.operator.currency.custom.ruko }
-      30: { name: keyword.operator.ascii.ruko }
-      31: { name: keyword.operator.arrow.ruko }
-      32: { name: keyword.operator.infix.ruko }
+    patterns:
+      - comment: Infix operators at the end of line
+        begin: |
+          (?x)
+          (?<=^|[\s({\[])(?:
+              ( [\p{P}\p{S}&&[^~<=>.,:;!''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+            | ( \?[.:>] ) # optional
+            | ( ![.:>] ) # mandatory
+            | ( (?:\.|::|->) ) # accessors
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|\#\#|¶¶ ) # logical
+            | ( [&|^§¦¤#¶] ) # bitwise
+            | ( <<[<>]?|[<>]?>> ) # bitwise shift
+            | ( \+\+|--|××|÷÷|%%|\# ) # string
+            | ( [+\-×÷][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( <[-=]?\||\|[-=]?> ) # pipeline
+            | ( <\+|\+>|∘ ) # compose
+            | ( [<>][:!]|[:!][<>] ) # class
+            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+            | ( [<>]=?|<=?> ) # relational
+            | ( \.\.+|··+ ) # dots
+            | ( [!=]==? ) # comparison
+            | ( ~[=!]|[=!]~|<>|>< ) # similarity
+            | ( <[/*|+$:]>?|[/*|+$:]> ) #
+            | ( \?\?\?? ) # null-coalescing
+            | ( !!!? ) # coalescing
+            | ( \?:? ) # conditional
+            | ( !:? ) # ternary
+            | ( [.:$]|:::? ) # macro
+            | ( :?:?= ) # assignment
+            | ( ==?>|<== ) # fat arrow
+            | ( --?>|<--? ) # thin arrow
+            | ( ~~?>|<~~? ) # wavy arrow
+            | ( \p{Sm}+ ) # math symbols
+            | ( \p{Sc}+ ) # currency symbols
+            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
+            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) 
+          )(?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
+        beginCaptures: &infix-operator-captures
+          1: { name: keyword.operator.assignment.augmented.ruko }
+          2: { name: keyword.operator.optional.ruko }
+          3: { name: keyword.operator.unwrap.ruko }
+          4: { name: keyword.operator.accessor.ruko }
+          5: { name: keyword.operator.logical.ruko }
+          6: { name: keyword.operator.bitwise.ruko }
+          7: { name: keyword.operator.bitwise.shift.ruko }
+          8: { name: keyword.operator.successor.ruko }
+          9: { name: keyword.operator.arithmetic.ruko }
+          10: { name: keyword.operator.pipeline.ruko }
+          11: { name: keyword.operator.composition.ruko }
+          12: { name: keyword.operator.class.ruko }
+          13: { name: keyword.operator.range.ruko }
+          14: { name: keyword.operator.relational.ruko }
+          15: { name: keyword.operator.dots.ruko }
+          16: { name: keyword.operator.comparison.ruko }
+          17: { name: keyword.operator.similarity.ruko }
+          18: { name: keyword.operator.special.ruko }
+          19: { name: keyword.operator.null-coalescing.ruko }
+          20: { name: keyword.operator.coalescing.ruko }
+          21: { name: keyword.operator.conditional.ruko }
+          22: { name: keyword.operator.ternary.ruko }
+          23: { name: keyword.operator.macro.ruko }
+          24: { name: keyword.operator.assignment.ruko }
+          25: { name: keyword.operator.arrow.fat.ruko }
+          26: { name: keyword.operator.arrow.thin.ruko }
+          27: { name: keyword.operator.arrow.wavy.ruko }
+          28: { name: keyword.operator.math.custom.ruko }
+          29: { name: keyword.operator.currency.custom.ruko }
+          30: { name: keyword.operator.ascii.ruko }
+          31: { name: keyword.operator.arrow.ruko }
+          32: { name: keyword.operator.infix.ruko }
+        end: ^\s*(?=\S)
+        patterns:
+          - include: "#line-continuation"
+          - include: "#comments"
+      - comment: Infix operators - e.g., x + y
+        match: |
+          (?x)
+          (?<=^|[\s({\[])(?:
+              ( [\p{P}\p{S}&&[^~<=>.,:;!''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+            | ( \?[.:>] ) # optional
+            | ( ![.:>] ) # mandatory
+            | ( (?:\.|::|->) ) # accessors
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|\#\#|¶¶ ) # logical
+            | ( [&|^§¦¤#¶] ) # bitwise
+            | ( <<[<>]?|[<>]?>> ) # bitwise shift
+            | ( \+\+|--|××|÷÷|%%|\# ) # string
+            | ( [+\-×÷][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( <[-=]?\||\|[-=]?> ) # pipeline
+            | ( <\+|\+>|∘ ) # compose
+            | ( [<>][:!]|[:!][<>] ) # class
+            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+            | ( [<>]=?|<=?> ) # relational
+            | ( \.\.+|··+ ) # dots
+            | ( [!=]==? ) # comparison
+            | ( ~[=!]|[=!]~|<>|>< ) # similarity
+            | ( <[/*|+$:]>?|[/*|+$:]> ) #
+            | ( \?\?\?? ) # null-coalescing
+            | ( !!!? ) # coalescing
+            | ( \?:? ) # conditional
+            | ( !:? ) # ternary
+            | ( [.:$]|:::? ) # macro
+            | ( :?:?= ) # assignment
+            | ( ==?>|<== ) # fat arrow
+            | ( --?>|<--? ) # thin arrow
+            | ( ~~?>|<~~? ) # wavy arrow
+            | ( \p{Sm}+ ) # math symbols
+            | ( \p{Sc}+ ) # currency symbols
+            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
+            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) 
+          )(?=$|[)}\]\s])
+        captures: *infix-operator-captures
 
   interfix-operators:
     comment: Interfix operators - x+y (without spaces)
@@ -5585,37 +5639,7 @@ repository:
         | ( [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # other operators
       )(?=(?:['"`\w]|\#?[(\[{]))
     captures:
-      1: { name: keyword.operator.assignment.augmented.ruko }
-      2: { name: keyword.operator.optional.ruko }
-      3: { name: keyword.operator.unwrap.ruko }
-      4: { name: keyword.operator.accessor.ruko }
-      5: { name: keyword.operator.logical.ruko }
-      6: { name: keyword.operator.bitwise.ruko }
-      7: { name: keyword.operator.bitwise.shift.ruko }
-      8: { name: keyword.operator.successor.ruko }
-      9: { name: keyword.operator.arithmetic.ruko }
-      10: { name: keyword.operator.pipeline.ruko }
-      11: { name: keyword.operator.compose.ruko }
-      12: { name: keyword.operator.class.ruko }
-      13: { name: keyword.operator.range.ruko }
-      14: { name: keyword.operator.relational.ruko }
-      15: { name: keyword.operator.dots.ruko }
-      16: { name: keyword.operator.comparison.ruko }
-      17: { name: keyword.operator.similarity.ruko }
-      18: { name: keyword.operator.special.ruko }
-      19: { name: keyword.operator.null-coalescing.ruko }
-      20: { name: keyword.operator.coalescing.ruko }
-      21: { name: keyword.operator.conditional.ruko }
-      22: { name: keyword.operator.ternary.ruko }
-      23: { name: keyword.operator.macro.ruko }
-      24: { name: keyword.operator.assignment.ruko }
-      25: { name: keyword.operator.arrow.fat.ruko }
-      26: { name: keyword.operator.arrow.thin.ruko }
-      27: { name: keyword.operator.arrow.wavy.ruko }
-      28: { name: keyword.operator.math.custom.ruko }
-      29: { name: keyword.operator.currency.custom.ruko }
-      30: { name: keyword.operator.ascii.ruko }
-      31: { name: keyword.operator.arrow.ruko }
+      <<: *infix-operator-captures
       32: { name: keyword.operator.interfix.ruko }
 
   prefix-operators:
@@ -6226,7 +6250,9 @@ repository:
       - include: $self
 
   query-expression:
-    comment: RINQ (Ruko INtegrated Query) expression mini-language
+    comment: "RINQ (Ruko INtegrated Query) expression mini-language
+      TODO: unify the query clauses to reduce redundancy, since they are
+      mostly similar in structure."
     begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(from)\b\s*
     beginCaptures:
       1: { name: keyword.control.query.ruko }
@@ -6269,8 +6295,7 @@ repository:
       (?x)\s*
       (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-             (?:inner|left|right|outer|cross)? \b\s*
-          \b join
+          (?:inner|left|right|outer|cross)? \b\s*\b join
         )
       \b\s*
     beginCaptures:
@@ -6311,8 +6336,7 @@ repository:
       (?x)\s*
       (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-             (?:sort|order|then) \b\s*
-          \b (?:by|with)?
+          (?:sort|order|then) \b\s*\b (?:by|with)?
         )
       \b\s*
     beginCaptures:
@@ -6329,8 +6353,7 @@ repository:
       (?x)\s*
       (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-             (?:select|map) \b\s*
-          \b (?:unique|any|all|some|every)?
+          (?:select|map) \b\s*\b (?:unique|any|all|some|every)?
         )
       \b\s*
     beginCaptures:
@@ -6349,8 +6372,7 @@ repository:
       (?x)\s*
       (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-             (?:take|drop|limit|offset|limit) \b\s*
-          \b (?:first|last|head|tail)?
+          (?:take|drop|limit|offset|limit) \b\s*\b (?:first|last|head|tail)?
         )
       \b\s*
     beginCaptures:
@@ -6369,8 +6391,7 @@ repository:
       (?x)\s*
       (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
         (
-             (?:fold|reduce|scan) \b\s*
-          \b (?:first|last|left|right)?
+          (?:fold|reduce|scan) \b\s*\b (?:first|last|left|right)?
         )
       \b\s*
     beginCaptures:
@@ -6422,7 +6443,7 @@ repository:
             | x?n?or # or, xor, nor, xnor 
             | c?n?imply # imply, cimply, nimply, cnimply
           ) \b\s*\b
-          (?: all | any | some | every)? # optional quantifier
+          (?: all|any|some|every )? # optional quantifier
         ) 
       \b\s*
     beginCaptures:
