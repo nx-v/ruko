@@ -40,33 +40,130 @@ let randomString |repeat, seed = 3**32|: str =
   [/[\da-z]/i random: seed, repeat toIter: join: '']
 print randomString
 
-// infix function syntax
-let sortedPowerSet = |arr| 0 ..< 1 << len arr
+// imperative function syntax
+func sortedPowerSet(arr: i32[]): i32[][] {
+  mut result: i32[][] = []
+
+  for let i in 0 ..< 1 << arr.len {
+    mut subset: i32[] = []
+    for let j in 0 ..< arr.len if (i >> j) & 1:
+      subset.push arr[j]
+    result.push subset
+  }
+
+  result.sortBy |a, b| {
+    let countA = a.reduce 0, |c,, i| c + 1
+    let countB = b.reduce 0, |d,, i| d + 1
+    if countA != countB:
+      countA - countB
+    for let i in 0 ..< min a.len b.len if a[i] != b[i]:
+      a[i] - b[i]
+    a.len - b.len
+  }
+
+ result
+}
+
+// infix "backslash" operator examples
+let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \sort\ |a, b| (-) ([a, b] \map\
       |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
     ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1)
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
-// Smalltalk-style function/method call syntax
+// LINQ-style syntax
+func sortedPowerSet(arr: i32[]): i32[][] = (
+  from let i in 0 ..< 1 << arr.len
+  select from let j in 0..<arr.len 
+    where (i >> j) & 1 
+    select arr[j]
+  sort by from let subset in result
+    let count = subset.reduce 0, |c,, i| c + 1
+    then by count
+    then by 
+      from let i in 0 ..< min a.len b.len 
+      where a[i] != b[i]
+      select a[i] - b[i]
+    then by a.len - b.len
+)
+
+// Objective-C-like syntax
 func sortedPowerSet(arr: i32[]): i32[][] {
-  mut result: i32[][] = []
-  let n: i32 = arr.len
+  let result: i32[][] = []
 
-  for let i in 0 ..< 1 << n {
-    mut subset: i32[] = []
-    for let j in 0..<n if (i >> j) & 1:
-      subset.push arr[j]
-    result.push subset
-  }
-
-  [result sort: |a: i32[], b: i32[]|: i32 {
-    for let x, y in a.iter() \zip\ b.iter() if x != y:
-      return x <=> y
-    a.len <=> b.len
+  [0 ..< 1 << arr.len each: |i| {
+    let subset: i32[] = []
+    [0 ..< arr.len each: |j| 
+      if (i >> j) & 1: subset push: arr[j]]
+    [result push: subset]
   }]
+
+  [result sortBy: |a, b| {
+    let countA = [a reduce: 0, |c,, i| c + 1]
+    let countB = [b reduce: 0, |d,, i| d + 1]
+    if countA != countB:
+      return countA - countB
+    for let i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
+      return a[i] - b[i]
+    a.len - b.len
+  }]
+}
+
+// Clojure-like (prefix) syntax
+func sortedPowerSet(arr: i32[]): i32[][] {
+  (type i32[][]) mut result = []
+
+  (for let i in (..< 0 (<< 1 (len arr))) {
+    (type i32[]) mut subset = []
+    (for let j in (..< 0 (len arr)) if (& (>> i j) 1)) {
+      (push subset (arr j))
+    }
+    (push result subset)
+  })
+
+  (sortBy result (|a, b| {
+    (type i32) let countA = (reduce a 0 (|c,, i| (+ c 1)))
+    (type i32) let countB = (reduce b 0 (|d,, i| (+ d 1)))
+    (if (!= countA countB)
+      (- countA countB))
+
+    (for let i in (..< 0 (min (len a) (len b)))
+      if (!= (a i) (b i)) {
+      return (- (a i) (b i))
+    })
+
+    (- (len a) (len b))
+  }))
 
   result
 }
+
+// JSX-like syntax
+compo sortedPowerSet(arr: i32[]): i32[][] = <scope>
+  <mut (type i32[][]) $result=[]/>
+  <for let=$i in=(0 ..< 1 << arr.len)>
+    <mut (type i32[]) $subset=[]/>
+    <for let=$j in=(0 ..< arr.len) if=((i >> j) & 1)>
+      <exec $subset.push(arr[j])/>
+    </for>
+    <exec $result.push(subset)/>
+  </for>
+  <exec $result.sortBy(|a, b|
+    <let (type i32) $countA=(<exec $a.reduce(0, |c,, i| c + 1)/>)/>
+    <let (type i32) $countB=(<exec $b.reduce(0, |d,, i| d + 1)/>)/>
+    <if cond=(countA != countB)>
+      <return (countA - countB)/>
+    </if>
+    <for let=$i in=(0 ..< min a.len b.len) if=(a[i] != b[i])>
+      <return (a[i] - b[i])/>
+    </for>
+    <return (a.len - b.len)/>
+  )/>
+  <return $result/>
+</scope>
+
+for let i in sortedPowerSet [1...16]:
+  echo i
 
 // shader language subset example (WGSL-like)
 shader MazeGenerator {
@@ -78,13 +175,13 @@ shader MazeGenerator {
 
   func getCellIndex(cellCoords: Vec2<i32>): i32 {
     let size = i32 uniforms.mazeSize
-    return cellCoords.y * size + cellCoords.x
+    cellCoords.y * size + cellCoords.x
   }
 
   func coinFlip(p: Vec2<f32>): f32 {
     mut p3: Vec3<f32> = fract <| Vec3 p.xyx * 0.1031
     p3 += dot p3 (p3.yzx + 33.33)
-    return step 0.5 (fract (p3.x + p3.y) * p3.z)
+    step 0.5 (fract (p3.x + p3.y) * p3.z)
   }
 
   // Carve walls for a given cell at random
@@ -115,11 +212,12 @@ shader MazeGenerator {
   compute proc<threadGroup 8 8> main(%id: Vec3<n32>) {
     randomCarveCellWalls <| Vec2<i32> %id.xy
   }
+}
 
 for let i in sortedPowerSet [1...16]:
   echo i
 
-// LINQ-style queries
+  // LINQ-style queries
 let formatPowerSet = |a: i32[][]|: str =
   a.iter(iter: from let (subset: i32[]) in a where subset.len > 0
     select '[' ++ [subset map: str x join: ','] ++ ']'
@@ -204,7 +302,7 @@ struct Node {
   let next: *Node
 
   proc new(value: i32): *Node {
-    let node = malloc Node
+    let node = unsafe { malloc Node }
     node.value = value
     node.next = null
     return node

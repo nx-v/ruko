@@ -450,8 +450,8 @@ repository:
           |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
           # miscellaneous keywords
-          |debug|assert|check|decl
-          |use|echo|eval|expr|scope
+          |debug|assert|check|decl|ignore
+          |use|echo|eval|exec|scope|safe|unsafe
           |begin|end
         ) \b
       )
@@ -1272,8 +1272,8 @@ repository:
             |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
             # miscellaneous keywords
-            |debug|assert|check|decl
-            |use|echo|eval|expr|scope
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
             |begin|end
           ) \b
         )
@@ -2204,8 +2204,8 @@ repository:
               |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
               # miscellaneous keywords
-              |debug|assert|check|decl
-              |use|echo|eval|expr|scope
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
               |begin|end
             ) \b
           )
@@ -2288,8 +2288,8 @@ repository:
                     |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                     # miscellaneous keywords
-                    |debug|assert|check|decl
-                    |use|echo|eval|expr|scope
+                    |debug|assert|check|decl|ignore
+                    |use|echo|eval|exec|scope|safe|unsafe
                     |begin|end
                   ) \b
                 )
@@ -2418,7 +2418,12 @@ repository:
           | \#? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
+            (?:
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>) # qualified name separator
+            )*
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+            \b\s
         ) \s*
       ) \s*
       (?=/['"`\w\\(\[{]|/$)
@@ -3073,7 +3078,12 @@ repository:
           | \#? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
+            (?:
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>) # qualified name separator
+            )*
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+            \b\s
         ) \s*
       ) \s*
       (?=<[\p{Pc}\p{L}\p{Nl}($])
@@ -3920,8 +3930,8 @@ repository:
                   |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                   # miscellaneous keywords
-                  |debug|assert|check|decl
-                  |use|echo|eval|expr|scope
+                  |debug|assert|check|decl|ignore
+                  |use|echo|eval|exec|scope|safe|unsafe
                   |begin|end
                 ) \b
               )
@@ -4661,7 +4671,7 @@ repository:
                     [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                   )?
                 ) \s+
-              | # primary operator
+              | # primary operator that isn't an accessor or assignment
                 \b (?:
                   [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
                   (?:[\p{P}\p{S}]*
@@ -4691,14 +4701,19 @@ repository:
                     |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                     # miscellaneous keywords
-                    |debug|assert|check|decl
-                    |use|echo|eval|expr|scope
+                    |debug|assert|check|decl|ignore
+                    |use|echo|eval|exec|scope|safe|unsafe
                     |begin|end
                   )
                 \b
               ) \s*
             )
             [\p{P}\p{S}&&[^,;'"`/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+          )
+          (?<! # accessor or assignment
+            \b (?:
+              (?:[?!]?\.|[?!:]:|[?!-]>)=?
+            ) \b 
           )
           (
             # ignore all keywords
@@ -4724,8 +4739,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -4763,7 +4778,7 @@ repository:
                     [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                   )?
                 ) \s+
-              | # primary operator
+              | # primary operator that isn't an accessor or assignment
                 \b (?:
                   [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
                   (?:[\p{P}\p{S}]*
@@ -4793,14 +4808,19 @@ repository:
                     |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                     # miscellaneous keywords
-                    |debug|assert|check|decl
-                    |use|echo|eval|expr|scope
+                    |debug|assert|check|decl|ignore
+                    |use|echo|eval|exec|scope|safe|unsafe
                     |begin|end
                   )
                 \b
               ) \s*
             )
             [\p{P}\p{S}&&[^,;'"`/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+          )
+          (?<! # accessor or assignment
+            \b (?:
+              (?:[?!]?\.|[?!:]:|[?!-]>)=?
+            ) \b
           )
           (
             # ignore all keywords
@@ -4826,8 +4846,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -4879,8 +4899,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -4936,8 +4956,8 @@ repository:
                       |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                       # miscellaneous keywords
-                      |debug|assert|check|decl
-                      |use|echo|eval|expr|scope
+                      |debug|assert|check|decl|ignore
+                      |use|echo|eval|exec|scope|safe|unsafe
                       |begin|end
                     )
                     \b
@@ -4988,8 +5008,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -5462,8 +5482,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -5774,8 +5794,8 @@ repository:
               |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
               # miscellaneous keywords
-              |debug|assert|check|decl
-              |use|echo|eval|expr|scope
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
               |begin|end
             ) \b
           )
@@ -5826,8 +5846,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -5857,8 +5877,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -6047,7 +6067,7 @@ repository:
 
   declaration-keywords:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)\b\s*
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl|ignore|safe|unsafe)\b\s*
         name: keyword.other.declare.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(var|mut|let|auto|const)\b\s*
         name: storage.type.ruko
@@ -6087,9 +6107,9 @@ repository:
         name: keyword.control.$1.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(when)\b\s*
         name: keyword.control.signal.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)\b\s*
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl|ignore|safe|unsafe)\b\s*
         name: keyword.other.declare.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|use|echo|eval|expr|scope)\b\s*
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|use|echo|eval|exec)\b\s*
         name: keyword.other.$1.ruko
 
   expression-keywords:
@@ -6239,8 +6259,8 @@ repository:
                 |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                 # miscellaneous keywords
-                |debug|assert|check|decl
-                |use|echo|eval|expr|scope
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
                 |begin|end
               ) \b
             )
@@ -6553,7 +6573,7 @@ repository:
         beginCaptures:
           1: { name: storage.type.variable.ruko }
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)\b\s*
+        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl)|ignore\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: keyword.other.declare.ruko }
@@ -6836,8 +6856,8 @@ repository:
                   |[gd]o|from|where|(?:im|ex)(?:port|tern)
 
                   # miscellaneous keywords
-                  |debug|assert|check|decl
-                  |use|echo|eval|expr|scope
+                  |debug|assert|check|decl|ignore
+                  |use|echo|eval|exec|scope|safe|unsafe
                   |begin|end
                 ) \b
               )
@@ -7016,7 +7036,12 @@ repository:
           | \#? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\s  # keyword or identifier
+            (?:
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>) # qualified name separator
+            )*
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+            \b\s
         ) \s*
       ) \s*
       (\|) (?=
