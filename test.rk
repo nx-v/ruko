@@ -72,20 +72,29 @@ let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // LINQ-style syntax
+// LINQ-style syntax
 func sortedPowerSet(arr: i32[]): i32[][] = (
-  from let i in 0 ..< 1 << arr.len
-  select from let j in 0..<arr.len 
-    where (i >> j) & 1 
+  from let i in 0 ..< (1 << arr.len)
+  select (
+    from let j in 0 ..< arr.len
+    where (i >> j) & 1
     select arr[j]
-  sort by from let subset in result
-    let count = subset.reduce 0, |c,, i| c + 1
-    then by count
-    then by 
-      from let i in 0 ..< min a.len b.len 
-      where a[i] != b[i]
-      select a[i] - b[i]
-    then by a.len - b.len
-)
+  ) sort by (
+    from let subset
+    select subset.len
+  ) then by (
+    from let a, b where
+      let countA = (from let _ in a
+        reduce 0 by |c| c + 1) and
+      let countB = (from let _ in b
+        reduce 0 by |d| d + 1) and countA != countB
+    select countA - countB
+  ) then by (
+    from let i in 0 ..< min(a.len, b.len)
+    where a[i] != b[i]
+    select a[i] - b[i]
+  ) then by a.len - b.len
+) as i32[][]
 
 // Objective-C-like syntax
 func sortedPowerSet(arr: i32[]): i32[][] {
