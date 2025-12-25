@@ -651,6 +651,21 @@ repository:
           - include: "#punctuation"
           - include: "#types"
           - include: $self
+      - begin: |-
+          (?x)
+          (?<= 
+              (?:['"`)}\]\w]|\\.) # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.round.ruko
+        captures:
+          1: { name: punctuation.definition.template.ruko }
+        patterns:
+          - include: "#call-parameters"
+          - include: "#types"
+          - include: $self
 
   type-round-brackets:
     repository:
@@ -666,9 +681,9 @@ repository:
     patterns:
       - begin: |-
           (?x)
-          (?<= # literal
-              (?: [\w'"`)}\]] | \\.) >* \s*
-            | [^\s.]\.=?|[?!:]:=?
+          (?<= 
+              (?:['"`)}\]\w]|\\.) # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
           (\#?\()\s*
         end: \s*(\))
@@ -676,6 +691,7 @@ repository:
         captures:
           1: { name: punctuation.definition.parameters.ruko }
         patterns:
+          - include: "#call-arguments"
           - include: "#types"
           - include: $self
       - begin: |-
@@ -727,9 +743,9 @@ repository:
     patterns:
       - begin: |-
           (?x)
-          (?<= # literal
-              (?: [\w'"`)}\]] | \\.) \s*
-            | [^\s.]\.=?|[?!:]:=?
+          (?<= 
+              (?:['"`)}\]\w]|\\.) # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
           (\#?\[)\s*
         end: \s*(\])
@@ -3913,6 +3929,9 @@ repository:
               (`?\b[\p{Pc}\p{L}\p{Nl}]\w*)
               \b
             name: entity.name.style.ruko
+            patterns:
+              - match: "`"
+                name: punctuation.definition.quasi.ruko
     end: ^(?=\S)|(?!\G)
     patterns:
       - begin: ^(\s+)(?!\s)
@@ -5398,7 +5417,7 @@ repository:
   named-infix-operators:
     comment: 'Named infix operators: x \fn\ y'
     contentName: keyword.operator.infix.named.ruko
-    begin: (?<=['"`)}\]\w\s]|\\.)(\\)\s*
+    begin: (?<=^|['"`)}\]\w\s]|\\.)(\\)\s*
     end: \s*(\\)(?=$|['"`\w\s]|\#?[(\[{])
     captures:
       1: { name: punctuation.definition.operator.ruko }
@@ -6124,10 +6143,15 @@ repository:
       1: { name: keyword.control.module.ruko }
     patterns:
       - include: "#module-content"
-      - include: "#extern-expression"
 
   module-content:
     patterns:
+      - begin: \s*(,)\s*(?=/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)|$)
+        end: ^\s*(?=\S)
+        captures:
+          1: { name: punctuation.separator.ruko }
+        patterns: [include: "#comments"]
+      - include: "#extern-expression"
       - begin: ({)\s*
         end: \s*(})
         captures:
@@ -6739,7 +6763,7 @@ repository:
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
-          1: { name: punctuation.section.class.ruko }
+          1: { name: punctuation.definition.class.ruko }
         patterns:
           - include: $self
       - begin: ({)\s*
@@ -7026,7 +7050,7 @@ repository:
         patterns:
           - match: *entity-name
             name: entity.name.instance.ruko
-          - include: "#parameter-brackets"
+          - include: "#brackets"
           - include: "#types"
       - applyEndPatternLast: true
         begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
@@ -7555,8 +7579,14 @@ repository:
           (?<=
             (?:
                 (?:^|[\s\p{P}\p{S}]):\|\s*\| # beside a lambda pipe
-              | (?:^|[,;'"`)}\]\w\s]|\\.)\|
-              | ^\s*\|
+              | (?:^|[,;'"`)}\]\w\s]|\\.)\| # beside a lambda pipe
+              | ^\s*\| # beside a lambda pipe
+              | (?:^|[,;'"`)}\]\w]|\\.)
+                (?:[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  )?
+                ): # beside a key-value separator
             )
           )
           \s*
@@ -7565,15 +7595,21 @@ repository:
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
-          1: { name: punctuation.section.class.ruko }
+          1: { name: punctuation.definition.class.ruko }
         patterns: [include: $self]
       - begin: |-
           (?x)
           (?<=
             (?:
                 (?:^|[\s\p{P}\p{S}]):\|\s*\| # beside a lambda pipe
-              | (?:^|[,;'"`)}\]\w\s]|\\.)\|
-              | ^\s*\|
+              | (?:^|[,;'"`)}\]\w\s]|\\.)\| # beside a lambda pipe
+              | ^\s*\| # beside a lambda pipe
+              | (?:^|[,;'"`)}\]\w]|\\.)
+                (?:[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  )?
+                ): # beside a key-value separator
             )
           )
           \s*
@@ -7699,11 +7735,25 @@ repository:
           - include: "#object-value"
           - include: "#object-key"
           - include: $self
+      - begin: |-
+          (?x)
+          (?<= 
+              (?:['"`)}\]\w]|\\.) # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: { name: punctuation.definition.template.ruko }
+        patterns:
+          - include: "#call-parameters"
+          - include: $self
       - begin: (\#{)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
-          1: { name: punctuation.section.class.ruko }
+          1: { name: punctuation.definition.class.ruko }
         patterns: [include: $self]
       - begin: ({)\s*
         end: \s*(})
