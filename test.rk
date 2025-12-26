@@ -9,22 +9,24 @@ proc main {
   let stars = Galaxy.getVisibleStars()
 
   if const prophecy = 3 ** (3 * 2) &&
-  stars has Alained &&
+  stars has "Alained" &&
   "Nexo" in stars \map\ .name {
-    Dom.Canvas.draw prophecy.toSVG()
-    Audio.Track.play "Virtual Riot - Reconnect"
+    [Dom.Canvas clear:
+                setBackground: 'black'
+                draw: prophecy.toSVG()]
+    [Audio.Track play: "Virtual Riot - Reconnect"]
     Post.emit(
       dev: <NexoVolta handle=@nexovolta/>
       art: <Alaylays handle=@alaylays/>
     )
   }
 
-  FS.write <| new Log{
+  [FS write: new Log{
     path: 'C://users/NexoV/memories/2025'
     message: 'before there was code, there was\n' *
       Figlet.toAscii (str prophecy)
     title: 'nu-Eden: Sundered Skies'
-  }
+  }]
 }
 
 // regex examples
@@ -142,8 +144,10 @@ func sortedPowerSet(arr: i32[]): i32[][] = <>
   <mut (type i32[][]) $result=[]/>
   <for let=$i in=(0 ..< 1 << arr.len)>
     <mut (type i32[]) $subset=[]/>
-    <for let=$j in=(0 ..< arr.len) if=((i >> j) & 1)>
-      <do (subset.push (arr[j]))/>
+    <for let=$j in=(0 ..< arr.len)> 
+      <if ((i >> j) & 1)>
+        <do (subset.push (arr[j]))/>
+      </if>
     </for>
     <do (result.push subset)/>
   </for>
