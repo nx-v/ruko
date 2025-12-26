@@ -389,7 +389,7 @@
       },
       "patterns": [
         {
-          "begin": "(?x)\n(?<=\n  (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  \\b\n    (?: # destructuring keywords\n      var|mut|let|auto|const\n      |case\n    )\n  \\b\n  (?:$|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  >* # after generics\n  \\s*\n)\n(\\#?\\{)\\s*",
+          "begin": "(?x)\n(?<=\n  (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  \\b\n    (?: # destructuring keywords\n      var|mut|let|auto|const\n      |case\n    )\n  \\b\n  (?:$|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  >* # after generics\n  \\s*\n)\n(\\#?{)\\s*",
           "end": "\\s*(})",
           "name": "meta.brace.curly.ruko",
           "captures": {
@@ -787,7 +787,7 @@
       "patterns": [
         {
           "comment": "Qualified name separators",
-          "match": "(?<=[)}\\]\\w])(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|\\.|->)=?))(?=[({\\[\\w])",
+          "match": "(?<=[)}\\]\\w])(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|->|\\.)=?))(?=[({\\[\\w])",
           "captures": {
             "1": {
               "name": "keyword.operator.optional.ruko"
@@ -1422,11 +1422,7 @@
           "include": "#function-calls"
         },
         {
-          "include": "#sigil-function-calls"
-        },
-        {
-          "match": "[?!:]:|[?!]?\\.|[?!-]>",
-          "name": "punctuation.separator.namespace.ruko"
+          "include": "#accessor-operators"
         },
         {
           "include": "#brackets"
@@ -3178,7 +3174,7 @@
       ]
     },
     "named-escape-content": {
-      "name": "string.unquoted.plain.in.ruko",
+      "name": "string.unquoted.plain.ruko",
       "patterns": [
         {
           "applyEndPatternLast": true,
@@ -3455,7 +3451,7 @@
             },
             {
               "comment": "Qualified name separators",
-              "match": "(?<=[)}\\]\\w])(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|\\.|->)=?))(?=[({\\[\\w])",
+              "match": "(?<=[)}\\]\\w])(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|->|\\.)=?))(?=[({\\[\\w])",
               "captures": {
                 "1": {
                   "name": "keyword.operator.optional.ruko"
@@ -3640,7 +3636,7 @@
             },
             {
               "comment": "Qualified name separators",
-              "match": "(?<=[)}\\]\\w])(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|\\.|->)=?))(?=[({\\[\\w])",
+              "match": "(?<=[)}\\]\\w])(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|->|\\.)=?))(?=[({\\[\\w])",
               "captures": {
                 "1": {
                   "name": "keyword.operator.optional.ruko"
@@ -3938,7 +3934,7 @@
                   "name": "keyword.operator.arithmetic.sign.ruko"
                 },
                 "2": {
-                  "name": "constant.other.back-reference.number.ruko"
+                  "name": "constant.numeric.back-reference.ruko"
                 }
               }
             }
@@ -3965,7 +3961,7 @@
                   "name": "keyword.operator.arithmetic.sign.ruko"
                 },
                 "2": {
-                  "name": "constant.other.back-reference.number.ruko"
+                  "name": "constant.numeric.back-reference.ruko"
                 }
               }
             }
@@ -3990,11 +3986,11 @@
         },
         {
           "match": "\\|",
-          "name": "keyword.operator.or.ruko"
+          "name": "keyword.operator.alternation.ruko"
         },
         {
           "match": "\\&",
-          "name": "keyword.operator.and.ruko"
+          "name": "keyword.operator.successor.ruko"
         },
         {
           "match": "\\.",
@@ -4033,18 +4029,33 @@
           "name": "keyword.other.back-reference.ruko"
         },
         {
-          "match": "\\{\\s*(?:\\d*\\s*,){,2}\\s*\\d*\\s*}\\s*(?:(\\?)|(\\+)|(\\*))?",
+          "match": "\\{\\s*(?:(\\d+\\s*)(,))\\s*(?:(\\d+\\s*)(,))?\\s*(?:(\\d+\\s*))?\\s*\\}(?:(\\?)|(\\+)|(\\*))?",
           "captures": {
             "0": {
               "name": "keyword.operator.quantifier.ruko"
             },
             "1": {
-              "name": "keyword.operator.modifier.lazy.ruko"
+              "name": "constant.numeric.quantifier.min.ruko"
             },
             "2": {
-              "name": "keyword.operator.modifier.eager.ruko"
+              "name": "punctuation.separator.range.ruko"
             },
             "3": {
+              "name": "constant.numeric.quantifier.max.ruko"
+            },
+            "4": {
+              "name": "punctuation.separator.range.ruko"
+            },
+            "5": {
+              "name": "constant.numeric.quantifier.step.ruko"
+            },
+            "6": {
+              "name": "keyword.operator.quantifier.lazy.ruko"
+            },
+            "7": {
+              "name": "keyword.operator.modifier.eager.ruko"
+            },
+            "8": {
               "name": "keyword.operator.modifier.greedy.ruko"
             }
           }
@@ -4093,7 +4104,7 @@
                   "name": "keyword.operator.arithmetic.sign.ruko"
                 },
                 "2": {
-                  "name": "constant.other.back-reference.number.ruko"
+                  "name": "constant.numeric.back-reference.ruko"
                 }
               }
             }
@@ -4120,7 +4131,7 @@
                   "name": "keyword.operator.arithmetic.sign.ruko"
                 },
                 "2": {
-                  "name": "constant.other.back-reference.number.ruko"
+                  "name": "constant.numeric.back-reference.ruko"
                 }
               }
             }
@@ -4147,7 +4158,7 @@
                   "name": "keyword.operator.arithmetic.sign.ruko"
                 },
                 "2": {
-                  "name": "constant.other.back-reference.number.ruko"
+                  "name": "constant.numeric.back-reference.ruko"
                 }
               }
             }
@@ -4174,7 +4185,7 @@
                   "name": "keyword.operator.arithmetic.sign.ruko"
                 },
                 "2": {
-                  "name": "constant.other.back-reference.number.ruko"
+                  "name": "constant.numeric.back-reference.ruko"
                 }
               }
             }
@@ -4486,7 +4497,7 @@
                       "name": "keyword.operator.arithmetic.sign.ruko"
                     },
                     "2": {
-                      "name": "constant.other.back-reference.number.ruko"
+                      "name": "constant.numeric.back-reference.ruko"
                     }
                   }
                 }
@@ -4678,7 +4689,7 @@
                       "name": "keyword.operator.arithmetic.sign.ruko"
                     },
                     "2": {
-                      "name": "constant.other.back-reference.number.ruko"
+                      "name": "constant.numeric.back-reference.ruko"
                     }
                   }
                 }
@@ -4721,7 +4732,7 @@
                       "name": "keyword.operator.arithmetic.sign.ruko"
                     },
                     "2": {
-                      "name": "constant.other.back-reference.number.ruko"
+                      "name": "constant.numeric.back-reference.ruko"
                     }
                   }
                 }
@@ -6898,12 +6909,7 @@
     "html-tags": {
       "patterns": [
         {
-          "match": "([?!:]:|[?!]?\\.|[?!-]>)",
-          "captures": {
-            "1": {
-              "name": "punctuation.separator.namespace.ruko"
-            }
-          }
+          "include": "#accessor-operators"
         },
         {
           "match": "(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)\\b(?=[:.])",
@@ -7019,8 +7025,7 @@
               "name": "constant.language.ruko"
             },
             {
-              "match": "[?!:]:|[?!]?\\.|[?!-]>",
-              "name": "punctuation.separator.namespace.ruko"
+              "include": "#accessor-operators"
             }
           ]
         }
@@ -9342,69 +9347,8 @@
       "name": "string.jsdoc",
       "match": "\"(\\\\\"|[^\"])*\"|'(\\\\'|[^'])*"
     },
-    "sigil-function-calls": {
-      "name": "meta.function.arguments.ruko",
-      "match": "(?x)\n\\b\n(\n `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?=\n  \\s*\n  (?:\n      (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?)? \\#?[({] # C-style function call\n    | (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?)? < [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* (?:['\"`\\w]|\\#?[(\\[{]) # generics\n    | [!~] \\#?[({] # macro and destructor calls\n    | (?:\\w*|[\\\\$\\#%]*)['\"] | `\\s*(?=\\N) # strings\n    | :`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # symbols\n  )\n)",
-      "captures": {
-        "1": {
-          "patterns": [
-            {
-              "include": "#function-names"
-            }
-          ]
-        }
-      }
-    },
-    "function-calls": {
-      "patterns": [
-        {
-          "comment": "Backward piped function calls",
-          "name": "meta.function.arguments.ruko",
-          "match": "(?x)\n(?<=\n  (?:\n      (?: \n        ^ # start of line\n        | [,;] # delimiter \n        | (?: ['\"`)}\\]\\w\\s] | \\\\.)[\\\\:] # postfix colon or backslash\n        | \\#? [({\\[] # opening bracket\n        | [)\\]}] # closing bracket\n      ) \\s*\n    | # infix operator\n      \\s+ (?:\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\s+\n    | # primary operator that isn't an accessor or assignment\n      \\b (?:\n        [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\b\n    | (?:\n      (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      \\b\n        (?: # keywords\n          # wordlike operators\n          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n          |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n          # declaration keywords\n          |var|mut|let|auto|const\n          |func|pro[pc]|type|class|actor|trait|enum|in?ter\n          |module|schema|struct|record|object|union|macro|space\n          |query|quote|style|script|shader|compo|temp|oper|realm\n\n          # control flow keywords\n          |if|un|elif|elun|else|[tw]hen|guard|with\n          |for|while|until|loop|break|skip|redo\n          |(?:re)?try|switch|[cm]atch|case|def|throw\n          |return|yield|await|goto|pass|defer|sync|select\n          |copy|move|drop\n          |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n          # miscellaneous keywords\n          |debug|assert|check|decl|ignore\n          |use|echo|eval|exec|scope|safe|unsafe\n          |begin|end\n        )\n      \\b\n    ) \\s*\n  )\n  [\\p{P}\\p{S}&&[^,;'\"`/\\()\\[\\]{}\\p{Pc}]]* # prefix operator except slashes\n)\n(?<! # accessor or assignment\n  \\b (?:\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=?\n  ) \\b \n)\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?=\n  \\s+ (?:<[-=]?\\||<\\+) (?:['\"`\\w\\s]|\\#?[(\\[{]) # function composition and piping\n)",
-          "captures": {
-            "1": {
-              "name": "meta.function.name.ruko",
-              "patterns": [
-                {
-                  "include": "#function-names"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "comment": "Normal (bracketed or bracketless) function calls",
-          "name": "meta.function.arguments.ruko",
-          "match": "(?x)\n(?<=\n  (?:\n      (?: \n        ^ # start of line\n        | [,;] # delimiter \n        | (?: ['\"`)}\\]\\w\\s] | \\\\.)[\\\\:] # postfix colon or backslash\n        | \\#? [({\\[] # opening bracket\n        | [)\\]}] # closing bracket\n      ) \\s*\n    | # infix operator\n      \\s+ (?:\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\s+\n    | # primary operator that isn't an accessor or assignment\n      \\b (?:\n        [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\b\n    | (?:\n      (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      \\b\n        (?: # keywords\n          # wordlike operators\n          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n          |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n          # declaration keywords\n          |var|mut|let|auto|const\n          |func|pro[pc]|type|class|actor|trait|enum|in?ter\n          |module|schema|struct|record|object|union|macro|space\n          |query|quote|style|script|shader|compo|temp|oper|realm\n\n          # control flow keywords\n          |if|un|elif|elun|else|[tw]hen|guard|with\n          |for|while|until|loop|break|skip|redo\n          |(?:re)?try|switch|[cm]atch|case|def|throw\n          |return|yield|await|goto|pass|defer|sync|select\n          |copy|move|drop\n          |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n          # miscellaneous keywords\n          |debug|assert|check|decl|ignore\n          |use|echo|eval|exec|scope|safe|unsafe\n          |begin|end\n        )\n      \\b\n    ) \\s*\n  )\n  [\\p{P}\\p{S}&&[^,;'\"`/\\()\\[\\]{}\\p{Pc}]]* # prefix operator except slashes\n)\n(?<! # accessor or assignment\n  \\b (?:\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=?\n  ) \\b\n)\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?!\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?! # infix operator\n  \\s+\n  [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  (?:[\\p{P}\\p{S}]*\n    [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  )?\n  (?=\\s|$)\n)\n(?! # function name\n  \\s+ \\\\ # infix function operator\n      [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # prefix operators except slashes\n      (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n)\n(?! # function name\n  \\s*\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?=\n      (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \\#?[({] # C-style function call\n    | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? < [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* (?:['\"`\\w]|\\#?[(\\[{]) # generics\n    | [!~] \\#?[({] # macro and destructor calls\n    | \\s+ (?:\\w*|[`$\\#%]*)['\"] # tagged string literals\n    | [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # optional suffix operator\n  (?:\n      \\s+ (?:\\w*|[`$#%]*)['\"] # strings\n    | \\s+ \\b\\d # numbers\n    | \\s+ `\\N # unquoted strings / stropped identifiers\n    | \\s+ :`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # symbols\n    | \\s+ \\#? [(\\[] # opening brackets\n    | \\s+ /['\"`\\w\\\\(\\[{] # regexp literal\n    | \\s+ <(?:[\\p{Pc}\\p{L}\\p{Nl}(]|>(?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+)) # XML literals or splice operators\n    | \\s+ [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]] # prefix operators except slashes\n          [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n          (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n    | \\s+ \\|(?: \\#?[(\\[{] )? # opening bracket\n          (?: [,;] \\s* )* # optional separators\n          (?:\n            ((?:[*&%@^!~?\\\\\\-+]|\\.\\.)*) # any sigils\n            (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # identifier\n            ([!?]*) # optional sigils\n            \\s*\n          )\n    | \\s+ [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # prefix operators\n      (?: # identifier\n        # ignore all keywords\n        (?!\n          (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n          (?: # keywords\n            # wordlike operators\n            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n            |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n            # declaration keywords\n            |var|mut|let|auto|const\n            |func|pro[pc]|type|class|actor|trait|enum|in?ter\n            |module|schema|struct|record|object|union|macro|space\n            |query|quote|style|script|shader|compo|temp|oper|realm\n\n            # control flow keywords\n            |if|un|elif|elun|else|[tw]hen|guard|with\n            |for|while|until|loop|break|skip|redo\n            |(?:re)?try|switch|[cm]atch|case|def|throw\n            |return|yield|await|goto|pass|defer|sync|select\n            |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n            # miscellaneous keywords\n            |debug|assert|check|decl|ignore\n            |use|echo|eval|exec|scope|safe|unsafe\n            |begin|end\n          )\n          \\b\n        )\n        `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n        (?:\n          (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n          `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n        )*\n      )\n      \\s*\\b[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n  )\n)",
-          "captures": {
-            "1": {
-              "name": "meta.function.name.ruko",
-              "patterns": [
-                {
-                  "include": "#function-names"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "comment": "Piped function calls",
-          "name": "meta.function.arguments.ruko",
-          "match": "(?x)\n(?<=\n    \\s+ (?:\\|[-=]?>|\\+>) \\s+ # infix operator\n  | \\b  (?:\\|[-=]?>|\\+>) \\b  # primary operator\n)\n\\b\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  (?:\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n  )*\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n)\n\\b",
-          "captures": {
-            "1": {
-              "name": "meta.function.name.ruko",
-              "patterns": [
-                {
-                  "include": "#function-names"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
     "embedded-function-calls": {
+      "comment": "Embedded function calls within strings or other embedded code blocks",
       "name": "meta.function.name.ruko",
       "match": "(?x)\n(?:\n  (?<=\n    (?:^ | [,;'\"`)\\]}\\w\\s] | \\#?[(\\[{] | \\\\.) # literal, bracket or space\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator\n  )\n  \\b # methods\n    (?:\n        (\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n      | ([\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n      | ((?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n      | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n    )\n  \\b\n  (?= \n      [!~]? \\#?[({] # opening macro, destructor, or function call\n    | (?: [?!]?\\. | [?!:]: | [?!-]> ) < # generics\n  )\n  |\n  (?<= ^ # beginning of line\n    | (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{] | \\\\.) # literal\n    (?: # operators\n      [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+\n    )?\n  ) \\b\n    (?: # variables\n        (`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n      | (`?\\b[\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n      | (`?\\b(?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n      | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n    )\n  \\b\n    (?=  \n        [!~]? \\#?[({] # opening macro, destructor, or function call\n      | (?: [?!]?\\. | [?!:]: | [?!-]> ) < # generics\n    )\n)",
       "captures": {
@@ -9497,6 +9441,82 @@
           ]
         }
       }
+    },
+    "paren-function-calls": {
+      "comment": "Function calls with parentheses",
+      "name": "meta.function.arguments.ruko",
+      "match": "(?x)\n\\b\n(\n `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?=\n  (?:\n      (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?)? \\#?[({] # C-style function call\n    | (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?)? <[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* (?:['\"`\\w]|\\#?[(\\[{]) # generics\n    | [!~] \\#?[({] # macro and destructor calls\n  )\n)",
+      "captures": {
+        "1": {
+          "patterns": [
+            {
+              "include": "#function-names"
+            }
+          ]
+        }
+      }
+    },
+    "piped-function-calls": {
+      "patterns": [
+        {
+          "comment": "Backward piped function calls",
+          "name": "meta.function.arguments.ruko",
+          "match": "(?x)\n(?<=\n  (?:\n      (?: \n        ^ # start of line\n        | [,;] # delimiter \n        | (?: ['\"`)}\\]\\w\\s] | \\\\.)[\\\\:] # postfix colon or backslash\n        | \\#? [({\\[] # opening bracket\n        | [)\\]}] # closing bracket\n      ) \\s*\n    | # infix operator\n      \\s+ (?:\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\s+\n    | # primary operator that isn't an accessor or assignment\n      \\b (?:\n        [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\b\n    | (?:\n      (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      \\b\n        (?: # keywords\n          # wordlike operators\n          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n          |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n          # declaration keywords\n          |var|mut|let|auto|const\n          |func|pro[pc]|type|class|actor|trait|enum|in?ter\n          |module|schema|struct|record|object|union|macro|space\n          |query|quote|style|script|shader|compo|temp|oper|realm\n\n          # control flow keywords\n          |if|un|elif|elun|else|[tw]hen|guard|with\n          |for|while|until|loop|break|skip|redo\n          |(?:re)?try|switch|[cm]atch|case|def|throw\n          |return|yield|await|goto|pass|defer|sync|select\n          |copy|move|drop\n          |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n          # miscellaneous keywords\n          |debug|assert|check|decl|ignore\n          |use|echo|eval|exec|scope|safe|unsafe\n          |begin|end\n        )\n      \\b\n    ) \\s*\n  )\n  [\\p{P}\\p{S}&&[^,;'\"`/\\()\\[\\]{}\\p{Pc}]]* # prefix operator except slashes\n)\n(?<! # accessor or assignment\n  \\b (?:\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=?\n  ) \\b \n)\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?=\n    \\s+ (?:<[-=~|+*$]>?|[.·°$]) \\s+ # infix operator\n  | \\b  (?:<[-=~|+*$]>?|[·°]) \\b  # primary operator\n)",
+          "captures": {
+            "1": {
+              "name": "meta.function.name.ruko",
+              "patterns": [
+                {
+                  "include": "#function-names"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "comment": "Piped function calls",
+          "name": "meta.function.arguments.ruko",
+          "match": "(?x)\n(?<=\n    \\s+ (?:<?[-=~|+*$]>|[.·°¢]) \\s+ # infix operator\n  | \\b  (?:<?[-=~|+*$]>|[·°]) \\b  # primary operator\n)\n\\b\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  (?:\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n  )*\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n)\n\\b\n",
+          "captures": {
+            "1": {
+              "name": "meta.function.name.ruko",
+              "patterns": [
+                {
+                  "include": "#function-names"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "parenless-function-calls": {
+      "comment": "Normal (bracketed or bracketless) function calls",
+      "name": "meta.function.arguments.ruko",
+      "match": "(?x)\n(?<=\n  (?:\n      (?: \n        ^ # start of line\n        | [,;] # delimiter \n        | (?: ['\"`)}\\]\\w\\s] | \\\\.)[\\\\:] # postfix colon or backslash\n        | \\#? [({\\[] # opening bracket\n        | [)\\]}] # closing bracket\n      ) \\s*\n    | # infix operator\n      \\s+ (?:\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\s+\n    | # primary operator that isn't an accessor or assignment\n      \\b (?:\n        [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\b\n    | (?:\n      (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      \\b\n        (?: # keywords\n          # wordlike operators\n          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n          |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n          # declaration keywords\n          |var|mut|let|auto|const\n          |func|pro[pc]|type|class|actor|trait|enum|in?ter\n          |module|schema|struct|record|object|union|macro|space\n          |query|quote|style|script|shader|compo|temp|oper|realm\n\n          # control flow keywords\n          |if|un|elif|elun|else|[tw]hen|guard|with\n          |for|while|until|loop|break|skip|redo\n          |(?:re)?try|switch|[cm]atch|case|def|throw\n          |return|yield|await|goto|pass|defer|sync|select\n          |copy|move|drop\n          |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n          # miscellaneous keywords\n          |debug|assert|check|decl|ignore\n          |use|echo|eval|exec|scope|safe|unsafe\n          |begin|end\n        )\n      \\b\n    ) \\s*\n  )\n  [\\p{P}\\p{S}&&[^,;'\"`/\\()\\[\\]{}\\p{Pc}]]* # prefix operator except slashes\n)\n(?<! # accessor or assignment\n  \\b (?:\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=?\n  ) \\b\n)\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?!\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?! # infix operator\n  \\s+\n  [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  (?:[\\p{P}\\p{S}]*\n    [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  )?\n  (?=\\s|$)\n)\n(?! # function name\n  \\s+ \\\\ # infix function operator\n      [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # prefix operators except slashes\n      (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n)\n(?! # function name\n  \\s*\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?=\n      (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \\#?[({] # C-style function call\n    | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* (?:['\"`\\w]|\\#?[(\\[{]) # generics\n    | [!~] \\#?[({] # macro and destructor calls\n    | \\s+ (?:\\w*|[`$\\#%]*)['\"] # tagged string literals\n    | [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # optional suffix operator\n  (?:\n      \\s+ (?:\\w*|[`$#%]*)['\"] # strings\n    | \\s+ \\b\\d # numbers\n    | \\s+ `\\N # unquoted strings / stropped identifiers\n    | \\s+ :`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # symbols\n    | \\s+ \\#? [(\\[] # opening brackets\n    | \\s+ /['\"`\\w\\\\(\\[{] # regexp literal\n    | \\s+ <(?:[\\p{Pc}\\p{L}\\p{Nl}(]|>(?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+)) # XML literals or splice operators\n    | \\s+ [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]] # prefix operators except slashes\n          [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n          (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n    | \\s+ \\|(?: \\#?[(\\[{] )? # opening bracket\n          (?: [,;] \\s* )* # optional separators\n          (?:\n            ((?:[*&%@^!~?\\\\\\-+]|\\.\\.)*) # any sigils\n            (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # identifier\n            ([!?]*) # optional sigils\n            \\s*\n          )\n    | \\s+ [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # prefix operators\n      (?: # identifier\n        # ignore all keywords\n        (?!\n          (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n          (?: # keywords\n            # wordlike operators\n            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n            |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n            # declaration keywords\n            |var|mut|let|auto|const\n            |func|pro[pc]|type|class|actor|trait|enum|in?ter\n            |module|schema|struct|record|object|union|macro|space\n            |query|quote|style|script|shader|compo|temp|oper|realm\n\n            # control flow keywords\n            |if|un|elif|elun|else|[tw]hen|guard|with\n            |for|while|until|loop|break|skip|redo\n            |(?:re)?try|switch|[cm]atch|case|def|throw\n            |return|yield|await|goto|pass|defer|sync|select\n            |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n            # miscellaneous keywords\n            |debug|assert|check|decl|ignore\n            |use|echo|eval|exec|scope|safe|unsafe\n            |begin|end\n          )\n          \\b\n        )\n        `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n        (?:\n          (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n          `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n        )*\n      )\n      \\s*\\b[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n  )\n)",
+      "captures": {
+        "1": {
+          "name": "meta.function.name.ruko",
+          "patterns": [
+            {
+              "include": "#function-names"
+            }
+          ]
+        }
+      }
+    },
+    "function-calls": {
+      "patterns": [
+        {
+          "include": "#piped-function-calls"
+        },
+        {
+          "include": "#parenless-function-calls"
+        },
+        {
+          "include": "#paren-function-calls"
+        }
+      ]
     },
     "function-names": {
       "patterns": [
@@ -9604,7 +9624,7 @@
     },
     "selector-calls": {
       "applyEndPatternLast": true,
-      "begin": "(?x)\n(?<= # literal\n  (?:\n      ^ # start of line\n    | [\\w'\"`)}\\]] # literals and closing brackets\n    | \\\\. # escape sequences\n    | [?!:]:`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # identifiers\n    | [?!-]>`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # identifiers\n    | [?!]?`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # argument list terminator\n  )\n  \\s*\n)\n\n([?!]?[:>]?=?) # message accessor\n(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # message name\n(?=:(?:\\s*(?:[,;'\"`)}\\]\\w\\s]|\\#?[(\\[{]|\\\\.)|$))",
+      "begin": "(?x)\n(?<= # literal\n  (?:\n      ^ # start of line\n    | [\\w'\"`)}\\]] # literals and closing brackets\n    | \\\\. # escape sequences\n    | [?!:]:`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # static members\n    | [?!-]>`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # dynamic members\n    | [?!]?`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b:? # accessed members\n  )\n  \\s*\n)\n\n([?!]?[:>]?=?) # message accessor\n(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # message name\n(?=:(?:\\s*(?:[,;'\"`)}\\]\\w\\s]|\\#?[(\\[{]|\\\\.)|$))",
       "end": "(?=)|$",
       "name": "meta.message.ruko",
       "beginCaptures": {
@@ -9846,7 +9866,7 @@
           ]
         },
         {
-          "match": "(?x)\n\n(?:\n  (?<=\n    (?: ['\"`)\\]}\\w] | \\\\.) \\s* # literal, bracket or space\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator\n  )\n  \\b # methods\n  (?: # properties\n      (\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n    | ([\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n    | ((?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n    | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n  )\n  |\n  (?<!\n    (?: [,;'\"`)}\\]\\w] | \\\\.) # literal, bracket or space\n    (?: [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+ ) # operators\n  )\n  (?: # objects\n      (`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n    | (`?\\b[\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n    | (`?\\b(?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n    | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n  )\n  (?! [?!]?\\.\\.+ ) # not a range operator\n  (?=\n      (?:[?!]?\\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator\n    | \\#?\\[ # or array access\n  )\n  |\n  (?: # variables\n      (`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n    | (`?\\b[\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n    | (`?\\b(?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n    | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n  )\n)\\b",
+          "match": "(?x)\n(?:\n  (?<=\n    (?: ['\"`)\\]}\\w] | \\\\.) \\s* # literal, bracket or space\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator\n  )\n  \\b # methods\n  (?: # properties\n      (\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n    | ([\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n    | ((?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n    | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n  )\n  |\n  (?<!\n    (?: [,;'\"`)}\\]\\w] | \\\\.) # literal, bracket or space\n    (?: [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+ ) # operators\n  )\n  (?: # objects\n      (`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n    | (`?\\b[\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n    | (`?\\b(?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n    | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n  )\n  (?! [?!]?\\.\\.+ ) # not a range operator\n  (?=\n      (?:[?!]?\\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator\n    | \\#?\\[ # or array access\n  )\n  |\n  (?: # variables\n      (`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+)\\b) # leading underscore\n    | (`?\\b[\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Ll}]*) # screaming snake case\n    | (`?\\b(?:[\\p{Pc}\\p{L}\\p{Nl}&&\\P{Ll}][\\w&&\\P{Lu}]*)+) # Pascal case\n    | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # camel or snake case\n  )\n)\\b",
           "captures": {
             "1": {
               "name": "variable.other.property.dynamic.ruko"
@@ -9996,7 +10016,7 @@
       "patterns": [
         {
           "comment": "Infix operators at the end of line",
-          "begin": "(?x)\n(?<=^|[\\s({\\[])(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`()\\[\\]{}\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`()\\[\\]{}\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|<>|>< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+ # other operators\n      (?:[\\p{P}\\p{S}]*\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n      )?\n    ) \n)(?=\\s*$|\\s+/[/*](?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+))\n",
+          "begin": "(?x)\n(?<=^|[\\s({\\[])(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`()\\[\\]{}\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`()\\[\\]{}\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|\\#\\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical\n  | ( [&|^#§¦¤¶¬~¯] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|±±|%% ) # string\n  | ( [+\\-×÷±][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( [-=~|+*$]>|<[-=~|+*$] ) # pipeline\n  | ( <[-=~|+*$]>|[$¢] ) # application\n  | ( <\\+|\\+>|[.·°] ) # composition\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+|°°+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~ ) # similarity\n  | ( \\?\\?\\??|¿¿ ) # null-coalescing\n  | ( !!!?|¡¡ ) # coalescing\n  | ( \\?:?|¿: ) # conditional\n  | ( !:?|¡: ) # ternary\n  | ( \\$|:?:?: ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+ # other operators\n      (?:[\\p{P}\\p{S}]*\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n      )?\n    )\n)(?=\\s*$|\\s+/[/*](?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+))\n",
           "beginCaptures": {
             "1": {
               "name": "keyword.operator.assignment.augmented.ruko"
@@ -10029,28 +10049,28 @@
               "name": "keyword.operator.pipeline.ruko"
             },
             "11": {
-              "name": "keyword.operator.composition.ruko"
+              "name": "keyword.operator.application.ruko"
             },
             "12": {
-              "name": "keyword.operator.class.ruko"
+              "name": "keyword.operator.composition.ruko"
             },
             "13": {
-              "name": "keyword.operator.range.ruko"
+              "name": "keyword.operator.class.ruko"
             },
             "14": {
-              "name": "keyword.operator.relational.ruko"
+              "name": "keyword.operator.range.ruko"
             },
             "15": {
-              "name": "keyword.operator.dots.ruko"
+              "name": "keyword.operator.relational.ruko"
             },
             "16": {
-              "name": "keyword.operator.comparison.ruko"
+              "name": "keyword.operator.dots.ruko"
             },
             "17": {
-              "name": "keyword.operator.similarity.ruko"
+              "name": "keyword.operator.comparison.ruko"
             },
             "18": {
-              "name": "keyword.operator.special.ruko"
+              "name": "keyword.operator.similarity.ruko"
             },
             "19": {
               "name": "keyword.operator.null-coalescing.ruko"
@@ -10107,7 +10127,7 @@
         },
         {
           "comment": "Infix operators - e.g., x + y",
-          "match": "(?x)\n(?<=^|[\\s({\\[])(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`()\\[\\]{}\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`()\\[\\]{}\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|<>|>< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+ # other operators\n      (?:[\\p{P}\\p{S}]*\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n      )?\n    ) \n)(?=$|[)}\\]\\s])\n",
+          "match": "(?x)\n(?<=^|[\\s({\\[])(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`()\\[\\]{}\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`()\\[\\]{}\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|\\#\\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical\n  | ( [&|^#§¦¤¶¬~¯] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|±±|%% ) # string\n  | ( [+\\-×÷±][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( [-=~|+*$]>|<[-=~|+*$] ) # pipeline\n  | ( <[-=~|+*$]>|[$¢] ) # application\n  | ( <\\+|\\+>|[.·°] ) # composition\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+|°°+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~ ) # similarity\n  | ( \\?\\?\\??|¿¿ ) # null-coalescing\n  | ( !!!?|¡¡ ) # coalescing\n  | ( \\?:?|¿: ) # conditional\n  | ( !:?|¡: ) # ternary\n  | ( \\$|:?:?: ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+ # other operators\n      (?:[\\p{P}\\p{S}]*\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n      )?\n    )\n)(?=$|[)}\\]\\s])\n",
           "captures": {
             "1": {
               "name": "keyword.operator.assignment.augmented.ruko"
@@ -10140,28 +10160,28 @@
               "name": "keyword.operator.pipeline.ruko"
             },
             "11": {
-              "name": "keyword.operator.composition.ruko"
+              "name": "keyword.operator.application.ruko"
             },
             "12": {
-              "name": "keyword.operator.class.ruko"
+              "name": "keyword.operator.composition.ruko"
             },
             "13": {
-              "name": "keyword.operator.range.ruko"
+              "name": "keyword.operator.class.ruko"
             },
             "14": {
-              "name": "keyword.operator.relational.ruko"
+              "name": "keyword.operator.range.ruko"
             },
             "15": {
-              "name": "keyword.operator.dots.ruko"
+              "name": "keyword.operator.relational.ruko"
             },
             "16": {
-              "name": "keyword.operator.comparison.ruko"
+              "name": "keyword.operator.dots.ruko"
             },
             "17": {
-              "name": "keyword.operator.similarity.ruko"
+              "name": "keyword.operator.comparison.ruko"
             },
             "18": {
-              "name": "keyword.operator.special.ruko"
+              "name": "keyword.operator.similarity.ruko"
             },
             "19": {
               "name": "keyword.operator.null-coalescing.ruko"
@@ -10211,7 +10231,7 @@
     },
     "interfix-operators": {
       "comment": "Interfix operators - x+y (without spaces)",
-      "match": "(?x)\n(?<=['\")}\\]\\w]|\\\\.)(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`()\\[\\]{}\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`()\\[\\]{}\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|§§|¦¦|¤¤|\\#\\#|¶¶ ) # logical\n  | ( [&|^§¦¤#¶] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|%%|\\# ) # string\n  | ( [+\\-×÷][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( <[-=]?\\||\\|[-=]?> ) # pipeline\n  | ( <\\+|\\+>|∘ ) # compose\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~|<>|>< ) # similarity\n  | ( <[/*|+$:]>?|[/*|+$:]> ) #\n  | ( \\?\\?\\?? ) # null-coalescing\n  | ( !!!? ) # coalescing\n  | ( \\?:? ) # conditional\n  | ( !:? ) # ternary\n  | ( [.:$]|:::? ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+ ) # other operators\n)(?=(?:['\"`\\w]|\\#?[(\\[{]))\n",
+      "match": "(?x)\n(?<=['\")}\\]\\w]|\\\\.)(?:\n    ( [\\p{P}\\p{S}&&[^~<=>.,:;!''\"`()\\[\\]{}\\p{Pc}]][\\p{P}\\p{S}&&[^,;''\"`()\\[\\]{}\\p{Pc}]]*= ) # compound assignment\n  | ( \\?[.:>] ) # optional\n  | ( ![.:>] ) # mandatory\n  | ( (?:\\.|::|->) ) # accessors\n  | ( &&|\\|\\||\\^\\^|\\#\\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical\n  | ( [&|^#§¦¤¶¬~¯] ) # bitwise\n  | ( <<[<>]?|[<>]?>> ) # bitwise shift\n  | ( \\+\\+|--|××|÷÷|±±|%% ) # string\n  | ( [+\\-×÷±][%|]?|\\*\\*?[%|]?|~?/|%%? ) # arithmetic\n  | ( [-=~|+*$]>|<[-=~|+*$] ) # pipeline\n  | ( <[-=~|+*$]>|[$¢] ) # application\n  | ( <\\+|\\+>|[.·°] ) # composition\n  | ( [<>][:!]|[:!][<>] ) # class\n  | ( [>.]\\.[.<]|[=.]\\.[.=]|\\.\\. ) # range\n  | ( [<>]=?|<=?> ) # relational\n  | ( \\.\\.+|··+|°°+ ) # dots\n  | ( [!=]==? ) # comparison\n  | ( ~[=!]|[=!]~ ) # similarity\n  | ( \\?\\?\\??|¿¿ ) # null-coalescing\n  | ( !!!?|¡¡ ) # coalescing\n  | ( \\?:?|¿: ) # conditional\n  | ( !:?|¡: ) # ternary\n  | ( \\$|:?:?: ) # macro\n  | ( :?:?= ) # assignment\n  | ( ==?>|<== ) # fat arrow\n  | ( --?>|<--? ) # thin arrow\n  | ( ~~?>|<~~? ) # wavy arrow\n  | ( \\p{Sm}+ ) # math symbols\n  | ( \\p{Sc}+ ) # currency symbols\n  | ( [!#-&*+\\-./:-@\\\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators\n  | ( [\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like\n  | ( [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+ ) # other operators\n)(?=(?:['\"`\\w]|\\#?[(\\[{]))\n",
       "captures": {
         "1": {
           "name": "keyword.operator.assignment.augmented.ruko"
@@ -10244,28 +10264,28 @@
           "name": "keyword.operator.pipeline.ruko"
         },
         "11": {
-          "name": "keyword.operator.composition.ruko"
+          "name": "keyword.operator.application.ruko"
         },
         "12": {
-          "name": "keyword.operator.class.ruko"
+          "name": "keyword.operator.composition.ruko"
         },
         "13": {
-          "name": "keyword.operator.range.ruko"
+          "name": "keyword.operator.class.ruko"
         },
         "14": {
-          "name": "keyword.operator.relational.ruko"
+          "name": "keyword.operator.range.ruko"
         },
         "15": {
-          "name": "keyword.operator.dots.ruko"
+          "name": "keyword.operator.relational.ruko"
         },
         "16": {
-          "name": "keyword.operator.comparison.ruko"
+          "name": "keyword.operator.dots.ruko"
         },
         "17": {
-          "name": "keyword.operator.similarity.ruko"
+          "name": "keyword.operator.comparison.ruko"
         },
         "18": {
-          "name": "keyword.operator.special.ruko"
+          "name": "keyword.operator.similarity.ruko"
         },
         "19": {
           "name": "keyword.operator.null-coalescing.ruko"
@@ -11441,7 +11461,7 @@
         },
         {
           "applyEndPatternLast": true,
-          "begin": "\\s*(?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(decl)|ignore\\b\\s*",
+          "begin": "\\s*(?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b(decl|ignore)\\b\\s*",
           "end": "(?=)|$",
           "beginCaptures": {
             "1": {
@@ -11895,7 +11915,7 @@
           "include": "#line-continuation"
         },
         {
-          "match": "(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)\\b(?=::|\\.|->|\\\\)",
+          "match": "(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)\\b(?=::|->|\\.|\\\\)",
           "name": "entity.name.namespace.ruko"
         },
         {
@@ -11989,14 +12009,13 @@
           "include": "#embedded-arguments"
         },
         {
+          "include": "#accessor-operators"
+        },
+        {
           "include": "#brackets"
         },
         {
           "include": "#literals"
-        },
-        {
-          "match": "::|\\.|->|\\\\",
-          "name": "punctuation.separator.namespace.ruko"
         },
         {
           "match": "\\s+",
@@ -13149,7 +13168,7 @@
     },
     "accessor-operators": {
       "name": "punctuation.type.arguments.ruko",
-      "match": "(?x)\n(?<=\\b|>)\n(?:\n  ( \\?[.:>]=? ) | # 1: optional access/unwrap\n  ( ![.:>]=? ) | # 2: assert/unwrap operator\n  ( (?:::|\\.|->)=? ) # 3: standard accessor\n)\n(?=\\b|<)",
+      "match": "(?x)\n(?<=\\b|>)\n(?:\n  ( \\?[.:>]=? ) | # 1: optional access/unwrap\n  ( ![.:>]=? ) | # 2: assert/unwrap operator\n  ( (?:::|->|\\.)=? ) # 3: standard accessor\n)\n(?=\\b|<)",
       "captures": {
         "1": {
           "name": "keyword.operator.optional.ruko"
@@ -13240,7 +13259,7 @@
       },
       "patterns": [
         {
-          "begin": "(?x)\n(?<=\n  (?:\n      (?:^|[\\s\\p{P}\\p{S}]):\\|\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w\\s]|\\\\.)\\| # beside a lambda pipe\n    | ^\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w]|\\\\.)\n      (?:[\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ): # beside a key-value separator\n  )\n)\n\\s*\n(\\#{)\n\\s*",
+          "begin": "(?x)\n(?<=\n  (?:\n      (?:^|[\\s\\p{P}\\p{S}]):\\|\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w\\s]|\\\\.)\\| # beside a lambda pipe\n    | ^\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w]|\\\\.)\n      (?:[\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ): # beside a key-value separator\n  )\n  \\s*\n)\n(\\#{)\\s*",
           "end": "\\s*(})",
           "name": "meta.brace.curly.ruko",
           "captures": {
@@ -13255,7 +13274,7 @@
           ]
         },
         {
-          "begin": "(?x)\n(?<=\n  (?:\n      (?:^|[\\s\\p{P}\\p{S}]):\\|\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w\\s]|\\\\.)\\| # beside a lambda pipe\n    | ^\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w]|\\\\.)\n      (?:[\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ): # beside a key-value separator\n  )\n)\n\\s*\n({)\n\\s*",
+          "begin": "(?x)\n(?<=\n  (?:\n      (?:^|[\\s\\p{P}\\p{S}]):\\|\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w\\s]|\\\\.)\\| # beside a lambda pipe\n    | ^\\s*\\| # beside a lambda pipe\n    | (?:^|[,;'\"`)}\\]\\w]|\\\\.)\n      (?:[\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ): # beside a key-value separator\n  )\n  \\s*\n)\n({)\\s*",
           "end": "\\s*(})",
           "name": "meta.brace.curly.ruko",
           "captures": {
@@ -13270,7 +13289,7 @@
           ]
         },
         {
-          "begin": "(?x)\n(?<=\n  (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  \\b\n    (?: # destructuring keywords\n      var|mut|let|auto|const\n      |case\n    )\n  \\b\n  (?:$|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  \\s*\n)\n(\\#?\\{)\\s*",
+          "begin": "(?x)\n(?<=\n  (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  \\b\n    (?: # destructuring keywords\n      var|mut|let|auto|const\n      |case\n    )\n  \\b\n  (?:$|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n  \\s*\n)\n(\\#?{)\\s*",
           "end": "\\s*(})",
           "name": "meta.brace.curly.ruko",
           "captures": {
