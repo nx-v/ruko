@@ -51,7 +51,7 @@ func sortedPowerSet(arr: i32[]): i32[][] {
     result.push subset
   }
 
-  result.sortBy |a, b| {
+  return result.sortBy |a, b| {
     let countA = a.reduce 0, |c,, i| c + 1
     let countB = b.reduce 0, |d,, i| d + 1
     if countA != countB:
@@ -60,8 +60,6 @@ func sortedPowerSet(arr: i32[]): i32[][] {
       a[i] - b[i]
     a.len - b.len
   }
-
- result
 }
 
 // infix "backslash" operator examples
@@ -72,29 +70,24 @@ let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // LINQ-style syntax
-// LINQ-style syntax
 func sortedPowerSet(arr: i32[]): i32[][] = (
   from let i in 0 ..< (1 << arr.len)
   select (
     from let j in 0 ..< arr.len
     where (i >> j) & 1
     select arr[j]
-  ) sort by (
-    from let subset
-    select subset.len
-  ) then by (
-    from let a, b where
-      let countA = (from let _ in a
-        reduce 0 by |c| c + 1) and
-      let countB = (from let _ in b
-        reduce 0 by |d| d + 1) and countA != countB
-    select countA - countB
+  ) as let subset
+  sort by subset.len
+  then by (
+    from let a, b
+    where a.len != b.len
+    select a.len - b.len
   ) then by (
     from let i in 0 ..< min(a.len, b.len)
     where a[i] != b[i]
     select a[i] - b[i]
   ) then by a.len - b.len
-) as i32[][]
+)
 
 // Objective-C-like syntax
 func sortedPowerSet(arr: i32[]): i32[][] {
@@ -107,7 +100,7 @@ func sortedPowerSet(arr: i32[]): i32[][] {
     [result push: subset]
   }]
 
-  [result sortBy: |a, b| {
+  return [result sortBy: |a, b| {
     let countA = [a reduce: 0, |c,, i| c + 1]
     let countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB:
@@ -130,46 +123,45 @@ func sortedPowerSet(arr: i32[]): i32[][] {
     (push result subset)
   })
 
-  (sortBy result (|a, b| {
+  (return (sortBy result (|a, b| {
     (type i32) let countA = (reduce a 0 (|c,, i| (+ c 1)))
     (type i32) let countB = (reduce b 0 (|d,, i| (+ d 1)))
     (if (!= countA countB)
-      (- countA countB))
-
+      (return (- countA countB)))
     (for let i in (..< 0 (min (len a) (len b)))
       if (!= (a i) (b i)) {
-      return (- (a i) (b i))
+      (return (- (a i) (b i)))
     })
 
     (- (len a) (len b))
-  }))
-
-  result
+  })))
 }
 
-// JSX-like syntax
-compo sortedPowerSet(arr: i32[]): i32[][] = <scope>
+// JSX/XML-like syntax
+func sortedPowerSet(arr: i32[]): i32[][] = <>
   <mut (type i32[][]) $result=[]/>
   <for let=$i in=(0 ..< 1 << arr.len)>
     <mut (type i32[]) $subset=[]/>
     <for let=$j in=(0 ..< arr.len) if=((i >> j) & 1)>
-      <exec $subset.push(arr[j])/>
+      <do (subset.push (arr[j]))/>
     </for>
-    <exec $result.push(subset)/>
+    <do (result.push subset)/>
   </for>
-  <exec $result.sortBy(|a, b|
-    <let (type i32) $countA=(<exec $a.reduce(0, |c,, i| c + 1)/>)/>
-    <let (type i32) $countB=(<exec $b.reduce(0, |d,, i| d + 1)/>)/>
-    <if cond=(countA != countB)>
+  <do (result.sortBy |a, b| <>
+    <let (type i32) $countA=(<do $a.reduce(0, |c,, i| c + 1)/>)/>
+    <let (type i32) $countB=(<do $b.reduce(0, |d,, i| d + 1)/>)/>
+    <if (countA != countB)>
       <return (countA - countB)/>
     </if>
-    <for let=$i in=(0 ..< min a.len b.len) if=(a[i] != b[i])>
-      <return (a[i] - b[i])/>
+    <for let=$i in=(0 ..< min a.len b.len)>
+      <if (a[i] != b[i])>
+        <return (a[i] - b[i])/>
+      </if>
     </for>
     <return (a.len - b.len)/>
-  )/>
+  </>)/>
   <return $result/>
-</scope>
+</>
 
 for let i in sortedPowerSet [1...16]:
   echo i
@@ -310,7 +302,7 @@ struct Node {
   let value: i32
   let next: *Node
 
-  proc new(value: i32): *Node {
+  func new(value: i32): *Node {
     let node = unsafe { malloc Node }
     node.value = value
     node.next = null

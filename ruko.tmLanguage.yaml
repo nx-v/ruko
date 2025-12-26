@@ -3086,7 +3086,7 @@ repository:
             \b\s
         ) \s*
       ) \s*
-      (?=<[\p{Pc}\p{L}\p{Nl}($])
+      (?=<(?:[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
     end: (?=)|$
     patterns: [include: "#tag-component-name"]
 
@@ -3123,7 +3123,7 @@ repository:
         contentName: text.html.ruko
         begin: |-
           (?x)
-          (<\$?) # start tag begin
+          (<) # start tag begin
           (
             (?:
               `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
@@ -4914,13 +4914,13 @@ repository:
               | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
               | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
             (?:
-                \s+ (?:\w*|[`$\#%]*)['"] # strings
+                \s+ (?:\w*|[`$#%]*)['"] # strings
               | \s+ \b\d # numbers
               | \s+ `\N # unquoted strings / stropped identifiers
               | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
               | \s+ \#? [(\[] # opening brackets
               | \s+ /['"`\w\\(\[{] # regexp literal
-              | \s+ <[\p{Pc}\p{L}\p{Nl}(\[{$] # XML tag component name or splice expression
+              | \s+ <(?:[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
               | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
                     [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
                     (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
