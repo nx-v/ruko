@@ -300,11 +300,11 @@ repository:
       - include: "#declarations"
       - include: "#keywords"
       - include: "#comments"
+      - include: "#symbols"
       - include: "#type-signature"
       - include: "#argument-list"
       - include: "#function-clause"
       - include: "#function-calls"
-      - include: "#symbols"
       - include: "#decorators"
       - include: "#splice-brackets"
       - include: "#xml"
@@ -1238,12 +1238,17 @@ repository:
         captures:
           1: { name: punctuation.definition.symbol.ruko }
         patterns: [{ include: "#strings" }]
-      - match: (?<=^|\\.|['"`()\[\]{}\s]|(?:[)}\]\w\s'"`]|\\.)\s*[:=])(:)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)
+      - match: (?<=^|\\.|['"`()\[\]{}\s]|(?:[)}\]\w\s'"`]|\\.)\s*[:=])(:)(`?\b[\p{Pd}\w]+\b)
         name: constant.other.symbol.ruko
         captures:
           1: { name: punctuation.definition.symbol.ruko }
-          2: { name: constant.other.symbol.ruko }
-        patterns: [{ include: "#string-escapes" }]
+          2:
+            name: constant.other.symbol.ruko
+            patterns:
+              - include: "#literals"
+              - include: "#constants"
+              - include: "#css-property-values"
+              - include: "#unicode-property-values"
 
   # Strings
 
