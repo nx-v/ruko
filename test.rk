@@ -2,7 +2,7 @@
 proc main {
   import Figlet.*,
     Dom.{Canvas, Audio, FS, Log}, // multiple imports
-    Artists.{NexoVolta}, // nested imports
+    Artists.NexoVolta, // nested imports
     Galaxies.MilkyWay:Galaxy, // custom import aliasing
     Components.Post
 
@@ -43,7 +43,7 @@ let randomString |repeat, seed = 3**32|: str =
   [/[\da-z]/i random: seed, repeat toIter: join: '']
 print randomString
 
-// imperative function syntax
+// imperative style
 func sortedPowerSet(arr: i32[]): i32[][] {
   mut result: i32[][] = []
 
@@ -65,14 +65,14 @@ func sortedPowerSet(arr: i32[]): i32[][] {
   }
 }
 
-// infix "backslash" operator examples
+// infix function chaining style
 let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \sort\ |a, b| (-) ([a, b] \map\
       |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
     ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1)
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
-// LINQ-style syntax
+// LINQ style 
 func sortedPowerSet(arr: i32[]): i32[][] = (
   from let i in 0 ..< (1 << arr.len)
   select (
@@ -92,62 +92,64 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
   ) then by a.len - b.len
 )
 
-// Objective-C-like syntax
+// Objective-C style
 func sortedPowerSet(arr: i32[]): i32[][] {
   let result: i32[][] = []
 
   [0 ..< 1 << arr.len each: |i| {
     let subset: i32[] = []
     [0 ..< arr.len each: |j| 
-      if (i >> j) & 1: subset push: arr[j]]
+      if (i >> j) & 1: subset.push arr[j]]
     [result push: subset]
   }]
 
   return [result sortBy: |a, b| {
     let countA = [a reduce: 0, |c,, i| c + 1]
     let countB = [b reduce: 0, |d,, i| d + 1]
-    if countA != countB:
-      return countA - countB
+    if countA != countB: return countA - countB
     for let i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
       return a[i] - b[i]
     a.len - b.len
   }]
 }
 
-// Clojure-like (prefix) syntax
-func sortedPowerSet(arr: i32[]): i32[][] {
+// Clojure style
+func sortedPowerSet(arr: i32[]): i32[][] = (
   (mut (type i32[][]) result [])
 
-  (for (let i) in (..< 0 (<< 1 (len arr))) {
+  (for (let i) in (..< 0 (<< 1 arr.len))) (
     (mut (type i32[]) subset [])
-    (for (let j) in (..< 0 (len arr)) if (& (>> i j) 1)) {
-      (push subset (arr j))
-    }
+    (for (let j) in (..< 0 arr.len)) (
+      (if (& 1 (>> i j)) (
+        (push subset arr[j])
+      ))
+    )
     (push result subset)
-  })
+  )
 
-  (return (sortBy result (|a, b| {
-    (let (type i32) countA = (reduce a 0 (|c,, i| (+ c 1))))
-    (let (type i32) countB = (reduce b 0 (|d,, i| (+ d 1))))
-    (if (!= countA countB)
-      (return (- countA countB)))
-    (for (let i) in (..< 0 (min (len a) (len b)))
-      if (!= (a i) (b i)) {
-      (return (- (a i) (b i)))
-    })
+  (return (sortBy result (|a, b| (
+    (let (type i32) countA (reduce a 0 (|c,, i| (+ c 1))))
+    (let (type i32) countB (reduce b 0 (|d,, i| (+ d 1))))
+    (if (!= countA countB) (
+      (- countA countB)
+    ))
+    (for (let i) in (..< 0 (min a.len b.len))) (
+      (if (!= a[i] b[i]) (
+        (- a[i] b[i])
+      ))
+    )
+    (- a.len b.len)
+  ))))
+)
 
-    (- (len a) (len b))
-  })))
-}
-
-// JSX/XML-like syntax
-func sortedPowerSet(arr: i32[]): i32[][] = <>
+// JSX style
+<func (type i32[]) $sortedPowerSet(arr: type i32)>
   <mut (type i32[][]) $result=[]/>
-  <for let=$i in=(0 ..< 1 << arr.len)>
+  <for let=i in=(0 ..< 1 << arr.len)>
     <mut (type i32[]) $subset=[]/>
-    <for let=$j in=(0 ..< arr.len)> 
+    <for let=j in=(0 ..< arr.len)> 
       <if ((i >> j) & 1)>
-         subset.push arr[j]
+        subset.push arr[j]
       </if>
     </for>
     result.push subset
@@ -158,7 +160,7 @@ func sortedPowerSet(arr: i32[]): i32[][] = <>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
-    <for let=$i in=(0 ..< min a.len b.len)>
+    <for let=i in=(0 ..< min a.len b.len)>
       <if (a[i] != b[i])>
         <return (a[i] - b[i])/>
       </if>
@@ -220,10 +222,11 @@ shader MazeGenerator {
   }
 }
 
+// using the various sortedPowerSet implementations
 for let i in sortedPowerSet [1...16]:
   echo i
 
-  // LINQ-style queries
+// LINQ-style queries
 let formatPowerSet = |a: i32[][]|: str =
   a.iter(iter: from let (subset: i32[]) in a where subset.len > 0
     select '[' ++ [subset map: str x join: ','] ++ ']'
@@ -237,9 +240,9 @@ v = #{a: pub|*a| a + 1}
 
 // Style DSL example
 style style͏ {
-  x: 0x64px
-  y: 0x64px
-  background: blue
+  x: 100px
+  y: 100px
+  background: :blue
   color: #ff5733
   path: 'M 10 10
     H 90
@@ -250,7 +253,7 @@ style style͏ {
   dynamic[key]-sub[key]: dynamicValue
 
   @media(max-width: 600px)
-    background: red
+    background: :red
 
   @keyframes slidein
     from͏(transform: translateX 0%)
@@ -261,15 +264,15 @@ style style͏ {
     src: url '../fonts/myfont.woff2', format :woff2
 
   ^hover
-    color: green
+    color: :green
 
   &active
-    color: yellow
+    color: :yellow
 
   /* Nested selectors */
   .container {
-    display: flex
-    flexDirection: column
+    display: :flex
+    flexDirection: :column
 
     .item {
       margin: 10px
@@ -277,13 +280,13 @@ style style͏ {
     }
   }
 
-  animation: slideIn 3s easeInOut infinite alternate
+  animation: slideIn 3s :easeInOut :infinite :alternate
 }
 
 // CSS codegen example
 style {
   for let i in arr: .item-[i] {
-    color: if i % 2 == 0: red else blue
+    color: if i % 2 == 0: :red else :blue
     width: (100 + i * 10)px
     opacity: i / len arr
   }
@@ -292,12 +295,6 @@ style {
 
 for items as let item, index:
   print $"Item $index: $item.name"
-
-// jsx with inline code
-<div>
-  for item in items:
-    <span .item-[item.id]=$item.id>$item.name</>
-</>
 
 // cursed C++ pointers
 var val: i32* (*(*(**[]) (i8, i32* i32*)) []) (i8**, i32** ()) =
@@ -315,17 +312,34 @@ struct Node {
   }
 }
 
+let head: *Node = Node 1
+head.next = Node 2
+head.next.next = Node 3
+head.next.next.next = null
+auto current: *Node = head
+while current != null: {
+  print current.value
+  current = current.next
+}
+
 // stropping keywords with invisible characters
 const͏ let͏ var var͏: in͏ i32 = 10
 scope for͏ for let in͏ in [var͏ alloc: init: release:]:
   print in͏
 
+// jsx with inline code
+<div>
+  for item in items:
+    <span .item-[item.id]=item.id>$item.name</>
+</>
+
 // JSX control structures
-<for let=$i in=(0...10)>
+<for let=i in=(0...10)>
   <if (x % 2 == 0)>
     <span>$"Even: $i"</>
-  </>
-  <else>
-    <span>$"Odd: $i"</>
-  </>
-</>
+  <elif (x % 3 == 0)/>
+    <span>$"Divisible by 3: $i"</>
+  <else/>
+    <span>$"Other: $i"</>
+  </if>
+</for>

@@ -3253,12 +3253,59 @@ repository:
 
   attribute-values:
     patterns:
-      - include: "#brackets"
-      - include: "#embedded-expressions"
-      - include: "#literals"
-      - include: "#css-property-values"
       - include: "#hex-colors"
-      - include: "#unicode-property-values"
+      - include: "#literals"
+      - include: "#embedded"
+      - &primary-expression
+        comment: Plain identifiers
+        applyEndPatternLast: true
+        name: meta.embedded.expression.ruko
+        begin: |-
+          (?x)
+          # ignore all keywords
+          (?!
+            (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref
+              |[gs]et|unset|n?and|x?n?or|c?n?imply|not
+
+              # declaration keywords
+              |var|mut|let|auto|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|un|elif|elun|else|[tw]hen|guard|with
+              |for|while|until|loop|break|skip|redo
+              |(?:re)?try|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|sync|select
+              |copy|move|drop
+              |[gd]o|from|where|(?:im|ex)(?:port|tern)
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+          (?=[\p{Pc}\p{L}\p{Nl}]) # next to a word
+        end: (?=)|$
+        patterns:
+          - include: "#constants"
+          - include: "#generics"
+          - include: "#brackets"
+          - include: "#embedded-function-calls"
+          - match: (?<=>|\w)(!)(?=\#?[({])
+            captures:
+              1: { name: keyword.operator.macro.ruko }
+          - match: (?<=>|\w)(~)(?=\#?[({])
+            captures:
+              1: { name: keyword.operator.destructor.ruko }
+          - include: "#variables"
+          - include: "#numbers"
+          - *qualified-name-separators
       - *attribute-identifier
 
   spread-attribute:
@@ -3946,11 +3993,9 @@ repository:
     patterns:
       - include: "#function-calls"
       - include: "#hex-colors"
-      - include: "#embedded-expressions"
-      - include: "#embedded-formatting"
-      - include: "#embedded-arguments"
-      - include: "#css-property-values"
-      - include: "#unit-suffix"
+      - include: "#literals"
+      - include: "#embedded"
+      - *primary-expression
       - include: $self
 
   hex-colors:
@@ -4243,12 +4288,12 @@ repository:
       - begin: \s*(?<=\.)\b
         <<: *attribute-selectors
         name: entity.other.attribute-name.class.ruko
+      - begin: \s*(?<=:)\b
+        <<: *attribute-selectors
+        name: entity.other.attribute-name.pseudo-class.ruko
       - begin: \s*(?<=::)\b
         <<: *attribute-selectors
-        name: entity.other.attribute-name.pseudo-component.ruko
-      - begin: \s*(?<=@)\b
-        <<: *attribute-selectors
-        name: entity.name.decorator.ruko
+        name: entity.other.attribute-name.pseudo-element.ruko
       - begin: \s*(?<=&)\b
         <<: *attribute-selectors
         name: entity.name.type.anchor.ruko
@@ -4257,19 +4302,31 @@ repository:
         name: entity.name.type.alias.ruko
       - begin: \s*(?<=%)\b
         <<: *attribute-selectors
+        name: entity.name.template.ruko
+      - begin: \s*(?<=\$)\b
+        <<: *attribute-selectors
         name: entity.name.function.ruko
-      - begin: \s*(?<=\|)\b
+      - begin: \s*(?<=\.)\b
         <<: *attribute-selectors
         name: entity.name.method.ruko
-      - begin: \s*(?<=:)\b
+      - begin: \s*(?<=\|)\b
         <<: *attribute-selectors
         name: entity.name.procedure.ruko
       - begin: \s*(?<=\^)\b
         <<: *attribute-selectors
         name: entity.name.property.ruko
-      - begin: \s*(?<=\?)\b
+      - begin: \s*(?<=~)\b
         <<: *attribute-selectors
-        name: entity.name.predicate.ruko
+        name: entity.name.trait.ruko
+      - begin: \s*(?<=@)\b
+        <<: *attribute-selectors
+        name: entity.name.decorator.ruko
+      - begin: \s*(?<=!)\b
+        <<: *attribute-selectors
+        name: entity.name.module.ruko
+      - begin: \s*(?<=#)\b
+        <<: *attribute-selectors
+        name: entity.name.schema.ruko
 
   style-pair:
     begin: (?<=(?:^|;|\#?[(\[{])\s*)((?:\[.*\]|[\p{Pd}\w]+)*)\s*(:)(?=\s+|$)
