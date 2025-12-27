@@ -1,9 +1,9 @@
 name: Ruko
 scopeName: source.spwn # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
-patterns: [include: "#core"]
+patterns: [{ include: "#core" }]
 
-# Last updated: December 21, 2025
+# Last updated: December 27, 2025
 #
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
@@ -343,8 +343,7 @@ repository:
   # Directives
 
   directives:
-    comment: "These are just straight-up copied from C/C++ but
-      with some changes to #define to support regex replacements."
+    comment: "These are just straight-up copied from C/C++ but with some changes to #define to support regex replacements."
     patterns:
       - applyEndPatternLast: true
         begin: ^\s*(\#)(!|if|else|elif|end|ifdef|ifndef)\b
@@ -353,7 +352,7 @@ repository:
         captures:
           1: { name: punctuation.definition.directive.ruko }
           2: { name: keyword.control.directive.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - applyEndPatternLast: true
         begin: ^\s*(\#)(define|undef)\b
         end: $
@@ -389,7 +388,7 @@ repository:
         captures:
           1: { name: punctuation.definition.directive.ruko }
           2: { name: keyword.control.directive.ruko }
-        patterns: [include: "#module-content"]
+        patterns: [{ include: "#module-content" }]
       - applyEndPatternLast: true
         begin: ^\s*(\#)(pragma|region|endregion|once)\b
         end: $
@@ -397,14 +396,14 @@ repository:
         captures:
           1: { name: punctuation.definition.directive.ruko }
           2: { name: keyword.control.directive.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - comment: null directive
         match: ^\s*(\#)\s*$
         name: meta.directive.ruko
         captures:
           1: { name: punctuation.definition.directive.ruko }
           2: { name: text.whitespace.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
 
   # Types
 
@@ -466,7 +465,7 @@ repository:
             (\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
           | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
           | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-          | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
+          | ([\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
         )
         |
         (?<!
@@ -515,7 +514,7 @@ repository:
     end: (?=)|$
     beginCaptures:
       1: { name: punctuation.definition.annotation.ruko }
-    patterns: [include: "#types"]
+    patterns: [{ include: "#types" }]
 
   type-brackets:
     patterns:
@@ -1155,27 +1154,27 @@ repository:
         name: constant.numeric.duodecimal.ruko
         begin: |-
           (?ix)\b(0z) # prefix
-            ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # duodecimal digits
+            ([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?) # duodecimal digits
         end: (?=)|$
         captures:
           1: { name: storage.type.numeric.ruko }
           2: { name: constant.numeric.duodecimal.digits.ruko }
         patterns:
-          - match: (\.)([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?)
+          - match: (\.)([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?)
             name: constant.numeric.duodecimal.fraction.ruko
             captures:
               1: { name: punctuation.separator.decimal.ruko }
           - match: |-
               (?ix)(\\?e) # exponent delimiter
               ([+-])? # sign
-              ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # exponent
+              ([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?) # exponent
             captures:
               1: { name: keyword.operator.expression.exponent.ruko }
               2: { name: keyword.operator.exponent.sign.ruko }
               3: { name: constant.numeric.duodecimal.exponent.ruko }
           - match: |-
               (?ix)(/) # rational delimiter
-              ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # denominator
+              ([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?) # denominator
             captures:
               1: { name: punctuation.separator.rational.ruko }
               2: { name: constant.numeric.duodecimal.denominator.ruko }
@@ -1238,13 +1237,13 @@ repository:
         name: constant.language.symbol-type.ruko
         captures:
           1: { name: punctuation.definition.symbol.ruko }
-        patterns: [include: "#strings"]
+        patterns: [{ include: "#strings" }]
       - match: (?<=^|\\.|['"`()\[\]{}\s]|(?:[)}\]\w\s'"`]|\\.)\s*[:=])(:)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)
         name: constant.other.symbol.ruko
         captures:
           1: { name: punctuation.definition.symbol.ruko }
           2: { name: constant.other.symbol.ruko }
-        patterns: [include: "#string-escapes"]
+        patterns: [{ include: "#string-escapes" }]
 
   # Strings
 
@@ -1295,7 +1294,7 @@ repository:
         name: punctuation.definition.comment.ruko
         captures:
           1: { name: punctuation.separator.continuation.line.ruko }
-        patterns: [include: "#comments"]
+        patterns: [{ include: "#comments" }]
       - match: \\\s
         name: constant.character.escape.whitespace.ruko
       - include: "#embedded"
@@ -2030,14 +2029,14 @@ repository:
         name: keyword.function.ruko
         begin: \\j(?::(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*))?\b(?=[(\[{])
         beginCaptures:
-          1: { patterns: [include: "#function-namespace"] }
+          1: { patterns: [{ include: "#function-namespace" }] }
         end: (?=)|$
-        patterns: [include: "#named-escape-brackets"]
+        patterns: [{ include: "#named-escape-brackets" }]
       - match: (\\j:)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b([,;]|(?=\W))
         name: constant.character.escape.ruko
         captures:
           1: { name: punctuation.terminator.entity.ruko }
-          2: { patterns: [include: "#character-namespace"] }
+          2: { patterns: [{ include: "#character-namespace" }] }
           3: { name: punctuation.terminator.entity.ruko }
 
   named-escape-brackets:
@@ -2046,17 +2045,17 @@ repository:
         end: \s*(\))
         captures:
           1: { name: punctuation.definition.group.ruko }
-        patterns: [include: "#named-escape-content"]
+        patterns: [{ include: "#named-escape-content" }]
       - begin: (\[)\s*
         end: \s*(\])
         captures:
           1: { name: punctuation.definition.sequence.ruko }
-        patterns: [include: "#named-escape-content"]
+        patterns: [{ include: "#named-escape-content" }]
       - begin: ({)\s*
         end: \s*(})
         captures:
           1: { name: punctuation.definition.block.ruko }
-        patterns: [include: "#named-escape-content"]
+        patterns: [{ include: "#named-escape-content" }]
 
   named-escape-content:
     name: string.unquoted.plain.ruko
@@ -2065,13 +2064,13 @@ repository:
         name: constant.other.function.ruko
         begin: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b(?=[(\[{])
         beginCaptures:
-          1: { patterns: [include: "#function-namespace"] }
+          1: { patterns: [{ include: "#function-namespace" }] }
         end: (?=)|$
-        patterns: [include: "#named-escape-brackets"]
+        patterns: [{ include: "#named-escape-brackets" }]
       - match: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b
         name: constant.character.escape.ruko
         captures:
-          1: { patterns: [include: "#character-namespace"] }
+          1: { patterns: [{ include: "#character-namespace" }] }
       - match: \b[:.](?=`?\b[\p{Pc}\p{L}\p{Nl}]\w*|[({\[]|$)
         name: punctuation.separator.namespace.ruko
       - include: "#literals"
@@ -2102,7 +2101,7 @@ repository:
         match: \\c[@A-Za-z]
         name: constant.character.escape.control.ruko
       - comment: Null character escape
-        match: \\0|\\x00|\\u0000|\\U0{8}
+        match: "\\\\0|\\\\x00|\\\0|\\\\U0{8}"
         name: constant.character.escape.null.ruko
       - comment: Private Use Area U+E000-F8FF
         match: \\u[eE]\h{3}|\\u[fF][0-8]\h{2}
@@ -2153,7 +2152,7 @@ repository:
         match: \\q0*(1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)
         name: constant.character.escape.quaternary.ruko
       - comment: Duodecimal escape sequences (4588A7)
-        match: \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0)
+        match: \\z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0)
         name: constant.character.escape.duodecimal.ruko
 
   # Embedded expressions
@@ -2180,7 +2179,7 @@ repository:
         name: meta.embedded.expression.ruko
         captures:
           1: { name: punctuation.definition.variable.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - comment: Interpolated expression
         applyEndPatternLast: true
         name: meta.embedded.expression.ruko
@@ -2309,13 +2308,13 @@ repository:
           1: { name: punctuation.definition.anchor.ruko }
           2:
             name: keyword.operator.prefix.ruko
-            patterns: [include: "#parameter-type-operators"]
+            patterns: [{ include: "#parameter-type-operators" }]
           3:
             name: variable.parameter.ruko
-            patterns: [include: "#constants"]
+            patterns: [{ include: "#constants" }]
           4:
             name: keyword.operator.suffix.ruko
-            patterns: [include: "#parameter-type-operators"]
+            patterns: [{ include: "#parameter-type-operators" }]
       - name: meta.embedded.placeholder.ruko
         begin: (\#{)\s*
         end: \s*(})
@@ -2335,7 +2334,7 @@ repository:
     end: (?=)|$
     captures:
       1: { name: punctuation.definition.directive.ruko }
-    patterns: [include: "#format-syntax"]
+    patterns: [{ include: "#format-syntax" }]
 
   format-syntax:
     comment: Format specifier language, inspired by MS-DOS, Bash and Python's f-strings.
@@ -2538,7 +2537,7 @@ repository:
       - match: \|
         name: keyword.operator.alternation.ruko
       - match: \&
-        name: keyword.operator.successor.ruko
+        name: keyword.operator.succession.ruko
       - match: \.
         name: constant.character.all.ruko
       - match: (?i)\\[by](?:{(?:[^\\{}]|\\.)+})?
@@ -2611,7 +2610,7 @@ repository:
             beginCaptures:
               1: { name: punctuation.separator.key-value.ruko }
             end: (?=[,;}]|)|$
-            patterns: [include: "#regexp-patterns"]
+            patterns: [{ include: "#regexp-patterns" }]
           - include: "#fuzzy-expression"
       - match: \\[abefrntv]
         name: constant.character.escape.ruko
@@ -2666,7 +2665,7 @@ repository:
           1: { name: punctuation.section.expression.ruko }
           2: { name: keyword.control.ruko }
           3: { name: punctuation.separator.colon.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Block comment
         begin: (\()(\?#)
         contentName: comment.block.regexp.ruko
@@ -2674,35 +2673,35 @@ repository:
         name: comment.block.regexp.ruko
         captures:
           1: { name: punctuation.definition.comment.ruko }
-        patterns: [match: \\.]
+        patterns: [{ match: \\. }]
       - comment: Lookahead assertion
         begin: (\(\?=)
         end: \s*(\))
         name: meta.group.look-ahead.ruko
         captures:
           1: { name: punctuation.definition.group.look-ahead.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Lookbehind assertion
         begin: (\(\?<=)
         end: \s*(\))
         name: meta.group.look-behind.ruko
         captures:
           1: { name: punctuation.definition.group.look-behind.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Negative lookahead assertion
         begin: (\(\?!)
         end: \s*(\))
         name: meta.group.negative-look-ahead.ruko
         captures:
           1: { name: punctuation.definition.group.negative-look-ahead.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Negative lookbehind assertion
         begin: (\(\?<!)
         end: \s*(\))
         name: meta.group.negative-look-behind.ruko
         captures:
           1: { name: punctuation.definition.group.negative-look-behind.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Match directive Oniguruma supports only 20 levels of recursion
         begin: (?x)(\(\?)(?=%)
         captures:
@@ -2718,7 +2717,7 @@ repository:
         name: meta.group.longest.ruko
         captures:
           1: { name: punctuation.definition.group.longest.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Back-reference groups
         begin: \((\?&(?:([+-]?\d+)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*)))(:)?
         end: \s*\)
@@ -2727,9 +2726,9 @@ repository:
           0: { name: punctuation.definition.group.back-reference.ruko }
           1: { name: punctuation.definition.group.back-reference.ruko }
           2: { name: constant.numeric.index.ruko }
-          3: { patterns: [include: "#variables"] }
+          3: { patterns: [{ include: "#variables" }] }
           4: { name: punctuation.separator.colon.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Back-reference groups
         begin: \((\?&)
         end: \s*\)
@@ -2756,7 +2755,7 @@ repository:
           3: { name: keyword.control.recursion.ruko }
           4: { name: keyword.other.flag.ruko }
           5: { name: punctuation.separator.colon.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Call-outs
         begin: (\(\?)(?={)
         end: \s*(\))
@@ -2771,9 +2770,9 @@ repository:
               1: { name: punctuation.definition.group.call-out.ruko }
               2: { name: keyword.operator.range.ruko }
               3: { name: punctuation.definition.tag.ruko }
-              4: { patterns: [include: "#function-names"] }
+              4: { patterns: [{ include: "#function-names" }] }
               5: { name: punctuation.definition.tag.ruko }
-            patterns: [include: $self]
+            patterns: [{ include: $self }]
           - include: "#regexp-patterns"
       - comment: Atomic groups
         begin: (\(\?>)
@@ -2781,21 +2780,21 @@ repository:
         name: meta.group.atomic.ruko
         captures:
           1: { name: punctuation.definition.group.atomic.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Non-capturing groups
         begin: (\(\?:)
         end: \s*(\))
         name: meta.group.non-capturing.ruko
         captures:
           1: { name: punctuation.definition.group.non-capturing.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Branch groups
         begin: (\(\?)(?=[(|])
         end: \s*(\))
         name: meta.group.branch.ruko
         captures:
           1: { name: punctuation.definition.group.branch.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
       - comment: Absent groups
         begin: (\(\?~(\|))
         end: \s*(\))
@@ -2841,7 +2840,7 @@ repository:
         name: meta.group.ruko
         captures:
           1: { name: punctuation.definition.group.ruko }
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{ include: "#regexp-patterns" }]
 
   regexp-character-class:
     patterns:
@@ -2855,7 +2854,7 @@ repository:
       - begin: (?i)\\p{
         end: \s*}
         name: constant.other.character-class.unicode.ruko
-        patterns: [include: "#attribute-selectors"]
+        patterns: [{ include: "#attribute-selectors" }]
       - *regexp-quote-lower
       - *regexp-quote-upper
       - match: (?i)\\([cm][a-z])
@@ -2876,7 +2875,7 @@ repository:
         name: constant.character.escape.symbol.ruko
       - match: \\\p{P}
         name: constant.character.escape.punctuation.ruko
-      - match: \\[a-zA-Z\p{C}]
+      - match: \\\p{C}
         name: invalid.illegal.escape.ruko
       - match: \\\s
         name: constant.character.escape.space.ruko
@@ -2896,7 +2895,7 @@ repository:
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
             | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
-            | \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal escape
+            | \\z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0) # duodecimal escape
             | \\x\h\h # hex escape (2-digit)
             | \\u\h{4} # hex escape (4-digit)
             | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
@@ -2911,7 +2910,7 @@ repository:
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
             | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
-            | \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal escape
+            | \\z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0) # duodecimal escape
             | \\x\h\h # hex escape (2-digit)
             | \\u\h{4} # hex escape (4-digit)
             | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
@@ -2927,7 +2926,7 @@ repository:
               | -?0b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary
               | -?0x0*(?:10\h{6}|\h{1,5}) # hexadecimal
               | -?0q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary
-              | -?0z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal
+              | -?0z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0) # duodecimal
             )
           )?
         captures:
@@ -2964,7 +2963,7 @@ repository:
         name: constant.other.character-set.posix.ruko
         captures:
           1: { name: punctuation.definition.character-class.posix.ruko }
-        patterns: [include: "#attribute-selectors"]
+        patterns: [{ include: "#attribute-selectors" }]
       - begin: (\[\^)
         end: \s*(\])
         name: constant.other.character-set.negated.ruko
@@ -3008,7 +3007,7 @@ repository:
         captures:
           1:
             name: entity.other.attribute-name.key.ruko
-            patterns: [include: "#unicode-property-keys"]
+            patterns: [{ include: "#unicode-property-keys" }]
           2: { name: keyword.operator.comparison.ruko }
           3: { name: keyword.operator.match.ruko }
           4: { name: keyword.operator.relation.ruko }
@@ -3025,7 +3024,7 @@ repository:
               1: { name: punctuation.definition.regexp.begin.ruko }
               2: { name: punctuation.definition.regexp.end.ruko }
               3: { name: keyword.other.flag.ruko }
-            patterns: [include: "#regexp-patterns"]
+            patterns: [{ include: "#regexp-patterns" }]
           - include: "#constants"
           - include: "#numbers"
           - include: "#unicode-property-values"
@@ -3065,22 +3064,20 @@ repository:
         captures:
           1: { name: punctuation.definition.splice.ruko }
           2: { name: punctuation.definition.splice.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - begin: \s*(<\[)
         end: \s*(\]>)
         name: meta.splicing.ruko
         captures:
           1: { name: punctuation.definition.splice.ruko }
           2: { name: punctuation.definition.splice.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
 
   # XML (JSX) and Markdown
 
   xml:
     applyEndPatternLast: true
-    comment: Only captured when next to opening brackets, commas,
-      semicolons, keywords, and operators.
-      XML also supports functional components.
+    comment: Only captured when next to opening brackets, commas, semicolons, keywords, and operators. XML also supports functional components.
     begin: |-
       (?x)(?<=
         (?:
@@ -3099,7 +3096,7 @@ repository:
       ) \s*
       (?=<(?:[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
     end: (?=)|$
-    patterns: [include: "#tag-component-name"]
+    patterns: [{ include: "#tag-component-name" }]
 
   tag-component-name:
     patterns:
@@ -3124,13 +3121,12 @@ repository:
             name: meta.expression.tag.ruko
             captures:
               1: { name: punctuation.definition.expression.ruko }
-            patterns: [include: $self]
+            patterns: [{ include: $self }]
           - include: "#tag-attributes"
           - include: "#tag-termination"
           - match: (?<=</)(>)
             name: punctuation.definition.tag.ruko
-      - comment: Tags that end > are trapped in tag-termination.
-          <$></> is a fragment tag.
+      - comment: Tags that end > are trapped in tag-termination. <$></> is a fragment tag.
         contentName: text.html.ruko
         begin: |-
           (?x)
@@ -3155,12 +3151,12 @@ repository:
           1: { name: punctuation.definition.tag.ruko }
           2:
             name: entity.name.tag.ruko
-            patterns: [include: "#html-tags"]
+            patterns: [{ include: "#html-tags" }]
         endCaptures:
           0: { name: meta.tag.ruko }
           1:
             name: entity.name.tag.ruko
-            patterns: [include: "#html-tags"]
+            patterns: [{ include: "#html-tags" }]
           2: { name: punctuation.definition.tag.ruko }
           3: { name: punctuation.definition.tag.ruko }
           4: { name: invalid.illegal.termination.ruko }
@@ -3177,7 +3173,7 @@ repository:
     captures:
       1: { name: punctuation.definition.comment.ruko }
     name: comment.block.html.ruko
-    patterns: [include: "#xml-comments"]
+    patterns: [{ include: "#xml-comments" }]
 
   tag-termination:
     comment: uses non consuming search for </ in </tag>
@@ -3187,11 +3183,11 @@ repository:
     captures:
       1: { name: punctuation.definition.tag.ruko }
     patterns:
-      - include: "#evaluated-code"
+      - include: "#paragraph"
       - include: "#xml-entities"
       - include: "#tag-component-name"
-      - include: "#markdown"
       - include: "#xml-comments"
+      - include: $self
 
   tag-attributes:
     patterns:
@@ -3207,7 +3203,7 @@ repository:
         name: entity.other.attribute-name.ruko
         patterns:
           - match: '[\p{Pd}\w]+'
-            patterns: [include: "#css-property-keys"]
+            patterns: [{ include: "#css-property-keys" }]
           - &style-square-brackets
             begin: (\[)
             end: (\])
@@ -3239,7 +3235,7 @@ repository:
     endCaptures:
       1: { name: punctuation.definition.block.ruko }
     name: meta.attribute.style.ruko
-    patterns: [include: "#style-properties"]
+    patterns: [{ include: "#style-properties" }]
 
   attribute-assignment:
     applyEndPatternLast: true
@@ -3248,7 +3244,7 @@ repository:
       1: { name: punctuation.separator.key-value.ruko }
     end: (?=)|$
     name: meta.attribute.assignment.ruko
-    patterns: [include: "#attribute-values"]
+    patterns: [{ include: "#attribute-values" }]
 
   attribute-values:
     patterns:
@@ -3605,7 +3601,7 @@ repository:
       7: { name: punctuation.definition.constant.markdown }
     match: (\!\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(.*?)(\])
     name: meta.image.reference.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   link-email:
     captures:
@@ -3614,7 +3610,7 @@ repository:
       4: { name: punctuation.definition.link.markdown }
     match: (<)((?:mailto:)?[a-zA-Z\d.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z\d-]+(?:\.[a-zA-Z\d-]+)*)(>)
     name: meta.link.email.lt-gt.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   link-inet:
     captures:
@@ -3623,7 +3619,7 @@ repository:
       3: { name: punctuation.definition.link.markdown }
     match: (<)((?:https?|ftp)://.*?)(>)
     name: meta.link.inet.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   link-inline:
     captures:
@@ -3659,7 +3655,7 @@ repository:
         \s* # Optional whitespace
       (\))
     name: meta.link.inline.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   link-ref:
     captures:
@@ -3671,7 +3667,7 @@ repository:
       7: { name: punctuation.definition.constant.end.markdown }
     match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])(\[)([^\]]*+)(\])
     name: meta.link.reference.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   link-ref-literal:
     captures:
@@ -3682,7 +3678,7 @@ repository:
       6: { name: punctuation.definition.constant.end.markdown }
     match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(\])
     name: meta.link.reference.literal.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   link-ref-shortcut:
     captures:
@@ -3691,16 +3687,16 @@ repository:
       3: { name: punctuation.definition.string.end.markdown }
     match: (\[)(\S+?)(\])
     name: meta.link.reference.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   raw:
     captures:
       1: { name: punctuation.definition.raw.markdown }
-      2: { patterns: [include: "#escapes-embedded"] }
+      2: { patterns: [{ include: "#escapes-embedded" }] }
       3: { name: punctuation.definition.raw.markdown }
     match: (`+)([^`]|(?!(?<!`)\1(?!`))`)*+(\1)
     name: markup.inline.raw.string.markdown
-    patterns: [include: "#escapes-embedded"]
+    patterns: [{ include: "#escapes-embedded" }]
 
   escapes-embedded:
     patterns:
@@ -3713,7 +3709,7 @@ repository:
       - include: "#xml-entities"
       - include: "#html-tag"
       - include: "#escapes-embedded"
-      - include: "#evaluated-code"
+      - include: "#paragraph"
       - include: "#inline-styles"
       - include: "#headings"
       - include: "#blockquote"
@@ -3734,84 +3730,78 @@ repository:
             begin: (?<=\#{6}\s*)
             end: (?=|$)
             name: heading.6.markdown entity.name.section.markdown
-            patterns: [include: "#markdown"]
+            patterns: [{ include: "#markdown" }]
           - applyEndPatternLast: true
             begin: (?<=\#{5}\s*)
             end: (?=|$)
             name: heading.5.markdown entity.name.section.markdown
-            patterns: [include: "#markdown"]
+            patterns: [{ include: "#markdown" }]
           - applyEndPatternLast: true
             begin: (?<=\#{4}\s*)
             end: (?=|$)
             name: heading.4.markdown entity.name.section.markdown
-            patterns: [include: "#markdown"]
+            patterns: [{ include: "#markdown" }]
           - applyEndPatternLast: true
             begin: (?<=\#{3}\s*)
             end: (?=|$)
             name: heading.3.markdown entity.name.section.markdown
-            patterns: [include: "#markdown"]
+            patterns: [{ include: "#markdown" }]
           - applyEndPatternLast: true
             begin: (?<=\#{2}\s*)
             end: (?=|$)
             name: heading.2.markdown entity.name.section.markdown
-            patterns: [include: "#markdown"]
+            patterns: [{ include: "#markdown" }]
           - applyEndPatternLast: true
             begin: (?<=\#\s*)
             end: (?=|$)
             name: heading.1.markdown entity.name.section.markdown
-            patterns: [include: "#markdown"]
+            patterns: [{ include: "#markdown" }]
     name: markup.heading.markdown
-    patterns: [include: "#markdown"]
+    patterns: [{ include: "#markdown" }]
 
   blockquote:
     comment: "* blockquote"
     applyEndPatternLast: true
-    begin: ^\s*(>)(\s+.*)\n*
+    begin: ^\s*(>)(?!>)(\s+.*)\n*
     end: (?=|$)
     beginCaptures:
       1: { name: punctuation.definition.quote.begin.markdown }
-      2:
-        name: markup.quote.markdown
-        patterns: [include: "#markdown"]
+      2: { patterns: [{ include: "#markdown" }] }
     name: markup.quote.markdown
-    patterns: [include: "#markdown"]
+    patterns: [{ include: "#markdown" }]
 
   unordered-list:
     comment: "- unordered list"
     applyEndPatternLast: true
-    begin: ^\s*(-)(?!>)\s+(.*)\n*
+    begin: ^\s*(-)(?!>)(\s+.*)\n*
     end: (?=|$)
     beginCaptures:
       1: { name: punctuation.definition.list.begin.markdown }
-      2:
-        name: markup.list.unnumbered.markdown
-        patterns: [include: "#markdown"]
+      2: { patterns: [{ include: "#markdown" }] }
     name: markup.list.unnumbered.markdown
-    patterns: [include: "#markdown"]
+    patterns: [{ include: "#markdown" }]
 
   ordered-list:
-    comment: "+ ordered list"
+    comment: + ordered list
     applyEndPatternLast: true
-    begin: ^\s*(\+)(?!>)\s+(.*)\n*
+    begin: ^\s*(\+)(?!>)(\s+.*)\n*
     end: (?=|$)
     beginCaptures:
       1: { name: punctuation.definition.list.begin.markdown }
-      2:
-        name: markup.list.numbered.markdown
-        patterns: [include: "#markdown"]
+      2: { patterns: [{ include: "#markdown" }] }
     name: markup.list.numbered.markdown
-    patterns: [include: "#markdown"]
+    patterns: [{ include: "#markdown" }]
 
-  evaluated-code:
-    comment: Evaluated code
+  paragraph:
+    comment: . paragraph
     applyEndPatternLast: true
-    begin: ^\s*(;)(?!>)\s+
+    begin: ^\s*(\.)(?!>)(\s+.*)\n*
     end: (?=|$)
     beginCaptures:
       1: { name: fenced_code.block.language.markdown }
-      2: { name: meta.evaluated-code.markdown }
-    name: meta.evaluated-code.markdown
-    patterns: [include: $self]
+      2: { patterns: [{ include: "#markdown" }] }
+    name: meta.paragraph.markdown
+    patterns: [{ include: "#markdown" }]
 
   html-tag:
     comment: <Tags
@@ -3827,7 +3817,7 @@ repository:
         captures:
           1:
             name: entity.name.tag.ruko
-            patterns: [include: "#html-tags"]
+            patterns: [{ include: "#html-tags" }]
       - include: "#style-selectors"
       - begin: (\[)\s*
         end: \s*(\])
@@ -3924,7 +3914,7 @@ repository:
       - begin: ^(\s+)(?!\s)
         end: ^(?!\1|\s*$)
         name: meta.style.yaml
-        patterns: [include: "#style-properties"]
+        patterns: [{ include: "#style-properties" }]
 
   # Special blocks
 
@@ -4186,8 +4176,7 @@ repository:
           - include: source.fsharp
 
   operator-declarations:
-    comment: "Operator declarations.
-      Format: <prec> <associativity> <fixity> <operator> (-> <return type>)"
+    comment: "Operator declarations. Format: <prec> <associativity> <fixity> <operator> (-> <return type>)"
     patterns:
       - include: "#comments"
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(prec)\b\s*(?:(\d+)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*))
@@ -4219,7 +4208,7 @@ repository:
       end: (?=)|$
       patterns:
         - match: '[\p{Pd}\w]+'
-          patterns: [include: "#css-property-keys"]
+          patterns: [{ include: "#css-property-keys" }]
         - &style-square-brackets
           begin: (\[)
           end: (\])
@@ -4236,7 +4225,7 @@ repository:
         name: entity.name.tag.ruko
         patterns:
           - match: '[\p{Pd}\w]+'
-            patterns: [include: "#html-tags"]
+            patterns: [{ include: "#html-tags" }]
           - *style-square-brackets
       - match: \s*([@#&*|%.:~^?]|::)(?=[\w$'"`])
         name: punctuation.definition.entity.ruko
@@ -4446,7 +4435,7 @@ repository:
     end: ^|(?=\*/)|(?=\3$)
     beginCaptures:
       1: { name: storage.type.class.jsdoc }
-    patterns: [include: "#jsdoc-name-path-scopes"]
+    patterns: [{ include: "#jsdoc-name-path-scopes" }]
 
   jsdoc-simple:
     comment: "@tag"
@@ -4480,7 +4469,7 @@ repository:
     end: ^|(?=\*/)|(?=\4$)
     beginCaptures:
       1: { name: storage.type.class.jsdoc }
-    patterns: [include: "#jsdoc-typedef-scopes"]
+    patterns: [{ include: "#jsdoc-typedef-scopes" }]
 
   jsdoc-inline-tags:
     name: meta.tag.inline.jsdoc
@@ -4569,7 +4558,7 @@ repository:
         begin: \.(?="|')
         end: (?=.)
         applyEndPatternLast: true
-        patterns: [include: "#jsdoc-string"]
+        patterns: [{ include: "#jsdoc-string" }]
 
   jsdoc-string:
     name: string.jsdoc
@@ -4668,7 +4657,7 @@ repository:
         )
       )
     captures:
-      1: { patterns: [include: "#function-names"] }
+      1: { patterns: [{ include: "#function-names" }] }
 
   piped-function-calls:
     patterns:
@@ -4772,20 +4761,20 @@ repository:
           )
           \b
           (?=
-              \s+ (?:<[|+*$]>?|[.·°$]) \s+ # infix operator
-            | \b  (?:<[|+*$]>?|[·°]) \b  # primary operator
+              \s+ (?:<[|+*$]>?|[.\u00b7\u00b0$]) \s+ # infix operator
+            | \b  (?:<[|+*$]>?|[\u00b7\u00b0]) \b  # primary operator
           )
         captures:
           1:
             name: meta.function.name.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{ include: "#function-names" }]
       - comment: Piped function calls
         name: meta.function.arguments.ruko
         match: |
           (?x)
           (?<=
-              \s+ (?:<?[|+*$]>|[.·°¢]) \s+ # infix operator
-            | \b  (?:<?[|+*$]>|[·°]) \b  # primary operator
+              \s+ (?:<?[|+*$]>|[.\u00b7\u00b0\u00a2]) \s+ # infix operator
+            | \b  (?:<?[|+*$]>|[\u00b7\u00b0]) \b  # primary operator
           )
           \b
           (
@@ -4827,7 +4816,7 @@ repository:
         captures:
           1:
             name: meta.function.name.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{ include: "#function-names" }]
 
   parenless-function-calls:
     comment: Normal (bracketed or bracketless) function calls
@@ -5045,7 +5034,7 @@ repository:
     captures:
       1:
         name: meta.function.name.ruko
-        patterns: [include: "#function-names"]
+        patterns: [{ include: "#function-names" }]
 
   function-calls:
     patterns:
@@ -5174,7 +5163,7 @@ repository:
         beginCaptures:
           1: { name: punctuation.definition.annotation.ruko }
         name: meta.type.ruko
-        patterns: [include: "#types"]
+        patterns: [{ include: "#types" }]
       - match: |-
           (?x)
           (?<=
@@ -5223,7 +5212,7 @@ repository:
         captures:
           1:
             name: keyword.operator.prefix.ruko
-            patterns: [include: "#parameter-type-operators"]
+            patterns: [{ include: "#parameter-type-operators" }]
           2:
             name: storage.type.ruko
             patterns:
@@ -5231,16 +5220,16 @@ repository:
               - include: "#modifiers"
           3:
             name: keyword.operator.suffix.ruko
-            patterns: [include: "#parameter-type-operators"]
+            patterns: [{ include: "#parameter-type-operators" }]
           4:
             name: keyword.operator.prefix.ruko
-            patterns: [include: "#parameter-type-operators"]
+            patterns: [{ include: "#parameter-type-operators" }]
           5:
             name: variable.parameter.ruko
-            patterns: [include: "#constants"]
+            patterns: [{ include: "#constants" }]
           6:
             name: keyword.operator.suffix.ruko
-            patterns: [include: "#parameter-type-operators"]
+            patterns: [{ include: "#parameter-type-operators" }]
         name: meta.binding-pattern.ruko
 
   call-parameters:
@@ -5284,7 +5273,7 @@ repository:
     captures:
       1:
         name: keyword.operator.prefix.ruko
-        patterns: [include: "#parameter-type-operators"]
+        patterns: [{ include: "#parameter-type-operators" }]
       2:
         name: storage.type.ruko
         patterns:
@@ -5292,16 +5281,16 @@ repository:
           - include: "#modifiers"
       3:
         name: keyword.operator.suffix.ruko
-        patterns: [include: "#parameter-type-operators"]
+        patterns: [{ include: "#parameter-type-operators" }]
       4:
         name: keyword.operator.prefix.ruko
-        patterns: [include: "#parameter-type-operators"]
+        patterns: [{ include: "#parameter-type-operators" }]
       5:
         name: variable.parameter.ruko
-        patterns: [include: "#constants"]
+        patterns: [{ include: "#constants" }]
       6:
         name: keyword.operator.suffix.ruko
-        patterns: [include: "#parameter-type-operators"]
+        patterns: [{ include: "#parameter-type-operators" }]
       7: { name: punctuation.definition.key-value.ruko }
     name: meta.binding-pattern.ruko
 
@@ -5320,7 +5309,7 @@ repository:
         name: variable.other.index.ruko
         captures:
           1: { name: keyword.operator.arithmetic.ruko }
-        patterns: [include: "#numbers"]
+        patterns: [{ include: "#numbers" }]
       - match: |-
           (?x)
           (?:
@@ -5333,7 +5322,7 @@ repository:
                 (\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
               | ([\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
               | ((?:[\p{Pc}\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Lu}]*)+) # Pascal case
-              | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
+              | ([\p{Pc}\p{L}\p{Nl}]\w*) # camel or snake case
             )
             |
             (?<!
@@ -5409,10 +5398,10 @@ repository:
         captures:
           1:
             name: punctuation.separator.accessor.ruko
-            patterns: [include: "#accessor-operators"]
+            patterns: [{ include: "#accessor-operators" }]
           2:
             name: entity.name.function.member.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{ include: "#function-names" }]
       - match: |-
           (?x)
           (?<=\\?)
@@ -5452,7 +5441,7 @@ repository:
         captures:
           1:
             name: entity.name.function.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{ include: "#function-names" }]
       - include: "#operators"
       - include: $self
 
@@ -5466,24 +5455,24 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
-            | ( [&|^#§¦¤¶¬~¯] ) # bitwise
+            | ( &&|\|\||\^\^|\#\#|\u00a7\u00a7|\u00a6\u00a6|\u00a4\u00a4|\u00b6\u00b6|~~|\u00ac\u00ac|\u00af\u00af ) # logical
+            | ( [&|^#\u00a7\u00a6\u00a4\u00b6\u00ac~\u00af] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|××|÷÷|±±|%% ) # string
-            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( \+\+|--|\u00d7\u00d7|\u00f7\u00f7|\u00b1\u00b1|%% ) # string
+            | ( [+\-\u00d7\u00f7\u00b1][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$¢] ) # application
-            | ( <\+|\+>|[.·°] ) # composition
+            | ( <[|+*$]>|[$\u00a2] ) # application
+            | ( <\+|\+>|[.\u00b7\u00b0] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
             | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|··+|°°+ ) # dots
+            | ( \.\.+|\u00b7\u00b7+|\u00b0\u00b0+ ) # dots
             | ( [!=]==? ) # comparison
             | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|¿¿ ) # null-coalescing
-            | ( !!!?|¡¡ ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
+            | ( \?\?\??|\u00bf\u00bf ) # null-coalescing
+            | ( !!!?|\u00a1\u00a1 ) # coalescing
+            | ( \?:?|\u00bf: ) # conditional
+            | ( !:?|\u00a1: ) # ternary
             | ( \$|:?:?: ) # macro
             | ( :?:?= ) # assignment
             | ( ==?>|<== ) # fat arrow
@@ -5491,7 +5480,7 @@ repository:
             | ( ~~?>|<~~? ) # wavy arrow
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
-            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
+            | ( [!#-&*+\-./:-@\\^|~\u00a1-\u00a9\u00ab-\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]+ ) # ascii operators
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
                 (?:[\p{P}\p{S}]*
@@ -5544,24 +5533,24 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
-            | ( [&|^#§¦¤¶¬~¯] ) # bitwise
+            | ( &&|\|\||\^\^|\#\#|\u00a7\u00a7|\u00a6\u00a6|\u00a4\u00a4|\u00b6\u00b6|~~|\u00ac\u00ac|\u00af\u00af ) # logical
+            | ( [&|^#\u00a7\u00a6\u00a4\u00b6\u00ac~\u00af] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|××|÷÷|±±|%% ) # string
-            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( \+\+|--|\u00d7\u00d7|\u00f7\u00f7|\u00b1\u00b1|%% ) # string
+            | ( [+\-\u00d7\u00f7\u00b1][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$¢] ) # application
-            | ( <\+|\+>|[.·°] ) # composition
+            | ( <[|+*$]>|[$\u00a2] ) # application
+            | ( <\+|\+>|[.\u00b7\u00b0] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
             | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|··+|°°+ ) # dots
+            | ( \.\.+|\u00b7\u00b7+|\u00b0\u00b0+ ) # dots
             | ( [!=]==? ) # comparison
             | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|¿¿ ) # null-coalescing
-            | ( !!!?|¡¡ ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
+            | ( \?\?\??|\u00bf\u00bf ) # null-coalescing
+            | ( !!!?|\u00a1\u00a1 ) # coalescing
+            | ( \?:?|\u00bf: ) # conditional
+            | ( !:?|\u00a1: ) # ternary
             | ( \$|:?:?: ) # macro
             | ( :?:?= ) # assignment
             | ( ==?>|<== ) # fat arrow
@@ -5569,7 +5558,7 @@ repository:
             | ( ~~?>|<~~? ) # wavy arrow
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
-            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
+            | ( [!#-&*+\-./:-@\\^|~\u00a1-\u00a9\u00ab-\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]+ ) # ascii operators
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
                 (?:[\p{P}\p{S}]*
@@ -5588,24 +5577,24 @@ repository:
         | ( \?[.:>] ) # optional
         | ( ![.:>] ) # mandatory
         | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
-        | ( [&|^#§¦¤¶¬~¯] ) # bitwise
+        | ( &&|\|\||\^\^|\#\#|\u00a7\u00a7|\u00a6\u00a6|\u00a4\u00a4|\u00b6\u00b6|~~|\u00ac\u00ac|\u00af\u00af ) # logical
+        | ( [&|^#\u00a7\u00a6\u00a4\u00b6\u00ac~\u00af] ) # bitwise
         | ( <<[<>]?|[<>]?>> ) # bitwise shift
-        | ( \+\+|--|××|÷÷|±±|%% ) # string
-        | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+        | ( \+\+|--|\u00d7\u00d7|\u00f7\u00f7|\u00b1\u00b1|%% ) # string
+        | ( [+\-\u00d7\u00f7\u00b1][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
         | ( [|+*$]>|<[|+*$] ) # pipeline
-        | ( <[|+*$]>|[$¢] ) # application
-        | ( <\+|\+>|[.·°] ) # composition
+        | ( <[|+*$]>|[$\u00a2] ) # application
+        | ( <\+|\+>|[.\u00b7\u00b0] ) # composition
         | ( [<>][:!]|[:!][<>] ) # class
         | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
         | ( [<>]=?|<=?> ) # relational
-        | ( \.\.+|··+|°°+ ) # dots
+        | ( \.\.+|\u00b7\u00b7+|\u00b0\u00b0+ ) # dots
         | ( [!=]==? ) # comparison
         | ( ~[=!]|[=!]~ ) # similarity
-        | ( \?\?\??|¿¿ ) # null-coalescing
-        | ( !!!?|¡¡ ) # coalescing
-        | ( \?:?|¿: ) # conditional
-        | ( !:?|¡: ) # ternary
+        | ( \?\?\??|\u00bf\u00bf ) # null-coalescing
+        | ( !!!?|\u00a1\u00a1 ) # coalescing
+        | ( \?:?|\u00bf: ) # conditional
+        | ( !:?|\u00a1: ) # ternary
         | ( \$|:?:?: ) # macro
         | ( :?:?= ) # assignment
         | ( ==?>|<== ) # fat arrow
@@ -5613,7 +5602,7 @@ repository:
         | ( ~~?>|<~~? ) # wavy arrow
         | ( \p{Sm}+ ) # math symbols
         | ( \p{Sc}+ ) # currency symbols
-        | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
+        | ( [!#-&*+\-./:-@\\^|~\u00a1-\u00a9\u00ab-\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]+ ) # ascii operators
         | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
         | ( [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # other operators
       )(?=(?:['"`\w]|\#?[(\[{]))
@@ -5764,7 +5753,7 @@ repository:
         \b\s*
       )
     captures:
-      1: { patterns: [include: "#modifiers"] }
+      1: { patterns: [{ include: "#modifiers" }] }
 
   type-modifiers:
     patterns:
@@ -5835,7 +5824,7 @@ repository:
             `?\b[\p{Pc}\p{L}\p{Nl}]\w*
           )
         captures:
-          1: { patterns: [include: "#modifiers"] }
+          1: { patterns: [{ include: "#modifiers" }] }
 
   modifiers:
     patterns:
@@ -6145,7 +6134,7 @@ repository:
         end: ^\s*(?=\S)
         captures:
           1: { name: punctuation.separator.ruko }
-        patterns: [include: "#comments"]
+        patterns: [{ include: "#comments" }]
       - include: "#extern-expression"
       - begin: ({)\s*
         end: \s*(})
@@ -6174,8 +6163,7 @@ repository:
         name: string.unquoted.module.ruko
 
   validation-expression:
-    comment: In validation expressions, every identifier that begins a newline
-      is a keyword unless it is preceded by a dot or is a known keyword.
+    comment: In validation expressions, every identifier that begins a newline is a keyword unless it is preceded by a dot or is a known keyword.
     begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(where)\b\s*
     beginCaptures:
       1: { name: keyword.control.validate.ruko }
@@ -6220,9 +6208,7 @@ repository:
       - include: $self
 
   query-expression:
-    comment: "RINQ (Ruko INtegrated Query) expression mini-language
-      TODO: unify the query clauses to reduce redundancy, since they are
-      mostly similar in structure."
+    comment: "RINQ (Ruko INtegrated Query) expression mini-language TODO: unify the query clauses to reduce redundancy, since they are mostly similar in structure."
     begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(from)\b\s*
     beginCaptures:
       1: { name: keyword.control.query.ruko }
@@ -6253,7 +6239,7 @@ repository:
       \b\s*
     beginCaptures:
       1: { name: keyword.control.query.ruko }
-      2: { patterns: [include: $self] }
+      2: { patterns: [{ include: $self }] }
       3: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
@@ -6270,7 +6256,7 @@ repository:
       \b\s*
     beginCaptures:
       1: { name: keyword.control.query.ruko }
-      2: { patterns: [include: $self] }
+      2: { patterns: [{ include: $self }] }
       3: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
@@ -6516,7 +6502,7 @@ repository:
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.component.ruko
-            patterns: [include: "#html-tags"]
+            patterns: [{ include: "#html-tags" }]
       - applyEndPatternLast: true
         begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(var|mut|let|auto|const)\b\s*
         end: (?=)|$
@@ -6818,7 +6804,7 @@ repository:
         captures:
           1:
             name: storage.modifier.specifier.ruko
-            patterns: [include: "#modifiers"]
+            patterns: [{ include: "#modifiers" }]
           2: { name: punctuation.separator.section.ruko }
 
   function-clause:
@@ -6857,7 +6843,7 @@ repository:
         captures:
           1: { name: entity.name.method.ruko }
           2: { name: keyword.operator.assignment.ruko }
-          3: { patterns: [include: "#modifiers"] }
+          3: { patterns: [{ include: "#modifiers" }] }
       - begin: |-
           (?x)
           \s*
@@ -6893,11 +6879,11 @@ repository:
         captures:
           1: { name: entity.name.method.ruko }
           2: { name: keyword.operator.assignment.ruko }
-          3: { patterns: [include: "#modifiers"] }
+          3: { patterns: [{ include: "#modifiers" }] }
           4: { name: punctuation.separator.arguments.ruko }
         endCaptures:
           1: { name: punctuation.separator.arguments.ruko }
-        patterns: [include: "#argument-list-content"]
+        patterns: [{ include: "#argument-list-content" }]
       - comment: "Function def before function keyword; x = func()"
         match: |-
           (?x)
@@ -6930,7 +6916,7 @@ repository:
         captures:
           1: { name: entity.name.ruko }
           2: { name: keyword.operator.assignment.ruko }
-          3: { patterns: [include: "#modifiers"] }
+          3: { patterns: [{ include: "#modifiers" }] }
       - comment: "Function def with function keyword; x = fn |args| { }"
         begin: |-
           (?x)
@@ -6967,11 +6953,11 @@ repository:
         captures:
           1: { name: entity.name.ruko }
           2: { name: keyword.operator.assignment.ruko }
-          3: { patterns: [include: "#modifiers"] }
+          3: { patterns: [{ include: "#modifiers" }] }
           4: { name: punctuation.separator.arguments.ruko }
         endCaptures:
           1: { name: punctuation.separator.arguments.ruko }
-        patterns: [include: "#argument-list-content"]
+        patterns: [{ include: "#argument-list-content" }]
 
   argument-list:
     comment: Function argument list starting and ending with |
@@ -7006,7 +6992,7 @@ repository:
     captures:
       1: { name: punctuation.separator.arguments.ruko }
     end: (?<!\|)(\|)(?!\|)
-    patterns: [include: "#argument-list-content"]
+    patterns: [{ include: "#argument-list-content" }]
 
   argument-list-content:
     name: meta.function.arguments.content.ruko
@@ -7053,14 +7039,14 @@ repository:
         end: (?=)|$
         beginCaptures:
           1: { name: keyword.operator.expression.as.ruko }
-        patterns: [include: "#types"]
+        patterns: [{ include: "#types" }]
       - applyEndPatternLast: true
         begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(is|has)(?:\s+(not))?\b\s*
         end: (?=)|$
         captures:
           1: { name: keyword.operator.expression.$1.ruko }
           2: { name: keyword.operator.expression.logical.ruko }
-        patterns: [include: "#types"]
+        patterns: [{ include: "#types" }]
       - applyEndPatternLast: true
         begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(type)\b\s*
         end: (?=)|$
@@ -7068,7 +7054,7 @@ repository:
           1: { name: keyword.other.typedef.ruko }
         patterns:
           - include: "#types"
-          - match: \s*([!#-&*+\-./:;<>?@\\^|~¡-¨«¬­¯°±´¶·¸»¿×÷]?=)\s*
+          - match: \s*([!#-&*+\-./:;<>?@\\^|~\u00a1-\u00a8\u00ab\u00ac\u00ad\u00af\u00b0\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]?=)\s*
             captures:
               1: { name: keyword.operator.assignment.ruko }
 
@@ -7122,7 +7108,7 @@ repository:
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.error.ruko }
-            patterns: [include: "#types"]
+            patterns: [{ include: "#types" }]
           - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: keyword.control.error.ruko
           - include: "#type-keywords"
@@ -7191,7 +7177,7 @@ repository:
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.match.ruko }
-            patterns: [include: "#types"]
+            patterns: [{ include: "#types" }]
           - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: keyword.control.match.ruko
           - include: "#type-keywords"
@@ -7234,7 +7220,7 @@ repository:
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.switch.ruko }
-            patterns: [include: "#types"]
+            patterns: [{ include: "#types" }]
           - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: keyword.control.switch.ruko
           - include: "#type-keywords"
@@ -7354,7 +7340,7 @@ repository:
       1: { name: keyword.operator.assignment.ruko }
       2: { name: keyword.operator.assignment.ruko }
     end: (?=\|(?:$|[^|])|[,;)}\]])
-    patterns: [include: $self]
+    patterns: [{ include: $self }]
 
   binding-pattern:
     patterns:
@@ -7412,7 +7398,7 @@ repository:
         captures:
           1: { name: entity.name.ruko }
           2: { name: punctuation.separator.key-value.ruko }
-          3: { patterns: [include: "#modifiers"] }
+          3: { patterns: [{ include: "#modifiers" }] }
       - begin: |-
           (?x)
           (?<=(?:^|[,;]|\#?[(\[{])\s*)
@@ -7448,11 +7434,11 @@ repository:
         beginCaptures:
           1: { name: entity.name.ruko }
           2: { name: punctuation.separator.key-value.ruko }
-          3: { patterns: [include: "#modifiers"] }
+          3: { patterns: [{ include: "#modifiers" }] }
           4: { name: punctuation.separator.arguments.ruko }
         endCaptures:
           1: { name: punctuation.separator.arguments.ruko }
-        patterns: [include: "#argument-list-content"]
+        patterns: [{ include: "#argument-list-content" }]
       - match: |-
           (?x)
           (?<=(?:^|[,;]|\#?[(\[{])\s*)
@@ -7494,7 +7480,7 @@ repository:
     end: ^\s*(?=\S)
     captures:
       1: { name: punctuation.separator.continuation.line.ruko }
-    patterns: [include: "#comments"]
+    patterns: [{ include: "#comments" }]
 
   comma:
     match: \s*(,)\s*
@@ -7591,7 +7577,7 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: { name: punctuation.definition.class.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - begin: |-
           (?x)
           (?<=
@@ -7613,7 +7599,7 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: { name: punctuation.definition.block.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - begin: |-
           (?x)
           (?<=
@@ -7748,13 +7734,13 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: { name: punctuation.definition.class.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - begin: ({)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
           1: { name: punctuation.definition.block.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
 
   round-brackets:
     repository:
@@ -7809,13 +7795,13 @@ repository:
         name: meta.brace.round.ruko
         captures:
           1: { name: punctuation.definition.tuple.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
       - begin: (\()\s*
         end: \s*(\))
         name: meta.brace.round.ruko
         captures:
           1: { name: punctuation.definition.expression.ruko }
-        patterns: [include: $self]
+        patterns: [{ include: $self }]
 
   square-brackets:
     repository:
@@ -7928,8 +7914,7 @@ repository:
   # Support
 
   unicode-property-keys:
-    comment: "Corresponds to Unicode Standard Annex #44
-      https://unicode.org/Public/UCD/latest/ucd/PropertyAliases.txt"
+    comment: "Corresponds to Unicode Standard Annex #44 https://unicode.org/Public/UCD/latest/ucd/PropertyAliases.txt"
     patterns:
       - comment: Numeric Unicode property aliases and canonical names
         match: |-
@@ -8077,8 +8062,7 @@ repository:
         name: support.type.property-name.unicode.binary.ruko
 
   unicode-property-values:
-    comment: "WIP: Unicode Standard Annex #44
-      https://unicode.org/Public/UCD/latest/ucd/PropertyValueAliases.txt"
+    comment: "WIP: Unicode Standard Annex #44 https://unicode.org/Public/UCD/latest/ucd/PropertyValueAliases.txt"
     patterns:
       - comment: Unicode Script property values
         match: |-
@@ -8742,7 +8726,7 @@ repository:
           imag: imaginary number (bi)
           comp: complex number (a + bi)
           quat: quaternion (a + bi + cj + dk)
-          oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
+          oct: octonion (a + bi + cj + dk + e\u2113 + fm + gn + ho)
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
             [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[uU]nit
@@ -8879,9 +8863,7 @@ repository:
         include: "#support-classes"
 
   support-classes:
-    comment: Ruko probably won't have a large set of built-in classes,
-      so we include common built-in types from major languages
-      to improve recognition of cross-language codebases
+    comment: Ruko probably won't have a large set of built-in classes, so we include common built-in types from major languages to improve recognition of cross-language codebases
     patterns:
       - include: source.python#builtin-exceptions
       - include: source.php#class-builtin
@@ -8985,8 +8967,7 @@ repository:
       - include: source.objcpp#anonymous_pattern_25
 
   support-functions:
-    comment: Names for general support functions in Ruko standard library
-      organized by naming conventions for maintainability
+    comment: Names for general support functions in Ruko standard library organized by naming conventions for maintainability
     patterns:
       - comment: predicate functions
         match: \s*\b(i|ha)s(\p{Lu}[\w&&\P{Lu}]*)+\b\s*
@@ -9002,8 +8983,7 @@ repository:
       - include: "#support-functions-core"
 
   support-functions-core:
-    comment: Core built-in functions from major languages,
-      to improve recognition of cross-language codebases
+    comment: Core built-in functions from major languages, to improve recognition of cross-language codebases
     patterns:
       - include: source.objcpp#c_functions
       - include: source.objc#c_functions
@@ -9089,9 +9069,7 @@ repository:
         name: support.function.gettext.php
       - match: (?x)\bgmp_(scan[01]|strval|sign|sub|setbit|sqrt(rem)?|hamdist|neg|nextprime|com|clrbit|cmp|testbit|intval|init|invert|import|or|div(exact)?|div_(q|qr|r)|jacobi|popcount|pow(m)?|perfect_(square|power)|prob_prime|export|fact|legendre|and|add|abs|root(rem)?|random(_(bits|range|seed))?|gcd(ext)?|xor|mod|mul|binomial|kronecker|lcm)\b
         name: support.function.gmp.php
-      - match:
-          (?x)\bhash(_(algos|copy|equals|file|final|hkdf|hmac(_(file|algos)?)?|init|pbkdf2|update(_(file|stream))?))?
-          \b
+      - match: (?x)\bhash(_(algos|copy|equals|file|final|hkdf|hmac(_(file|algos)?)?|init|pbkdf2|update(_(file|stream))?))? \b
         name: support.function.hash.php
       - match: (?x)\b(http_(support|send_(status|stream|content_(disposition|type)|data|file|last_modified)|head|negotiate_(charset|content_type|language)|chunked_decode|cache_(etag|last_modified)|throttle|inflate|deflate|date|post_(data|fields)|put_(data|file|stream)|persistent_handles_(count|clean|ident)|parse_(cookie|headers|message|params)|redirect|request(_(method_(exists|name|(un)?register)|body_encode))?|get(_request_(headers|body(_stream)?))?|match_(etag|modified|request_header)|build_(cookie|str|url))|ob_(etag|deflate|inflate)handler)\b
         name: support.function.http.php

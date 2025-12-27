@@ -2,7 +2,7 @@
 proc main {
   import Figlet.*,
     Dom.{Canvas, Audio, FS, Log}, // multiple imports
-    Artists.{NexoVolta.Art}, // nested imports
+    Artists.{NexoVolta}, // nested imports
     Galaxies.MilkyWay:Galaxy, // custom import aliasing
     Components.Post
 
@@ -16,7 +16,7 @@ proc main {
                 draw: prophecy.toSVG()]
     [Audio.Track play: './VirtualRiot-Reconnect.mp3'
                  volume: 0.8 
-                `loop: true]
+                 loop͏: true]
     Post.emit(
       dev: <NexoVolta handle=@nexovolta/>
     )
@@ -147,14 +147,14 @@ func sortedPowerSet(arr: i32[]): i32[][] = <>
     <mut (type i32[]) $subset=[]/>
     <for let=$j in=(0 ..< arr.len)> 
       <if ((i >> j) & 1)>
-        <do (subset.push arr[j])/>
+         subset.push arr[j]
       </if>
     </for>
-    <do (result.push subset)/>
+    result.push subset
   </for>
-  <do (result.sortBy |a, b| <>
-    <let (type i32) $countA=(<do $a.reduce(0, |c,, i| c + 1)/>)/>
-    <let (type i32) $countB=(<do $b.reduce(0, |d,, i| d + 1)/>)/>
+  result.sortBy |a, b| <>
+    <let (type i32) $countA=(a.reduce 0, |c,, i| c + 1)/>
+    <let (type i32) $countB=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -164,7 +164,7 @@ func sortedPowerSet(arr: i32[]): i32[][] = <>
       </if>
     </for>
     <return (a.len - b.len)/>
-  </>)/>
+  </>
   <return $result/>
 </>
 
@@ -236,7 +236,7 @@ funcName(arg1: 10, &mut arg2: 2, stat arg3: {k: v} as MyType)
 v = #{a: pub|*a| a + 1}
 
 // Style DSL example
-style `style {
+style style͏ {
   x: 0x64px
   y: 0x64px
   background: blue
@@ -253,8 +253,8 @@ style `style {
     background: red
 
   @keyframes slidein
-    `from(transform: translateX 0%)
-    `to(transform: translateX 100%)
+    from͏(transform: translateX 0%)
+    to͏(transform: translateX 100%)
 
   @fontFace
     fontFamily: 'MyFont'
@@ -295,7 +295,7 @@ for items as let item, index:
 
 // jsx with inline code
 <div>
-  ; for item in items:
+  for item in items:
     <span .item-[item.id]=$item.id>$item.name</>
 </>
 
@@ -316,18 +316,16 @@ struct Node {
 }
 
 // stropping keywords
-`const `let var `var: `in i32 = 10
-scope `for for let `in in [`var alloc: init: release:]:
-  print `in
+const͏ let͏ var var͏: in͏ i32 = 10
+scope for͏ for let in͏ in [var͏ alloc: init: release:]:
+  print in͏
 
 // JSX control structures
 <for let=$i in=(0...10)>
   <if (x % 2 == 0)>
-    ; print i
-    <span>Even: $i</>
+    <span>$"Even: $i"</>
   </>
   <else>
-    ; print i
-    <span>Odd: $i</>
+    <span>$"Odd: $i"</>
   </>
 </>
