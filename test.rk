@@ -2,7 +2,7 @@
 proc main {
   import Figlet.*,
     Dom.{Canvas, Audio, FS, Log}, // multiple imports
-    Art.{NexoVolta, Alaylays}, // nested imports
+    Art.{NexoVolta}, // nested imports
     Galaxies.MilkyWay:Galaxy, // custom import aliasing
     Components.Post
 
@@ -19,7 +19,6 @@ proc main {
                 `loop: true]
     Post.emit(
       dev: <NexoVolta handle=@nexovolta/>
-      art: <Alaylays handle=@alaylays/>
     )
   }
 
@@ -117,22 +116,22 @@ func sortedPowerSet(arr: i32[]): i32[][] {
 
 // Clojure-like (prefix) syntax
 func sortedPowerSet(arr: i32[]): i32[][] {
-  (type i32[][]) mut result = []
+  (mut (type i32[][]) result [])
 
-  (for let i in (..< 0 (<< 1 (len arr))) {
-    (type i32[]) mut subset = []
-    (for let j in (..< 0 (len arr)) if (& (>> i j) 1)) {
+  (for (let i) in (..< 0 (<< 1 (len arr))) {
+    (mut (type i32[]) subset [])
+    (for (let j) in (..< 0 (len arr)) if (& (>> i j) 1)) {
       (push subset (arr j))
     }
     (push result subset)
   })
 
   (return (sortBy result (|a, b| {
-    (type i32) let countA = (reduce a 0 (|c,, i| (+ c 1)))
-    (type i32) let countB = (reduce b 0 (|d,, i| (+ d 1)))
+    (let (type i32) countA = (reduce a 0 (|c,, i| (+ c 1))))
+    (let (type i32) countB = (reduce b 0 (|d,, i| (+ d 1))))
     (if (!= countA countB)
       (return (- countA countB)))
-    (for let i in (..< 0 (min (len a) (len b)))
+    (for (let i) in (..< 0 (min (len a) (len b)))
       if (!= (a i) (b i)) {
       (return (- (a i) (b i)))
     })
