@@ -803,6 +803,14 @@ repository:
         name: storage.type.implements.ruko
       - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(infer|as)\b\s*
         name: keyword.operator.expression.$1.ruko
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((inst|value|pair|type|name|size|key)of)\b\s*
+        name: keyword.operator.expression.$1.ruko
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(instof)\b\s*
+        name: keyword.operator.expression.instanceof.ruko
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(ext)\b\s*
+        name: storage.type.extends.ruko
+      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(impl)\b\s*
+        name: storage.type.implements.ruko
       - &in-of-expression
         match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(?:(not)\s+)?([io]n|of)\b\s*
         captures:
@@ -813,14 +821,6 @@ repository:
         captures:
           1: { name: keyword.operator.expression.$1.ruko }
           2: { name: keyword.operator.expression.logical.ruko }
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((inst|value|pair|type|name|size|key)of)\b\s*
-        name: keyword.operator.expression.$1.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(instof)\b\s*
-        name: keyword.operator.expression.instanceof.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(ext)\b\s*
-        name: storage.type.extends.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(impl)\b\s*
-        name: storage.type.implements.ruko
 
   type-operators:
     patterns:
@@ -1154,27 +1154,27 @@ repository:
         name: constant.numeric.duodecimal.ruko
         begin: |-
           (?ix)\b(0z) # prefix
-            ([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?) # duodecimal digits
+            ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # duodecimal digits
         end: (?=)|$
         captures:
           1: { name: storage.type.numeric.ruko }
           2: { name: constant.numeric.duodecimal.digits.ruko }
         patterns:
-          - match: (\.)([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?)
+          - match: (\.)([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?)
             name: constant.numeric.duodecimal.fraction.ruko
             captures:
               1: { name: punctuation.separator.decimal.ruko }
           - match: |-
               (?ix)(\\?e) # exponent delimiter
               ([+-])? # sign
-              ([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?) # exponent
+              ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # exponent
             captures:
               1: { name: keyword.operator.expression.exponent.ruko }
               2: { name: keyword.operator.exponent.sign.ruko }
               3: { name: constant.numeric.duodecimal.exponent.ruko }
           - match: |-
               (?ix)(/) # rational delimiter
-              ([\d\u218a\u218babetx](?:[\d\u218a\u218babetx_]*[\d\u218a\u218babetx])?) # denominator
+              ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # denominator
             captures:
               1: { name: punctuation.separator.rational.ruko }
               2: { name: constant.numeric.duodecimal.denominator.ruko }
@@ -2157,7 +2157,7 @@ repository:
         match: \\q0*(1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)
         name: constant.character.escape.quaternary.ruko
       - comment: Duodecimal escape sequences (4588A7)
-        match: \\z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0)
+        match: \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0)
         name: constant.character.escape.duodecimal.ruko
 
   # Embedded expressions
@@ -2900,7 +2900,7 @@ repository:
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
             | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
-            | \\z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0) # duodecimal escape
+            | \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal escape
             | \\x\h\h # hex escape (2-digit)
             | \\u\h{4} # hex escape (4-digit)
             | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
@@ -2915,7 +2915,7 @@ repository:
             | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
             | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
             | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
-            | \\z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0) # duodecimal escape
+            | \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal escape
             | \\x\h\h # hex escape (2-digit)
             | \\u\h{4} # hex escape (4-digit)
             | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
@@ -2931,7 +2931,7 @@ repository:
               | -?0b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary
               | -?0x0*(?:10\h{6}|\h{1,5}) # hexadecimal
               | -?0q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary
-              | -?0z0*(?i:4588[\u218aatx][0-6]|4588\d[\d\u218a\u218babetx]|458[0-7][\d\u218a\u218babetx]{2}|45[0-7][\d\u218a\u218babetx]{3}|4[0-4][\d\u218a\u218babetx]{4}|[1-3][\d\u218a\u218babetx]{5}|[1-9][\d\u218a\u218babetx]{0,5}|0) # duodecimal
+              | -?0z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal
             )
           )?
         captures:
@@ -4823,8 +4823,8 @@ repository:
           )
           \b
           (?=
-              \s+ (?:<[|+*$]>?|[.\u00b7\u00b0$]) \s+ # infix operator
-            | \b  (?:<[|+*$]>?|[\u00b7\u00b0]) \b  # primary operator
+              \s+ (?:<[|+*$]>?|[.·°$]) \s+ # infix operator
+            | \b  (?:<[|+*$]>?|[·°]) \b  # primary operator
           )
         captures:
           1:
@@ -4835,8 +4835,8 @@ repository:
         match: |
           (?x)
           (?<=
-              \s+ (?:<?[|+*$]>|[.\u00b7\u00b0\u00a2]) \s+ # infix operator
-            | \b  (?:<?[|+*$]>|[\u00b7\u00b0]) \b  # primary operator
+              \s+ (?:<?[|+*$]>|[.·°¢]) \s+ # infix operator
+            | \b  (?:<?[|+*$]>|[·°]) \b  # primary operator
           )
           \b
           (
@@ -5517,24 +5517,24 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|\#\#|\u00a7\u00a7|\u00a6\u00a6|\u00a4\u00a4|\u00b6\u00b6|~~|\u00ac\u00ac|\u00af\u00af ) # logical
-            | ( [&|^#\u00a7\u00a6\u00a4\u00b6\u00ac~\u00af] ) # bitwise
+            | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
+            | ( [&|^#§¦¤¶¬~¯] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|\u00d7\u00d7|\u00f7\u00f7|\u00b1\u00b1|%% ) # string
-            | ( [+\-\u00d7\u00f7\u00b1][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$\u00a2] ) # application
-            | ( <\+|\+>|[.\u00b7\u00b0] ) # composition
+            | ( <[|+*$]>|[$¢] ) # application
+            | ( <\+|\+>|[.·°] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
             | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|\u00b7\u00b7+|\u00b0\u00b0+ ) # dots
+            | ( \.\.+|··+|°°+ ) # dots
             | ( [!=]==? ) # comparison
             | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|\u00bf\u00bf ) # null-coalescing
-            | ( !!!?|\u00a1\u00a1 ) # coalescing
-            | ( \?:?|\u00bf: ) # conditional
-            | ( !:?|\u00a1: ) # ternary
+            | ( \?\?\??|¿¿ ) # null-coalescing
+            | ( !!!?|¡¡ ) # coalescing
+            | ( \?:?|¿: ) # conditional
+            | ( !:?|¡: ) # ternary
             | ( \$|:?:?: ) # macro
             | ( :?:?= ) # assignment
             | ( ==?>|<== ) # fat arrow
@@ -5542,7 +5542,7 @@ repository:
             | ( ~~?>|<~~? ) # wavy arrow
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
-            | ( [!#-&*+\-./:-@\\^|~\u00a1-\u00a9\u00ab-\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]+ ) # ascii operators
+            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
                 (?:[\p{P}\p{S}]*
@@ -5595,24 +5595,24 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|\#\#|\u00a7\u00a7|\u00a6\u00a6|\u00a4\u00a4|\u00b6\u00b6|~~|\u00ac\u00ac|\u00af\u00af ) # logical
-            | ( [&|^#\u00a7\u00a6\u00a4\u00b6\u00ac~\u00af] ) # bitwise
+            | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
+            | ( [&|^#§¦¤¶¬~¯] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|\u00d7\u00d7|\u00f7\u00f7|\u00b1\u00b1|%% ) # string
-            | ( [+\-\u00d7\u00f7\u00b1][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$\u00a2] ) # application
-            | ( <\+|\+>|[.\u00b7\u00b0] ) # composition
+            | ( <[|+*$]>|[$¢] ) # application
+            | ( <\+|\+>|[.·°] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
             | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|\u00b7\u00b7+|\u00b0\u00b0+ ) # dots
+            | ( \.\.+|··+|°°+ ) # dots
             | ( [!=]==? ) # comparison
             | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|\u00bf\u00bf ) # null-coalescing
-            | ( !!!?|\u00a1\u00a1 ) # coalescing
-            | ( \?:?|\u00bf: ) # conditional
-            | ( !:?|\u00a1: ) # ternary
+            | ( \?\?\??|¿¿ ) # null-coalescing
+            | ( !!!?|¡¡ ) # coalescing
+            | ( \?:?|¿: ) # conditional
+            | ( !:?|¡: ) # ternary
             | ( \$|:?:?: ) # macro
             | ( :?:?= ) # assignment
             | ( ==?>|<== ) # fat arrow
@@ -5620,7 +5620,7 @@ repository:
             | ( ~~?>|<~~? ) # wavy arrow
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
-            | ( [!#-&*+\-./:-@\\^|~\u00a1-\u00a9\u00ab-\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]+ ) # ascii operators
+            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
                 (?:[\p{P}\p{S}]*
@@ -5639,24 +5639,24 @@ repository:
         | ( \?[.:>] ) # optional
         | ( ![.:>] ) # mandatory
         | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|\#\#|\u00a7\u00a7|\u00a6\u00a6|\u00a4\u00a4|\u00b6\u00b6|~~|\u00ac\u00ac|\u00af\u00af ) # logical
-        | ( [&|^#\u00a7\u00a6\u00a4\u00b6\u00ac~\u00af] ) # bitwise
+        | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
+        | ( [&|^#§¦¤¶¬~¯] ) # bitwise
         | ( <<[<>]?|[<>]?>> ) # bitwise shift
-        | ( \+\+|--|\u00d7\u00d7|\u00f7\u00f7|\u00b1\u00b1|%% ) # string
-        | ( [+\-\u00d7\u00f7\u00b1][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+        | ( \+\+|--|××|÷÷|±±|%% ) # string
+        | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
         | ( [|+*$]>|<[|+*$] ) # pipeline
-        | ( <[|+*$]>|[$\u00a2] ) # application
-        | ( <\+|\+>|[.\u00b7\u00b0] ) # composition
+        | ( <[|+*$]>|[$¢] ) # application
+        | ( <\+|\+>|[.·°] ) # composition
         | ( [<>][:!]|[:!][<>] ) # class
         | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
         | ( [<>]=?|<=?> ) # relational
-        | ( \.\.+|\u00b7\u00b7+|\u00b0\u00b0+ ) # dots
+        | ( \.\.+|··+|°°+ ) # dots
         | ( [!=]==? ) # comparison
         | ( ~[=!]|[=!]~ ) # similarity
-        | ( \?\?\??|\u00bf\u00bf ) # null-coalescing
-        | ( !!!?|\u00a1\u00a1 ) # coalescing
-        | ( \?:?|\u00bf: ) # conditional
-        | ( !:?|\u00a1: ) # ternary
+        | ( \?\?\??|¿¿ ) # null-coalescing
+        | ( !!!?|¡¡ ) # coalescing
+        | ( \?:?|¿: ) # conditional
+        | ( !:?|¡: ) # ternary
         | ( \$|:?:?: ) # macro
         | ( :?:?= ) # assignment
         | ( ==?>|<== ) # fat arrow
@@ -5664,7 +5664,7 @@ repository:
         | ( ~~?>|<~~? ) # wavy arrow
         | ( \p{Sm}+ ) # math symbols
         | ( \p{Sc}+ ) # currency symbols
-        | ( [!#-&*+\-./:-@\\^|~\u00a1-\u00a9\u00ab-\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]+ ) # ascii operators
+        | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
         | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
         | ( [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # other operators
       )(?=(?:['"`\w]|\#?[(\[{]))
@@ -7116,7 +7116,7 @@ repository:
           1: { name: keyword.other.typedef.ruko }
         patterns:
           - include: "#types"
-          - match: \s*([!#-&*+\-./:;<>?@\\^|~\u00a1-\u00a8\u00ab\u00ac\u00ad\u00af\u00b0\u00b1\u00b4\u00b6\u00b7\u00b8\u00bb\u00bf\u00d7\u00f7]?=)\s*
+          - match: \s*([!#-&*+\-./:;<>?@\\^|~¡-¨«¬­¯°±´¶·¸»¿×÷]?=)\s*
             captures:
               1: { name: keyword.operator.assignment.ruko }
 
@@ -8788,7 +8788,7 @@ repository:
           imag: imaginary number (bi)
           comp: complex number (a + bi)
           quat: quaternion (a + bi + cj + dk)
-          oct: octonion (a + bi + cj + dk + e\u2113 + fm + gn + ho)
+          oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
             [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[uU]nit
