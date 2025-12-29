@@ -53,11 +53,11 @@ func sortedPowerSet(arr: i32[]): i32[][] {
   for let i in 0 ..< 1 << arr.len {
     mut subset: i32[] = []
     for let j in 0 ..< arr.len if (i >> j) & 1:
-      subset.push arr[j]
-    result.push subset
+      subset.=push arr[j]
+    result.=push subset
   }
 
-  return result.sortBy |a, b| {
+  return result.=sortBy |a, b| {
     let countA = a.reduce 0, |c,, i| c + 1
     let countB = b.reduce 0, |d,, i| d + 1
     if countA != countB:
@@ -101,12 +101,12 @@ func sortedPowerSet(arr: i32[]): i32[][] {
 
   [0 ..< 1 << arr.len each: |i| {
     let subset: i32[] = []
-    [0 ..< arr.len each: |j| 
-      if (i >> j) & 1: subset.push arr[j]]
-    [result push: subset]
+    [0 ..< arr.len each: |j|
+      if (i >> j) & 1: [subset =push: arr[j]]]
+    [result =push: subset]
   }]
 
-  return [result sortBy: |a, b| {
+  return [result =sortBy: |a, b| {
     let countA = [a reduce: 0, |c,, i| c + 1]
     let countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB: return countA - countB
@@ -152,12 +152,12 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
     <mut (type i32[]) $subset=[]/>
     <for let=j in=(0 ..< arr.len)> 
       <if ((i >> j) & 1)>
-        subset.push arr[j]
+        subset.=push arr[j]
       </if>
     </for>
-    result.push subset
+    result.=push subset
   </for>
-  result.sortBy |a, b| <>
+  result.=sortBy |a, b| <>
     <let (type i32) $countA=(a.reduce 0, |c,, i| c + 1)/>
     <let (type i32) $countB=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>

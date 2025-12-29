@@ -36,8 +36,8 @@ export class MTRand {
     stat mut differ: u32 = 0
 
     // constructor overloads
-    proc MTRand(one_seed: n32) = $seed(one_seed)
-    proc MTRand(big_seed: &n32, seed_length: n32 = N) =
+    proc MTRand(one_seed: u32) = $seed(one_seed)
+    proc MTRand(big_seed: &u32, seed_length: u32 = N) =
       $seed(big_seed, seed_length)
     proc MTRand() = $seed()
     proc MTRand(o: &MTRand) {
@@ -48,12 +48,12 @@ export class MTRand {
 
     proc ~MTRand() // destructor
 
-    func rand_int(): n32 {
+    func rand_int(): u32 {
       // generate N words at one time
       if $left == 0: $reload()
       $left -= 1
 
-      mut s1: n32 = *$p_next
+      mut s1: u32 = *$p_next
       $p_next += 1
 
       s1 ^= (s1 >> 11)
@@ -63,30 +63,30 @@ export class MTRand {
       s1 ^ (s1 >> 18) // implicit return
     }
 
-    func rand_int(n: n32): n32 {
+    func rand_int(n: u32): u32 {
       // find the biggest used bit
       mut used = n
       for i in 0..5:
         used |= used >> (1 << i)
 
-      mut i: n32
+      mut i: u32
       loop i := $rand_int() & used while i > n
 
       i // implicit return
     }
 
     // seed overloads
-    proc seed(one_seed: n32) {
+    proc seed(one_seed: u32) {
       $initialize(one_seed)
       $reload()
     }
 
     // seed with an array
-    func seed(big_seed: &n32, seed_length: n32 = N) {
+    func seed(big_seed: &u32, seed_length: u32 = N) {
       $initialize(19650218)
 
       mut i: i32 = 1
-      mut j: n32 = 0
+      mut j: u32 = 0
       mut k: i32 = if N > seed_length: N else seed_length
 
       for in 0..<k {
@@ -120,7 +120,7 @@ export class MTRand {
       let ur = crypto.open_urandom()
 
       if ?ur {
-        mut big: n32[N]
+        mut big: u32[N]
         mut ok = true
         for i in 0..<N {
           let bytes = ur.get.read_bytes(4)
@@ -136,7 +136,7 @@ export class MTRand {
       $seed($hash(t, c))
     }
 
-    proc initialize(one_seed: n32) {
+    proc initialize(one_seed: u32) {
       $state.0 := one_seed & 0xffffffff
 
       for i in 1..<N {
@@ -163,13 +163,13 @@ export class MTRand {
       $p_next := &$state.0
     }
 
-    proc save(save_array: &n32) {
+    proc save(save_array: &u32) {
       mut sa = save_array
       for i in 0..<N: sa[i] := $state[i]
       sa[N] := $left
     }
 
-    proc load(load_array: &n32) {
+    proc load(load_array: &u32) {
       mut la = load_array
       for i in 0..<N: $state[i] := la[i]
       $left := la[N]
@@ -177,19 +177,19 @@ export class MTRand {
     }
 
     // hash function for time-based seed
-    func hash(t: time.time, c: time.clock): n32 {
-      mut h1: n32 = 0
+    func hash(t: time.time, c: time.clock): u32 {
+      mut h1: u32 = 0
       let tb = t as &u8
       for i in 0..<sizeof(time.time) {
         h1 *= u8.max_value + 2
-        h1 += tb[i] as n32
+        h1 += tb[i] as u32
       }
 
-      mut h2: n32 = 0
+      mut h2: u32 = 0
       let cb = c as &u8
       for i in 0..<sizeof(time.clock) {
         h2 *= u8.max_value + 2
-        h2 += cb[i] as n32
+        h2 += cb[i] as u32
       }
 
       let out = (h1 + MTRand.differ) ^ h2
@@ -197,13 +197,13 @@ export class MTRand {
       out // implicit return
     }
 
-    func twist(m: n32, s0: n32, s1: n32): n32 =
+    func twist(m: u32, s0: u32, s1: u32): u32 =
       m ^ ($mix_bits(s0, s1) >> 1) ^ $magic(s1)
 
-    func mix_bits(u: n32, v: n32): n32 =
+    func mix_bits(u: u32, v: u32): u32 =
       (u & 0x80000000) | (v & 0x7fffffff)
 
-    func magic(u: n32): n32 =
+    func magic(u: u32): u32 =
       if (u & 1) != 0: 0x9908b0df else 0x0
 
     // additional generation functions
@@ -227,7 +227,7 @@ export class MTRand {
         (1.0 / 0x20000000000000.0) // implicit return
     }
 
-    func genrand_int_31(): n32 = $rand_int() >> 1
+    func genrand_int_31(): u32 = $rand_int() >> 1
     func genrand_real_1(): f64 = $rand_dbl_exc()
     func genrand_real_2(): f64 = $rand()
     func genrand_real_3(): f64 = $rand_exc()
@@ -272,7 +272,7 @@ export class MTRand {
     ): &io.InputStream {
       for i in 0..<N {
         let line = i_stream.read_line()
-        mt_rand.state[i] := line as n32
+        mt_rand.state[i] := line as u32
       }
 
       let line = i_stream.read_line()
