@@ -1,11 +1,7 @@
 {
   "name": "Ruko",
   "scopeName": "source.spwn",
-  "fileTypes": [
-    "ruko",
-    "rk",
-    "spwn"
-  ],
+  "fileTypes": ["ruko", "rk", "spwn"],
   "patterns": [
     {
       "include": "#core"
@@ -1001,6 +997,9 @@
         },
         {
           "include": "#symbols"
+        },
+        {
+          "include": "#unit-suffix"
         }
       ]
     },
@@ -1037,10 +1036,10 @@
               "name": "variable.language.prototype.ruko"
             },
             "10": {
-              "name": "variable.language.underscore.ruko"
-            },
-            "110": {
               "name": "variable.language.index.ruko"
+            },
+            "11": {
+              "name": "variable.language.underscore.ruko"
             }
           }
         },
@@ -1137,6 +1136,63 @@
         },
         {
           "applyEndPatternLast": true,
+          "comment": "ternary (0t prefix)",
+          "name": "constant.numeric.ternary.ruko",
+          "begin": "(?ix)\\b(0t) # prefix\n  ([0-2](?:[0-2_]*[0-2])?) # ternary digits",
+          "end": "(?=)|$",
+          "captures": {
+            "1": {
+              "name": "storage.type.numeric.ruko"
+            },
+            "2": {
+              "name": "constant.numeric.ternary.digits.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "(\\.)([0-2](?:[0-2_]*[0-2])?)",
+              "name": "constant.numeric.ternary.fraction.ruko",
+              "captures": {
+                "1": {
+                  "name": "punctuation.separator.decimal.ruko"
+                }
+              }
+            },
+            {
+              "match": "(?ix)(\\\\?p) # exponent delimiter\n([+-])? # sign\n([0-2](?:[0-2_]*[0-2])?) # exponent",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.expression.exponent.ruko"
+                },
+                "2": {
+                  "name": "keyword.operator.exponent.sign.ruko"
+                },
+                "3": {
+                  "name": "constant.numeric.ternary.exponent.ruko"
+                }
+              }
+            },
+            {
+              "match": "(?ix)(/) # rational delimiter\n([0-2](?:[0-2_]*[0-2])?) # denominator",
+              "captures": {
+                "1": {
+                  "name": "punctuation.separator.rational.ruko"
+                },
+                "2": {
+                  "name": "constant.numeric.ternary.denominator.ruko"
+                }
+              }
+            },
+            {
+              "include": "#byte-shift-suffix"
+            },
+            {
+              "include": "#unit-suffix"
+            }
+          ]
+        },
+        {
+          "applyEndPatternLast": true,
           "comment": "quaternary (0q prefix)",
           "name": "constant.numeric.quaternary.ruko",
           "begin": "(?ix)\\b(0q) # prefix\n  ([0-3](?:[0-3_]*[0-3])?) # quaternary digits",
@@ -1160,7 +1216,7 @@
               }
             },
             {
-              "match": "(?ix)(\\\\?e) # exponent delimiter\n([+-])? # sign\n([0-3](?:[0-3_]*[0-3])?) # exponent",
+              "match": "(?ix)(\\\\?p) # exponent delimiter\n([+-])? # sign\n([0-3](?:[0-3_]*[0-3])?) # exponent",
               "captures": {
                 "1": {
                   "name": "keyword.operator.expression.exponent.ruko"
@@ -1181,6 +1237,63 @@
                 },
                 "2": {
                   "name": "constant.numeric.quaternary.denominator.ruko"
+                }
+              }
+            },
+            {
+              "include": "#byte-shift-suffix"
+            },
+            {
+              "include": "#unit-suffix"
+            }
+          ]
+        },
+        {
+          "applyEndPatternLast": true,
+          "comment": "senary (0s prefix)",
+          "name": "constant.numeric.senary.ruko",
+          "begin": "(?ix)\\b(0s) # prefix\n  ([0-5](?:[0-5_]*[0-5])?) # senary digits",
+          "end": "(?=)|$",
+          "captures": {
+            "1": {
+              "name": "storage.type.numeric.ruko"
+            },
+            "2": {
+              "name": "constant.numeric.senary.digits.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "(\\.)([0-5](?:[0-5_]*[0-5])?)",
+              "name": "constant.numeric.senary.fraction.ruko",
+              "captures": {
+                "1": {
+                  "name": "punctuation.separator.decimal.ruko"
+                }
+              }
+            },
+            {
+              "match": "(?ix)(\\\\?e) # exponent delimiter\n([+-])? # sign\n([0-5](?:[0-5_]*[0-5])?) # exponent",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.expression.exponent.ruko"
+                },
+                "2": {
+                  "name": "keyword.operator.exponent.sign.ruko"
+                },
+                "3": {
+                  "name": "constant.numeric.senary.exponent.ruko"
+                }
+              }
+            },
+            {
+              "match": "(?ix)(/) # rational delimiter \n([0-5](?:[0-5_]*[0-5])?) # denominator",
+              "captures": {
+                "1": {
+                  "name": "punctuation.separator.rational.ruko"
+                },
+                "2": {
+                  "name": "constant.numeric.senary.denominator.ruko"
                 }
               }
             },
@@ -1217,7 +1330,7 @@
               }
             },
             {
-              "match": "(?ix)(\\\\?e) # exponent delimiter\n([+-])? # sign\n([0-7](?:[0-7_]*[0-7])?) # exponent",
+              "match": "(?ix)(\\\\?p) # exponent delimiter\n([+-])? # sign\n([0-7](?:[0-7_]*[0-7])?) # exponent",
               "captures": {
                 "1": {
                   "name": "keyword.operator.expression.exponent.ruko"
@@ -1238,6 +1351,63 @@
                 },
                 "2": {
                   "name": "constant.numeric.octal.denominator.ruko"
+                }
+              }
+            },
+            {
+              "include": "#byte-shift-suffix"
+            },
+            {
+              "include": "#unit-suffix"
+            }
+          ]
+        },
+        {
+          "applyEndPatternLast": true,
+          "comment": "duodecimal (0z prefix)",
+          "name": "constant.numeric.duodecimal.ruko",
+          "begin": "(?ix)\\b(0z) # prefix\n  ([\\d↊↋ab](?:[\\d↊↋ab_]*[\\d↊↋ab])?) # duodecimal digits",
+          "end": "(?=)|$",
+          "captures": {
+            "1": {
+              "name": "storage.type.numeric.ruko"
+            },
+            "2": {
+              "name": "constant.numeric.duodecimal.digits.ruko"
+            }
+          },
+          "patterns": [
+            {
+              "match": "(\\.)([\\d↊↋ab](?:[\\d↊↋ab_]*[\\d↊↋ab])?)",
+              "name": "constant.numeric.duodecimal.fraction.ruko",
+              "captures": {
+                "1": {
+                  "name": "punctuation.separator.decimal.ruko"
+                }
+              }
+            },
+            {
+              "match": "(?ix)(\\\\?e) # exponent delimiter\n([+-])? # sign\n([\\d↊↋ab](?:[\\d↊↋ab_]*[\\d↊↋ab])?) # exponent",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.expression.exponent.ruko"
+                },
+                "2": {
+                  "name": "keyword.operator.exponent.sign.ruko"
+                },
+                "3": {
+                  "name": "constant.numeric.duodecimal.exponent.ruko"
+                }
+              }
+            },
+            {
+              "match": "(?ix)(/) # rational delimiter\n([\\d↊↋ab](?:[\\d↊↋ab_]*[\\d↊↋ab])?) # denominator",
+              "captures": {
+                "1": {
+                  "name": "punctuation.separator.rational.ruko"
+                },
+                "2": {
+                  "name": "constant.numeric.duodecimal.denominator.ruko"
                 }
               }
             },
@@ -1274,7 +1444,7 @@
               }
             },
             {
-              "match": "(?ix)(\\\\?e) # exponent delimiter\n([+-])? # sign\n([\\h](?:[\\h_]*[\\h])?) # exponent",
+              "match": "(?ix)(\\\\?p) # exponent delimiter\n([+-])? # sign\n([\\h](?:[\\h_]*[\\h])?) # exponent",
               "captures": {
                 "1": {
                   "name": "keyword.operator.expression.exponent.ruko"
@@ -1295,63 +1465,6 @@
                 },
                 "2": {
                   "name": "constant.numeric.hexadecimal.denominator.ruko"
-                }
-              }
-            },
-            {
-              "include": "#byte-shift-suffix"
-            },
-            {
-              "include": "#unit-suffix"
-            }
-          ]
-        },
-        {
-          "applyEndPatternLast": true,
-          "comment": "duodecimal (0z prefix)",
-          "name": "constant.numeric.duodecimal.ruko",
-          "begin": "(?ix)\\b(0z) # prefix\n  ([\\d↊↋abetx](?:[\\d↊↋abetx_]*[\\d↊↋abetx])?) # duodecimal digits",
-          "end": "(?=)|$",
-          "captures": {
-            "1": {
-              "name": "storage.type.numeric.ruko"
-            },
-            "2": {
-              "name": "constant.numeric.duodecimal.digits.ruko"
-            }
-          },
-          "patterns": [
-            {
-              "match": "(\\.)([\\d↊↋abetx](?:[\\d↊↋abetx_]*[\\d↊↋abetx])?)",
-              "name": "constant.numeric.duodecimal.fraction.ruko",
-              "captures": {
-                "1": {
-                  "name": "punctuation.separator.decimal.ruko"
-                }
-              }
-            },
-            {
-              "match": "(?ix)(\\\\?e) # exponent delimiter\n([+-])? # sign\n([\\d↊↋abetx](?:[\\d↊↋abetx_]*[\\d↊↋abetx])?) # exponent",
-              "captures": {
-                "1": {
-                  "name": "keyword.operator.expression.exponent.ruko"
-                },
-                "2": {
-                  "name": "keyword.operator.exponent.sign.ruko"
-                },
-                "3": {
-                  "name": "constant.numeric.duodecimal.exponent.ruko"
-                }
-              }
-            },
-            {
-              "match": "(?ix)(/) # rational delimiter\n([\\d↊↋abetx](?:[\\d↊↋abetx_]*[\\d↊↋abetx])?) # denominator",
-              "captures": {
-                "1": {
-                  "name": "punctuation.separator.rational.ruko"
-                },
-                "2": {
-                  "name": "constant.numeric.duodecimal.denominator.ruko"
                 }
               }
             },
@@ -3091,7 +3204,7 @@
           "include": "#unicode-escapes"
         },
         {
-          "match": "\\\\([cm][@A-Za-z])",
+          "match": "(?i)\\\\c(?-i:[@-_])",
           "name": "constant.character.control.ruko"
         },
         {
@@ -3113,7 +3226,7 @@
           "applyEndPatternLast": true,
           "comment": "More [] () {} can be chained for nested named escapes.",
           "name": "keyword.function.ruko",
-          "begin": "\\\\j(?::(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b([:.]`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)*))?\\b(?=[(\\[{])",
+          "begin": "\\\\&(?:(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b([:.]`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)*))?\\b(?=[(\\[{])",
           "beginCaptures": {
             "1": {
               "patterns": [
@@ -3131,7 +3244,7 @@
           ]
         },
         {
-          "match": "(\\\\j:)(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b([:.]`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)*)\\b([,;]|(?=\\W))",
+          "match": "(\\\\&)(`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b([:.]`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*)*)\\b([,;]|(?=\\W))",
           "name": "constant.character.escape.ruko",
           "captures": {
             "1": {
@@ -3279,103 +3392,152 @@
       "patterns": [
         {
           "comment": "standard \\x escapes",
-          "match": "\\\\x[0-7]\\h",
+          "match": "\\\\x(\\h|[0-7]\\h)",
           "name": "constant.character.escape.ascii.ruko"
         },
         {
-          "comment": "ASCII control character escapes",
-          "match": "\\\\c[@A-Za-z]",
+          "comment": "ASCII control character escapes. u80-9f are mapped to \\C rather than \\c",
+          "match": "\\\\[cC][@-_]",
           "name": "constant.character.escape.control.ruko"
         },
         {
           "comment": "Null character escape",
-          "match": "\\\\0|\\\\x00|\\\u0000|\\\\U0{8}",
+          "match": "\\\\0+|\\\\x0{1,2}|\\\\u0{1,4}|\\\\U0{1,8}",
           "name": "constant.character.escape.null.ruko"
         },
         {
-          "comment": "Private Use Area U+E000-F8FF",
-          "match": "\\\\u[eE]\\h{3}|\\\\u[fF][0-8]\\h{2}",
+          "comment": "- Private Use Area - U+E000-F8FF\n- Supplementary Private Use Area-A - U+F0000-FFFFD\n- Supplementary Private Use Area-B - U+100000-10FFFD\n",
+          "match": "\\\\u0*(?i:e\\h{3}|f[0-8]\\h{2}|(?!f{4}[ef])f\\h{4}|(?!10fff[ef])10\\h{4})",
           "name": "constant.character.escape.private-use.ruko"
         },
         {
           "comment": "Reserved non-characters U+FDD0-FDEF",
-          "match": "\\\\u[fF][dD][dDeE]\\h",
+          "match": "\\\\u0*(?i:fd[de]\\h)",
           "name": "constant.character.escape.noncharacter.ruko"
         },
         {
-          "comment": "Surrogate code points U+D800-DFFF",
-          "match": "\\\\u[dD][89abAB][c-fC-F]\\h{2}(?=\\\\u[dD][c-fC-F]\\h{2})|\\\\u[dD][c-fC-F]\\h{2}(?=\\\\u[dD][89abAB][c-fC-F]\\h{2})",
-          "name": "invalid.illegal.escape.surrogate.ruko"
+          "comment": "Little-endian surrogate pairs",
+          "match": "\\\\u(0*(?i:d[c-f]\\h{2}))\\\\u(0*(?i:d[89ab]\\h{2}))",
+          "name": "constant.character.escape.utf16.little-endian.ruko",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.surrogate.low.ruko"
+            },
+            "2": {
+              "name": "constant.character.escape.surrogate.high.ruko"
+            }
+          }
         },
         {
-          "comment": "Low surrogate pairs U+DC00-DFFF",
-          "match": "\\\\u[dD][c-fC-F]\\h{2}",
-          "name": "constant.character.escape.surrogate-low.ruko"
+          "comment": "Big-endian surrogate pairs",
+          "match": "\\\\u(0*(?i:d[89ab]\\h{2}))\\\\u(0*(?i:d[c-f]\\h{2}))",
+          "name": "constant.character.escape.utf16.big-endian.ruko",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.surrogate.high.ruko"
+            },
+            "2": {
+              "name": "constant.character.escape.surrogate.low.ruko"
+            }
+          }
         },
         {
-          "comment": "High surrogate pairs U+D800-DBFF",
-          "match": "\\\\u[dD][89abAB]\\h{2}",
-          "name": "constant.character.escape.surrogate-high.ruko"
+          "comment": "UTF-8 2-byte sequence",
+          "match": "(\\\\x0*(?i:[cd]\\h))(\\\\x0*(?i:[89ab]\\h))",
+          "name": "constant.character.escape.utf8.two.ruko",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.leading.two.ruko"
+            },
+            "2": {
+              "name": "constant.character.escape.trailing.ruko"
+            }
+          }
         },
         {
-          "comment": "UTF-8 continuation byte escape",
-          "match": "\\\\x[89abAB]\\h",
-          "name": "constant.character.escape.continuation.ruko"
+          "comment": "UTF-8 3-byte sequence",
+          "match": "(\\\\x0*(?i:e\\h))(\\\\x0*(?i:[89ab]\\h))(\\\\x0*(?i:[89ab]\\h))",
+          "name": "constant.character.escape.utf8.three.ruko",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.leading.three.ruko"
+            },
+            "2": {
+              "name": "constant.character.escape.trailing.ruko"
+            },
+            "3": {
+              "name": "constant.character.escape.trailing.ruko"
+            }
+          }
         },
         {
-          "comment": "UTF-8 2-byte sequence lead byte escape",
-          "match": "\\\\x[cdCD]\\h",
-          "name": "constant.character.escape.lead.two.ruko"
+          "comment": "UTF-8 4-byte sequence",
+          "match": "\\\\x0*[fF][0-4](\\\\x0*(?i:[89ab]\\h))(\\\\x0*(?i:[89ab]\\h))(\\\\x0*(?i:[89ab]\\h))",
+          "name": "constant.character.escape.utf8.four.ruko",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.leading.four.ruko"
+            },
+            "2": {
+              "name": "constant.character.escape.trailing.ruko"
+            },
+            "3": {
+              "name": "constant.character.escape.trailing.ruko"
+            },
+            "4": {
+              "name": "constant.character.escape.trailing.ruko"
+            }
+          }
         },
         {
-          "comment": "UTF-8 3-byte sequence lead byte escape",
-          "match": "\\\\x[eE]\\h",
-          "name": "constant.character.escape.lead.three.ruko"
-        },
-        {
-          "comment": "UTF-8 4-byte sequence lead byte escape",
-          "match": "\\\\x[fF][0-4]",
-          "name": "constant.character.escape.lead.four.ruko"
-        },
-        {
-          "comment": "Unused/illegal UTF-8 byte escapes",
-          "match": "\\\\x\\h{2}",
-          "name": "invalid.illegal.escape.utf8.ruko"
+          "comment": "Unicode raw codepoint escape sequences",
+          "match": "\\\\x0*\\h{1,6}",
+          "name": "constant.character.escape.hexadecimal.ruko"
         },
         {
           "comment": "Hexadecimal escape sequences",
-          "match": "\\\\u\\h{4}",
+          "match": "\\\\u0*\\h{1,4}",
           "name": "constant.character.escape.unicode.ruko"
         },
         {
           "comment": "UTF-32 escape sequences",
-          "match": "\\\\U0*(10\\h{6}|\\h{1,5})",
-          "name": "constant.character.escape.astral.ruko"
+          "match": "\\\\U0*\\h{1,8}",
+          "name": "constant.character.escape.utf32.ruko"
         },
         {
           "comment": "Binary escape sequences",
-          "match": "\\\\b0*(10000[0-1]{16}|1[01]{0,19}|0)",
+          "match": "\\\\b0*[01]{1,21}",
           "name": "constant.character.escape.binary.ruko"
         },
         {
-          "comment": "Octal escape sequences",
-          "match": "\\\\o0*(41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0)",
-          "name": "constant.character.escape.octal.ruko"
-        },
-        {
-          "comment": "Decimal escape sequences",
-          "match": "\\\\0*(111411[10]|111410\\d|11140\\d{2}|111[0-3]\\d{3}|110\\d{4}|10\\d{5}|[1-9]\\d{0,5}|0)",
-          "name": "constant.character.escape.numeric.ruko"
+          "comment": "Ternary escape sequences",
+          "match": "\\\\t0*[012]{1,13}",
+          "name": "constant.character.escape.ternary.ruko"
         },
         {
           "comment": "Quaternary escape sequences",
-          "match": "\\\\q0*(1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)",
+          "match": "\\\\q0*[0-3]{1,11}",
           "name": "constant.character.escape.quaternary.ruko"
         },
         {
+          "comment": "Senary escape sequences",
+          "match": "\\\\s0*[0-5]{1,8}",
+          "name": "constant.character.escape.senary.ruko"
+        },
+        {
+          "comment": "Octal escape sequences",
+          "match": "\\\\o0*[0-7]{1,7}",
+          "name": "constant.character.escape.octal.ruko"
+        },
+        {
           "comment": "Duodecimal escape sequences (4588A7)",
-          "match": "\\\\z0*(?i:4588[↊atx][0-6]|4588\\d[\\d↊↋abetx]|458[0-7][\\d↊↋abetx]{2}|45[0-7][\\d↊↋abetx]{3}|4[0-4][\\d↊↋abetx]{4}|[1-3][\\d↊↋abetx]{5}|[1-9][\\d↊↋abetx]{0,5}|0)",
+          "match": "\\\\z0*(?i:[\\d↊↋ab]{1,6})",
           "name": "constant.character.escape.duodecimal.ruko"
+        },
+        {
+          "comment": "Decimal escape sequences",
+          "match": "\\\\0*\\d{1,7}",
+          "name": "constant.character.escape.decimal.ruko"
         }
       ]
     },
@@ -4854,19 +5016,36 @@
           ]
         },
         {
-          "match": "(?i)\\\\([cm][a-z])",
+          "comment": "\\c for U+00-1F, \\C for U+80-FF control characters",
+          "match": "\\\\[cC][@-_]",
           "name": "constant.character.control.ruko"
         },
         {
-          "match": "(?i)\\\\p[a-z]{1,2}",
-          "name": "constant.other.character-class.unicode.ruko"
+          "match": "(\\\\[pP])(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)",
+          "name": "constant.other.character-class.unicode.ruko",
+          "captures": {
+            "0": {
+              "name": "constant.other.character-class.ruko"
+            },
+            "1": {
+              "name": "constant.other.character-class.unicode.ruko"
+            }
+          }
         },
         {
-          "match": "(?i)\\\\[ci]({\\w+})?",
-          "name": "constant.other.character-class.xml.ruko"
+          "match": "\\\\[ci]({(?:[^\\\\{}]|\\\\.)+})?",
+          "name": "constant.other.character-class.xml.ruko",
+          "captures": {
+            "0": {
+              "name": "constant.other.character-class.ruko"
+            },
+            "1": {
+              "name": "constant.other.character-class.xml.name.ruko"
+            }
+          }
         },
         {
-          "match": "(?i)\\\\n{(?:[^\\\\{}]|\\\\.)+}",
+          "match": "(?i)\\\\n({(?:[^\\\\{}]|\\\\.)+})",
           "name": "constant.character.escape.unicode.name.ruko"
         },
         {
@@ -4890,11 +5069,11 @@
           "name": "constant.character.escape.punctuation.ruko"
         },
         {
-          "match": "\\\\\\p{C}",
-          "name": "invalid.illegal.escape.ruko"
+          "match": "\\\\\\p{N}",
+          "name": "constant.character.escape.number.ruko"
         },
         {
-          "match": "\\\\\\s",
+          "match": "\\\\\\p{Z}",
           "name": "constant.character.escape.space.ruko"
         },
         {
@@ -4902,11 +5081,11 @@
           "name": "constant.character.escape.letter.ruko"
         },
         {
-          "match": "\\\\\\p{N}",
-          "name": "constant.character.escape.number.ruko"
+          "match": "\\\\\\p{C}",
+          "name": "invalid.illegal.escape.ruko"
         },
         {
-          "match": "\\\\.",
+          "match": "\\\\\\N",
           "name": "constant.character.escape.other.ruko"
         }
       ]
@@ -4914,7 +5093,7 @@
     "regexp-character-operators": {
       "patterns": [
         {
-          "match": "(?x)\n( # from\n    \\\\0*(?:111411[10]|111410\\d|11140\\d{2}|111[0-3]\\d{3}|110\\d{4}|10\\d{5}|[1-9]\\d{0,5}|0) # decimal escape\n  | \\\\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape\n  | \\\\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape\n  | \\\\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape\n  | \\\\z0*(?i:4588[↊atx][0-6]|4588\\d[\\d↊↋abetx]|458[0-7][\\d↊↋abetx]{2}|45[0-7][\\d↊↋abetx]{3}|4[0-4][\\d↊↋abetx]{4}|[1-3][\\d↊↋abetx]{5}|[1-9][\\d↊↋abetx]{0,5}|0) # duodecimal escape\n  | \\\\x\\h\\h # hex escape (2-digit)\n  | \\\\u\\h{4} # hex escape (4-digit)\n  | \\\\U0*(?:10\\h{6}|\\h{1,5}) # hex escape (variable-length)\n  | \\\\[cm][a-z] # meta-character\n  | \\\\j{(?:[^\\\\{}]|\\\\.)+} # Unicode named character\n  | \\\\(?:[abefprntv]|[^a-zA-Z]) # any escape character\n  | [^\\-\\\\\\[\\]] # any unescaped character\n)\n  \\s*(>?->?)\\s* # range\n( # to\n    \\\\0*(?:111411[10]|111410\\d|11140\\d{2}|111[0-3]\\d{3}|110\\d{4}|10\\d{5}|[1-9]\\d{0,5}|0) # decimal escape\n  | \\\\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape\n  | \\\\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape\n  | \\\\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape\n  | \\\\z0*(?i:4588[↊atx][0-6]|4588\\d[\\d↊↋abetx]|458[0-7][\\d↊↋abetx]{2}|45[0-7][\\d↊↋abetx]{3}|4[0-4][\\d↊↋abetx]{4}|[1-3][\\d↊↋abetx]{5}|[1-9][\\d↊↋abetx]{0,5}|0) # duodecimal escape\n  | \\\\x\\h\\h # hex escape (2-digit)\n  | \\\\u\\h{4} # hex escape (4-digit)\n  | \\\\U0*(?:10\\h{6}|\\h{1,5}) # hex escape (variable-length)\n  | \\\\[cm][a-z] # meta-character\n  | \\\\j{(?:[^\\\\{}]|\\\\.)+} # Unicode named character\n  | \\\\(?:[abefprntv]|[^a-zA-Z]) # any escape character\n  | [^\\-\\\\\\[\\]] # any unescaped character\n) (?:\n    \\s*(:)\\s*\n  ( # by\n      -?0*(?:111411[10]|111410\\d|11140\\d{2}|111[0-3]\\d{3}|110\\d{4}|10\\d{5}|[1-9]\\d{0,5}|0) # decimal\n    | -?0o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal\n    | -?0b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary\n    | -?0x0*(?:10\\h{6}|\\h{1,5}) # hexadecimal\n    | -?0q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary\n    | -?0z0*(?i:4588[↊atx][0-6]|4588\\d[\\d↊↋abetx]|458[0-7][\\d↊↋abetx]{2}|45[0-7][\\d↊↋abetx]{3}|4[0-4][\\d↊↋abetx]{4}|[1-3][\\d↊↋abetx]{5}|[1-9][\\d↊↋abetx]{0,5}|0) # duodecimal\n  )\n)?",
+          "match": "(?x)\n( # from\n    \\\\0*\\d{1,7} # decimal escape\n  | \\\\x\\h{1,6} | \\\\u\\h{1,4} | \\\\U\\h{1,8} # hex escape\n  | \\\\b0*[01]{1,21} # binary escape\n  | \\\\t0*[012]{1,13} # ternary escape\n  | \\\\q0*[0-3]{1,16} # quaternary escape\n  | \\\\s0*[0-5]{1,8} # senary escape\n  | \\\\o0*[0-7]{1,7} # octal escape\n  | \\\\z0*[\\d↊↋ab]{1,6} # duodecimal escape\n  | \\\\[cC][@-_] # control character\n  | \\\\&{(?:[^\\\\{}]|\\\\.)+} # Unicode named character\n  | \\\\(?:[abefprntv]|[^a-zA-Z]) # any escape character\n  | [^\\-\\\\\\[\\]] # any unescaped character\n)\n  \\s*(>?->?)\\s* # range\n( # to\n    \\\\0*\\d{1,7} # decimal escape\n  | \\\\x\\h{1,6} | \\\\u\\h{1,4} | \\\\U\\h{1,8} # hex escape\n  | \\\\b0*[01]{1,21} # binary escape\n  | \\\\t0*[012]{1,13} # ternary escape\n  | \\\\q0*[0-3]{1,16} # quaternary escape\n  | \\\\s0*[0-5]{1,8} # senary escape\n  | \\\\o0*[0-7]{1,7} # octal escape\n  | \\\\z0*[\\d↊↋ab]{1,6} # duodecimal escape\n  | \\\\[cC][@-_] # control character\n  | \\\\&{(?:[^\\\\{}]|\\\\.)+} # Unicode named character\n  | \\\\(?:[abefprntv]|[^a-zA-Z]) # any escape character\n  | [^\\-\\\\\\[\\]] # any unescaped character\n) (?:\n    \\s*(:)\\s*\n  ( # by\n    [+-]? (?# sign) (?:\n        \\d+ # decimal\n      | 0o[0-7]+ # octal\n      | 0b[01]+ # binary\n      | 0t[012] # ternary\n      | 0q[0-3]+ # quaternary\n      | 0s[0-5]+ # senary\n      | 0z(?i:[\\d↊↋ab]+) # duodecimal\n      | 0x\\h+ # hexadecimal\n    )\n  )\n)?",
           "captures": {
             "1": {
               "name": "constant.other.character-class.range.from.ruko",
@@ -5191,10 +5370,10 @@
           "name": "meta.splicing.ruko",
           "captures": {
             "1": {
-              "name": "punctuation.definition.splice.ruko"
+              "name": "punctuation.definition.splice.curly.ruko"
             },
             "2": {
-              "name": "punctuation.definition.splice.ruko"
+              "name": "punctuation.definition.splice.curly.ruko"
             }
           },
           "patterns": [
@@ -5209,10 +5388,10 @@
           "name": "meta.splicing.ruko",
           "captures": {
             "1": {
-              "name": "punctuation.definition.splice.ruko"
+              "name": "punctuation.definition.splice.square.ruko"
             },
             "2": {
-              "name": "punctuation.definition.splice.ruko"
+              "name": "punctuation.definition.splice.square.ruko"
             }
           },
           "patterns": [
@@ -5226,7 +5405,7 @@
     "xml": {
       "applyEndPatternLast": true,
       "comment": "Only captured when next to opening brackets, commas, semicolons, keywords, and operators. XML also supports functional components.",
-      "begin": "(?x)(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      (?:\n        `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n        (?:[?!:]:|[?!]?\\.|[?!-]>) # qualified name separator\n      )*\n      `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n      \\b\\s\n  ) \\s*\n) \\s*\n(?=<(?:[\\p{Pc}\\p{L}\\p{Nl}(]|>(?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+)))",
+      "begin": "(?x)(?<=\n  (?:\n      ^ # beginning of line\n    | [,;] # separator\n    | \\#? [({\\[] # opening bracket\n    | [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+ \\s # postfix or infix operator\n    | (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      (?:\n        `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n        (?:[?!:]:|[?!]?\\.|[?!-]>) # qualified name separator\n      )*\n      `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n      \\b\\s\n  ) \\s*\n) \\s*\n(?=<(?:`?[\\p{Pc}\\p{L}\\p{Nl}(]|>(?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+)))",
       "end": "(?=)|$",
       "patterns": [
         {
@@ -5264,7 +5443,7 @@
               "name": "meta.expression.tag.ruko",
               "captures": {
                 "1": {
-                  "name": "punctuation.definition.expression.ruko"
+                  "name": "punctuation.definition.splice.round.ruko"
                 }
               },
               "patterns": [
@@ -5602,7 +5781,7 @@
     "xml-entities": {
       "patterns": [
         {
-          "match": "(?xi)\n(&)(?:\n    (\\#\\\\0*(?:111411[10]|111410\\d|11140\\d{2}|111[0-3]\\d{3}|110\\d{4}|10\\d{5}|[1-9]\\d{0,5}|0)) # decimal\n  | (\\#b0*(?:10000[10]{16}|1[01]{0,19}|0)) # binary\n  | (\\#q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)) # quaternary\n  | (\\#o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0)) # octal\n  | (\\#x0*(?:10\\h{6}|\\h{1,5})) # hexadecimal\n  | (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*) # named\n  | ((?:\\\\.|[^()\\[\\]{}\\s;])+?) # numeric or invalid\n)(;)",
+          "match": "(?xi)\n(&)(?:\n    (\\# 0*\\d{1,7}) # decimal\n  | (\\#b0*[01]{1,16}) # binary\n  | (\\#t0*[0123]{1,20}) # ternary\n  | (\\#q0*[0-3]{1,18}) # quaternary\n  | (\\#s0*[0-5]{1,14}) # senary\n  | (\\#o0*[0-7]{1,11}) # octal\n  | (\\#z0*[\\d↊↋ab]{1,10}) # duodecimal\n  | (\\#x0*(?:10\\h{6}|\\h{1,5})) # hexadecimal\n  | (\\b[\\p{Pd}\\w]+\\b) # named\n  | ([^;\\s]++) # invalid\n)(;)",
           "name": "constant.other.entity.ruko",
           "captures": {
             "1": {
@@ -5615,33 +5794,38 @@
               "name": "constant.character.escape.binary.ruko"
             },
             "4": {
+              "name": "constant.character.escape.ternary.ruko"
+            },
+            "5": {
               "name": "constant.character.escape.quaternary.ruko"
             },
             "6": {
-              "name": "constant.character.escape.octal.ruko"
+              "name": "constant.character.escape.senary.ruko"
             },
             "7": {
-              "name": "constant.character.escape.hexadecimal.ruko"
+              "name": "constant.character.escape.octal.ruko"
             },
             "8": {
-              "name": "constant.character.entity.named.ruko"
+              "name": "constant.character.escape.duodecimal.ruko"
             },
             "9": {
-              "name": "invalid.illegal.entity.ruko"
+              "name": "constant.character.escape.hexadecimal.ruko"
             },
             "10": {
+              "name": "constant.character.entity.named.ruko"
+            },
+            "11": {
+              "name": "invalid.illegal.entity.ruko"
+            },
+            "12": {
               "name": "punctuation.definition.entity.ruko"
             }
           }
         },
         {
-          "match": "&(?=\\w*;)",
+          "comment": "Ambiguous & not part of an entity",
+          "match": "&(?=\\N*;)|&\\s*+;",
           "name": "invalid.illegal.ambiguous-ampersand.ruko"
-        },
-        {
-          "comment": "Entity with & and invalid name",
-          "match": "&\\s*+;",
-          "name": "invalid.illegal.bad-ampersand.ruko"
         }
       ]
     },
@@ -9652,7 +9836,7 @@
     "parenless-function-calls": {
       "comment": "Normal (bracketed or bracketless) function calls",
       "name": "meta.function.arguments.ruko",
-      "match": "(?x)\n(?<=\n  (?:\n      (?: \n        ^ # start of line\n        | [,;] # delimiter \n        | (?: ['\"`)}\\]\\w\\s] | \\\\.)[\\\\:] # postfix colon or backslash\n        | \\#? [({\\[] # opening bracket\n      ) \\s*\n    | # infix operator\n      \\s+ (?:\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\s+\n    | # primary operator that isn't an accessor or assignment\n      \\b (?:\n        [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\b\n    | (?:\n      (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      \\b\n        (?: # keywords\n          # wordlike operators\n          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n          |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n          # declaration keywords\n          |var|mut|let|auto|const\n          |func|pro[pc]|type|class|actor|trait|enum|in?ter\n          |module|schema|struct|record|object|union|macro|space\n          |query|quote|style|script|shader|compo|temp|oper|realm\n\n          # control flow keywords\n          |if|un|elif|elun|else|[tw]hen|guard|with\n          |for|while|until|loop|break|skip|redo\n          |(?:re)?try|switch|[cm]atch|case|def|throw\n          |return|yield|await|goto|pass|defer|sync|select\n          |copy|move|drop\n          |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n          # miscellaneous keywords\n          |debug|assert|check|decl|ignore\n          |use|echo|eval|exec|scope|safe|unsafe\n          |begin|end\n        )\n      \\b\n    ) \\s*\n  )\n  [\\p{P}\\p{S}&&[^,;'\"`/\\()\\[\\]{}\\p{Pc}]]* # prefix operator except slashes\n)\n(?<! # accessor or assignment\n  \\b (?:\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=?\n  ) \\b\n)\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?!\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?! # infix operator\n  \\s+\n  [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  (?:[\\p{P}\\p{S}]*\n    [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  )?\n  (?=\\s|$)\n)\n(?! # function name\n  \\s+ \\\\ # infix function operator\n      [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # prefix operators except slashes\n      (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n)\n(?! # function name\n  \\s*\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?=\n      (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \\#?[({] # C-style function call\n    | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* (?:['\"`\\w]|\\#?[(\\[{]) # generics\n    | [!~] \\#?[({] # macro and destructor calls\n    | \\s+ (?:\\w*|[`$\\#%]*)['\"] # tagged string literals\n    | [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # optional suffix operator\n  (?:\n      \\s+ (?:\\w*|[`$#%]*)['\"] # strings\n    | \\s+ \\b\\d # numbers\n    | \\s+ `\\N # unquoted strings / stropped identifiers\n    | \\s+ :`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # symbols\n    | \\s+ \\#? [(\\[] # opening brackets\n    | \\s+ /['\"`\\w\\\\(\\[{] # regexp literal\n    | \\s+ <(?:[\\p{Pc}\\p{L}\\p{Nl}(]|>(?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+)) # XML literals or splice operators\n    | \\s+ [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]] # prefix operators except slashes\n          [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n          (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n    | \\s+ \\|(?: \\#?[(\\[{] )? # opening bracket\n          (?: [,;] \\s* )* # optional separators\n          (?:\n            ((?:[*&%@^!~?\\\\\\-+]|\\.\\.)*) # any sigils\n            (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # identifier\n            ([!?&*]*) # optional sigils\n            \\s*\n          )\n    | \\s+ [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # prefix operators\n      (?: # identifier\n        # ignore all keywords\n        (?!\n          (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n          (?: # keywords\n            # wordlike operators\n            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n            |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n            # declaration keywords\n            |var|mut|let|auto|const\n            |func|pro[pc]|type|class|actor|trait|enum|in?ter\n            |module|schema|struct|record|object|union|macro|space\n            |query|quote|style|script|shader|compo|temp|oper|realm\n\n            # control flow keywords\n            |if|un|elif|elun|else|[tw]hen|guard|with\n            |for|while|until|loop|break|skip|redo\n            |(?:re)?try|switch|[cm]atch|case|def|throw\n            |return|yield|await|goto|pass|defer|sync|select\n            |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n            # miscellaneous keywords\n            |debug|assert|check|decl|ignore\n            |use|echo|eval|exec|scope|safe|unsafe\n            |begin|end\n          )\n          \\b\n        )\n        `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n        (?:\n          (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n          `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n        )*\n      )\n      \\s*\\b[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n  )\n)",
+      "match": "(?x)\n(?<=\n  (?:\n      (?: \n        ^ # start of line\n        | [,;] # delimiter \n        | (?: ['\"`)}\\]\\w\\s] | \\\\.)[\\\\:] # postfix colon or backslash\n        | \\#? [({\\[] # opening bracket\n      ) \\s*\n    | # infix operator\n      \\s+ (?:\n        [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\s+\n    | # primary operator that isn't an accessor or assignment\n      \\b (?:\n        [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        (?:[\\p{P}\\p{S}]*\n          [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]+\n        )?\n      ) \\b\n    | (?:\n      (?:^|[,;'\"()\\[\\]{}\\s]) # beside a delimiter or space\n      \\b\n        (?: # keywords\n          # wordlike operators\n          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n          |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n          # declaration keywords\n          |var|mut|let|auto|const\n          |func|pro[pc]|type|class|actor|trait|enum|in?ter\n          |module|schema|struct|record|object|union|macro|space\n          |query|quote|style|script|shader|compo|temp|oper|realm\n\n          # control flow keywords\n          |if|un|elif|elun|else|[tw]hen|guard|with\n          |for|while|until|loop|break|skip|redo\n          |(?:re)?try|switch|[cm]atch|case|def|throw\n          |return|yield|await|goto|pass|defer|sync|select\n          |copy|move|drop\n          |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n          # miscellaneous keywords\n          |debug|assert|check|decl|ignore\n          |use|echo|eval|exec|scope|safe|unsafe\n          |begin|end\n        )\n      \\b\n    ) \\s*\n  )\n  [\\p{P}\\p{S}&&[^,;'\"`/\\()\\[\\]{}\\p{Pc}]]* # prefix operator except slashes\n)\n(?<! # accessor or assignment\n  \\b (?:\n    (?:[?!]?\\.|[?!:]:|[?!-]>)=?\n  ) \\b\n)\n(\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  (?:\n    (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n    `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n  )*\n)\n\\b\n(?!\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?! # infix operator\n  \\s+\n  [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  (?:[\\p{P}\\p{S}]*\n    [\\p{P}\\p{S}&&[^,;'\"`\\\\()\\[\\]{}\\p{Pc}]]+\n  )?\n  (?=\\s|$)\n)\n(?! # function name\n  \\s+ \\\\ # infix function operator\n      [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # prefix operators except slashes\n      (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n)\n(?! # function name\n  \\s*\n  # ignore all keywords\n  (?!\n    (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n    (?: # keywords\n      # wordlike operators\n      [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n      |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n      # declaration keywords\n      |var|mut|let|auto|const\n      |func|pro[pc]|type|class|actor|trait|enum|in?ter\n      |module|schema|struct|record|object|union|macro|space\n      |query|quote|style|script|shader|compo|temp|oper|realm\n\n      # control flow keywords\n      |if|un|elif|elun|else|[tw]hen|guard|with\n      |for|while|until|loop|break|skip|redo\n      |(?:re)?try|switch|[cm]atch|case|def|throw\n      |return|yield|await|goto|pass|defer|sync|select\n      |copy|move|drop\n      |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n      # miscellaneous keywords\n      |debug|assert|check|decl|ignore\n      |use|echo|eval|exec|scope|safe|unsafe\n      |begin|end\n    ) \\b\n  )\n  `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n  : (?: \\s* (?: [,;'\"`)}\\]\\w\\s] | \\#?[(\\[{]|\\\\.) | $) # postfix colon or delimiter\n)\n(?=\n      (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \\#?[({] # C-style function call\n    | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* (?:['\"`\\w]|\\#?[(\\[{]) # generics\n    | [!~] \\#?[({] # macro and destructor calls\n    | \\s+ (?:\\w*|[`$\\#%]*)['\"] # tagged string literals\n    | [\\p{P}\\p{S}&&[^,;'\"`/\\\\()\\[\\]{}\\p{Pc}]]* # optional suffix operator\n  (?:\n      \\s+ (?:\\w*|[`$#%]*)['\"] # strings\n    | \\s+ \\b\\d # numbers\n    | \\s+ `\\N # unquoted strings / stropped identifiers\n    | \\s+ :`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # symbols\n    | \\s+ \\#? [(\\[] # opening brackets\n    | \\s+ /['\"`\\w\\\\(\\[{] # regexp literal\n    | \\s+ <(?:`?[\\p{Pc}\\p{L}\\p{Nl}(]|>(?![\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]+)) # XML literals or splice operators\n    | \\s+ [\\p{P}\\p{S}&&[^.,;'\"`/\\\\()\\[\\]{}\\p{Pc}]] # prefix operators except slashes\n          [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n          (?: ['\"`\\w] | \\#?[(\\[{]) # literal or opening bracket\n    | \\s+ \\|(?: \\#?[(\\[{] )? # opening bracket\n          (?: [,;] \\s* )* # optional separators\n          (?:\n            ((?:[*&%@^!~?\\\\\\-+]|\\.\\.)*) # any sigils\n            (`?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b) # identifier\n            ([!?&*]*) # optional sigils\n            \\s*\n          )\n    | \\s+ [\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # prefix operators\n      (?: # identifier\n        # ignore all keywords\n        (?!\n          (?<!\\b[.`])(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>))(?<!\\b(?:[^\\s.]\\.|[:!?]:|[-!?]>)=)\\b\n          (?: # keywords\n            # wordlike operators\n            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|new|old|del|ref\n            |[gs]et|unset|n?and|x?n?or|c?n?imply|not\n\n            # declaration keywords\n            |var|mut|let|auto|const\n            |func|pro[pc]|type|class|actor|trait|enum|in?ter\n            |module|schema|struct|record|object|union|macro|space\n            |query|quote|style|script|shader|compo|temp|oper|realm\n\n            # control flow keywords\n            |if|un|elif|elun|else|[tw]hen|guard|with\n            |for|while|until|loop|break|skip|redo\n            |(?:re)?try|switch|[cm]atch|case|def|throw\n            |return|yield|await|goto|pass|defer|sync|select\n            |[gd]o|from|where|(?:im|ex)(?:port|tern)\n\n            # miscellaneous keywords\n            |debug|assert|check|decl|ignore\n            |use|echo|eval|exec|scope|safe|unsafe\n            |begin|end\n          )\n          \\b\n        )\n        `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w*\\b # identifier\n        (?:\n          (?:(?:[?!]?\\.|[?!:]:|[?!-]>)=?) # qualified name separator\n          `?\\b[\\p{Pc}\\p{L}\\p{Nl}]\\w* # last part of identifier\n        )*\n      )\n      \\s*\\b[\\p{P}\\p{S}&&[^,;'\"`()\\[\\]{}\\p{Pc}]]* # followed by other operators\n  )\n)",
       "captures": {
         "1": {
           "name": "meta.function.name.ruko",

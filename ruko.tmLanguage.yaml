@@ -19,14 +19,9 @@ patterns: [{ include: "#core" }]
 
 # Planned features / TODOs:
 #
-# - [x] Change all identifier syntax to include symbols if prefixed with
-#   the ` symbol, similar to Perl and Ruby. This will allow identifiers
-#   to include spaces and symbols, making them more flexible.
 # - [ ] Add inline assembly syntax for WebAssembly with a syntax similar to
 #   Rust's asm! macro and Solidity's inline assembly.
 #     https://doc.rust-lang.org/nightly/std/arch/wasm32/asm/index.html
-# - [ ] Add regexp patterns for Unicode character properties, scripts, blocks,
-#   categories, etc. Refer to: https://www.unicode.org/reports/tr18/
 # - More patterns should have `applyEndPatternLast: true` where appropriate
 #   to make patterns more modular and easier to maintain, rather than
 #   having everything in one big pattern.
@@ -48,7 +43,6 @@ patterns: [{ include: "#core" }]
 #   for inspiration.
 #   https://safecpp.org/draft.html
 #   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
-#   - [x] Add splicing syntax <[ ]>. Splicing is used to insert code at compile-time.
 # - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
 #   ASCIIDoc and other lightweight markup languages for inspiration.
 #   - [x] Headings and subheadings
@@ -91,10 +85,29 @@ patterns: [{ include: "#core" }]
 
 # Changelog of notable changes since initial release:
 #
+# - Add ternary, senary and duodecimal bases for numeric literals.
+# - Reworked escape sequences for UTF-8, UTF-16, UTF-32, and all numeric bases.
+# - Add regexp patterns for Unicode character properties, scripts, blocks,
+#   categories, etc. Refer to: https://www.unicode.org/reports/tr18/
+# - Reworked number syntax highi
+# - Added support for splicing syntax <[ ]> / <{ }> to embed expressions OR
+#   statements, respectively, inside JSX/XML tags.
+# - Refactored identifier syntax to accept a single backtick (`) at the start
+#   of an identifier to allow for reserved keywords to be used as identifiers.
+#   For example: `if`, `while`, `func`, etc. A similar way to strop keywords
+#   is to suffix them with an underscore OR a CGJ (U+034F) character.
 # - Refactored and improved syntax highlighting for operators.
-#   Operators are now highlighted more consistently. More Unicode
-#   symbols will be added in future updates.
-# - Added infix function call syntax using backslashes, similar to Haskell.
+#   - Infix operators at the end of lines continue to the next line.
+#   - Interfix operators (without spaces on both sides) have a higher precedence
+#     than normal infix operators (with spaces on both sides).
+#   - Fixed function call syntax around operators. Anchors include open brackets,
+#     commas, semicolons, colons, newlines, and spaces, regardless of whether
+#     they are surrounded by prefix or suffix operators.
+#   - Fixed prefix and suffix operators beside function calls.
+#   - Removed ternary operators (?: and ?:) in favor of a more consistent
+#     syntax using if-then-else expressions.
+# - Added infix function call syntax using backslashes, similar to Haskell's
+#   backtick function call syntax.
 #   For example: a \x\ b is equivalent to x(a, b).
 #   This now means that operators CANNOT start or end with a backslash,
 #   and backslashes cannot be used prefix or postfix,
@@ -960,6 +973,7 @@ repository:
       - include: "#constants"
       - include: "#strings-unquoted"
       - include: "#symbols"
+      - include: "#unit-suffix"
 
   constants:
     patterns:
@@ -990,8 +1004,8 @@ repository:
           7: { name: variable.language.constructor.ruko }
           8: { name: variable.language.destructor.ruko }
           9: { name: variable.language.prototype.ruko }
-          10: { name: variable.language.underscore.ruko }
-          110: { name: variable.language.index.ruko }
+          10: { name: variable.language.index.ruko }
+          11: { name: variable.language.underscore.ruko }
       - match: |-
           (?x)
           (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
@@ -1057,6 +1071,37 @@ repository:
           - include: "#byte-shift-suffix"
           - include: "#unit-suffix"
       - applyEndPatternLast: true
+        comment: ternary (0t prefix)
+        name: constant.numeric.ternary.ruko
+        begin: |-
+          (?ix)\b(0t) # prefix
+            ([0-2](?:[0-2_]*[0-2])?) # ternary digits
+        end: (?=)|$
+        captures:
+          1: { name: storage.type.numeric.ruko }
+          2: { name: constant.numeric.ternary.digits.ruko }
+        patterns:
+          - match: (\.)([0-2](?:[0-2_]*[0-2])?)
+            name: constant.numeric.ternary.fraction.ruko
+            captures:
+              1: { name: punctuation.separator.decimal.ruko }
+          - match: |-
+              (?ix)(\\?p) # exponent delimiter
+              ([+-])? # sign
+              ([0-2](?:[0-2_]*[0-2])?) # exponent
+            captures:
+              1: { name: keyword.operator.expression.exponent.ruko }
+              2: { name: keyword.operator.exponent.sign.ruko }
+              3: { name: constant.numeric.ternary.exponent.ruko }
+          - match: |-
+              (?ix)(/) # rational delimiter
+              ([0-2](?:[0-2_]*[0-2])?) # denominator
+            captures:
+              1: { name: punctuation.separator.rational.ruko }
+              2: { name: constant.numeric.ternary.denominator.ruko }
+          - include: "#byte-shift-suffix"
+          - include: "#unit-suffix"
+      - applyEndPatternLast: true
         comment: quaternary (0q prefix)
         name: constant.numeric.quaternary.ruko
         begin: |-
@@ -1072,7 +1117,7 @@ repository:
             captures:
               1: { name: punctuation.separator.decimal.ruko }
           - match: |-
-              (?ix)(\\?e) # exponent delimiter
+              (?ix)(\\?p) # exponent delimiter
               ([+-])? # sign
               ([0-3](?:[0-3_]*[0-3])?) # exponent
             captures:
@@ -1085,6 +1130,37 @@ repository:
             captures:
               1: { name: punctuation.separator.rational.ruko }
               2: { name: constant.numeric.quaternary.denominator.ruko }
+          - include: "#byte-shift-suffix"
+          - include: "#unit-suffix"
+      - applyEndPatternLast: true
+        comment: senary (0s prefix)
+        name: constant.numeric.senary.ruko
+        begin: |-
+          (?ix)\b(0s) # prefix
+            ([0-5](?:[0-5_]*[0-5])?) # senary digits
+        end: (?=)|$
+        captures:
+          1: { name: storage.type.numeric.ruko }
+          2: { name: constant.numeric.senary.digits.ruko }
+        patterns:
+          - match: (\.)([0-5](?:[0-5_]*[0-5])?)
+            name: constant.numeric.senary.fraction.ruko
+            captures:
+              1: { name: punctuation.separator.decimal.ruko }
+          - match: |-
+              (?ix)(\\?e) # exponent delimiter
+              ([+-])? # sign
+              ([0-5](?:[0-5_]*[0-5])?) # exponent
+            captures:
+              1: { name: keyword.operator.expression.exponent.ruko }
+              2: { name: keyword.operator.exponent.sign.ruko }
+              3: { name: constant.numeric.senary.exponent.ruko }
+          - match: |-
+              (?ix)(/) # rational delimiter 
+              ([0-5](?:[0-5_]*[0-5])?) # denominator
+            captures:
+              1: { name: punctuation.separator.rational.ruko }
+              2: { name: constant.numeric.senary.denominator.ruko }
           - include: "#byte-shift-suffix"
           - include: "#unit-suffix"
       - applyEndPatternLast: true
@@ -1103,7 +1179,7 @@ repository:
             captures:
               1: { name: punctuation.separator.decimal.ruko }
           - match: |-
-              (?ix)(\\?e) # exponent delimiter
+              (?ix)(\\?p) # exponent delimiter
               ([+-])? # sign
               ([0-7](?:[0-7_]*[0-7])?) # exponent
             captures:
@@ -1116,6 +1192,37 @@ repository:
             captures:
               1: { name: punctuation.separator.rational.ruko }
               2: { name: constant.numeric.octal.denominator.ruko }
+          - include: "#byte-shift-suffix"
+          - include: "#unit-suffix"
+      - applyEndPatternLast: true
+        comment: duodecimal (0z prefix)
+        name: constant.numeric.duodecimal.ruko
+        begin: |-
+          (?ix)\b(0z) # prefix
+            ([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?) # duodecimal digits
+        end: (?=)|$
+        captures:
+          1: { name: storage.type.numeric.ruko }
+          2: { name: constant.numeric.duodecimal.digits.ruko }
+        patterns:
+          - match: (\.)([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?)
+            name: constant.numeric.duodecimal.fraction.ruko
+            captures:
+              1: { name: punctuation.separator.decimal.ruko }
+          - match: |-
+              (?ix)(\\?e) # exponent delimiter
+              ([+-])? # sign
+              ([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?) # exponent
+            captures:
+              1: { name: keyword.operator.expression.exponent.ruko }
+              2: { name: keyword.operator.exponent.sign.ruko }
+              3: { name: constant.numeric.duodecimal.exponent.ruko }
+          - match: |-
+              (?ix)(/) # rational delimiter
+              ([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?) # denominator
+            captures:
+              1: { name: punctuation.separator.rational.ruko }
+              2: { name: constant.numeric.duodecimal.denominator.ruko }
           - include: "#byte-shift-suffix"
           - include: "#unit-suffix"
       - applyEndPatternLast: true
@@ -1134,7 +1241,7 @@ repository:
             captures:
               1: { name: punctuation.separator.decimal.ruko }
           - match: |-
-              (?ix)(\\?e) # exponent delimiter
+              (?ix)(\\?p) # exponent delimiter
               ([+-])? # sign
               ([\h](?:[\h_]*[\h])?) # exponent
             captures:
@@ -1147,37 +1254,6 @@ repository:
             captures:
               1: { name: punctuation.separator.rational.ruko }
               2: { name: constant.numeric.hexadecimal.denominator.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: duodecimal (0z prefix)
-        name: constant.numeric.duodecimal.ruko
-        begin: |-
-          (?ix)\b(0z) # prefix
-            ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # duodecimal digits
-        end: (?=)|$
-        captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.duodecimal.digits.ruko }
-        patterns:
-          - match: (\.)([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?)
-            name: constant.numeric.duodecimal.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-          - match: |-
-              (?ix)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.exponent.sign.ruko }
-              3: { name: constant.numeric.duodecimal.exponent.ruko }
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([\d↊↋abetx](?:[\d↊↋abetx_]*[\d↊↋abetx])?) # denominator
-            captures:
-              1: { name: punctuation.separator.rational.ruko }
-              2: { name: constant.numeric.duodecimal.denominator.ruko }
           - include: "#byte-shift-suffix"
           - include: "#unit-suffix"
       - applyEndPatternLast: true
@@ -2019,7 +2095,7 @@ repository:
         captures:
           1: { name: constant.character.escape.newline.ruko }
       - include: "#unicode-escapes"
-      - match: \\([cm][@A-Za-z])
+      - match: (?i)\\c(?-i:[@-_])
         name: constant.character.control.ruko
       - match: \\[abefprnstv\\'"`(){}\[\]]
         name: constant.character.escape.ruko
@@ -2032,12 +2108,12 @@ repository:
       - applyEndPatternLast: true
         comment: More [] () {} can be chained for nested named escapes.
         name: keyword.function.ruko
-        begin: \\j(?::(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*))?\b(?=[(\[{])
+        begin: \\&(?:(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*))?\b(?=[(\[{])
         beginCaptures:
           1: { patterns: [{ include: "#function-namespace" }] }
         end: (?=)|$
         patterns: [{ include: "#named-escape-brackets" }]
-      - match: (\\j:)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b([,;]|(?=\W))
+      - match: (\\&)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b([:.]`?\b[\p{Pc}\p{L}\p{Nl}]\w*)*)\b([,;]|(?=\W))
         name: constant.character.escape.ruko
         captures:
           1: { name: punctuation.terminator.entity.ruko }
@@ -2100,65 +2176,87 @@ repository:
   unicode-escapes:
     patterns:
       - comment: standard \x escapes
-        match: \\x[0-7]\h
+        match: \\x(\h|[0-7]\h)
         name: constant.character.escape.ascii.ruko
-      - comment: ASCII control character escapes
-        match: \\c[@A-Za-z]
+      - comment: ASCII control character escapes.
+          u80-9f are mapped to \C rather than \c
+        match: \\[cC][@-_]
         name: constant.character.escape.control.ruko
       - comment: Null character escape
-        match: "\\\\0|\\\\x00|\\\0|\\\\U0{8}"
+        match: \\0+|\\x0{1,2}|\\u0{1,4}|\\U0{1,8}
         name: constant.character.escape.null.ruko
-      - comment: Private Use Area U+E000-F8FF
-        match: \\u[eE]\h{3}|\\u[fF][0-8]\h{2}
+      - comment: |
+          - Private Use Area - U+E000-F8FF
+          - Supplementary Private Use Area-A - U+F0000-FFFFD
+          - Supplementary Private Use Area-B - U+100000-10FFFD
+        match: \\u0*(?i:e\h{3}|f[0-8]\h{2}|(?!f{4}[ef])f\h{4}|(?!10fff[ef])10\h{4})
         name: constant.character.escape.private-use.ruko
       - comment: Reserved non-characters U+FDD0-FDEF
-        match: \\u[fF][dD][dDeE]\h
+        match: \\u0*(?i:fd[de]\h)
         name: constant.character.escape.noncharacter.ruko
-      - comment: Surrogate code points U+D800-DFFF
-        match: \\u[dD][89abAB][c-fC-F]\h{2}(?=\\u[dD][c-fC-F]\h{2})|\\u[dD][c-fC-F]\h{2}(?=\\u[dD][89abAB][c-fC-F]\h{2})
-        name: invalid.illegal.escape.surrogate.ruko
-      - comment: Low surrogate pairs U+DC00-DFFF
-        match: \\u[dD][c-fC-F]\h{2}
-        name: constant.character.escape.surrogate-low.ruko
-      - comment: High surrogate pairs U+D800-DBFF
-        match: \\u[dD][89abAB]\h{2}
-        name: constant.character.escape.surrogate-high.ruko
-      - comment: UTF-8 continuation byte escape
-        match: \\x[89abAB]\h
-        name: constant.character.escape.continuation.ruko
-      - comment: UTF-8 2-byte sequence lead byte escape
-        match: \\x[cdCD]\h
-        name: constant.character.escape.lead.two.ruko
-      - comment: UTF-8 3-byte sequence lead byte escape
-        match: \\x[eE]\h
-        name: constant.character.escape.lead.three.ruko
-      - comment: UTF-8 4-byte sequence lead byte escape
-        match: \\x[fF][0-4]
-        name: constant.character.escape.lead.four.ruko
-      - comment: Unused/illegal UTF-8 byte escapes
-        match: \\x\h{2}
-        name: invalid.illegal.escape.utf8.ruko
+      - comment: Little-endian surrogate pairs
+        match: \\u(0*(?i:d[c-f]\h{2}))\\u(0*(?i:d[89ab]\h{2}))
+        name: constant.character.escape.utf16.little-endian.ruko
+        captures:
+          1: { name: constant.character.escape.surrogate.low.ruko }
+          2: { name: constant.character.escape.surrogate.high.ruko }
+      - comment: Big-endian surrogate pairs
+        match: \\u(0*(?i:d[89ab]\h{2}))\\u(0*(?i:d[c-f]\h{2}))
+        name: constant.character.escape.utf16.big-endian.ruko
+        captures:
+          1: { name: constant.character.escape.surrogate.high.ruko }
+          2: { name: constant.character.escape.surrogate.low.ruko }
+      - comment: UTF-8 2-byte sequence
+        match: (\\x0*(?i:[cd]\h))(\\x0*(?i:[89ab]\h))
+        name: constant.character.escape.utf8.two.ruko
+        captures:
+          1: { name: constant.character.escape.leading.two.ruko }
+          2: { name: constant.character.escape.trailing.ruko }
+      - comment: UTF-8 3-byte sequence
+        match: (\\x0*(?i:e\h))(\\x0*(?i:[89ab]\h))(\\x0*(?i:[89ab]\h))
+        name: constant.character.escape.utf8.three.ruko
+        captures:
+          1: { name: constant.character.escape.leading.three.ruko }
+          2: { name: constant.character.escape.trailing.ruko }
+          3: { name: constant.character.escape.trailing.ruko }
+      - comment: UTF-8 4-byte sequence
+        match: \\x0*[fF][0-4](\\x0*(?i:[89ab]\h))(\\x0*(?i:[89ab]\h))(\\x0*(?i:[89ab]\h))
+        name: constant.character.escape.utf8.four.ruko
+        captures:
+          1: { name: constant.character.escape.leading.four.ruko }
+          2: { name: constant.character.escape.trailing.ruko }
+          3: { name: constant.character.escape.trailing.ruko }
+          4: { name: constant.character.escape.trailing.ruko }
+      - comment: Unicode raw codepoint escape sequences
+        match: \\x0*\h{1,6}
+        name: constant.character.escape.hexadecimal.ruko
       - comment: Hexadecimal escape sequences
-        match: \\u\h{4}
+        match: \\u0*\h{1,4}
         name: constant.character.escape.unicode.ruko
       - comment: UTF-32 escape sequences
-        match: \\U0*(10\h{6}|\h{1,5})
-        name: constant.character.escape.astral.ruko
+        match: \\U0*\h{1,8}
+        name: constant.character.escape.utf32.ruko
       - comment: Binary escape sequences
-        match: \\b0*(10000[0-1]{16}|1[01]{0,19}|0)
+        match: \\b0*[01]{1,21}
         name: constant.character.escape.binary.ruko
-      - comment: Octal escape sequences
-        match: \\o0*(41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0)
-        name: constant.character.escape.octal.ruko
-      - comment: Decimal escape sequences
-        match: \\0*(111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0)
-        name: constant.character.escape.numeric.ruko
+      - comment: Ternary escape sequences
+        match: \\t0*[012]{1,13}
+        name: constant.character.escape.ternary.ruko
       - comment: Quaternary escape sequences
-        match: \\q0*(1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)
+        match: \\q0*[0-3]{1,11}
         name: constant.character.escape.quaternary.ruko
+      - comment: Senary escape sequences
+        match: \\s0*[0-5]{1,8}
+        name: constant.character.escape.senary.ruko
+      - comment: Octal escape sequences
+        match: \\o0*[0-7]{1,7}
+        name: constant.character.escape.octal.ruko
       - comment: Duodecimal escape sequences (4588A7)
-        match: \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0)
+        match: \\z0*(?i:[\d↊↋ab]{1,6})
         name: constant.character.escape.duodecimal.ruko
+      - comment: Decimal escape sequences
+        match: \\0*\d{1,7}
+        name: constant.character.escape.decimal.ruko
 
   # Embedded expressions
 
@@ -2862,13 +2960,20 @@ repository:
         patterns: [{ include: "#attribute-selectors" }]
       - *regexp-quote-lower
       - *regexp-quote-upper
-      - match: (?i)\\([cm][a-z])
+      - comment: \c for U+00-1F, \C for U+80-FF control characters
+        match: \\[cC][@-_]
         name: constant.character.control.ruko
-      - match: (?i)\\p[a-z]{1,2}
+      - match: (\\[pP])(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
         name: constant.other.character-class.unicode.ruko
-      - match: (?i)\\[ci]({\w+})?
+        captures:
+          0: { name: constant.other.character-class.ruko }
+          1: { name: constant.other.character-class.unicode.ruko }
+      - match: \\[ci]({(?:[^\\{}]|\\.)+})?
         name: constant.other.character-class.xml.ruko
-      - match: (?i)\\n{(?:[^\\{}]|\\.)+}
+        captures:
+          0: { name: constant.other.character-class.ruko }
+          1: { name: constant.other.character-class.xml.name.ruko }
+      - match: (?i)\\n({(?:[^\\{}]|\\.)+})
         name: constant.character.escape.unicode.name.ruko
       - match: \\[abefprntv]
         name: constant.character.escape.ruko
@@ -2880,15 +2985,15 @@ repository:
         name: constant.character.escape.symbol.ruko
       - match: \\\p{P}
         name: constant.character.escape.punctuation.ruko
-      - match: \\\p{C}
-        name: invalid.illegal.escape.ruko
-      - match: \\\s
+      - match: \\\p{N}
+        name: constant.character.escape.number.ruko
+      - match: \\\p{Z}
         name: constant.character.escape.space.ruko
       - match: \\\p{L}
         name: constant.character.escape.letter.ruko
-      - match: \\\p{N}
-        name: constant.character.escape.number.ruko
-      - match: \\.
+      - match: \\\p{C}
+        name: invalid.illegal.escape.ruko
+      - match: \\\N
         name: constant.character.escape.other.ruko
 
   regexp-character-operators:
@@ -2896,42 +3001,46 @@ repository:
       - match: |-
           (?x)
           ( # from
-              \\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal escape
-            | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
-            | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
-            | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
-            | \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal escape
-            | \\x\h\h # hex escape (2-digit)
-            | \\u\h{4} # hex escape (4-digit)
-            | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
-            | \\[cm][a-z] # meta-character
-            | \\j{(?:[^\\{}]|\\.)+} # Unicode named character
+              \\0*\d{1,7} # decimal escape
+            | \\x\h{1,6} | \\u\h{1,4} | \\U\h{1,8} # hex escape
+            | \\b0*[01]{1,21} # binary escape
+            | \\t0*[012]{1,13} # ternary escape
+            | \\q0*[0-3]{1,16} # quaternary escape
+            | \\s0*[0-5]{1,8} # senary escape
+            | \\o0*[0-7]{1,7} # octal escape
+            | \\z0*[\d↊↋ab]{1,6} # duodecimal escape
+            | \\[cC][@-_] # control character
+            | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
             | \\(?:[abefprntv]|[^a-zA-Z]) # any escape character
             | [^\-\\\[\]] # any unescaped character
           )
             \s*(>?->?)\s* # range
           ( # to
-              \\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal escape
-            | \\o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal escape
-            | \\b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary escape
-            | \\q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary escape
-            | \\z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal escape
-            | \\x\h\h # hex escape (2-digit)
-            | \\u\h{4} # hex escape (4-digit)
-            | \\U0*(?:10\h{6}|\h{1,5}) # hex escape (variable-length)
-            | \\[cm][a-z] # meta-character
-            | \\j{(?:[^\\{}]|\\.)+} # Unicode named character
+              \\0*\d{1,7} # decimal escape
+            | \\x\h{1,6} | \\u\h{1,4} | \\U\h{1,8} # hex escape
+            | \\b0*[01]{1,21} # binary escape
+            | \\t0*[012]{1,13} # ternary escape
+            | \\q0*[0-3]{1,16} # quaternary escape
+            | \\s0*[0-5]{1,8} # senary escape
+            | \\o0*[0-7]{1,7} # octal escape
+            | \\z0*[\d↊↋ab]{1,6} # duodecimal escape
+            | \\[cC][@-_] # control character
+            | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
             | \\(?:[abefprntv]|[^a-zA-Z]) # any escape character
             | [^\-\\\[\]] # any unescaped character
           ) (?:
               \s*(:)\s*
             ( # by
-                -?0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0) # decimal
-              | -?0o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0) # octal
-              | -?0b0*(?:10000[0-1]{16}|1[01]{0,19}|0) # binary
-              | -?0x0*(?:10\h{6}|\h{1,5}) # hexadecimal
-              | -?0q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0) # quaternary
-              | -?0z0*(?i:4588[↊atx][0-6]|4588\d[\d↊↋abetx]|458[0-7][\d↊↋abetx]{2}|45[0-7][\d↊↋abetx]{3}|4[0-4][\d↊↋abetx]{4}|[1-3][\d↊↋abetx]{5}|[1-9][\d↊↋abetx]{0,5}|0) # duodecimal
+              [+-]? (?# sign) (?:
+                  \d+ # decimal
+                | 0o[0-7]+ # octal
+                | 0b[01]+ # binary
+                | 0t[012] # ternary
+                | 0q[0-3]+ # quaternary
+                | 0s[0-5]+ # senary
+                | 0z(?i:[\d↊↋ab]+) # duodecimal
+                | 0x\h+ # hexadecimal
+              )
             )
           )?
         captures:
@@ -3067,15 +3176,15 @@ repository:
         end: \s*(}>)
         name: meta.splicing.ruko
         captures:
-          1: { name: punctuation.definition.splice.ruko }
-          2: { name: punctuation.definition.splice.ruko }
+          1: { name: punctuation.definition.splice.curly.ruko }
+          2: { name: punctuation.definition.splice.curly.ruko }
         patterns: [{ include: $self }]
       - begin: \s*(<\[)
         end: \s*(\]>)
         name: meta.splicing.ruko
         captures:
-          1: { name: punctuation.definition.splice.ruko }
-          2: { name: punctuation.definition.splice.ruko }
+          1: { name: punctuation.definition.splice.square.ruko }
+          2: { name: punctuation.definition.splice.square.ruko }
         patterns: [{ include: $self }]
 
   # XML (JSX) and Markdown
@@ -3099,7 +3208,7 @@ repository:
             \b\s
         ) \s*
       ) \s*
-      (?=<(?:[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
+      (?=<(?:`?[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
     end: (?=)|$
     patterns: [{ include: "#tag-component-name" }]
 
@@ -3125,7 +3234,7 @@ repository:
             end: \s*(\))
             name: meta.expression.tag.ruko
             captures:
-              1: { name: punctuation.definition.expression.ruko }
+              1: { name: punctuation.definition.splice.round.ruko }
             patterns: [{ include: $self }]
           - include: "#tag-attributes"
           - include: "#tag-termination"
@@ -3319,30 +3428,34 @@ repository:
       - match: |-
           (?xi)
           (&)(?:
-              (\#\\0*(?:111411[10]|111410\d|11140\d{2}|111[0-3]\d{3}|110\d{4}|10\d{5}|[1-9]\d{0,5}|0)) # decimal
-            | (\#b0*(?:10000[10]{16}|1[01]{0,19}|0)) # binary
-            | (\#q0*(?:1003{8}|100[0-2]{10}|10[0-3]{12}|[1-3][0-3]{0,18}|0)) # quaternary
-            | (\#o0*(?:41[0-7]{5}|[1-3][0-7]{6}|[1-7][0-7]{0,5}|0)) # octal
+              (\# 0*\d{1,7}) # decimal
+            | (\#b0*[01]{1,16}) # binary
+            | (\#t0*[0123]{1,20}) # ternary
+            | (\#q0*[0-3]{1,18}) # quaternary
+            | (\#s0*[0-5]{1,14}) # senary
+            | (\#o0*[0-7]{1,11}) # octal
+            | (\#z0*[\d↊↋ab]{1,10}) # duodecimal
             | (\#x0*(?:10\h{6}|\h{1,5})) # hexadecimal
-            | (`?\b[\p{Pc}\p{L}\p{Nl}]\w*) # named
-            | ((?:\\.|[^()\[\]{}\s;])+?) # numeric or invalid
+            | (\b[\p{Pd}\w]+\b) # named
+            | ([^;\s]++) # invalid
           )(;)
         name: constant.other.entity.ruko
         captures: &xml-entities
           1: { name: punctuation.definition.entity.ruko }
           2: { name: constant.character.escape.decimal.ruko }
           3: { name: constant.character.escape.binary.ruko }
-          4: { name: constant.character.escape.quaternary.ruko }
-          6: { name: constant.character.escape.octal.ruko }
-          7: { name: constant.character.escape.hexadecimal.ruko }
-          8: { name: constant.character.entity.named.ruko }
-          9: { name: invalid.illegal.entity.ruko }
-          10: { name: punctuation.definition.entity.ruko }
-      - match: '&(?=\w*;)'
+          4: { name: constant.character.escape.ternary.ruko }
+          5: { name: constant.character.escape.quaternary.ruko }
+          6: { name: constant.character.escape.senary.ruko }
+          7: { name: constant.character.escape.octal.ruko }
+          8: { name: constant.character.escape.duodecimal.ruko }
+          9: { name: constant.character.escape.hexadecimal.ruko }
+          10: { name: constant.character.entity.named.ruko }
+          11: { name: invalid.illegal.entity.ruko }
+          12: { name: punctuation.definition.entity.ruko }
+      - comment: Ambiguous & not part of an entity
+        match: '&(?=\N*;)|&\s*+;'
         name: invalid.illegal.ambiguous-ampersand.ruko
-      - comment: Entity with & and invalid name
-        match: '&\s*+;'
-        name: invalid.illegal.bad-ampersand.ruko
 
   inline-markdown:
     patterns:
@@ -5042,7 +5155,7 @@ repository:
           | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
           | \s+ \#? [(\[] # opening brackets
           | \s+ /['"`\w\\(\[{] # regexp literal
-          | \s+ <(?:[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | \s+ <(?:`?[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
                 [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
                 (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket

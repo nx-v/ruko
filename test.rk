@@ -31,6 +31,9 @@ proc main {
 }
 
 // regex examples
+/[\d\D]/
+/\p{L}+/
+/\p{Script=Latin}+/
 /\p{sc=Han}+/
 /\p{blk=UCAS_Ext_A}+/
 /\p{name~=/(SMILING|GRINNING) FACE/}/g
@@ -120,9 +123,9 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
   (for (let i) in (..< 0 (<< 1 arr.len))) (
     (mut (type i32[]) subset [])
     (for (let j) in (..< 0 arr.len)) (
-      (if (& 1 (>> i j)) (
+      (if (& 1 (>> i j)) 
         (push subset arr[j])
-      ))
+      )
     )
     (push result subset)
   )
@@ -130,13 +133,13 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
   (return (sortBy result (|a, b| (
     (let (type i32) countA (reduce a 0 (|c,, i| (+ c 1))))
     (let (type i32) countB (reduce b 0 (|d,, i| (+ d 1))))
-    (if (!= countA countB) (
+    (if (!= countA countB)
       (- countA countB)
-    ))
+    )
     (for (let i) in (..< 0 (min a.len b.len))) (
-      (if (!= a[i] b[i]) (
+      (if (!= a[i] b[i])
         (- a[i] b[i])
-      ))
+      )
     )
     (- a.len b.len)
   ))))
@@ -293,7 +296,7 @@ style {
   additional_style: true
 }
 
-for items as let item, index:
+for let item, index in items:
   print $"Item $index: $item.name"
 
 // cursed C++ pointers
@@ -331,15 +334,15 @@ scope for͏ for let in͏ in [var͏ alloc: init: release:]:
 <div>
   for item in items:
     <span .item-[item.id]=item.id>$item.name</>
-</>
+</div>
 
 // JSX control structures
 <for let=i in=(0...10)>
   <if (x % 2 == 0)>
-    <span>$"Even: $i"</>
+    <span>$"Even: $i"</span>
   <elif (x % 3 == 0)/>
-    <span>$"Divisible by 3: $i"</>
+    <span>$"Divisible by 3: $i"</span>
   <else/>
-    <span>$"Other: $i"</>
+    <span>$"Other: $i"</span>
   </if>
 </for>
