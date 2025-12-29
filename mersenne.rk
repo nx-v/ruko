@@ -2,68 +2,54 @@
 // language I'm making that compiles to HTML/CSS/JS,
 // WebAssembly, and WebGPU shaders (GLSL, WGSL, etc.).
 
-// This is an implementation of the Mersenne Twister
-// pseudorandom number generator (MT19937), loosely
-// translated from the original C code by Makoto Matsumoto
-// and Takuji Nishimura.
-// See http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html.
-
-// Its syntax is inspired by Haskell, Rust and Kotlin,
+// Syntax is inspired by Haskell, Rust and Kotlin,
 // hence the name "HaRuKo", clipped to just "Ruko".
 // but also is named after the character
 // Haruko Haruhara from the anime "FLCL".
 
-// Syntax is kind of similar to Haskell, Rust, and Kotlin
-// (hence forming the name "HaRuKo", clipped to "Ruko"),
-// but also has influences from modern and not-so-modern
-// languages like Elm, F#, Scala, Go, Swift, Zig, Nim, Ocaml,
-// Crystal, OCaml, Python, Ruby, ECMAScript, TypeScript,
-// Java, C#, C, C++, D, V, Lua, Julia, Ada, Pascal, Vala,
-// Delphi, Eiffel, QML, Reason, ReScript, Lisp, Clojure,
-// Smalltalk, Objective-C, Lua, Bash, PowerShell, SQL,
-// R, PHP, Perl, Haxe, Dart, Java, PHP, Solidity, Motoko,
-// and other languages.
+// This is an implementation of the Mersenne Twister
+// pseudorandom number generator (MT19937), loosely
+// translated from the original C code by Makoto Matsumoto
+// and Takuji Nishimura.
+// Translated into Ruko from https://gist.github.com/yuikns/10017640
 
-// I don't know if anyone will ever use this language,
-// other than me, but I made it mainly as a personal project
-// to experiment with language and compiler design, as well
-// as the first step towards making my own game engine and LSP
-// for it, along with IDE support, to make developing my game
-// nu-Eden: Sundered Skies' using just web technologies,
-// without having to juggle multiple languages, frameworks
-// and tools (HTML, CSS, JS/TS, WebAssembly, GLSL/WGSL, etc.)
-// around like everyone else does.
+import {io, limit, fs, time, math, crypto}
 
-script rs {
-  use std::{io, fs, time};
-  pub mut rand: &MTRand;
-}
+export class MTRand { 
+  pub: 
+    // alias for unsigned 32-bit integer
+    // n stands for natural number
+    type u32 = n32
 
-export* class MTRand {
-  import std.{io, fs, time}.*
-
-  pub:
-    enum N = 624
-    enum SAVE = N + 1
+    enum {N = 624}
+    enum {SAVE = N + 1}
 
   prot:
-    enum M = 397
-    prop state: n32[N]
-    prop p_next: &n32
-    prop left: i32
-    stat mut differ: n32 = 0
+    enum {M = 397}
 
-    proc n(one_seed: n32) = $seed(one_seed)
-    proc n(big_seed: &n32, seed_length: n32 = N) =
+    prop state: [u32; N]
+    prop p_next: &u32
+    prop left: i32
+    prop has_gauss: bool = false
+    prop next_gauss: f64 = 0.0
+
+    stat mut differ: u32 = 0
+
+    // constructor overloads
+    proc MTRand(one_seed: n32) = $seed(one_seed)
+    proc MTRand(big_seed: &n32, seed_length: n32 = N) =
       $seed(big_seed, seed_length)
-    proc n() = $seed()
-    proc n(o: &MTRand) {
-      for i in 0..<N: $state[i] = o.state[i]
-      $left = o.left
-      $p_next = &$state[N - $left]
+    proc MTRand() = $seed()
+    proc MTRand(o: &MTRand) {
+      for i in 0..<N: $state[i] := o.state[i]
+      $left := o.left
+      $p_next := if $left == 0: &$state.0 else &$state[N - $left]
     }
 
+    proc ~MTRand() // destructor
+
     func rand_int(): n32 {
+      // generate N words at one time
       if $left == 0: $reload()
       $left -= 1
 
@@ -78,59 +64,24 @@ export* class MTRand {
     }
 
     func rand_int(n: n32): n32 {
+      // find the biggest used bit
       mut used = n
       for i in 0..5:
         used |= used >> (1 << i)
 
       mut i: n32
-      loop i = $rand_int() & used while i > n
+      loop i := $rand_int() & used while i > n
 
       i // implicit return
     }
 
-    func rand(): f64 =
-      ($rand_int() as f64) * (1.0 / 0xffffffff.0)
-    func rand(n: f64): f64 =
-      $rand() * n
-    func rand_exc(): f64 =
-      ($rand_int() as f64) * (1.0 / 0x100000000.0)
-    func rand_exc(n: f64): f64 =
-      $rand_exc() * n
-    func rand_dbl_exc(): f64 =
-      (($rand_int() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
-    func rand_dbl_exc(n: f64): f64 =
-      $rand_dbl_exc() * n
-
-    func rand_53(): f64 {
-      let a = $rand_int() >> 5 // 27 bits
-      let b = $rand_int() >> 6 // 26 bits
-      (a as f64 * 0x4000000.0 + b as f64) * (1.0 / 0x20000000000000.0) // implicit return
-    }
-
-    func genrand_int_31(): n32 = $rand_int() >> 1
-    func genrand_real_1(): f64 = $rand_dbl_exc()
-    func genrand_real_2(): f64 = $rand()
-    func genrand_real_3(): f64 = $rand_exc()
-    func genrand_res_53(): f64 = $rand_53()
-
-    func rand_norm(mean: f64 = 0.0, std_dev: f64 = 1.0): f64 {
-      mut x: f64, y: f64, r: f64
-
-      loop {
-        x = 2.0 * $rand() - 1.0
-        y = 2.0 * $rand() - 1.0
-        r = x ** 2 + y ** 2
-      } while r >= 1.0 || r == 0.0
-
-      let s = sqrt(-2.0 * log(r) / r)
-      mean + x * s * std_dev // implicit return
-    }
-
+    // seed overloads
     proc seed(one_seed: n32) {
       $initialize(one_seed)
       $reload()
     }
 
+    // seed with an array
     func seed(big_seed: &n32, seed_length: n32 = N) {
       $initialize(19650218)
 
@@ -139,33 +90,34 @@ export* class MTRand {
       mut k: i32 = if N > seed_length: N else seed_length
 
       for in 0..<k {
-        $state[i] = $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1664525)
+        $state[i] := $state[i] ^
+          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 0x19660d)
         $state[i] += (big_seed[j] & 0xffffffff) + j
         $state[i] &= 0xffffffff
 
         i += 1; j += 1
 
-        if i >= N {$state.0 = $state[N - 1]; i = 1}
-        if j >= seed_length: j = 0
+        if i >= N {$state.0 := $state[N - 1]; i := 1}
+        if j >= seed_length: j := 0
       }
 
       for in 0..<N - 1 {
-        $state[i] = $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 1566083941)
+        $state[i] := $state[i] ^
+          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 0x5d588b65)
         $state[i] -= i
         $state[i] &= 0xffffffff
 
         i += 1
-        if i >= N {$state.0 = $state[N - 1]; i = 1}
+        if i >= N {$state.0 := $state[N - 1]; i := 1}
       }
 
-      $state.0 = 0x80000000
+      $state.0 := 0x80000000
       $reload()
     }
 
+    // seed with system entropy or time-based seed
     proc seed() {
-      let ur = fs.open('../dev/urandom', fmRead)
+      let ur = crypto.open_urandom()
 
       if ?ur {
         mut big: n32[N]
@@ -173,10 +125,10 @@ export* class MTRand {
         for i in 0..<N {
           let bytes = ur.get.read_bytes(4)
           if bytes.len != 4 {ok = false; break}
-          big[i] = bytes.to_u32(0)
+          big[i] := bytes.to_u32(0)
         }
         ur.get.close()
-        if ok: $seed(&big.0, N)
+        if ok {$seed(&big.0, N); return}
       }
 
       let t = time.now().to_unix()
@@ -185,11 +137,11 @@ export* class MTRand {
     }
 
     proc initialize(one_seed: n32) {
-      $state.0 = one_seed & 0xffffffff
+      $state.0 := one_seed & 0xffffffff
 
       for i in 1..<N {
         let x = $state[i - 1] ^ ($state[i - 1] >> 30)
-        $state[i] = (1812433253 * x + i) & 0xffffffff
+        $state[i] := (0x6c078965 * x + i) & 0xffffffff
       }
     }
 
@@ -197,33 +149,34 @@ export* class MTRand {
       mut p = &$state.0
 
       for in 0..<(N - M) {
-        p.0 = $twist(p[M], p.0, p.1)
+        p.0 := $twist(p[M], p.0, p.1)
         p += 1
       }
 
       for in 0..<(M - 1) {
-        p.0 = $twist(p[M - N], p.0, p.1)
+        p.0 := $twist(p[M - N], p.0, p.1)
         p += 1
       }
 
-      p.0 = $twist(p[M - N], p.0, $state.0)
-      $left = N
-      $p_next = &$state.0
+      p.0 := $twist(p[M - N], p.0, $state.0)
+      $left := N
+      $p_next := &$state.0
     }
 
     proc save(save_array: &n32) {
       mut sa = save_array
-      for i in 0..<N: sa[i] = $state[i]
-      sa[N] = $left
+      for i in 0..<N: sa[i] := $state[i]
+      sa[N] := $left
     }
 
     proc load(load_array: &n32) {
       mut la = load_array
-      for i in 0..<N: $state[i] = la[i]
-      $left = la[N]
-      $p_next = &$state[N - $left]
+      for i in 0..<N: $state[i] := la[i]
+      $left := la[N]
+      $p_next := &$state[N - $left]
     }
 
+    // hash function for time-based seed
     func hash(t: time.time, c: time.clock): n32 {
       mut h1: n32 = 0
       let tb = t as &u8
@@ -245,7 +198,7 @@ export* class MTRand {
     }
 
     func twist(m: n32, s0: n32, s1: n32): n32 =
-      m ^ ($mix_bits(s0), s1 >> 1) ^ $magic(s1)
+      m ^ ($mix_bits(s0, s1) >> 1) ^ $magic(s1)
 
     func mix_bits(u: n32, v: n32): n32 =
       (u & 0x80000000) | (v & 0x7fffffff)
@@ -253,8 +206,54 @@ export* class MTRand {
     func magic(u: n32): n32 =
       if (u & 1) != 0: 0x9908b0df else 0x0
 
-    func n(): &MTRand = *self
+    // additional generation functions
+    func rand(): f64 =
+      ($rand_int() as f64) * (1.0 / 0xffffffff.0)
+    func rand(n: f64): f64 =
+      $rand() * n
+    func rand_exc(): f64 =
+      ($rand_int() as f64) * (1.0 / 0x100000000.0)
+    func rand_exc(n: f64): f64 =
+      $rand_exc() * n
+    func rand_dbl_exc(): f64 =
+      (($rand_int() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
+    func rand_dbl_exc(n: f64): f64 =
+      $rand_dbl_exc() * n
 
+    func rand_53(): f64 {
+      let a = $rand_int() >> 5 // 27 bits
+      let b = $rand_int() >> 6 // 26 bits
+      (a as f64 * 0x4000000.0 + b as f64) *
+        (1.0 / 0x20000000000000.0) // implicit return
+    }
+
+    func genrand_int_31(): n32 = $rand_int() >> 1
+    func genrand_real_1(): f64 = $rand_dbl_exc()
+    func genrand_real_2(): f64 = $rand()
+    func genrand_real_3(): f64 = $rand_exc()
+    func genrand_res_53(): f64 = $rand_53()
+
+    // normally distributed number
+    func rand_norm(mean: f64 = 0.0, std_dev: f64 = 1.0): f64 {
+      if $has_gauss {
+        $has_gauss := false
+        return $next_gauss * std_dev + mean
+      }
+
+      mut x: f64, y: f64, r: f64
+      loop {
+        x := 2.0 * $rand() - 1.0
+        y := 2.0 * $rand() - 1.0
+        r := x**2 + y**2
+      } while r >= 1.0 || r == 0.0
+
+      let s = math.sqrt(-2.0 * math.log(r) / r)
+      $next_gauss := y * s + mean
+      $has_gauss := true
+      x * s * std_dev + mean
+    }
+
+    // operator overloads
     right oper prec 4 (
       o_stream: &io.OutputStream
     ) <- (
@@ -273,20 +272,20 @@ export* class MTRand {
     ): &io.InputStream {
       for i in 0..<N {
         let line = i_stream.read_line()
-        mt_rand.state[i] = line as n32
+        mt_rand.state[i] := line as n32
       }
 
       let line = i_stream.read_line()
-      mt_rand.left = line as i32
-      mt_rand.p_next = &mt_rand.state[N - mt_rand.left]
+      mt_rand.left := line as i32
+      mt_rand.p_next := &mt_rand.state[N - mt_rand.left]
       i_stream // implicit return
     }
 
     right oper prec 1 =(o: &MTRand): &MTRand {
       if *self == o: return *self
-      for i in 0..<N: $state[i] = o.state[i]
-      $left = o.left
-      $p_next = &$state[N - $left]
+      for i in 0..<N: $state[i] := o.state[i]
+      $left := o.left
+      $p_next := &$state[N - $left]
       *self // implicit return
     }
 }
