@@ -186,13 +186,13 @@ shader MazeGenerator {
 
   func getCellIndex(cellCoords: Vec2<i32>): i32 {
     let size = i32 uniforms.mazeSize
-    cellCoords.y * size + cellCoords.x
+    cellCoords->y * size + cellCoords->x
   }
 
   func coinFlip(p: Vec2<f32>): f32 {
-    mut p3: Vec3<f32> = fract <| Vec3 p.xyx * 0.1031
-    p3 += dot p3 (p3.yzx + 33.33)
-    step 0.5 (fract (p3.x + p3.y) * p3.z)
+    mut p3: Vec3<f32> = fract <| Vec3 p->xyx * 0.1031
+    p3 += dot p3 (p3->yzx + 33.33)
+    step 0.5 (fract (p3->x + p3->y) * p3->z)
   }
 
   // Carve walls for a given cell at random
@@ -214,14 +214,14 @@ shader MazeGenerator {
     let bottomNotLeft: f32 = coinFlip <| Vec2<f32> cellCoords
     let bWallIndex: i32 = cellIndex * 2 + bWallType
     let lWallIndex: i32 = cellIndex * 2 + lWallType
-    let carveBottom: f32 = mix bottomNotLeft 1.0 (f32 isOnEdge.x)
-    let carveLeft: f32 = mix (1.0 - bottomNotLeft) 1.0 (f32 isOnEdge.y)
+    let carveBottom: f32 = mix bottomNotLeft 1.0 (f32 isOnEdge->x)
+    let carveLeft: f32 = mix (1.0 - bottomNotLeft) 1.0 (f32 isOnEdge->y)
     wallsArray.values[bWallIndex] = n32 bottomNotLeft
     wallsArray.values[lWallIndex] = n32 <| 1.0 - bottomNotLeft
   }
 
   compute proc<threadGroup 8 8> main(%id: Vec3<n32>) {
-    randomCarveCellWalls <| Vec2<i32> %id.xy
+    randomCarveCellWalls <| Vec2<i32> %id->xy
   }
 }
 
@@ -308,7 +308,7 @@ struct Node {
   let next: *Node
 
   func Node(value: i32): *Node {
-    let node = unsafe { malloc Node }
+    let node = unsafe {malloc Node}
     node.value = value
     node.next = null
     return node
