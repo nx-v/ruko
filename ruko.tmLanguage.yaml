@@ -19,6 +19,7 @@ patterns: [{ include: "#core" }]
 
 # Planned features / TODOs:
 #
+# - [ ] Add more DSLs (domain-specific languages) with the %directive syntax.
 # - [ ] Add standard library based on the JavaScript, Node and Deno
 #   standard libraries, based on this link.
 #   https://developer.mozilla.org/en-US/docs/Web/API
@@ -456,7 +457,7 @@ repository:
 
           # declaration keywords
           |var|mut|let|auto|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
           |module|schema|struct|record|object|union|macro|space
           |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -981,6 +982,11 @@ repository:
       - include: "#strings-unquoted"
       - include: "#symbols"
       - include: "#unit-suffix"
+      - include: "#colors"
+      - include: "#base64"
+      - include: "#path-commands"
+      - include: "#url"
+      - include: "#word-array"
 
   constants:
     patterns:
@@ -1328,7 +1334,8 @@ repository:
           2:
             name: constant.other.symbol.ruko
             patterns:
-              - include: "#numbers"
+              - match: (?<=:)\d\w*
+                patterns: [include: "#numbers"]
               - include: "#constants"
               - include: "#css-property-values"
               - include: "#unicode-property-values"
@@ -1352,7 +1359,7 @@ repository:
 
             # declaration keywords
             |var|mut|let|auto|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
             |module|schema|struct|record|object|union|macro|space
             |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -2306,7 +2313,7 @@ repository:
 
               # declaration keywords
               |var|mut|let|auto|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
               |module|schema|struct|record|object|union|macro|space
               |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -2390,7 +2397,7 @@ repository:
 
                     # declaration keywords
                     |var|mut|let|auto|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                    |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                     |module|schema|struct|record|object|union|macro|space
                     |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -3335,7 +3342,6 @@ repository:
               - include: "#style-property-values"
               - include: $self
       - include: "#literals"
-      - include: "#hex-colors"
       - include: "#embedded-expressions"
       - include: "#embedded-formatting"
       - include: "#embedded-arguments"
@@ -3369,7 +3375,6 @@ repository:
 
   attribute-values:
     patterns:
-      - include: "#hex-colors"
       - include: "#literals"
       - include: "#embedded"
       - &primary-expression
@@ -3388,7 +3393,7 @@ repository:
 
               # declaration keywords
               |var|mut|let|auto|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
               |module|schema|struct|record|object|union|macro|space
               |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -4055,7 +4060,7 @@ repository:
 
                   # declaration keywords
                   |var|mut|let|auto|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                   |module|schema|struct|record|object|union|macro|space
                   |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -4112,31 +4117,198 @@ repository:
   style-property-values:
     patterns:
       - include: "#function-calls"
-      - include: "#hex-colors"
       - include: "#literals"
       - include: "#embedded"
       - *primary-expression
       - include: $self
 
-  hex-colors:
-    match: \s*(\#)\b(\h{3,4}|\h{6}|\h{8})\b\s*
-    captures:
+  # SVG path draw syntax
+  path-commands:
+    begin: \s*(%(path))\s*(\()\s*
+    beginCaptures:
       1: { name: punctuation.definition.constant.css }
-      2:
-        name: constant.other.color.rgb-value.hex.css
+      2: { name: storage.type.directive.css }
+      3: { name: punctuation.definition.constant.css }
+    end: (\))\s*
+    name: meta.property.path.ruko
+    endCaptures:
+      1: { name: punctuation.definition.constant.css }
+    patterns:
+      - match: (?i)[mlhvcsqtaz](?=[\\\s\d,-],)
+        name: keyword.operator.path.ruko
+      - match: '[-+](?=\d)'
+        name: keyword.operator.sign.ruko
+      - include: "#embedded"
+      - include: "#punctuation"
+      - include: "#numbers"
+      - include: "#constants"
+      - include: "#space"
+
+  url:
+    comment: URL literals
+    begin: \s*(%(url))\s*(\()\s*
+    beginCaptures:
+      1: { name: punctuation.definition.constant.ruko }
+      2: { name: storage.type.directive.ruko }
+      3: { name: punctuation.definition.constant.ruko }
+    end: \s*(\))\s*
+    endCaptures:
+      1: { name: punctuation.definition.constant.ruko }
+    name: meta.property.url.ruko
+    patterns:
+      - match: '(?i)(https?|ftp|file)(://[^\s)]+)'
+        captures:
+          1: { name: constant.other.url.scheme.ruko }
+          2: { name: string.quoted.url.ruko }
+      - match: '(www)(\.[^\s)]+)'
+        captures:
+          1: { name: constant.other.url.scheme.ruko }
+          2: { name: string.quoted.url.ruko }
+      - match: '[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[^\s)]*)?'
+        name: string.quoted.url.ruko
+      - match: "%[0-9A-Fa-f]{2}"
+        name: constant.character.escape.url.ruko
+      - include: "#embedded"
+      - include: "#space"
+
+  word-array:
+    comment: Array of strings
+    begin: \s*(%(words))\s*(\()\s*
+    beginCaptures:
+      1: { name: punctuation.definition.constant.ruko }
+      2: { name: storage.type.directive.ruko }
+      3: { name: punctuation.definition.constant.ruko }
+    end: \s*(\))\s*
+    endCaptures:
+      1: { name: punctuation.definition.constant.ruko }
+    name: meta.property.word-array.ruko
+    patterns:
+      - include: "#embedded"
+      - match: \S++
+        name: string.unquoted.word-array.ruko
+      - include: "#strings"
+      - include: "#space"
+
+  base64:
+    comment: Byte array, base64 encoded
+    begin: \s*(%(b64))\s*(\()\s*
+    beginCaptures:
+      1: { name: punctuation.definition.constant.ruko }
+      2: { name: storage.type.directive.ruko }
+      3: { name: punctuation.definition.constant.ruko }
+    end: \s*(\))\s*
+    endCaptures:
+      1: { name: punctuation.definition.constant.ruko }
+    name: meta.property.byte-array.ruko
+    patterns:
+      - match: "([A-Za-z0-9+/]{4})*+([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
+        name: string.encoded.base64.ruko
+      - include: "#space"
+
+  colors:
+    patterns:
+      - comment: RGB/RGBA color values
+        name: meta.property.color.rgb.ruko
+        begin: \s*(%(rgba?))\s*(\()\s*
+        beginCaptures:
+          1: { name: punctuation.definition.constant.css }
+          2: { name: storage.type.directive.css }
+          3: { name: punctuation.definition.parameters.css }
         patterns:
-          - match: (\h{2})(\h{2})(\h{2})(\h{2})?
+          - match: |-
+              (?x)
+              (\d{1,3}%?)(\s*,\s*) # red 
+              (\d{1,3}%?)(\s*,\s*) # green
+              (\d{1,3}%?) # blue
+              (\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
             captures:
-              1: { name: constant.other.color.red-value.hex.css }
-              2: { name: constant.other.color.green-value.hex.css }
-              3: { name: constant.other.color.blue-value.hex.css }
-              4: { name: constant.other.color.alpha-value.hex.css }
-          - match: (\h)(\h)(\h)(\h)?
+              1: { name: constant.other.color.red-value.rgb.css }
+              2: { name: punctuation.separator.comma.css }
+              3: { name: constant.other.color.green-value.rgb.css }
+              4: { name: punctuation.separator.comma.css }
+              5: { name: constant.other.color.blue-value.rgb.css }
+              6: { name: punctuation.separator.comma.css }
+              7: { name: punctuation.separator.comma.css }
+              8: { name: constant.other.color.alpha-value.rgb.css }
+          - include: $self
+        end: \s*(\))\s*
+        endCaptures:
+          1: { name: punctuation.definition.parameters.css }
+      - comment: HSL/HSV/OKLCH color values
+        name: meta.property.color.hsl.ruko
+        begin: \s*(%((?:ok)?hs[lv]a?|oklcha?))\s*(\()\s*
+        beginCaptures:
+          1: { name: punctuation.definition.constant.css }
+          2: { name: storage.type.directive.css }
+          3: { name: punctuation.definition.parameters.css }
+        end: \s*(\))\s*
+        endCaptures:
+          1: { name: punctuation.definition.parameters.css }
+        patterns:
+          - match: |-
+              (?x)(?<=\(\s*)
+              ([+-]?\d+(\.\d+)?)(\s*,\s*) # hue can be negative or decimal
+              (\d{1,3}%?)(\s*,\s*) # saturation
+              (\d{1,3}%?) # lightness/value
+              (\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
             captures:
-              1: { name: constant.other.color.red-value.hex.css }
-              2: { name: constant.other.color.green-value.hex.css }
-              3: { name: constant.other.color.blue-value.hex.css }
-              4: { name: constant.other.color.alpha-value.hex.css }
+              1: { name: constant.other.color.hue-value.hsl.css }
+              2: { name: punctuation.separator.comma.css }
+              3: { name: constant.other.color.saturation-value.hsl.css }
+              4: { name: punctuation.separator.comma.css }
+              5: { name: constant.other.color.lightness-value.hsl.css }
+              6: { name: punctuation.separator.comma.css }
+              7: { name: punctuation.separator.comma.css }
+              8: { name: constant.other.color.alpha-value.hsl.css }
+          - include: $self
+      - comment: LAB color values
+        name: meta.property.color.lab.ruko
+        begin: \s*(%(lab))\s*(\()\s*
+        beginCaptures:
+          1: { name: punctuation.definition.constant.css }
+          2: { name: storage.type.directive.css }
+          3: { name: punctuation.definition.parameters.css }
+        end: \s*(\))\s*
+        endCaptures:
+          1: { name: punctuation.definition.parameters.css }
+        patterns:
+          - match: |-
+              (?x)(?<=\(\s*)
+              ([+-]?\d+(\.\d+)?)(\s*,\s*) # L value can be negative or decimal
+              ([+-]?\d+(\.\d+)?)(\s*,\s*) # a value can be negative or decimal
+              ([+-]?\d+(\.\d+)?) # b value can be negative or decimal
+              (\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: { name: constant.other.color.l-value.lab.css }
+              3: { name: punctuation.separator.comma.css }
+              4: { name: constant.other.color.a-value.lab.css }
+              6: { name: punctuation.separator.comma.css }
+              7: { name: constant.other.color.b-value.lab.css }
+          - include: $self
+      - comment: Hex color values
+        name: meta.property.color.hex.ruko
+        match: \s*(%(#))\b(\h{3,4}|\h{6}|\h{8})\b\s*
+        captures:
+          1: { name: punctuation.definition.constant.css }
+          2: { name: storage.type.directive.css }
+          3:
+            name: constant.other.color.rgb-value.hex.css
+            patterns:
+              - match: (\h{2})(\h{2})(\h{2})(\h{2})?
+                captures:
+                  1: { name: constant.other.color.red-value.hex.css }
+                  2: { name: constant.other.color.green-value.hex.css }
+                  3: { name: constant.other.color.blue-value.hex.css }
+                  4: { name: constant.other.color.alpha-value.hex.css }
+              - match: (\h)(\h)(\h)(\h)?
+                captures:
+                  1: { name: constant.other.color.red-value.hex.css }
+                  2: { name: constant.other.color.green-value.hex.css }
+                  3: { name: constant.other.color.blue-value.hex.css }
+                  4: { name: constant.other.color.alpha-value.hex.css }
 
   script-blocks:
     define: &script-blocks
@@ -4879,7 +5051,7 @@ repository:
 
                     # declaration keywords
                     |var|mut|let|auto|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                    |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                     |module|schema|struct|record|object|union|macro|space
                     |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -4917,7 +5089,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -4971,7 +5143,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5038,7 +5210,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5076,7 +5248,7 @@ repository:
 
             # declaration keywords
             |var|mut|let|auto|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
             |module|schema|struct|record|object|union|macro|space
             |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5154,7 +5326,7 @@ repository:
 
                   # declaration keywords
                   |var|mut|let|auto|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                   |module|schema|struct|record|object|union|macro|space
                   |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5276,7 +5448,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5314,7 +5486,7 @@ repository:
 
             # declaration keywords
             |var|mut|let|auto|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
             |module|schema|struct|record|object|union|macro|space
             |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5373,7 +5545,7 @@ repository:
 
             # declaration keywords
             |var|mut|let|auto|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
             |module|schema|struct|record|object|union|macro|space
             |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5431,7 +5603,7 @@ repository:
 
                   # declaration keywords
                   |var|mut|let|auto|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                   |module|schema|struct|record|object|union|macro|space
                   |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -5550,7 +5722,7 @@ repository:
               | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
                 \b (?: # declaration keywords
                   var|mut|let|auto|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                   |module|schema|struct|record|object|union|macro|space
                   |query|quote|style|script|shader|compo|temp|oper|realm
                 ) \b
@@ -5619,7 +5791,7 @@ repository:
           | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
             \b (?: # declaration keywords
               var|mut|let|auto|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
               |module|schema|struct|record|object|union|macro|space
               |query|quote|style|script|shader|compo|temp|oper|realm
             ) \b
@@ -5791,7 +5963,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -6094,7 +6266,7 @@ repository:
 
               # declaration keywords
               |var|mut|let|auto|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
               |module|schema|struct|record|object|union|macro|space
               |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -6120,7 +6292,7 @@ repository:
         \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?: # declaration keywords
           var|mut|let|auto|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
           |module|schema|struct|record|object|union|macro|space
           |query|quote|style|script|shader|compo|temp|oper|realm
         ) 
@@ -6146,7 +6318,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -6177,7 +6349,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -6389,7 +6561,7 @@ repository:
           \s*
           (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b (?: # declaration keywords
             var|mut|let|auto|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
             |module|schema|struct|record|object|union|macro|space
             |query|quote|style|script|shader|compo|temp|oper|realm
           ) \b\s*
@@ -6553,7 +6725,7 @@ repository:
 
                 # declaration keywords
                 |var|mut|let|auto|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                 |module|schema|struct|record|object|union|macro|space
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -6981,7 +7153,17 @@ repository:
           - include: "#declaration-clause"
           - include: "#namespace-separators"
           - match: *entity-name
-            name: entity.name.iterator.ruko
+            name: entity.name.iterator.
+      - applyEndPatternLast: true
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(impl)\b\s*
+        end: (?=)|$
+        beginCaptures:
+          1: { name: storage.type.implementation.ruko }
+        patterns:
+          - include: "#declaration-clause"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.implementation.ruko
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(schema)\b\s*
         end: (?=)|$
@@ -7147,7 +7329,7 @@ repository:
 
               # declaration keywords
               |var|mut|let|auto|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
               |module|schema|struct|record|object|union|macro|space
               |query|quote|style|script|shader|compo|temp|oper|realm
 
@@ -9344,6 +9526,10 @@ repository:
       - match: \b(Object|Any|Junction|Whatever|Capture|MatchSignature|Proxy|Matcher|Package|Module|ClassGrammar|Scalar|Array|Hash|KeyHash|KeySet|KeyBagPair|List|Seq|Range|Set|Bag|Mapping|Void|UndefFailure|Exception|Code|Block|Routine|Sub|MacroMethod|Submethod|Regex|Str|str|Blob|Char|ByteCodepoint|Grapheme|StrPos|StrLen|Version|NumComplex|num|complex|Bit|bit|bool|True|FalseIncreasing|Decreasing|Ordered|Callable|AnyCharPositional|Associative|Ordering|KeyExtractorComparator|OrderingPair|IO|KitchenSink|RoleInt|int|int1|int2|int4|int8|int16|int32|int64Rat|rat|rat1|rat2|rat4|rat8|rat16|rat32|rat64Buf|buf|buf1|buf2|buf4|buf8|buf16|buf32|buf64UInt|uint|uint1|uint2|uint4|uint8|uint16|uint32uint64|Abstraction|utf8|utf16|utf32)\b
         name: support.type.perl
 
+      # Visual Basic
+      - match: \\b(Array|Add|Asc|Atn|CBool|CByte|CCur|CDate|CDbl|Chr|CInt|CLng|Conversions|Cos|CreateObject|CSng|CStr|Date|DateAdd|DateDiff|DatePart|DateSerial|DateValue|Day|Derived|Math|Escape|Eval|Exists|Exp|Filter|FormatCurrency|FormatDateTime|FormatNumber|FormatPercent|GetLocale|GetObject|GetRef|Hex|Hour|InputBox|InStr|InStrRev|Int|Fix|IsArray|IsDate|IsEmpty|IsNull|IsNumeric|IsObject|Item|Items|Join|Keys|LBound|LCase|Left|Len|LoadPicture|Log|LTrim|RTrim|Trim|Maths|Mid|Minute|Month|MonthName|MsgBox|Now|Oct|Remove|RemoveAll|Replace|RGB|Right|Rnd|Round|ScriptEngine|ScriptEngineBuildVersion|ScriptEngineMajorVersion|ScriptEngineMinorVersion|Second|SetLocale|Sgn|Sin|Space|Split|Sqr|StrComp|String|StrReverse|Tan|Time|Timer|TimeSerial|TimeValue|TypeName|UBound|UCase|Unescape|VarType|Weekday|WeekdayName|Year)\b
+        name: support.function.vb.asp
+
       # Objective-C
       - include: source.objc#anonymous_pattern_17
       - include: source.objc#anonymous_pattern_18
@@ -9385,325 +9571,34 @@ repository:
   support-functions-core:
     comment: Core built-in functions from major languages, to improve recognition of cross-language codebases
     patterns:
+      # Ruko support types
+      - include: "#support-types"
+
+      # C/C++
       - include: source.objcpp#c_functions
       - include: source.objc#c_functions
 
-      # Batchfile
-      - match: \b(adprep|append|arp|assoc|at|atmadm|attrib|auditpol|autochk|autoconv|autofmt|bcdboot|bcdedit|bdehdcfg|bitsadmin|bootcfg|brea|cacls|cd|certreq|certutil|change|chcp|chdir|chglogon|chgport|chgusr|chkdsk|chkntfs|choice|cipher|clip|cls|clscluadmin|cluster|cmd|cmdkey|cmstp|color|comp|compact|convert|copy|cprofile|cscript|csvde|date|dcdiag|dcgpofix|dcpromo|defra|del|dfscmd|dfsdiag|dfsrmig|diantz|dir|dirquota|diskcomp|diskcopy|diskpart|diskperf|diskraid|diskshadow|dispdiag|doin|dnscmd|doskey|driverquery|dsacls|dsadd|dsamain|dsdbutil|dsget|dsmgmt|dsmod|dsmove|dsquery|dsrm|edit|endlocal|eraseesentutl|eventcreate|eventquery|eventtriggers|evntcmd|expand|extract|fc|filescrn|find|findstr|finger|flattemp|fonde|forfiles|format|freedisk|fsutil|ftp|ftype|fveupdate|getmac|gettype|gpfixup|gpresult|gpupdate|graftabl|hashgen|hep|helpctr|hostname|icacls|iisreset|inuse|ipconfig|ipxroute|irftp|ismserv|jetpack|klist|ksetup|ktmutil|ktpass|label|ldifd|ldp|lodctr|logman|logoff|lpq|lpr|macfile|makecab|manage_bde|mapadmin|md|mkdir|mklink|mmc|mode|more|mount|mountvol|move|mqbup|mqsvc|mqtgsvc|msdt|msg|msiexec|msinfo32|mstsc|nbtstat|net_computer|net_group|net_localgroup|net_print|net_session|net_share|net_start|net_stop|net_use|net_user|net_view|net|netcfg|netdiag|netdom|netsh|netstat|nfsadmin|nfsshare|nfsstat|nlb|nlbmgr|nltest|nslookup|ntackup|ntcmdprompt|ntdsutil|ntfrsutl|openfiles|pagefileconfig|path|pathping|pause|pbadmin|pentnt|perfmon|ping|pnpunatten|pnputil|popd|powercfg|powershell|powershell_ise|print|prncnfg|prndrvr|prnjobs|prnmngr|prnport|prnqctl|prompt|pubprn|pushd|pushprinterconnections|pwlauncher|qappsrv|qprocess|query|quser|qwinsta|rasdial|rcp|rd|rdpsign|regentc|recover|redircmp|redirusr|reg|regini|regsvr32|relog|ren|rename|rendom|repadmin|repair_bde|replace|reset_session|rxec|risetup|rmdir|robocopy|route|rpcinfo|rpcping|rsh|runas|rundll32|rwinsta|sc|schtasks|scp|scwcmd|secedit|serverceipoptin|servrmanagercmd|serverweroptin|setspn|setx|sfc|sftp|shadow|shift|showmount|shutdown|sort|ssh|ssh_add|ssh_agent|ssh_keygen|ssh_keyscan|start|storrept|subst|sxstrace|ysocmgr|systeminfo|takeown|tapicfg|taskkill|tasklist|tcmsetup|telnet|tftp|time|timeout|title|tlntadmn|tpmvscmgr|tpmvscmgr|tacerpt|tracert|tree|tscon|tsdiscon|tsecimp|tskill|tsprof|type|typeperf|tzutil|uddiconfig|umount|unlodctr|ver|verifier|verif|vol|vssadmin|w32tm|waitfor|wbadmin|wdsutil|wecutil|wevtutil|where|whoami|winnt|winnt32|winpop|winrm|winrs|winsat|wlbs|wmic|wscript|wsl|xcopy)\b
-        name: support.function.batchfile.ruko
+      # Swift
+      - include: source.swift#builtin-functions
+      - include: source.swift#builtin-global-functions
 
-      # Perl
-      - match: \b(ARGV|DATA|ENV|SIG|STDERR|STDIN|STDOUT|atan2|bind|binmode|bless|caller|chdir|chmod|chomp|chop|chown|chr|chroot|close|closedir|cmp|connect|cos|crypt|dbmclose|dbmopen|defined|delete|dump|each|endgrent|endhostent|endnetent|endprotoent|endpwent|endservent|eof|eq|eval|exec|exists|exp|fcntl|fileno|flock|fork|formline|ge|getc|getgrent|getgrgid|getgrnam|gethostbyaddr|gethostbyname|gethostent|getlogin|getnetbyaddr|getnetbyname|getnetent|getpeername|getpgrp|getppid|getpriority|getprotobyname|getprotobynumber|getprotoent|getpwent|getpwnam|getpwuid|getservbyname|getservbyport|getservent|getsockname|getsockopt|glob|gmtime|grep|gt|hex|import|index|int|ioctl|join|keys|kill|lc|lcfirst|le|length|link|listen|local|localtime|log|lstat|lt|m|map|mkdir|msgctl|msgget|msgrcv|msgsnd|ne|no|oct|open|opendir|ord|pack|pipe|pop|pos|print|printf|push|quotemeta|rand|read|readdir|readlink|recv|ref|rename|reset|reverse|rewinddir|rindex|rmdir|s|say|scalar|seek|seekdir|semctl|semget|semop|send|setgrent|sethostent|setnetent|setpgrp|setpriority|setprotoent|setpwent|setservent|setsockopt|shift|shmctl|shmget|shmread|shmwrite|shutdown|sin|sleep|socket|socketpair|sort|splice|split|sprintf|sqrt|srand|stat|study|substr|symlink|syscall|sysopen|sysread|system|syswrite|tell|telldir|tie|tied|time|times|tr|truncate|uc|ucfirst|umask|undef|unlink|unpack|unshift|untie|utime|values|vec|waitpid|wantarray|warn|write|y|eager|hyper|substr|index|rindex|grep|map|sort|join|lines|hints|chmod|split|reduce|min|max|reverse|truncate|zip|cat|roundrobin|classify|first|sum|keys|values|pairs|defined|delete|exists|elems|end|kv|any|all|one|wrap|shape|key|value|name|pop|push|shift|splice|unshift|floor|ceiling|abs|exp|log|log10|rand|sign|sqrt|sin|cos|tan|round|strand|roots|cis|unpolar|polar|atan2|pick|chop|p5chop|chomp|p5chomp|lc|lcfirst|uc|ucfirst|capitalize|normalize|pack|unpack|quotemeta|comb|samecase|sameaccent|chars|nfd|nfc|nfkd|nfkc|printf|sprintf|caller|evalfile|run|runinstead|nothing|want|bless|chr|ord|gmtime|time|eof|localtime|gethost|getpw|chroot|getlogin|getpeername|kill|fork|wait|perl|graphs|codes|bytes|clone|print|open|read|write|readline|say|seek|close|opendir|readdir|slurp|spurt|shell|run|pos|fmt|vec|link|unlink|symlink|uniq|pair|asin|atan|sec|cosec|cotan|asec|acosec|acotan|sinh|cosh|tanh|asinh|done|acos|acosh|atanh|sech|cosech|cotanh|sech|acosech|acotanh|asech|ok|nok|plan_ok|dies_ok|lives_ok|skip|todo|pass|flunk|force_todo|use_ok|isa_ok|diag|is_deeply|isnt|like|skip_rest|unlike|cmp_ok|eval_dies_ok|nok_error|eval_lives_ok|approx|is_approx|throws_ok|version_lt|plan|EVAL|succ|pred|times|nonce|once|signature|new|connect|operator|undef|undefine|sleep|from|to|infix|postfix|prefix|circumfix|postcircumfix|minmax|lazy|count|unwrap|getc|pi|e|context|void|quasi|body|each|contains|rewinddir|subst|can|isa|flush|arity|assuming|rewind|callwith|callsame|nextwith|nextsame|attr|eval_elsewhere|none|srand|trim|trim_start|trim_end|lastcall|WHAT|WHERE|HOW|WHICH|VAR|WHO|WHENCE|ACCEPTS|REJECTS|not|true|iterator|by|re|im|invert|flip|gist|flat|tree|is_prime|throws_like|trans)\b
-        name: support.function.base.perl
-
-      # Ruby
-      - match: \b(abort|at_exit|autoload|binding|callcc|caller|caller_locations|chomp|chop|eval|exec|exit|fork|format|gets|global_variables|gsub|lambda|load|local_variables|open|p|print|printf|proc|putc|puts|rand|readline|readlines|select|set_trace_func|sleep|spawn|sprintf|srand|sub|syscall|system|test|trace_var|trap|untrace_var|warn|autoload|exit)\b
-        name: support.function.kernel.ruby
-
-      # Lua
-      - match: \b(assert|collectgarbage|dofile|error|getfenv|getmetatable|ipairs|load|loadfile|loadstring|module|next|pairs|pcall|print|rawequal|rawget|rawlen|rawset|require|select|setfenv|setmetatable|tonumber|tostring|type|unpack|xpcall)\b
-        name: support.function.lua
-      - match: \b(coroutine_(create|isyieldable|close|resume|running|status|wrap|yield)|string_(byte|char|dump|find|format|gmatch|gsub|len|lower|match|pack|packsize|rep|reverse|sub|unpack|upper)|table_(concat|insert|maxn|move|pack|remove|sort|unpack)|math_(abs|acos|asin|atan2?|ceil|cosh?|deg|exp|floor|fmod|frexp|ldexp|log|log10|max|min|modf|pow|rad|random|randomseed|sinh?|sqrt|tanh?|tointeger|type)|io_(close|flush|input|lines|open|output|popen|read|tmpfile|type|write)|os_(clock|date|difftime|execute|exit|getenv|remove|rename|setlocale|time|tmpname)|package_(loadlib|seeall|searchpath)|debug_(debug|[gs]etfenv|[gs]ethook|getinfo|[gs]etlocal|[gs]etmetatable|getregistry|[gs]etupvalue|[gs]etuservalue|set[Cc]stacklimit|traceback|upvalueid|upvaluejoin)|bit32_(arshift|band|bnot|bor|btest|bxor|extract|replace|lrotate|lshift|rrotate|rshift)|utf8_(char|codes|codepoint|len|offset))\b
-        name: support.function.library.lua
-
-      # PHP (correct as of PHP 8.2)
-      - match: (?x)\bapc_(store|sma_info|compile_file|clear_cache|cas|cache_info|inc|dec|define_constants|delete(_file)?|exists|fetch|load_constants|add|bin_(dump|load)(file)?)\b
-        name: support.function.apc.php
-      - match: (?x)\b(compact|count|current|end|extract|in_array|key(_exists)?|list|nat(case)?sort|next|pos|prev|range|reset|shuffle|sizeof|[ak]?r?sort|u[ak]?sort|array_(all|any|change_key_case|chunk|column|combine|count_values|fill(_keys)?|filter|find(_key)?|flip|is_list|key_(exists|first|last)|keys|map|multisort|pad|pop|product|push|rand|reduce|reverse|search|shift|slice|splice|sum|unique|unshift|values|u?(diff|intersect)(_u?(key|assoc))?|(walk|replace|merge)(_recursive)?))\b
-        name: support.function.array.php
-      - match: (?x)\b(connection_(aborted|status)|constant|defined?|die|eval|exit|get_browser|__halt_compiler|highlight_(file|string)|hrtime|ignore_user_abort|pack|php_strip_whitespace|show_source|u?sleep|sys_getloadavg|time_(nanosleep|sleep_until)|uniqid|unpack)\b
-        name: support.function.basic_functions.php
-      - match: \bbc(add|ceil|comp|(div|pow)(mod)?|floor|mod|mul|round|scale|sqrt|sub)\b
-        name: support.function.bcmath.php
-      - match: \bblenc_encrypt\b
-        name: support.function.blenc.php
-      - match: \bbz(compress|close|open|decompress|errstr|errno|error|flush|write|read)\b
-        name: support.function.bz2.php
-      - match: (?x)\b((French|Gregorian|Jewish|Julian)ToJD|cal_(to_jd|info|days_in_month|from_jd)|unixtojd|jdto(unix|jewish)|easter_(date|days)|JD(MonthName|To(Gregorian|Julian|French)|DayOfWeek))\b
-        name: support.function.calendar.php
-      - match: (?x)\b(__autoload|class_alias|(class|interface|method|property|trait|enum)_exists|is_(a|subclass_of)|get_(class(_(vars|methods))?|(called|parent)_class|(mangled_)?object_vars|declared_(classes|interfaces|traits)))\b
-        name: support.function.classobj.php
-      - match: (?x)\b(com_(create_guid|print_typeinfo|event_sink|load_typelib|get_active_object|message_pump)|variant_(sub|set(_type)?|not|neg|cast|cat|cmp|int|idiv|imp|or|div|date_(from|to)_timestamp|pow|eqv|fix|and|add|abs|round|get_type|xor|mod|mul))\b
-        name: support.function.com.php
-      - match: \b(isset|unset|eval|empty|list)\b
-        name: support.function.construct.php
-      - match: \b(print|echo)\b
-        name: support.function.construct.output.php
-      - match: \bctype_(space|cntrl|digit|upper|punct|print|lower|alnum|alpha|graph|xdigit)\b
-        name: support.function.ctype.php
-      - match: (?x)\bcurl_(close|copy_handle|errno|error|escape|exec|getinfo|init|pause|reset|setopt(_array)?|strerror|unescape|upkeep|version|multi_((add|remove)_handle|close|errno|exec|getcontent|info_read|init|select|setopt|strerror)|share_(close|errno|init(_persistent)?|setopt|strerror))\b
-        name: support.function.curl.php
-      - match: (?x)\b(strtotime|str[fp]time|checkdate|time|timezone_name_(from_abbr|get)|idate|timezone_((location|offset|transitions|version)_get|(abbreviations|identifiers)_list|open)|date(_(sun(rise|set)|sun_info|sub|create(_immutable)?(_from_format)?|timestamp_[gs]et|timezone_[gs]et|time_set|isodate_set|interval_(create_from_date_string|format)|offset_get|diff|default_timezone_[gs]et|date_set|parse(_from_format)?|format|add|get_last_errors|modify))?|localtime|get(date|timeofday)|gm(strftime|date|mktime)|microtime|mktime)\b
-        name: support.function.datetime.php
-      - match: \bdba_(sync|handlers|nextkey|close|insert|optimize|open|delete|popen|exists|key_split|firstkey|fetch|list|replace)\b
-        name: support.function.dba.php
-      - match: \bdbx_(sort|connect|compare|close|escape_string|error|query|fetch_row)\b
-        name: support.function.dbx.php
-      - match: \b(scandir|chdir|chroot|closedir|opendir|dir|rewinddir|readdir|getcwd)\b
-        name: support.function.dir.php
-      - match: (?x)\beio_(sync(fs)?|sync_file_range|symlink|stat(vfs)?|sendfile|set_min_parallel|set_max_(idle|poll_(reqs|time)|parallel)|seek|n(threads|op|pending|reqs|ready)|chown|chmod|custom|close|cancel|truncate|init|open|dup2|unlink|utime|poll|event_loop|f(sync|stat(vfs)?|chown|chmod|truncate|datasync|utime|allocate)|write|lstat|link|rename|realpath|read(ahead|dir|link)?|rmdir|get_(event_stream|last_error)|grp(_(add|cancel|limit))?|mknod|mkdir|busy)\b
-        name: support.function.eio.php
-      - match: (?x)\benchant_(dict_(store_replacement|suggest|check|is_in_session|describe|quick_check|add_to_(personal|session)|get_error)|broker_(set_ordering|init|dict_exists|describe|free(_dict)?|list_dicts|request_(pwl_)?dict|get_error))\b
-        name: support.function.enchant.php
-      - match: \b(split(i)?|sql_regcase|ereg(i)?(_replace)?)\b
-        name: support.function.ereg.php
-      - match: \b((restore|set)_(error|exception)_handler|trigger_error|debug_(print_)?backtrace|user_error|error_(log|reporting|(clear|get)_last))\b
-        name: support.function.errorfunc.php
-      - match: \b(shell_exec|system|passthru|proc_(nice|close|terminate|open|get_status)|escapeshell(arg|cmd)|exec)\b
-        name: support.function.exec.php
-      - match: \b(exif_(thumbnail|tagname|imagetype|read_data)|read_exif_data)\b
-        name: support.function.exif.php
-      - match: (?x)\bfann_((duplicate|length|merge|shuffle|subset)_train_data|scale_(train(_data)?|(input|output)(_train_data)?)|set_(scaling_params|sarprop_(step_error_(shift|threshold_factor)|temperature|weight_decay_shift)|cascade_(num_candidate_groups|candidate_(change_fraction|limit|stagnation_epochs)|output_(change_fraction|stagnation_epochs)|weight_multiplier|activation_(functions|steepnesses)|(max|min)_(cand|out)_epochs)|callback|training_algorithm|train_(error|stop)_function|(input|output)_scaling_params|error_log|quickprop_(decay|mu)|weight(_array)?|learning_(momentum|rate)|bit_fail_limit|activation_(function|steepness)(_(hidden|layer|output))?|rprop_((decrease|increase)_factor|delta_(max|min|zero)))|save(_train)?|num_(input|output)_train_data|copy|clear_scaling_params|cascadetrain_on_(file|data)|create_((sparse|shortcut|standard)(_array)?|train(_from_callback)?|from_file)|test(_data)?|train(_(on_(file|data)|epoch))?|init_weights|descale_(input|output|train)|destroy(_train)?|print_error|run|reset_(MSE|err(no|str))|read_train_from_file|randomize_weights|get_(sarprop_(step_error_(shift|threshold_factor)|temperature|weight_decay_shift)|num_(input|output|layers)|network_type|MSE|connection_(array|rate)|bias_array|bit_fail(_limit)?|cascade_(num_(candidates|candidate_groups)|(candidate|output)_(change_fraction|limit|stagnation_epochs)|weight_multiplier|activation_(functions|steepnesses)(_count)?|(max|min)_(cand|out)_epochs)|total_(connections|neurons)|training_algorithm|train_(error|stop)_function|err(no|str)|quickprop_(decay|mu)|learning_(momentum|rate)|layer_array|activation_(function|steepness)|rprop_((decrease|increase)_factor|delta_(max|min|zero))))\b
-        name: support.function.fann.php
-      - match: (?x)\b(symlink|stat|set_file_buffer|chown|chgrp|chmod|copy|clearstatcache|touch|tempnam|tmpfile|is_(dir|(uploaded_)?file|executable|link|readable|writ(e)?able)|disk_(free|total)_space|diskfreespace|dirname|delete|unlink|umask|pclose|popen|pathinfo|parse_ini_(file|string)|fscanf|fstat|fseek|fnmatch|fclose|ftell|ftruncate|file(size|[acm]time|type|inode|owner|perms|group)?|file_(exists|(get|put)_contents)|f(open|puts|putcsv|passthru|eof|flush|write|lock|read|gets(s)?|getc(sv)?)|lstat|lchown|lchgrp|link(info)?|rename|rewind|read(file|link)|realpath(_cache_(get|size))?|rmdir|glob|move_uploaded_file|mkdir|basename|f(data)?sync)\b
-        name: support.function.file.php
-      - match: \b(finfo_(set_flags|close|open|file|buffer)|mime_content_type)\b
-        name: support.function.fileinfo.php
-      - match: \bfilter_(has_var|input(_array)?|id|var(_array)?|list)\b
-        name: support.function.filter.php
-      - match: \b(fastcgi_finish_request|fpm_get_status)\b
-        name: support.function.fpm.php
-      - match: \b(call_user_(func|method)(_array)?|create_function|unregister_tick_function|forward_static_call(_array)?|function_exists|func_(num_args|get_arg(s)?)|register_(shutdown|tick)_function|get_defined_functions)\b
-        name: support.function.funchand.php
-      - match: \b((n)?gettext|textdomain|d((n)?gettext|c(n)?gettext)|bind(textdomain|_textdomain_codeset))\b
-        name: support.function.gettext.php
-      - match: (?x)\bgmp_(scan[01]|strval|sign|sub|setbit|sqrt(rem)?|hamdist|neg|nextprime|com|clrbit|cmp|testbit|intval|init|invert|import|or|div(exact)?|div_(q|qr|r)|jacobi|popcount|pow(m)?|perfect_(square|power)|prob_prime|export|fact|legendre|and|add|abs|root(rem)?|random(_(bits|range|seed))?|gcd(ext)?|xor|mod|mul|binomial|kronecker|lcm)\b
-        name: support.function.gmp.php
-      - match: (?x)\bhash(_(algos|copy|equals|file|final|hkdf|hmac(_(file|algos)?)?|init|pbkdf2|update(_(file|stream))?))? \b
-        name: support.function.hash.php
-      - match: (?x)\b(http_(support|send_(status|stream|content_(disposition|type)|data|file|last_modified)|head|negotiate_(charset|content_type|language)|chunked_decode|cache_(etag|last_modified)|throttle|inflate|deflate|date|post_(data|fields)|put_(data|file|stream)|persistent_handles_(count|clean|ident)|parse_(cookie|headers|message|params)|redirect|request(_(method_(exists|name|(un)?register)|body_encode))?|get(_request_(headers|body(_stream)?))?|match_(etag|modified|request_header)|build_(cookie|str|url))|ob_(etag|deflate|inflate)handler)\b
-        name: support.function.http.php
-      - match: \b(iconv(_(str(pos|len|rpos)|substr|[gs]et_encoding|mime_(decode(_headers)?|encode)))?|ob_iconv_handler)\b
-        name: support.function.iconv.php
-      - match: \biis_((start|stop)_(service|server)|set_(script_map|server_rights|dir_security|app_settings)|(add|remove)_server|get_(script_map|service_state|server_(rights|by_(comment|path))|dir_security))\b
-        name: support.function.iisfunc.php
-      - match: (?x)\b(iptc(embed|parse)|(jpeg|png)2wbmp|gd_info|getimagesize(fromstring)?|image(s[xy]|scale|(char|string)(up)?|set(clip|style|thickness|tile|interpolation|pixel|brush)|savealpha|convolution|copy(resampled|resized|merge(gray)?)?|colors(forindex|total)|color(set|closest(alpha|hwb)?|transparent|deallocate|(allocate|exact|resolve)(alpha)?|at|match)|crop(auto)?|create(truecolor|from(avif|bmp|string|jpeg|png|wbmp|webp|gif|gd(2(part)?)?|tga|xpm|xbm))?|types|ttf(bbox|text)|truecolortopalette|istruecolor|interlace|2wbmp|destroy|dashedline|jpeg|_type_to_(extension|mime_type)|ps(slantfont|text|(encode|extend|free|load)font|bbox)|png|polygon|palette(copy|totruecolor)|ellipse|ft(text|bbox)|filter|fill|filltoborder|filled(arc|ellipse|polygon|rectangle)|font(height|width)|flip|webp|wbmp|line|loadfont|layereffect|antialias|affine(matrix(concat|get))?|alphablending|arc|rotate|rectangle|gif|gd2?|gammacorrect|grab(screen|window)|xbm|resolution|openpolygon|get(clip|interpolation)|avif|bmp))\b
-        name: support.function.image.php
-      - match: (?x)\b(sys_get_temp_dir|set_(time_limit|include_path|magic_quotes_runtime)|cli_[gs]et_process_title|ini_(alter|get(_all)?|restore|set)|zend_(thread_id|version|logo_guid)|dl|php(credits|info|version)|php_(sapi_name|ini_(scanned_files|loaded_file)|uname|logo_guid)|putenv|extension_loaded|version_compare|assert(_options)?|restore_include_path|gc_(collect_cycles|disable|enable(d)?)|getopt|get_(cfg_var|current_user|defined_constants|extension_funcs|include_path|included_files|loaded_extensions|magic_quotes_(gpc|runtime)|required_files|resources)|get(env|lastmod|rusage|my(inode|[gup]id))|memory_get_(peak_)?usage|main|magic_quotes_runtime)\b
-        name: support.function.info.php
-      - match: (?x)\bibase_(set_event_handler|service_(attach|detach)|server_info|num_(fields|params)|name_result|connect|commit(_ret)?|close|trans|delete_user|drop_db|db_info|pconnect|param_info|prepare|err(code|msg)|execute|query|field_info|fetch_(assoc|object|row)|free_(event_handler|query|result)|wait_event|add_user|affected_rows|rollback(_ret)?|restore|gen_id|modify_user|maintain_db|backup|blob_(cancel|close|create|import|info|open|echo|add|get))\b
-        name: support.function.interbase.php
-      - match: (?x)\b(normalizer_(normalize|is_normalized)|idn_to_(unicode|utf8|ascii)|numfmt_(set_(symbol|(text_)?attribute|pattern)|create|(parse|format)(_currency)?|get_(symbol|(text_)?attribute|pattern|error_(code|message)|locale))|collator_(sort(_with_sort_keys)?|set_(attribute|strength)|compare|create|asort|get_(strength|sort_key|error_(code|message)|locale|attribute))|transliterator_(create(_(inverse|from_rules))?|transliterate|list_ids|get_error_(code|message))|intl(cal|tz)_get_error_(code|message)|intl_(is_failure|error_name|get_error_(code|message))|datefmt_(set_(calendar|lenient|pattern|timezone(_id)?)|create|is_lenient|parse|format(_object)?|localtime|get_(calendar(_object)?|time(type|zone(_id)?)|datetype|pattern|error_(code|message)|locale))|locale_(set_default|compose|canonicalize|parse|filter_matches|lookup|accept_from_http|get_(script|display_(script|name|variant|language|region)|default|primary_language|keywords|all_variants|region))|resourcebundle_(create|count|locales|get(_(error_(code|message)))?)|grapheme_(str(i?str|r?i?pos|len|_split)|substr|extract)|msgfmt_(set_pattern|create|(format|parse)(_message)?|get_(pattern|error_(code|message)|locale)))\b
-        name: support.function.intl.php
-      - match: \bjson_(decode|encode|last_error(_msg)?|validate)\b
-        name: support.function.json.php
-      - match: (?x)\bldap_(start|tls|sort|search|sasl_bind|set_(option|rebind_proc)|(first|next)_(attribute|entry|reference)|connect|control_paged_result(_response)?|count_entries|compare|close|t61_to_8859|8859_to_t61|dn2ufn|delete|unbind|parse_(reference|result)|escape|errno|err2str|error|explode_dn|bind|free_result|list|add|rename|read|get_(option|dn|entries|values(_len)?|attributes)|modify(_batch)?|mod_(add|del|replace))\b
-        name: support.function.ldap.php
-      - match: \blibxml_(set_(streams_context|external_entity_loader)|clear_errors|disable_entity_loader|use_internal_errors|get_(errors|last_error))\b
-        name: support.function.libxml.php
-      - match: \b(ezmlm_hash|mail)\b
-        name: support.function.mail.php
-      - match: (?x)\b(a?(cos|sin|tan)h?|sqrt|srand|hypot|hexdec|ceil|is_(nan|(in)?finite)|octdec|dec(hex|oct|bin)|deg2rad|pi|pow|exp(m1)?|floor|f(div|mod|pow)|lcg_value|log(1[p0])?|atan2|abs|round|rand|rad2deg|getrandmax|mt_(srand|rand|getrandmax)|max|min|bindec|base_convert|intdiv)\b
-        name: support.function.math.php
-      - match: (?x)\bmb_(str(cut|str|to(lower|upper)|istr|ipos|imwidth|pos|width|len|rchr|richr|ripos|rpos|_pad|_split)|substitute_character|substr(_count)?|split|send_mail|http_(input|output)|check_encoding|convert_(case|encoding|kana|variables)|internal_encoding|output_handler|decode_(numericentity|mimeheader)|detect_(encoding|order)|parse_str|preferred_mime_name|encoding_aliases|encode_(numericentity|mimeheader)|ereg(i(_replace)?)?|ereg_(search(_(get(pos|regs)|init|regs|(set)?pos))?|replace(_callback)?|match)|list_encodings|language|regex_(set_options|encoding)|get_info|[lr]?trim|[lu]cfirst|ord|chr|scrub)\b
-        name: support.function.mbstring.php
-      - match: (?x)\b(mcrypt_(cfb|create_iv|cbc|ofb|decrypt|encrypt|ecb|list_(algorithms|modes)|generic(_((de)?init|end))?|enc_(self_test|is_block_(algorithm|algorithm_mode|mode)|get_(supported_key_sizes|(block|iv|key)_size|(algorithms|modes)_name))|get_(cipher_name|(block|iv|key)_size)|module_(close|self_test|is_block_(algorithm|algorithm_mode|mode)|open|get_(supported_key_sizes|algo_(block|key)_size)))|mdecrypt_generic)\b
-        name: support.function.mcrypt.php
-      - match: \bmemcache_debug\b
-        name: support.function.memcache.php
-      - match: \bmhash(_(count|keygen_s2k|get_(hash_name|block_size)))?\b
-        name: support.function.mhash.php
-      - match: \b(log_(cmd_(insert|delete|update)|killcursor|write_batch|reply|getmore)|bson_(decode|encode))\b
-        name: support.function.mongo.php
-      - match: (?x)\bmysql_(stat|set_charset|select_db|num_(fields|rows)|connect|client_encoding|close|create_db|escape_string|thread_id|tablename|insert_id|info|data_seek|drop_db|db_(name|query)|unbuffered_query|pconnect|ping|errno|error|query|field_(seek|name|type|table|flags|len)|fetch_(object|field|lengths|assoc|array|row)|free_result|list_(tables|dbs|processes|fields)|affected_rows|result|real_escape_string|get_(client|host|proto|server)_info)\b
-        name: support.function.mysql.php
-      - match: (?x)\bmysqli_(ssl_set|store_result|stat|send_(query|long_data)|set_(charset|opt|local_infile_(default|handler))|stmt_(store_result|send_long_data|next_result|close|init|data_seek|prepare|execute|fetch|free_result|attr_[gs]et|result_metadata|reset|get_(result|warnings)|more_results|bind_(param|result))|select_db|slave_query|savepoint|next_result|change_user|character_set_name|connect|commit|client_encoding|close|thread_safe|init|options|(enable|disable)_(reads_from_master|rpl_parse)|dump_debug_info|debug|data_seek|use_result|ping|poll|param_count|prepare|escape_string|execute|embedded_server_(start|end)|kill|query|field_seek|free_result|autocommit|rollback|report|refresh|fetch(_(object|fields|field(_direct)?|assoc|all|array|row))?|rpl_(parse_enabled|probe|query_type)|release_savepoint|reap_async_query|real_(connect|escape_string|query)|more_results|multi_query|get_(charset|connection_stats|client_(stats|info|version)|cache_stats|warnings|links_stats|metadata)|master_query|bind_(param|result)|begin_transaction)\b
-        name: support.function.mysqli.php
-      - match: \bmysqlnd_memcache_(set|get_config)\b
-        name: support.function.mysqlnd-memcache.php
-      - match: \bmysqlnd_ms_(set_(user_pick_server|qos)|dump_servers|query_is_select|fabric_select_(shard|global)|get_(stats|last_(used_connection|gtid))|xa_(commit|rollback|gc|begin)|match_wild)\b
-        name: support.function.mysqlnd-ms.php
-      - match: \bmysqlnd_qc_(set_(storage_handler|cache_condition|is_select|user_handlers)|clear_cache|get_(normalized_query_trace_log|core_stats|cache_info|query_trace_log|available_handlers))\b
-        name: support.function.mysqlnd-qc.php
-      - match: \bmysqlnd_uh_(set_(statement|connection)_proxy|convert_to_mysqlnd)\b
-        name: support.function.mysqlnd-uh.php
-      - match: (?x)\b(syslog|socket_(set_(blocking|timeout)|get_status)|set(raw)?cookie|http_response_code|openlog|headers_(list|sent)|header(_(register_callback|remove))?|checkdnsrr|closelog|inet_(ntop|pton)|ip2long|openlog|dns_(check_record|get_(record|mx))|define_syslog_variables|(p)?fsockopen|long2ip|get(servby(name|port)|host(name|by(name(l)?|addr))|protoby(name|number)|mxrr)|http_(clear|get)_last_response_headers|net_get_interfaces|request_parse_body)\b
-        name: support.function.network.php
-      - match: \bnsapi_(virtual|response_headers|request_headers)\b
-        name: support.function.nsapi.php
-      - match: (?x)\b(oci(statementtype|setprefetch|serverversion|savelob(file)?|numcols|new(collection|cursor|descriptor)|nlogon|column(scale|size|name|type(raw)?|isnull|precision)|coll(size|trim|assign(entity)?|append|getelem|max)|commit|closelob|cancel|internaldebug|definebyname|plogon|parse|error|execute|fetch(statement|into)?|free(statement|collection|cursor|desc)|write(temporarylob|lobtofile)|loadlob|log(on|off)|rowcount|rollback|result|bindbyname)|oci_(statement_type|set_(client_(info|identifier)|prefetch|edition|action|module_name)|server_version|num_(fields|rows)|new_(connect|collection|cursor|descriptor)|connect|commit|client_version|close|cancel|internal_debug|define_by_name|pconnect|password_change|parse|error|execute|bind_(array_)?by_name|field_(scale|size|name|type(_raw)?|is_null|precision)|fetch(_(object|assoc|all|array|row))?|free_(statement|descriptor)|lob_(copy|is_equal)|rollback|result|get_implicit_resultset))\b
-        name: support.function.oci8.php
-      - match: \bopcache_(compile_file|invalidate|is_script_cached|reset|get_(status|configuration))\b
-        name: support.function.opcache.php
-      - match: (?x)\bopenssl_(sign|spki_(new|export(_challenge)?|verify)|seal|csr_(sign|new|export(_to_file)?|get_(subject|public_key))|cipher_(iv|key)_length|open|dh_compute_key|digest|decrypt|public_(decrypt|encrypt)|encrypt|error_string|pkcs12_(export(_to_file)?|read)|(cms|pkcs7)_(sign|decrypt|encrypt|verify|read)|verify|free_key|random_pseudo_bytes|pkey_(derive|new|export(_to_file)?|free|get_(details|public|private))|private_(decrypt|encrypt)|pbkdf2|get_((cipher|md)_methods|cert_locations|curve_names|(public|private)key)|x509_(check_private_key|checkpurpose|parse|export(_to_file)?|fingerprint|free|read|verify))\b
-        name: support.function.openssl.php
-      - match: (?x)\b(output_(add_rewrite_var|reset_rewrite_vars)|flush|ob_(start|clean|implicit_flush|end_(clean|flush)|flush|list_handlers|gzhandler|get_(status|contents|clean|flush|length|level)))\b
-        name: support.function.output.php
-      - match: \bpassword_(algos|hash|needs_rehash|verify|get_info)\b
-        name: support.function.password.php
-      - match: (?x)\bpcntl_(alarm|async_signals|errno|exec|r?fork|get_last_error|[gs]et(cpuaffinity|priority)|signal(_(dispatch|get_handler))?|sig(procmask|timedwait|waitinfo)|strerror|unshare|wait(p?id)?|wexitstatus|wif(exited|signaled|stopped)|w(stop|term)sig)\b
-        name: support.function.pcntl.php
-      - match: (?x)\bpg_(socket|send_(prepare|execute|query(_params)?)|set_(client_encoding|error_verbosity)|select|host|num_(fields|rows)|consume_input|connection_(status|reset|busy)|connect(_poll)?|convert|copy_(from|to)|client_encoding|close|cancel_query|tty|transaction_status|trace|insert|options|delete|dbname|untrace|unescape_bytea|update|pconnect|ping|port|put_line|parameter_status|prepare|version|query(_params)?|escape_(string|identifier|literal|bytea)|end_copy|execute|flush|free_result|last_(notice|error|oid)|field_(size|num|name|type(_oid)?|table|is_null|prtlen)|affected_rows|result_(status|seek|error(_field)?)|fetch_(object|assoc|all(_columns)?|array|row|result)|get_(notify|pid|result)|meta_data|lo_(seek|close|create|tell|truncate|import|open|unlink|export|write|read(_all)?)|)\b
-        name: support.function.pgsql.php
-      - match: \b(virtual|getallheaders|apache_([gs]etenv|note|child_terminate|lookup_uri|response_headers|reset_timeout|request_headers|get_(version|modules)))\b
-        name: support.function.php_apache.php
-      - match: \bdom_import_simplexml\b
-        name: support.function.php_dom.php
-      - match: (?x)\bftp_(ssl_connect|systype|site|size|set_option|nlist|nb_(continue|f?(put|get))|ch(dir|mod)|connect|cdup|close|delete|put|pwd|pasv|exec|quit|f(put|get)|login|alloc|rename|raw(list)?|rmdir|get(_option)?|mdtm|mkdir)\b
-        name: support.function.php_ftp.php
-      - match: (?x)\bimap_((create|delete|list|rename|scan)(mailbox)?|status|sort|subscribe|set_quota|set(flag_full|acl)|search|savebody|num_(recent|msg)|check|close|clearflag_full|thread|timeout|open|header(info)?|headers|append|alerts|reopen|8bit|unsubscribe|undelete|utf7_(decode|encode)|utf8|uid|ping|errors|expunge|qprint|gc|fetch(structure|header|text|mime|body)|fetch_overview|lsub|list(scan|subscribed)|last_error|rfc822_(parse_(headers|adrlist)|write_address)|get(subscribed|acl|mailboxes)|get_quota(root)?|msgno|mime_header_decode|mail_(copy|compose|move)|mail|mailboxmsginfo|binary|body(struct)?|base64)\b
-        name: support.function.php_imap.php
-      - match: (?x)\bmssql_(select_db|num_(fields|rows)|next_result|connect|close|init|data_seek|pconnect|execute|query|field_(seek|name|type|length)|fetch_(object|field|assoc|array|row|batch)|free_(statement|result)|rows_affected|result|guid_string|get_last_message|min_(error|message)_severity|bind)\b
-        name: support.function.php_mssql.php
-      - match: (?x)\bodbc_(statistics|specialcolumns|setoption|num_(fields|rows)|next_result|connect|columns|columnprivileges|commit|cursor|close(_all)?|tables|tableprivileges|do|data_source|pconnect|primarykeys|procedures|procedurecolumns|prepare|error(msg)?|exec(ute)?|field_(scale|num|name|type|precision|len)|foreignkeys|free_result|fetch_(into|object|array|row)|longreadlen|autocommit|rollback|result(_all)?|gettypeinfo|binmode)\b
-        name: support.function.php_odbc.php
-      - match: \bpreg_(split|quote|filter|last_error(_msg)?|replace(_callback(_array)?)?|grep|match(_all)?)\b
-        name: support.function.php_pcre.php
-      - match: \b(spl_(classes|object_hash|autoload(_(call|unregister|extensions|functions|register))?)|class_(implements|uses|parents)|iterator_(count|to_array|apply))\b
-        name: support.function.php_spl.php
-      - match: \bzip_(close|open|entry_(name|compressionmethod|compressedsize|close|open|filesize|read)|read)\b
-        name: support.function.php_zip.php
-      - match: (?x)\bposix_(strerror|set(s|e?u|[ep]?g)id|ctermid|ttyname|times|isatty|initgroups|uname|errno|kill|e?access|get(sid|cwd|uid|pid|ppid|pwnam|pwuid|pgid|pgrp|euid|egid|login|rlimit|gid|grnam|groups|grgid)|get_last_error|mknod|mkfifo|(sys|f?path)conf|setrlimit)\b
-        name: support.function.posix.php
-      - match: \bset(thread|proc)title\b
-        name: support.function.proctitle.php
-      - match: (?x)\bpspell_(store_replacement|suggest|save_wordlist|new(_(config|personal))?|check|clear_session|config_(save_repl|create|ignore|(data|dict)_dir|personal|runtogether|repl|mode)|add_to_(session|personal))\b
-        name: support.function.pspell.php
-      - match: \breadline(_(completion_function|clear_history|callback_(handler_(install|remove)|read_char)|info|on_new_line|write_history|list_history|add_history|redisplay|read_history))?\b
-        name: support.function.readline.php
-      - match: \brecode(_(string|file))?\b
-        name: support.function.recode.php
-      - match: \brrd(c_disconnect|_(create|tune|info|update|error|version|first|fetch|last(update)?|restore|graph|xport))\b
-        name: support.function.rrd.php
-      - match: (?x)\b(shm_((get|has|remove|put)_var|detach|attach|remove)|sem_(acquire|release|remove|get)|ftok|msg_((get|remove|set|stat)_queue|send|queue_exists|receive))\b
-        name: support.function.sem.php
-      - match: (?x)\bsession_(status|start|set_(save_handler|cookie_params)|save_path|name|commit|cache_(expire|limiter)|is_registered|id|destroy|decode|unset|unregister|encode|write_close|abort|reset|register(_shutdown)?|(regenerate|create)_id|get_cookie_params|module_name|gc)\b
-        name: support.function.session.php
-      - match: \bshmop_(size|close|open|delete|write|read)\b
-        name: support.function.shmop.php
-      - match: \bsimplexml_(import_dom|load_(string|file))\b
-        name: support.function.simplexml.php
-      - match: (?x)\b(snmp(walk(oid)?|realwalk|get(next)?|set)|snmp_(set_(valueretrieval|quick_print|enum_print|oid_(numeric_print|output_format))|read_mib|get_(valueretrieval|quick_print))|snmp[23]_(set|walk|real_walk|get(next)?))\b
-        name: support.function.snmp.php
-      - match: \b(is_soap_fault|use_soap_error_handler)\b
-        name: support.function.soap.php
-      - match: (?x)\bsocket_(accept|addrinfo_(bind|connect|explain|lookup)|atmark|bind|(clear|last)_error|close|cmsg_space|connect|create(_(listen|pair))?|(ex|im)port_stream|[gs]et_option|[gs]etopt|get(peer|sock)name|listen|read|recv(from|msg)?|select|send(msg|to)?|set_(non)?block|shutdown|strerror|write|wsaprotocol_info_(export|import|release))\b
-        name: support.function.sockets.php
-      - match: (?x)\bsqlite_(single_query|seek|has_(more|prev)|num_(fields|rows)|next|changes|column|current|close|create_(aggregate|function)|open|unbuffered_query|udf_(decode|encode)_binary|popen|prev|escape_string|error_string|exec|valid|key|query|field_name|factory|fetch_(string|single|column_types|object|all|array)|lib(encoding|version)|last_(insert_rowid|error)|array_query|rewind|busy_timeout)\b
-        name: support.function.sqlite.php
-      - match: (?x)\bsqlsrv_(send_stream_data|server_info|has_rows|num_(fields|rows)|next_result|connect|configure|commit|client_info|close|cancel|prepare|errors|execute|query|field_metadata|fetch(_(array|object))?|free_stmt|rows_affected|rollback|get_(config|field)|begin_transaction)\b
-        name: support.function.sqlsrv.php
-      - match: (?x)\bstats_(harmonic_mean|covariance|standard_deviation|skew|cdf_(noncentral_(chisquare|f)|negative_binomial|chisquare|cauchy|t|uniform|poisson|exponential|f|weibull|logistic|laplace|gamma|binomial|beta)|stat_(noncentral_t|correlation|innerproduct|independent_t|powersum|percentile|paired_t|gennch|binomial_coef)|dens_(normal|negative_binomial|chisquare|cauchy|t|pmf_(hypergeometric|poisson|binomial)|exponential|f|weibull|logistic|laplace|gamma|beta)|den_uniform|variance|kurtosis|absolute_deviation|rand_(setall|phrase_to_seeds|ranf|get_seeds|gen_(noncentral_[ft]|noncenral_chisquare|normal|chisquare|t|int|i(uniform|poisson|binomial(_negative)?)|exponential|f(uniform)?|gamma|beta)))\b
-        name: support.function.stats.php
-      - match: (?x)\bstream_(bucket_(new|prepend|append|make_writeable)|context_(create|[gs]et_(options?|default|params))|copy_to_stream|filter_((ap|pre)pend|register|remove)|get_(contents|filters|line|meta_data|transports|wrappers)|is(atty|_local)|notification_callback|register_wrapper|resolve_include_path|select|set_(blocking|chunk_size|(read|write)_buffer|timeout)|socket_(accept|client|enable_crypto|get_name|pair|recvfrom|sendto|server|shutdown)|supports_lock|wrapper_((un)?register|restore))\b
-        name: support.function.streamsfuncs.php
-      - match: (?x)\b(money_format|md5(_file)?|metaphone|bin2hex|sscanf|sha1(_file)?|str(str|c?spn|n(at)?(case)?cmp|chr|coll|(case)?cmp|to(upper|lower)|tok|tr|istr|pos|pbrk|len|rchr|ri?pos|rev)|str_(getcsv|i?replace|pad|repeat|rot13|shuffle|split|word_count|contains|(starts|ends)_with|(in|de)crement)|strip(c?slashes|os)|strip_tags|similar_text|soundex|substr(_(count|compare|replace))?|setlocale|html(specialchars(_decode)?|entities)|html_entity_decode|hex2bin|hebrev(c)?|number_format|nl2br|nl_langinfo|chop|chunk_split|chr|convert_(cyr_string|uu(decode|encode))|count_chars|crypt|crc32|trim|implode|ord|uc(first|words)|join|parse_str|print(f)?|echo|explode|v?[fs]?printf|quoted_printable_(decode|encode)|quotemeta|wordwrap|lcfirst|[lr]trim|localeconv|levenshtein|addc?slashes|get_html_translation_table)\b
-        name: support.function.string.php
-      - match: (?x)\bsybase_(set_message_handler|select_db|num_(fields|rows)|connect|close|deadlock_retry_count|data_seek|unbuffered_query|pconnect|query|field_seek|fetch_(object|field|assoc|array|row)|free_result|affected_rows|result|get_last_message|min_(client|error|message|server)_severity)\b
-        name: support.function.sybase.php
-      - match: \b(taint|is_tainted|untaint)\b
-        name: support.function.taint.php
-      - match: (?x)\b(tidy_([gs]etopt|set_encoding|save_config|config_count|clean_repair|is_(xhtml|xml)|diagnose|(access|error|warning)_count|load_config|reset_config|(parse|repair)_(string|file)|get_(status|html(_ver)?|head|config|output|opt_doc|root|release|body))|ob_tidyhandler)\b
-        name: support.function.tidy.php
-      - match: \btoken_(name|get_all)\b
-        name: support.function.tokenizer.php
-      - match: (?x)\btrader_(stoch(f|r|rsi)?|stddev|sin(h)?|sum|sub|set_(compat|unstable_period)|sqrt|sar(ext)?|sma|ht_(sine|trend(line|mode)|dc(period|phase)|phasor)|natr|cci|cos(h)?|correl|cdl(shootingstar|shortline|sticksandwich|stalledpattern|spinningtop|separatinglines|hikkake(mod)?|highwave|homingpigeon|hangingman|harami(cross)?|hammer|concealbabyswall|counterattack|closingmarubozu|thrusting|tasukigap|takuri|tristar|inneck|invertedhammer|identical3crows|2crows|onneck|doji(star)?|darkcloudcover|dragonflydoji|unique3river|upsidegap2crows|3(starsinsouth|inside|outside|whitesoldiers|linestrike|blackcrows)|piercing|engulfing|evening(doji)?star|kicking(bylength)?|longline|longleggeddoji|ladderbottom|advanceblock|abandonedbaby|risefall3methods|rickshawman|gapsidesidewhite|gravestonedoji|xsidegap3methods|morning(doji)?star|mathold|matchinglow|marubozu|belthold|breakaway)|ceil|cmo|tsf|typprice|t3|tema|tan(h)?|trix|trima|trange|obv|div|dema|dx|ultosc|ppo|plus_d[im]|errno|exp|ema|var|kama|floor|wclprice|willr|wma|ln|log10|bop|beta|bbands|linearreg(_(slope|intercept|angle))?|asin|acos|atan|atr|adosc|ad|add|adx(r)?|apo|avgprice|aroon(osc)?|rsi|roc|rocp|rocr(100)?|get_(compat|unstable_period)|min(index)?|minus_d[im]|minmax(index)?|mid(point|price)|mom|mult|medprice|mfi|macd(ext|fix)?|mavp|max(index)?|ma(ma)?)\b
-        name: support.function.trader.php
-      - match: \buopz_(copy|compose|implement|overload|delete|undefine|extend|function|flags|restore|rename|redefine|backup)\b
-        name: support.function.uopz.php
-      - match: \b(http_build_query|(raw)?url(decode|encode)|parse_url|get_(headers|meta_tags)|base64_(decode|encode))\b
-        name: support.function.url.php
-      - match: (?x)\b((bool|double|float|int|str)val|debug_zval_dump|empty|get_(debug_type|defined_vars|resource_(id|type))|[gs]ettype|is_(array|bool|callable|countable|double|float|int(eger)?|iterable|long|null|numeric|object|real|resource|scalar|string)|isset|print_r|(un)?serialize|unset|var_(dump|export))\b
-        name: support.function.var.php
-      - match: \bwddx_(serialize_(value|vars)|deserialize|packet_(start|end)|add_vars)\b
-        name: support.function.wddx.php
-      - match: \bxhprof_(sample_)?(disable|enable)\b
-        name: support.function.xhprof.php
-      - match: (?x)\b(utf8_(decode|encode)|xml_(set_((notation|(end|start)_namespace|unparsed_entity)_decl_handler|(character_data|default|element|external_entity_ref|processing_instruction)_handler|object)|parse(_into_struct)?|parser_([gs]et_option|create(_ns)?|free)|error_string|get_(current_((column|line)_number|byte_index)|error_code)))\b
-        name: support.function.xml.php
-      - match: (?x)\bxmlrpc_(server_(call_method|create|destroy|add_introspection_data|register_(introspection_callback|method))|is_fault|decode(_request)?|parse_method_descriptions|encode(_request)?|[gs]et_type)\b
-        name: support.function.xmlrpc.php
-      - match: (?x)\bxmlwriter_((end|start|write)_(comment|cdata|dtd(_(attlist|entity|element))?|document|pi|attribute|element)|(start|write)_(attribute|element)_ns|write_raw|set_indent(_string)?|text|output_memory|open_(memory|uri)|full_end_element|flush|)\b
-        name: support.function.xmlwriter.php
-      - match: (?x)\b(zlib_(decode|encode|get_coding_type)|readgzfile|gz(seek|compress|close|tell|inflate|open|decode|deflate|uncompress|puts|passthru|encode|eof|file|write|rewind|read|getc|getss?)|deflate_(add|init)|inflate_(add|get_(read_len|status)|init))\b
-        name: support.function.zlib.php
-
-      # Lua (correct as of Lua 5.4)
-      - match: \b(assert|collectgarbage|dofile|error|getfenv|getmetatable|ipairs|load|loadfile|loadstring|module|next|pairs|pcall|print|rawequal|rawget|rawlen|rawset|require|select|setfenv|setmetatable|tonumber|tostring|type|unpack|xpcall)\b
-        name: support.function.lua
-      - match: \b(coroutine_(create|isyieldable|close|resume|running|status|wrap|yield)|string_(byte|char|dump|find|format|gmatch|gsub|len|lower|match|pack|packsize|rep|reverse|sub|unpack|upper)|table_(concat|insert|maxn|move|pack|remove|sort|unpack)|math_(abs|acos|asin|atan2?|ceil|cosh?|deg|exp|floor|fmod|frexp|ldexp|log|log10|max|min|modf|pow|rad|random|randomseed|sinh?|sqrt|tanh?|tointeger|type)|io_(close|flush|input|lines|open|output|popen|read|tmpfile|type|write)|os_(clock|date|difftime|execute|exit|getenv|remove|rename|setlocale|time|tmpname)|package_(loadlib|seeall|searchpath)|debug_(debug|[gs]etfenv|[gs]ethook|getinfo|[gs]etlocal|[gs]etmetatable|getregistry|[gs]etupvalue|[gs]etuservalue|set[Cc]stacklimit|traceback|upvalueid|upvaluejoin)|bit32_(arshift|band|bnot|bor|btest|bxor|extract|replace|lrotate|lshift|rrotate|rshift)|utf8_(char|codes|codepoint|len|offset))\b
-        name: support.function.library.lua
-
-      # Ruby (Kernel module)
-      - match: \b(abort|at_exit|autoload|binding|callcc|caller|caller_locations|chomp|chop|eval|exec|exit|exit!|fork|format|gets|global_variables|gsub|lambda|load|local_variables|open|p|print|printf|proc|putc|puts|rand|readline|readlines|select|set_trace_func|sleep|spawn|sprintf|srand|sub|syscall|system|test|trace_var|trap|untrace_var|warn)\b
-        name: support.function.kernel.ruby
-
-      # SQL (T-SQL)
-      - match: \b(approx_count_distinct|approx_percentile_cont|approx_percentile_disc|avg|checksum_agg|count|count_big|group|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b
-        name: support.function.aggregate.sql
-      - match: \b(cume_dist|first_value|lag|last_value|lead|percent_rank|percentile_cont|percentile_disc)\b
-        name: support.function.analytic.sql
-      - match: \b(bit_count|get_bit|left_shift|right_shift|set_bit)\b
-        name: support.function.bitmanipulation.sql
-      - match: \b(cast|convert|parse|try_cast|try_convert|try_parse)\b
-        name: support.function.conversion.sql
-      - match: \b(collationproperty|tertiary_weights)\b
-        name: support.function.collation.sql
-      - match: \b(asymkey_id|asymkeyproperty|certproperty|cert_id|crypt_gen_random|decryptbyasymkey|decryptbycert|decryptbykey|decryptbykeyautoasymkey|decryptbykeyautocert|decryptbypassphrase|encryptbyasymkey|encryptbycert|encryptbykey|encryptbypassphrase|hashbytes|is_objectsigned|key_guid|key_id|key_name|signbyasymkey|signbycert|symkeyproperty|verifysignedbycert|verifysignedbyasymkey)\b
-        name: support.function.cryptographic.sql
-      - match: \b(cursor_status)\b
-        name: support.function.cursor.sql
-      - match: \b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_time(stamp)?|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|datetrunc|eomonth|switchoffset|todatetimeoffset|isdate|date_bucket)\b
-        name: support.function.datetime.sql
-      - match: \b(datalength|ident_current|ident_incr|ident_seed|identity|sql_variant_property)\b
-        name: support.function.datatype.sql
-      - match: \b(coalesce|nullif)\b
-        name: support.function.expression.sql
-      - match: (?<!@)@@\b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b
-        name: support.function.globalvar.sql
-      - match: \b(json|isjson|json_object|json_array|json_value|json_query|json_modify|json_path_exists)\b
-        name: support.function.json.sql
-      - match: \b(choose|iif|greatest|least)\b
-        name: support.function.logical.sql
-      - match: \b(abs|acos|asin|atan|atn2|ceiling|cos|cot|degrees|exp|floor|log|log10|pi|power|radians|rand|round|sign|sin|sqrt|square|tan)\b
-        name: support.function.mathematical.sql
-      - match: \b(app_name|applock_mode|applock_test|assemblyproperty|col_length|col_name|columnproperty|database_principal_id|databasepropertyex|db_id|db_name|file_id|file_idex|file_name|filegroup_id|filegroup_name|filegroupproperty|fileproperty|fulltextcatalogproperty|fulltextserviceproperty|index_col|indexkey_property|indexproperty|object_definition|object_id|object_name|object_schema_name|objectproperty|objectpropertyex|original_db_name|parsename|schema_id|schema_name|scope_identity|serverproperty|stats_date|type_id|type_name|typeproperty)\b
-        name: support.function.metadata.sql
-      - match: \b(rank|dense_rank|ntile|row_number)\b
-        name: support.function.ranking.sql
-      - match: \b(generate_series|opendatasource|openjson|openrowset|openquery|openxml|predict|string_split)\b
-        name: support.function.rowset.sql
-      - match: \b(certencoded|certprivatekey|current_user|database_principal_id|has_perms_by_name|is_member|is_rolemember|is_srvrolemember|original_login|permissions|pwdcompare|pwdencrypt|schema_id|schema_name|session_user|suser_id|suser_sid|suser_sname|system_user|suser_name|user_id|user_name)\b
-        name: support.function.security.sql
-      - match: \b(ascii|char|charindex|concat|difference|format|left|len|lower|ltrim|nchar|nodes|patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b
-        name: support.function.string.sql
-      - match: \b(binary_checksum|checksum|compress|connectionproperty|context_info|current_request_id|current_transaction_id|decompress|error_line|error_message|error_number|error_procedure|error_severity|error_state|formatmessage|get_filestream_transaction_context|getansinull|host_id|host_name|isnull|isnumeric|min_active_rowversion|newid|newsequentialid|rowcount_big|session_context|session_id|xact_state)\b
-        name: support.function.system.sql
-      - match: \b(patindex|textptr|textvalid)\b
-        name: support.function.textimage.sql
-      - match: \b(vector_distance|vector_norm|vector_normalize)\b
-        name: support.function.vector.sql
-      - match: \b(xml_data_type|xml_exists|xml_modify|xml_namespaces|xml_schema_collection|xml_value|xmlquery|xmlexists|xmlparse|xmlserialize|xmltable)\b
-        name: support.function.xml.sql
-      - match: \b(backupsetproperty|dbcc|filegroupproperty|indexstats|loginfo|show_continuous_backup_history|show_filestream_catalog|show_statistics|tableproperty|transactionproperty)\b
-        name: support.function.maintenance.sql
-      - match: \b(archive|change_tracking_current_version|change_tracking_is_column_tracked|change_tracking_min_valid_version|fileproperty|fn_virtualfilestats|is_filestream_enabled|is_fulltext_enabled|is_honor_broker_priority_on|is_trustworthy_on|memory_object_address|memory_object_property|sys_fn_cdc_get_all_changes_table|sys_fn_cdc_get_net_changes_table)\b
-        name: support.function.advanced.sql
-      - match: \b(iif|choose|greatest|least)\b
-        name: support.function.conditional.sql
-
-      - match: \b(abort|abort_after_wait|absent|absolute|accent_sensitivity|acceptable_cursopt|acp|action|activation|add|address|admin|aes_128|aes_192|aes_256|affinity|after|aggregate|algorithm|all_constraints|all_errormsgs|all_indexes|all_levels|all_results|allow_connections|allow_dup_row|allow_encrypted_value_modifications|allow_page_locks|allow_row_locks|allow_snapshot_isolation|alter|altercolumn|always|anonymous|ansi_defaults|ansi_null_default|ansi_null_dflt_off|ansi_null_dflt_on|ansi_nulls|ansi_padding|ansi_warnings|appdomain|append|application|apply|arithabort|arithignore|array|assembly|asymmetric|asynchronous_commit|at|atan2|atomic|attach|attach_force_rebuild_log|attach_rebuild_log|audit|auth_realm|authentication|auto|auto_cleanup|auto_close|auto_create_statistics|auto_drop|auto_shrink|auto_update_statistics|auto_update_statistics_async|automated_backup_preference|automatic|autopilot|availability|availability_mode|backup|backup_priority|base64|basic|batches|batchsize|before|between|bigint|binary|binding|bit|block|blockers|blocksize|bmk|both|break|broker|broker_instance|bucket_count|buffer|buffercount|bulk_logged|by|call|caller|card|case|catalog|catch|cert|certificate|change_retention|change_tracking|change_tracking_context|changes|char|character|character_set|check_expiration|check_policy|checkconstraints|checkindex|checkpoint|checksum|cleanup_policy|clear|clear_port|close|clustered|codepage|collection|column_encryption_key|column_master_key|columnstore|columnstore_archive|colv_80_to_100|colv_100_to_80|commit_differential_base|committed|compatibility_level|compress_all_row_groups|compression|compression_delay|concat_null_yields_null|concatenate|configuration|connect|connection|containment|continue|continue_after_error|contract|contract_name|control|conversation|conversation_group_id|conversation_handle|copy|copy_only|count_rows|counter|create(_or_alter)?|credential|cross|cryptographic|cryptographic_provider|cube|cursor|cursor_close_on_commit|cursor_default|data|data_compression|data_flush_interval_seconds|data_mirroring|data_purity|data_source|database|database_name|database_snapshot|datafiletype|date_correlation_optimization|date|datefirst|dateformat|date_format|datetime|datetime2|datetimeoffset|day(s)?|db_chaining|dbid|dbidexec|dbo_only|deadlock_priority|deallocate|dec|decimal|declare|decrypt|decrypt_a|decryption|default_database|default_fulltext_language|default_language|default_logon_domain|default_schema|definition|delay|delayed_durability|delimitedtext|density_vector|dependent|des|description|desired_state|desx|differential|digest|disable|disable_broker|disable_def_cnst_chk|disabled|disk|distinct|distributed|distribution|drop|drop_existing|dts_buffers|dump|durability|dynamic|edition|elements|else|emergency|empty|enable|enable_broker|enabled|encoding|encrypted|encrypted_value|encryption|encryption_type|end|endpoint|endpoint_url|enhancedintegrity|entry|error_broker_conversations|errorfile|estimateonly|event|except|exec|executable|execute|exists|expand|expiredate|expiry_date|explicit|external|external_access|failover|failover_mode|failure_condition_level|fast|fast_forward|fastfirstrow|federated_service_account|fetch|field_terminator|fieldterminator|file|filelistonly|filegroup|filegrowth|filename|filestream|filestream_log|filestream_on|filetable|file_format|filter|first_row|fips_flagger|fire_triggers|first|firstrow|float|flush_interval_seconds|fmtonly|following|for|force|force_failover_allow_data_loss|force_service_allow_data_loss|forced|forceplan|formatfile|format_options|format_type|formsof|forward_only|free_cursors|free_exec_context|fullscan|fulltext|fulltextall|fulltextkey|function|generated|get|geography|geometry|global|go|goto|governor|guid|hadoop|hardening|hash|hashed|header_limit|headeronly|health_check_timeout|hidden|hierarchyid|histogram|histogram_steps|hits_cursors|hits_exec_context|hour(s)?|http|identity|identity_value|if|ifnull|ignore|ignore_constraints|ignore_dup_key|ignore_dup_row|ignore_triggers|image|immediate|implicit_transactions|include|include_null_values|incremental|index|inflectional|init|initiator|insensitive|insert|instead|int|integer|integrated|intersect|intermediate|interval_length_minutes|into|inuse_cursors|inuse_exec_context|io|is|isabout|iso_week|isolation|job_tracker_location|json|keep|keep_nulls|keep_replication|keepdefaults|keepfixed|keepidentity|keepnulls|kerberos|key|key_path|key_source|key_store_provider_name|keyset|kill|kilobytes_per_batch|labelonly|langid|language|last|lastrow|leading|legacy_cardinality_estimation|length|level|lifetime|lineage_80_to_100|lineage_100_to_80|listener_ip|listener_port|load|loadhistory|lob_compaction|local|local_service_name|locate|location|lock_escalation|lock_timeout|lockres|log|login|login_type|loop|manual|mark_in_use_for_removal|masked|master|match|matched|max_queue_readers|max_duration|max_outstanding_io_per_volume|maxdop|maxerrors|maxlength|maxtransfersize|max_plans_per_query|max_storage_size_mb|mediadescription|medianame|mediapassword|memogroup|memory_optimized|merge|message|message_forward_size|message_forwarding|microsecond|millisecond|minute(s)?|mirror_address|misses_cursors|misses_exec_context|mixed|modify|money|month|move|multi_user|must_change|name|namespace|nanosecond|native|native_compilation|nchar|ncharacter|nested_triggers|never|new_account|new_broker|newname|next|no|no_browsetable|no_checksum|no_compression|no_infomsgs|no_triggers|no_truncate|nocount|noexec|noexpand|noformat|noinit|nolock|nonatomic|nonclustered|nondurable|none|norecompute|norecovery|noreset|norewind|noskip|not|notification|nounload|now|nowait|ntext|ntlm|nulls|numeric|numeric_roundabort|nvarchar|object|objid|oem|offline|old_account|online|operation_mode|open|openjson|optimistic|option|orc|out|outer|output|over|override|owner|ownership|pad_index|page|page_checksum|page_verify|pagecount|paglock|param|parameter_sniffing|parameter_type_expansion|parameterization|parquet|parseonly|partial|partition|partner|password|path|pause|percentage|permission_set|persisted|period|physical_only|plan_forcing_mode|policy|pool|population|ports|preceding|precision|predicate|presume_abort|primary|primary_role|print|prior|priority |priority_level|private|proc(edure)?|procedure_name|profile|provider|quarter|query_capture_mode|query_governor_cost_limit|query_optimizer_hotfixes|query_store|queue|quoted_identifier|raiserror|range|raw|rcfile|rc2|rc4|rc4_128|rdbms|read_committed_snapshot|read|read_only|read_write|readcommitted|readcommittedlock|readonly|readpast|readuncommitted|readwrite|real|rebuild|receive|recmodel_70backcomp|recompile|reconfigure|recovery|recursive|recursive_triggers|redo_queue|reject_sample_value|reject_type|reject_value|relative|remote|remote_data_archive|remote_proc_transactions|remote_service_name|remove|removed_cursors|removed_exec_context|reorganize|repeat|repeatable|repeatableread|replace|replica|replicated|replnick_100_to_80|replnickarray_80_to_100|replnickarray_100_to_80|required|required_cursopt|resample|reset|resource|resource_manager_location|respect|restart|restore|restricted_user|resume|retaindays|retention|return|revert|rewind|rewindonly|returns|robust|role|rollup|root|round_robin|route|row|rowdump|rowguidcol|rowlock|row_terminator|rows|rows_per_batch|rowsets_only|rowterminator|rowversion|rsa_1024|rsa_2048|rsa_3072|rsa_4096|rsa_512|safe|safety|sample|save|scalar|schema|schemabinding|scoped|scroll|scroll_locks|sddl|second|secexpr|seconds|secondary|secondary_only|secondary_role|secret|security|securityaudit|selective|self|send|sent|sequence|serde_method|serializable|server|service|service_broker|service_name|service_objective|session_timeout|session|sessions|seterror|setopts|sets|shard_map_manager|shard_map_name|sharded|shared_memory|shortest_path|show_statistics|showplan_all|showplan_text|showplan_xml|showplan_xml_with_recompile|shrinkdb|shutdown|sid|signature|simple|single_blob|single_clob|single_nclob|single_user|singleton|site|size|size_based_cleanup_mode|skip|smalldatetime|smallint|smallmoney|snapshot|snapshot_import|snapshotrestorephase|soap|softnuma|sort_in_tempdb|sorted_data|sorted_data_reorg|spatial|sql|sql_bigint|sql_binary|sql_bit|sql_char|sql_date|sql_decimal|sql_double|sql_float|sql_guid|sql_handle|sql_longvarbinary|sql_longvarchar|sql_numeric|sql_real|sql_smallint|sql_time|sql_timestamp|sql_tinyint|sql_tsi_day|sql_tsi_frac_second|sql_tsi_hour|sql_tsi_minute|sql_tsi_month|sql_tsi_quarter|sql_tsi_second|sql_tsi_week|sql_tsi_year|sql_type_date|sql_type_time|sql_type_timestamp|sql_varbinary|sql_varchar|sql_variant|sql_wchar|sql_wlongvarchar|ssl|ssl_port|standard|standby|start|start_date|started|stat_header|state|statement|static|statistics|statistics_incremental|statistics_norecompute|statistics_only|statman|stats|stats_stream|status|stop|stop_on_error|stopat|stopatmark|stopbeforemark|stoplist|stopped|string_delimiter|subject|supplemental_logging|supported|suspend|symmetric|synchronous_commit|synonym|sysname|system|system_time|system_versioning|table|tableresults|tablock|tablockx|take|tape|target|target_index|target_partition|target_recovery_time|tcp|temporal_history_retention|text|textimage_on|then|thesaurus|throw|time|timeout|timestamp|tinyint|to|top|torn_page_detection|track_columns_updated|trailing|tran|transaction|transfer|transform_noise_words|triple_des|triple_des_3key|truncate|trustworthy|try|tsql|two_digit_year_cutoff|type|type_desc|type_warning|tzoffset|uid|unbounded|uncommitted|unique|uniqueidentifier|unlimited|unload|unlock|unsafe|updlock|url|use|useplan|useroptions|use_type_default|using|utcdatetime|valid_xml|validation|value|values|varbinary|varchar|vector|verbose|verifyonly|version|view_metadata|virtual_device|visiblity|wait_at_low_priority|waitfor|webmethod|week|weekday|weight|well_formed_xml|when|while|widechar|widechar_ansi|widenative|window|windows|with|within|within group|witness|without|without_array_wrapper|workload|wsdl|xact_abort|xlock|xml|xmlschema|xquery|xsinil|year|zone)\b
-        name: support.function.legacy.sql
-
-      # R (base package)
-      - match: \b(abbreviate|abs|acos|acosh|activeBindingFunction|addNA|addTaskCallback|agrep|agrepl|alist|all|all_equal|all_equal_character|all_equal_default|all_equal_environment|all_equal_envRefClass|all_equal_factor|all_equal_formula|all_equal_function|all_equal_language|all_equal_list|all_equal_numeric|all_equal_POSIXt|all_equal_raw|all_names|all_vars|allowInterrupts|any|anyDuplicated|anyDuplicated_array|anyDuplicated_data_frame|anyDuplicated_default|anyDuplicated_matrix|anyNA|anyNA_data_frame|anyNA_numeric_version|anyNA_POSIXlt|aperm|aperm_default|aperm_table|append|apply|Arg|args|array|array2DF|arrayInd|as_array|as_array_default|as_call|as_character|as_character_condition|as_character_Date|as_character_default|as_character_error|as_character_factor|as_character_hexmode|as_character_numeric_version|as_character_octmode|as_character_POSIXt|as_character_srcref|as_complex|as_data_frame|as_data_frame_array|as_data_frame_AsIs|as_data_frame_character|as_data_frame_complex|as_data_frame_data_frame|as_data_frame_Date|as_data_frame_default|as_data_frame_difftime|as_data_frame_factor|as_data_frame_integer|as_data_frame_list|as_data_frame_logical|as_data_frame_matrix|as_data_frame_model_matrix|as_data_frame_noquote|as_data_frame_numeric|as_data_frame_numeric_version|as_data_frame_ordered|as_data_frame_POSIXct|as_data_frame_POSIXlt|as_data_frame_raw|as_data_frame_table|as_data_frame_ts|as_data_frame_vector|as_Date|as_Date_character|as_Date_default|as_Date_factor|as_Date_numeric|as_Date_POSIXct|as_Date_POSIXlt|as_difftime|as_double|as_double_difftime|as_double_POSIXlt|as_environment|as_expression|as_expression_default|as_factor|as_function|as_function_default|as_hexmode|as_integer|as_list|as_list_data_frame|as_list_Date|as_list_default|as_list_difftime|as_list_environment|as_list_factor|as_list_function|as_list_numeric_version|as_list_POSIXct|as_list_POSIXlt|as_logical|as_logical_factor|as_matrix|as_matrix_data_frame|as_matrix_default|as_matrix_noquote|as_matrix_POSIXlt|as_name|as_null|as_null_default|as_numeric|as_numeric_version|as_octmode|as_ordered|as_package_version|as_pairlist|as_POSIXct|as_POSIXct_Date|as_POSIXct_default|as_POSIXct_numeric|as_POSIXct_POSIXlt|as_POSIXlt|as_POSIXlt_character|as_POSIXlt_Date|as_POSIXlt_default|as_POSIXlt_factor|as_POSIXlt_numeric|as_POSIXlt_POSIXct|as_qr|as_raw|as_single|as_single_default|as_symbol|as_table|as_table_default|as_vector|as_vector_data_frame|as_vector_factor|as_vector_POSIXlt|asin|asinh|asNamespace|asplit|asS3|asS4|assign|atan|atan2|atanh|attach|attachNamespace|attr|attr_all_equal|attributes|autoload|autoloader|backsolve|balancePOSIXlt|baseenv|basename|besselI|besselJ|besselK|besselY|beta|bindingIsActive|bindingIsLocked|bindtextdomain|bitwAnd|bitwNot|bitwOr|bitwShiftL|bitwShiftR|bitwXor|body|bquote|break|browser|browserCondition|browserSetDebug|browserText|builtins|by|by_data_frame|by_default|bzfile|c|c_Date|c_difftime|c_factor|c_noquote|c_numeric_version|c_POSIXct|c_POSIXlt|c_warnings|call|callCC|capabilities|casefold|cat|cbind|cbind_data_frame|ceiling|char_expand|character|charmatch|charToRaw|chartr|chkDots|chol|chol_default|chol2inv|choose|chooseOpsMethod|chooseOpsMethod_default|class|clearPushBack|close|close_connection|close_srcfile|close_srcfilealias|closeAllConnections|col|colMeans|colnames|colSums|commandArgs|comment|complex|computeRestarts|conditionCall|conditionCall_condition|conditionMessage|conditionMessage_condition|conflictRules|conflicts|Conj|contributors|cos|cosh|cospi|crossprod|Cstack_info|cummax|cummin|cumprod|cumsum|curlGetHeaders|cut|cut_Date|cut_default|cut_POSIXt|data_class|data_frame|data_matrix|date|debug|debuggingState|debugonce|declare|default_stringsAsFactors|delayedAssign|deparse|deparse1|det|detach|determinant|determinant_matrix|dget|diag|diff|diff_Date|diff_default|diff_difftime|diff_POSIXt|difftime|digamma|dim|dim_data_frame|dimnames|dimnames_data_frame|dir|dir_create|dir_exists|dirname|do_call|dontCheck|double|dput|dQuote|drop|droplevels|droplevels_data_frame|droplevels_factor|dump|duplicated|duplicated_array|duplicated_data_frame|duplicated_default|duplicated_matrix|duplicated_numeric_version|duplicated_POSIXlt|duplicated_warnings|dyn_load|dyn_unload|dynGet|eapply|eigen|emptyenv|enc2native|enc2utf8|encodeString|Encoding|endsWith|enquote|env_profile|environment|environmentIsLocked|environmentName|errorCondition|eval|eval_parent|evalq|Exec|exists|exp|expand_grid|expm1|expression|extSoftVersion|factor|factorial|fifo|file|file_access|file_append|file_choose|file_copy|file_create|file_exists|file_info|file_link|file_mode|file_mtime|file_path|file_remove|file_rename|file_show|file_size|file_symlink|Filter|Find|find_package|findInterval|findPackageEnv|findRestart|floor|flush|flush_connection|for|force|forceAndCall|formals|format|format_AsIs|format_data_frame|format_Date|format_default|format_difftime|format_factor|format_hexmode|format_info|format_libraryIQR|format_numeric_version|format_octmode|format_packageInfo|format_POSIXct|format_POSIXlt|format_pval|format_summaryDefault|formatC|formatDL|forwardsolve|function|gamma|gc|gc_time|gcinfo|gctorture|gctorture2|get|get0|getAllConnections|getCallingDLL|getCallingDLLe|getConnection|getDLLRegisteredRoutines|getDLLRegisteredRoutines_character|getDLLRegisteredRoutines_DLLInfo|getElement|geterrmessage|getExportedValue|getHook|getLoadedDLLs|getNamespace|getNamespaceExports|getNamespaceImports|getNamespaceInfo|getNamespaceName|getNamespaceUsers|getNamespaceVersion|getNativeSymbolInfo|getOption|getRversion|getSrcLines|getTaskCallbackNames|gettext|gettextf|getwd|gl|globalCallingHandlers|globalenv|gregexec|gregexpr|grep|grepl|grepRaw|grepv|grouping|gsub|gzcon|gzfile|I|iconv|iconvlist|icuGetCollate|icuSetCollate|identical|identity|if|ifelse|Im|importIntoEnv|infoRDS|inherits|integer|interaction|interactive|intersect|intToBits|intToUtf8|inverse_rle|invisible|invokeRestart|invokeRestartInteractively|is_array|is_atomic|is_call|is_character|is_complex|is_data_frame|is_double|is_element|is_environment|is_expression|is_factor|is_finite|is_finite_POSIXlt|is_function|is_infinite|is_infinite_POSIXlt|is_integer|is_language|is_list|is_loaded|is_logical|is_matrix|is_na|is_na_data_frame|is_na_numeric_version|is_na_POSIXlt|is_name|is_nan|is_nan_POSIXlt|is_null|is_numeric|is_numeric_version|is_numeric_Date|is_numeric_difftime|is_numeric_POSIXt|is_object|is_ordered|is_package_version|is_pairlist|is_primitive|is_qr|is_R|is_raw|is_recursive|is_single|is_symbol|is_table|is_unsorted|is_vector|isa|isatty|isBaseNamespace|isdebugged|isFALSE|isIncomplete|isNamespace|isNamespaceLoaded|ISOdate|ISOdatetime|isOpen|isRestart|isS4|isSeekable|isSymmetric|isSymmetric_matrix|isTRUE|jitter|julian|julian_Date|julian_POSIXt|kappa|kappa_default|kappa_lm|kappa_qr|kronecker|l10n_info|La_library|La_version|La_svd|labels|labels_default|lapply|lazyLoad|lazyLoadDBexec|lazyLoadDBfetch|lbeta|lchoose|length|length_POSIXlt|lengths|levels|levels_default|lfactorial|lgamma|libcurlVersion|library|library_dynam|library_dynam_unload|licence|license|list|list_dirs|list_files|list2DF|list2env|load|loadedNamespaces|loadingNamespaceInfo|loadNamespace|local|lockBinding|lockEnvironment|log|log10|log1p|log2|logb|logical|lower_tri|ls|make_names|make_unique|makeActiveBinding|Map|mapply|margin_table|marginSums|mat_or_vec|match|match_arg|match_call|match_fun|Math_data_frame|Math_Date|Math_difftime|Math_factor|Math_POSIXt|matrix|max|max_col|mean|mean_Date|mean_default|mean_difftime|mean_POSIXct|mean_POSIXlt|mem_maxNSize|mem_maxVSize|memCompress|memDecompress|memory_profile|merge|merge_data_frame|merge_default|message|mget|min|missing|Mod|mode|months|months_Date|months_POSIXt|mtfrm|mtfrm_default|mtfrm_POSIXct|mtfrm_POSIXlt|nameOfClass|nameOfClass_default|names|names_POSIXlt|namespaceExport|namespaceImport|namespaceImportClasses|namespaceImportFrom|namespaceImportMethods|nargs|nchar|ncol|NCOL|Negate|new_env|next|NextMethod|ngettext|nlevels|noquote|norm|normalizePath|nrow|NROW|nullfile|numeric|numeric_version|numToBits|numToInts|nzchar|objects|oldClass|OlsonNames|on_exit|open|open_connection|open_srcfile|open_srcfilealias|open_srcfilecopy|Ops_data_frame|Ops_Date|Ops_difftime|Ops_factor|Ops_numeric_version|Ops_ordered|Ops_POSIXt|options|order|ordered|outer|package_version|packageEvent|packageHasNamespace|packageNotFoundError|packageStartupMessage|packBits|pairlist|parent_env|parent_frame|parse|parseNamespaceFile|paste|paste0|path_expand|path_package|pcre_config|pipe|plot|pmatch|pmax|pmax_int|pmin|pmin_int|polyroot|pos_to_env|Position|pretty|pretty_default|prettyNum|print|print_AsIs|print_by|print_condition|print_connection|print_data_frame|print_Date|print_default|print_difftime|print_Dlist|print_DLLInfo|print_DLLInfoList|print_DLLRegisteredRoutines|print_eigen|print_factor|print_function|print_hexmode|print_libraryIQR|print_listof|print_NativeRoutineList|print_noquote|print_numeric_version|print_octmode|print_packageInfo|print_POSIXct|print_POSIXlt|print_proc_time|print_restart|print_rle|print_simple_list|print_srcfile|print_srcref|print_summary_table|print_summary_warnings|print_summaryDefault|print_table|print_warnings|prmatrix|proc_time|prod|prop_table|proportions|provideDimnames|psigamma|pushBack|pushBackLength|q|qr|qr_coef|qr_default|qr_fitted|qr_Q|qr_qty|qr_qy|qr_R|qr_resid|qr_solve|qr_X|quarters|quarters_Date|quarters_POSIXt|quit|quote|R_compiled_by|R_system_version|R_home|R_Version|range|range_Date|range_default|range_POSIXct|rank|rapply|raw|rawConnection|rawConnectionValue|rawShift|rawToBits|rawToChar|rbind|rbind_data_frame|rcond|Re|read_dcf|readBin|readChar|readline|readLines|readRDS|readRenviron|Recall|Reduce|reg_finalizer|regexec|regexpr|registerS3method|registerS3methods|regmatches|remove|removeTaskCallback|rep|rep_len|rep_Date|rep_difftime|rep_factor|rep_int|rep_numeric_version|rep_POSIXct|rep_POSIXlt|repeat|replace|replicate|require|requireNamespace|restartDescription|restartFormals|retracemem|return|returnValue|rev|rev_default|rle|rm|RNGkind|RNGversion|round|round_Date|round_POSIXt|row|row_names|row_names_data_frame|row_names_default|rowMeans|rownames|rowsum|rowsum_data_frame|rowsum_default|rowSums|sample|sample_int|sapply|save|save_image|saveRDS|scale|scale_default|scan|search|searchpaths|seek|seek_connection|seq|seq_along|seq_len|seq_Date|seq_default|seq_int|seq_POSIXt|sequence|sequence_default|serialize|serverSocket|set_seed|setdiff|setequal|setHook|setNamespaceInfo|setSessionTimeLimit|setTimeLimit|setwd|showConnections|shQuote|sign|signalCondition|signif|simpleCondition|simpleError|simpleMessage|simpleWarning|simplify2array|sin|single|sinh|sink|sink_number|sinpi|slice_index|socketAccept|socketConnection|socketSelect|socketTimeout|solve|solve_default|solve_qr|sort|sort_by|sort_by_data_frame|sort_by_default|sort_default|sort_int|sort_list|sort_POSIXlt|source|split|split_data_frame|split_Date|split_default|split_POSIXct|sprintf|sqrt|sQuote|srcfile|srcfilealias|srcfilecopy|srcref|standardGeneric|startsWith|stderr|stdin|stdout|stop|stopifnot|storage_mode|str2expression|str2lang|strftime|strptime|strrep|strsplit|strtoi|strtrim|structure|strwrap|sub|subset|subset_data_frame|subset_default|subset_matrix|substitute|substr|substring|sum|summary|summary_connection|summary_data_frame|Summary_data_frame|summary_Date|Summary_Date|summary_default|summary_difftime|Summary_difftime|summary_factor|Summary_factor|summary_matrix|Summary_numeric_version|Summary_ordered|summary_POSIXct|Summary_POSIXct|summary_POSIXlt|Summary_POSIXlt|summary_proc_time|summary_srcfile|summary_srcref|summary_table|summary_warnings|suppressMessages|suppressPackageStartupMessages|suppressWarnings|suspendInterrupts|svd|sweep|switch|sys_call|sys_calls|Sys_chmod|Sys_Date|sys_frame|sys_frames|sys_function|Sys_getenv|Sys_getlocale|Sys_getpid|Sys_glob|Sys_info|sys_load_image|Sys_localeconv|sys_nframe|sys_on_exit|sys_parent|sys_parents|Sys_readlink|sys_save_image|Sys_setenv|Sys_setFileTime|Sys_setLanguage|Sys_setlocale|Sys_sleep|sys_source|sys_status|Sys_time|Sys_timezone|Sys_umask|Sys_unsetenv|Sys_which|system|system_file|system_time|system2|t|t_data_frame|t_default|table|tabulate|Tailcall|tan|tanh|tanpi|tapply|taskCallbackManager|tcrossprod|tempdir|tempfile|textConnection|textConnectionValue|tolower|topenv|toString|toString_default|toupper|trace|traceback|tracemem|tracingState|transform|transform_data_frame|transform_default|trigamma|trimws|trunc|trunc_Date|trunc_POSIXt|truncate|truncate_connection|try|tryCatch|tryInvokeRestart|typeof|unCfillPOSIXlt|unclass|undebug|union|unique|unique_array|unique_data_frame|unique_default|unique_matrix|unique_numeric_version|unique_POSIXlt|unique_warnings|units|units_difftime|unix_time|unlink|unlist|unloadNamespace|unlockBinding|unname|unserialize|unsplit|untrace|untracemem|unz|upper_tri|url|use|UseMethod|utf8ToInt|validEnc|validUTF8|vapply|vector|Vectorize|warning|warningCondition|warnings|weekdays|weekdays_Date|weekdays_POSIXt|which|which_max|which_min|while|with|with_default|withAutoprint|withCallingHandlers|within|within_data_frame|within_list|withRestarts|withVisible|write|write_dcf|writeBin|writeChar|writeLines|xor|xpdrows_data_frame|xtfrm|xtfrm_AsIs|xtfrm_data_frame|xtfrm_Date|xtfrm_default|xtfrm_difftime|xtfrm_factor|xtfrm_numeric_version|xtfrm_POSIXct|xtfrm_POSIXlt|xzfile|zapsmall|zstdfile)\b
-        name: support.function.base.r
-      - match: \b(abline|arrows|assocplot|axis|Axis|axis_Date|Axis_Date|Axis_default|axis_POSIXct|Axis_POSIXt|Axis_table|axTicks|barplot|barplot_default|barplot_formula|box|boxplot|boxplot_default|boxplot_formula|boxplot_matrix|bxp|cdplot|cdplot_default|cdplot_formula|clip|close_screen|co_intervals|contour|contour_default|coplot|curve|dotchart|erase_screen|extendDateTimeFormat|filled_contour|fourfoldplot|frame|grconvertX|grconvertY|grid|hist|hist_Date|hist_default|hist_POSIXt|identify|identify_default|image|image_default|layout|layout_show|lcm|legend|lines|lines_default|lines_formula|lines_histogram|lines_table|locator|matlines|matplot|matpoints|mosaicplot|mosaicplot_default|mosaicplot_formula|mtext|pairs|pairs_default|pairs_formula|panel_smooth|par|persp|persp_default|pie|piechart|plot_data_frame|plot_default|plot_design|plot_factor|plot_formula|plot_function|plot_histogram|plot_new|plot_raster|plot_table|plot_window|plot_xy|plotHclust|points|points_default|points_formula|points_table|polygon|polypath|rasterImage|rect|rug|screen|segments|smoothScatter|spineplot|spineplot_default|spineplot_formula|split_screen|stars|stem|strheight|stripchart|stripchart_default|stripchart_formula|strwidth|sunflowerplot|sunflowerplot_default|sunflowerplot_formula|symbols|text|text_default|text_formula|title|xinch|xspline|xyinch|yinch|zaxis)\b
-        name: support.function.graphics.r
-      - match: \b(adjustcolor|anyNA_raster|as_graphicsAnnot|as_matrix_raster|as_raster|as_raster_array|as_raster_character|as_raster_logical|as_raster_matrix|as_raster_numeric|as_raster_raster|as_raster_raw|axisTicks|bitmap|bmp|boxplot_stats|c2to3|cairo_pdf|cairo_ps|cairoFT|cairoSymbolFont|cairoVersion|check_gs_type|check_options|checkFont|checkFont_CIDFont|checkFont_default|checkFont_Type1Font|checkFontInUse|checkIntFormat|checkQuartzFont|checkSymbolFont|checkX11Font|chromaticAdaptation|chull|CIDFont|cm|cm_colors|col2rgb|colorConverter|colorRamp|colorRampPalette|colors|colours|comparePangoVersion|contourLines|convertColor|densCols|dev_capabilities|dev_capture|dev_control|dev_copy|dev_copy2eps|dev_copy2pdf|dev_cur|dev_displaylist|dev_flush|dev_hold|dev_interactive|dev_list|dev_new|dev_next|dev_off|dev_prev|dev_print|dev_set|dev_size|dev2bitmap|devAskNewPage|deviceIsInteractive|embedFonts|embedGlyphs|extendrange|getGraphicsEvent|getGraphicsEventEnv|glyphAnchor|glyphFont|glyphFontList|glyphHeight|glyphHeightBottom|glyphInfo|glyphJust|glyphJust_character|glyphJust_GlyphJust|glyphJust_numeric|glyphWidth|glyphWidthLeft|graphics_off|gray|gray_colors|grey|grey_colors|grSoftVersion|guessEncoding|hcl|hcl_colors|hcl_pals|heat_colors|hsv|initPSandPDFfonts|invertStyle|is_na_raster|is_raster|isPDF|jpeg|make_rgb|mapCharWeight|mapStyle|mapWeight|matchEncoding|matchEncoding_CIDFont|matchEncoding_Type1Font|matchFont|n2mfrow|nclass_FD|nclass_scott|nclass_Sturges|Ops_raster|optionSymbolFont|palette|palette_colors|palette_match|palette_pals|pangoVersion|pattern|pdf|pdf_options|pdfFonts|pictex|png|postscript|postscriptFonts|pow3|prettyDate|print_colorConverter|print_raster|print_recordedplot|print_RGBcolorConverter|print_RGlyphFont|printFont|printFont_CIDFont|printFont_Type1Font|printFonts|ps_options|quartz|quartz_options|quartz_save|quartzFont|quartzFonts|rainbow|recordGraphics|recordPalette|recordPlot|replayPlot|restoreRecordedPlot|rgb|rgb2hsv|RGBcolorConverter|savePlot|seqDtime|setEPS|setFonts|setGraphicsEventEnv|setGraphicsEventHandlers|setPS|setQuartzFonts|setX11Fonts|svg|symbolfamilyDefault|symbolType1support|terrain_colors|tiff|topo_colors|trans3d|trunc_POSIXt|Type1Font|vectorizeConverter|warnLogCoords|x11|X11|X11_options|X11Font|X11FontError|X11Fonts|xfig|xy_coords|xyTable|xyz_coords)\b
-        name: support.function.graphics.ext.r
-      - match: \b(addNextMethod|allNames|Arith|as|asMethodDefinition|assignClassDef|assignMethodsMetaData|balanceMethodsList|bind_activation|cacheGenericsMetaData|cacheMetaData|cacheMethod|cacheOnAssign|callGeneric|callNextMethod|canCoerce|cbind|cbind2|checkAtAssignment|checkSlotAssignment|classesToAM|classGeneratorFunction|classLabel|classMetaName|className|coerce|Compare|completeClassDefinition|completeExtends|completeSubclasses|Complex|conformMethod|defaultDumpName|defaultPrototype|dispatchIsInternal|doPrimitiveMethod|dumpMethod|dumpMethods|el|elNamed|empty_dump|emptyMethodsList|envRefInferField|envRefSetField|evalOnLoad|evalqOnLoad|evalSource|existsFunction|existsMethod|extends|externalRefMethod|finalDefaultMethod|findClass|findFunction|findMethod|findMethods|findMethodSignatures|findUnique|fixPre1_8|formalArgs|fromNextMethod|functionBody|generic_skeleton|genericForBasic|getAllSuperClasses|getClass|getClassDef|getClasses|getDataPart|getFunction|getGeneric|getGenericFromCall|getGenerics|getGroup|getGroupMembers|getLoadActions|getMethod|getMethods|getMethodsAndAccessors|getMethodsForDispatch|getMethodsMetaData|getPackageName|getRefClass|getRefSuperClasses|getSlots|getValidity|hasArg|hasLoadAction|hasMethod|hasMethods|implicitGeneric|inBasicFuns|inferProperties|inheritedSlotNames|inheritedSubMethodLists|initFieldArgs|initialize|initMethodDispatch|initRefFields|insertClassMethods|insertMethod|insertMethodInEmptyList|insertSource|installClassMethod|is|isBaseFun|isClass|isClassDef|isClassUnion|isGeneric|isGrammarSymbol|isGroup|isMixin|isRematched|isS3Generic|isSealedClass|isSealedMethod|isVirtualClass|isXS3Class|kronecker|languageEl|listFromMethods|loadMethod|Logic|makeClassMethod|makeClassRepresentation|makeEnvRefMethods|makeExtends|makeGeneric|makeMethodsList|makePrototypeFromClassDef|makeStandardGeneric|matchDefaults|matchSignature|Math|Math2|matrixOps|mergeMethods|metaNameUndo|method_skeleton|MethodAddCoerce|methodSignatureMatrix|MethodsList|MethodsListSelect|methodsPackageMetaName|missingArg|multipleClasses|new|newBasic|newClassRepresentation|newEmptyObject|Ops|outerLabels|packageSlot|possibleExtends|printClassRepresentation|printPropertiesList|prohibitGeneric|promptClass|promptMethods|prototype|Quote|rbind|rbind2|reconcilePropertiesAndPrototype|refClassFields|refClassInformation|refClassMethods|refClassPrompt|refObjectClass|registerImplicitGenerics|rematchDefinition|removeClass|removeGeneric|removeMethod|removeMethods|representation|requireMethods|resetClass|resetGeneric|S3Class|S3forS4Methods|S3Part|sealClass|selectMethod|selectSuperClasses|setAs|setCacheOnAssign|setClass|setClassUnion|setDataPart|setGeneric|setGenericImplicit|setGroupGeneric|setIs|setLoadAction|setLoadActions|setMethod|setNames|setOldClass|setPackageName|setPackageSlot|setPrimitiveMethods|setRefClass|setReplaceMethod|setValidity|show|showClass|showClassMethod|showDefault|showExtends|showExtraSlots|showMethods|showRefClassDef|signature|SignatureMethod|sigToEnv|slot|slotNames|slotsFromS3|substituteDirect|substituteFunctionArgs|Summary|superClassDepth|superClassMethodName|tableNames|testInheritedMethods|testVirtual|tryNew|unRematchDefinition|useMTable|validObject|validSlotNames)\b
-        name: support.function.method.r
-      - match: \b(acf|acf2AR|add_scope|add1|add1_default|add1_glm|add1_lm|add1_mlm|addmargins|aggregate|aggregate_data_frame|aggregate_default|aggregate_formula|aggregate_ts|AIC|AIC_default|AIC_logLik|alias|alias_formula|alias_lm|anova|anova_glm|anova_glmlist|anova_lm|anova_lmlist|anova_loess|anova_mlm|anova_mlmlist|anova_nls|anovalist_nls|ansari_test|ansari_test_default|ansari_test_formula|aov|approx|approxfun|ar|ar_burg|ar_burg_default|ar_burg_mts|ar_mle|ar_ols|ar_yw|ar_yw_default|ar_yw_mts|arima|arima_sim|arima0|arima0_diag|ARMAacf|ARMAtoMA|as_data_frame_aovproj|as_data_frame_ftable|as_data_frame_logLik|as_dendrogram|as_dendrogram_dendrogram|as_dendrogram_hclust|as_dist|as_dist_default|as_formula|as_hclust|as_hclust_default|as_hclust_dendrogram|as_hclust_twins|as_matrix_dist|as_matrix_ftable|as_stepfun|as_stepfun_default|as_stepfun_isoreg|as_table_ftable|as_ts|as_ts_default|asOneSidedFormula|assert_NULL_or_prob|ave|bandwidth_kernel|bartlett_test|bartlett_test_default|bartlett_test_formula|BIC|BIC_default|BIC_logLik|binom_test|binomial|binomInitialize|biplot|biplot_default|biplot_prcomp|biplot_princomp|Box_test|bw_pair_cnts|bw_bcv|bw_nrd|bw_nrd0|bw_SJ|bw_ucv|C|cancor|case_names|case_names_default|case_names_lm|cbind_ts|ccf|check_exact|chisq_test|cmdscale|coef|coef_aov|coef_Arima|coef_default|coef_listof|coef_maov|coef_nls|coefficients|complete_cases|confint|confint_default|confint_glm|confint_lm|confint_nls|confint_profile_glm|confint_profile_nls|constrOptim|contr_helmert|contr_poly|contr_SAS|contr_sum|contr_treatment|contrasts|convolve|cooks_distance|cooks_distance_glm|cooks_distance_lm|cophenetic|cophenetic_default|cophenetic_dendrogram|cor|cor_test|cor_test_default|cor_test_formula|cov|cov_wt|cov2cor|covratio|cpgram|cut_dendrogram|cutree|cycle|cycle_default|cycle_ts|D|dbeta|dbinom|dcauchy|dchisq|decompose|delete_response|deltat|deltat_default|dendrapply|density|density_default|deparse2|deriv|deriv_default|deriv_formula|deriv3|deriv3_default|deriv3_formula|deviance|deviance_default|deviance_glm|deviance_lm|deviance_mlm|deviance_nls|dexp|df|df_kernel|df_residual|df_residual_default|df_residual_nls|DF2formula|dfbeta|dfbeta_lm|dfbetas|dfbetas_lm|dffits|dgamma|dgeom|dhyper|diff_ts|diffinv|diffinv_default|diffinv_ts|diffinv_vector|dist|dlnorm|dlogis|dmultinom|dnbinom|dnorm|dpois|drop_scope|drop_terms|drop1|drop1_default|drop1_glm|drop1_lm|drop1_mlm|dsignrank|dt|dummy_coef|dummy_coef_aovlist|dummy_coef_lm|dunif|dweibull|dwilcox|ecdf|eff_aovlist|effects|effects_glm|effects_lm|embed|end|end_default|estVar|estVar_mlm|estVar_SSD|expand_model_frame|extractAIC|extractAIC_aov|extractAIC_coxph|extractAIC_glm|extractAIC_lm|extractAIC_negbin|extractAIC_survreg|factanal|factanal_fit_mle|factor_scope|family|family_glm|family_lm|fft|filter|fisher_test|fitted|fitted_default|fitted_isoreg|fitted_kmeans|fitted_nls|fitted_smooth_spline|fitted_values|fivenum|fligner_test|fligner_test_default|fligner_test_formula|format_perc|format_dist|format_ftable|formula|formula_character|formula_data_frame|formula_default|formula_formula|formula_glm|formula_lm|formula_nls|formula_terms|frequency|frequency_default|friedman_test|friedman_test_default|friedman_test_formula|ftable|ftable_default|ftable_formula|Gamma|gaussian|get_all_vars|getCall|getCall_default|getInitial|getInitial_default|getInitial_formula|getInitial_selfStart|glm|glm_control|glm_fit|hasTsp|hat|hatvalues|hatvalues_lm|hatvalues_smooth_spline|hclust|head_ts|heatmap|HL|HoltWinters|hyman_filter|identify_hclust|influence|influence_glm|influence_lm|influence_measures|integrate|interaction_plot|inverse_gaussian|IQR|is_empty_model|is_leaf|is_mts|is_stepfun|is_ts|is_tskernel|isoreg|KalmanForecast|KalmanLike|KalmanRun|KalmanSmooth|kernapply|kernapply_default|kernapply_ts|kernapply_tskernel|kernapply_vector|kernel|kmeans|knots|knots_stepfun|kruskal_test|kruskal_test_default|kruskal_test_formula|ks_test|ks_test_default|ks_test_formula|ksmooth|labels_dendrogram|labels_dist|labels_lm|labels_terms|lag|lag_default|lag_plot|line|lines_isoreg|lines_stepfun|lines_ts|lm|lm_fit|lm_influence|lm_wfit|loadings|loess|loess_control|loess_smooth|logLik|logLik_Arima|logLik_glm|logLik_lm|logLik_logLik|logLik_nls|loglin|lowess|ls_diag|ls_print|lsfit|mad|mahalanobis|make_link|make_tables_aovproj|make_tables_aovprojlist|makeARIMA|makepredictcall|makepredictcall_default|makepredictcall_poly|manova|mantelhaen_test|mauchly_test|mauchly_test_mlm|mauchly_test_SSD|mcnemar_test|median|median_default|medpolish|merge_dendrogram|midcache_dendrogram|model_extract|model_frame|model_frame_aovlist|model_frame_default|model_frame_glm|model_frame_lm|model_matrix|model_matrix_default|model_matrix_lm|model_offset|model_response|model_tables|model_tables_aov|model_tables_aovlist|model_weights|monthplot|monthplot_default|monthplot_stl|monthplot_StructTS|monthplot_ts|mood_test|mood_test_default|mood_test_formula|mvfft|na_action|na_action_default|na_contiguous|na_contiguous_default|na_exclude|na_exclude_data_frame|na_exclude_default|na_fail|na_fail_default|na_omit|na_omit_data_frame|na_omit_default|na_omit_ts|na_pass|napredict|napredict_default|napredict_exclude|naprint|naprint_default|naprint_exclude|naprint_omit|naresid|naresid_default|naresid_exclude|nextn|nleaves|nlm|nlminb|nls|nls_port_fit|nls_control|nlsModel|nlsModel_plinear|NLSstAsymptotic|NLSstAsymptotic_sortedXyData|NLSstClosestX|NLSstClosestX_sortedXyData|NLSstLfAsymptote|NLSstLfAsymptote_sortedXyData|NLSstRtAsymptote|NLSstRtAsymptote_sortedXyData|nobs|nobs_default|nobs_dendrogram|nobs_glm|nobs_lm|nobs_logLik|nobs_nls|numericDeriv|offset|oneway_test|Ops_ts|optim|optimHess|optimise|optimize|order_dendrogram|p_adjust|pacf|pacf_default|Pair|pairs_profile|pairwise_prop_test|pairwise_t_test|pairwise_table|pairwise_wilcox_test|pbeta|pbinom|pbirthday|pcauchy|pchisq|pexp|pf|pgamma|pgeom|phyper|Pillai|pkolmogorov|pkolmogorov_one_asymp|pkolmogorov_one_exact|pkolmogorov_two_asymp|pkolmogorov_two_exact|plclust|plnorm|plogis|plot_acf|plot_decomposed_ts|plot_dendrogram|plot_density|plot_ecdf|plot_hclust|plot_HoltWinters|plot_isoreg|plot_lm|plot_medpolish|plot_mlm|plot_ppr|plot_prcomp|plot_princomp|plot_profile|plot_profile_nls|plot_spec|plot_spec_coherency|plot_spec_phase|plot_stepfun|plot_stl|plot_ts|plot_tskernel|plot_TukeyHSD|plotNode|plotNodeLimit|pnbinom|pnorm|pointwise|poisson|poisson_test|poly|polym|port_get_named_v|port_msg|power|power_anova_test|power_prop_test|power_t_test|PP_test|ppoints|ppois|ppr|ppr_default|ppr_formula|prcomp|prcomp_default|prcomp_formula|predict|predict_ar|predict_Arima|predict_arima0|predict_glm|predict_HoltWinters|predict_lm|predict_loess|predict_mlm|predict_nls|predict_poly|predict_ppr|predict_prcomp|predict_princomp|predict_smooth_spline|predict_smooth_spline_fit|predict_StructTS|predLoess|preplot|princomp|princomp_default|princomp_formula|print_acf|print_anova|print_aov|print_aovlist|print_ar|print_Arima|print_arima0|print_dendrogram|print_density|print_dist|print_dummy_coef|print_dummy_coef_list|print_ecdf|print_factanal|print_family|print_formula|print_ftable|print_glm|print_hclust|print_HoltWinters|print_htest|print_infl|print_integrate|print_isoreg|print_kmeans|print_lm|print_loadings|print_loess|print_logLik|print_medpolish|print_mtable|print_nls|print_pairwise_htest|print_power_htest|print_ppr|print_prcomp|print_princomp|print_smooth_spline|print_stepfun|print_stl|print_StructTS|print_summary_aov|print_summary_aovlist|print_summary_ecdf|print_summary_glm|print_summary_lm|print_summary_loess|print_summary_manova|print_summary_nls|print_summary_ppr|print_summary_prcomp|print_summary_princomp|print_tables_aov|print_terms|print_ts|print_tskernel|print_TukeyHSD|print_tukeyline|print_tukeysmooth|print_xtabs|printCoefmat|profile|profile_glm|profile_nls|profiler|profiler_nls|proj|Proj|proj_aov|proj_aovlist|proj_default|proj_lm|promax|prop_test|prop_trend_test|psignrank|psmirnov|psmirnov_asymp|psmirnov_exact|psmirnov_simul|pt|ptukey|punif|pweibull|pwilcox|qbeta|qbinom|qbirthday|qcauchy|qchisq|qexp|qf|qgamma|qgeom|qhyper|qlnorm|qlogis|qnbinom|qnorm|qpois|qqline|qqnorm|qqnorm_default|qqplot|qr_influence|qr_lm|qsignrank|qsmirnov|qt|qtukey|quade_test|quade_test_default|quade_test_formula|quantile|quantile_default|quantile_ecdf|quantile_POSIXt|quasi|quasibinomial|quasipoisson|qunif|qweibull|qwilcox|r2dtable|Rank|rbeta|rbinom|rcauchy|rchisq|read_ftable|rect_hclust|reformulate|regularize_values|relevel|relevel_default|relevel_factor|relevel_ordered|reorder|reorder_default|reorder_dendrogram|replications|reshape|resid|residuals|residuals_default|residuals_glm|residuals_HoltWinters|residuals_isoreg|residuals_lm|residuals_nls|residuals_smooth_spline|residuals_tukeyline|rev_dendrogram|rexp|rf|rgamma|rgeom|rhyper|rlnorm|rlogis|rmultinom|rnbinom|rnorm|Roy|rpois|rsignrank|rsmirnov|rstandard|rstandard_glm|rstandard_lm|rstudent|rstudent_glm|rstudent_lm|rt|runif|runmed|rweibull|rwilcox|rWishart|safe_pchisq|safe_pf|scatter_smooth|screeplot|screeplot_default|sd|se_aov|se_aovlist|se_contrast|se_contrast_aov|se_contrast_aovlist|selfStart|selfStart_default|selfStart_formula|setNames|shapiro_test|sigma|sigma_default|sigma_glm|sigma_mlm|simpleLoess|simulate|simulate_lm|smooth|smooth_spline|smoothEnds|sortedXyData|sortedXyData_default|spec_ar|spec_pgram|spec_taper|spectrum|sphericity|spl_coef_conv|spline|splinefun|splinefunH|splinefunH0|SSasymp|SSasympOff|SSasympOrig|SSbiexp|SSD|SSD_mlm|SSfol|SSfpl|SSgompertz|SSlogis|SSmicmen|SSweibull|start|start_default|stat_anova|step|stepfun|stl|str_dendrogram|str_logLik|StructTS|summary_aov|summary_aovlist|summary_ecdf|summary_glm|summary_infl|summary_lm|summary_loess|summary_manova|summary_mlm|summary_nls|summary_ppr|summary_prcomp|summary_princomp|summary_stepfun|summary_stl|summary_tukeysmooth|supsmu|symnum|t_test|t_test_default|t_test_formula|t_ts|tail_ts|termplot|terms|terms_aovlist|terms_default|terms_formula|terms_terms|Thin_col|Thin_row|time|time_default|time_ts|toeplitz|toeplitz2|Tr|ts|ts_intersect|ts_plot|ts_union|tsdiag|tsdiag_Arima|tsdiag_arima0|tsdiag_StructTS|tsp|tsSmooth|tsSmooth_StructTS|TukeyHSD|TukeyHSD_aov|uniroot|update|update_default|update_formula|update_packageStatus|var|var_test|var_test_default|var_test_formula|variable_names|variable_names_default|variable_names_lm|varimax|vcov|vcov_aov|vcov_Arima|vcov_glm|vcov_lm|vcov_mlm|vcov_nls|vcov_summary_glm|vcov_summary_lm|weighted_mean|weighted_mean_Date|weighted_mean_default|weighted_mean_difftime|weighted_mean_POSIXct|weighted_mean_POSIXlt|weighted_residuals|weights|weights_default|weights_glm|weights_nls|wilcox_test|wilcox_test_default|wilcox_test_formula|Wilks|window|window_default|window_ts|write_ftable|xtabs)\b
-        name: support.function.stat.r
-      - match: \b(adist|alarm|apropos|aregexec|argNames|argsAnywhere|as_bibentry|as_bibentry_bibentry|as_bibentry_citation|as_character_person|as_character_roman|as_data_frame_bibentry|as_data_frame_citation|as_data_frame_person|as_environment_hashtab|as_person|as_person_default|as_personList|as_personList_default|as_personList_person|as_relistable|as_roman|asDateBuilt|askYesNo|aspell|aspell_filter_LaTeX_commands_from_Aspell_tex_filter_info|aspell_filter_LaTeX_worker|aspell_find_dictionaries|aspell_find_program|aspell_inspect_context|aspell_package|aspell_package_C_files|aspell_package_description|aspell_package_pot_files|aspell_package_R_files|aspell_package_Rd_files|aspell_package_vignettes|aspell_query_wiktionary_categories|aspell_R_C_files|aspell_R_manuals|aspell_R_R_files|aspell_R_Rd_files|aspell_R_vignettes|aspell_update_dictionary|aspell_write_personal_dictionary_file|assignInMyNamespace|assignInNamespace|attachedPackageCompletions|available_packages|bibentry|blank_out_character_ranges|blank_out_ignores_in_lines|blank_out_regexp_matches|browseEnv|browseURL|browseVignettes|bug_report|bug_report_info|c_bibentry|c_person|capture_output|changedFiles|charClass|check_for_XQuartz|check_screen_device|checkCRAN|checkHT|chooseBioCmirror|chooseCRANmirror|citation|cite|citeNatbib|citEntry|citFooter|citHeader|close_socket|close_txtProgressBar|clrhash|combn|compareVersion|conformToProto|contrib_url|correctFilenameToken|count_fields|create_post|data|data_entry|dataentry|de|de_ncols|de_restore|de_setup|debugcall|debugger|defaultUserAgent|demo|download_file|download_packages|dump_frames|edit|edit_data_frame|edit_default|edit_matrix|edit_vignette|emacs|example|expr2token|file_test|file_edit|fileCompletionPreferred|fileCompletions|fileSnapshot|filter_packages_by_depends_predicates|find|find_files_in_directories|findCRANmirror|findExactMatches|findFuzzyMatches|findGeneric|findLineNum|findMatches|fix|fixInNamespace|flush_console|fnLineNum|format_aspell|format_aspell_inspect_context|format_bibentry|format_citation|format_hashtab|format_MethodsFunction|format_news_db|format_object_size|format_person|format_roman|formatOL|formatUL|functionArgs|fuzzyApropos|get_parse_data_for_message_strings|getAnywhere|getCRANmirrors|getDependencies|getFromNamespace|gethash|getIsFirstArg|getKnownS3generics|getParseData|getParseText|getRcode|getRcode_vignette|getS3method|getSrcByte|getSrcDirectory|getSrcfile|getSrcFilename|getSrcLocation|getSrcref|getTxtProgressBar|glob2rx|globalVariables|hashtab|hasName|head|head_array|head_default|head_ftable|head_function|head_matrix|help|help_request|help_search|help_start|helpCompletions|history|hsearch_db|hsearch_db_concepts|hsearch_db_keywords|index_search|inFunction|install_packages|installed_packages|is_hashtab|is_relistable|isBasePkg|isInsideQuotes|isS3method|isS3stdGeneric|keywordCompletions|length_hashtab|limitedLabels|loadedPackageCompletions|loadhistory|localeToCharset|ls_str|lsf_str|macDynLoads|maintainer|make_sysdata_rda|make_packages_html|make_socket|makeRegexpSafe|makeRweaveLatexCodeRunner|makeUserAgent|maphash|matchAvailableTopics|memory_limit|memory_size|menu|merge_demo_index|merge_vignette_index|methods|mirror2html|modifyList|new_packages|news|normalCompletions|nsl|numhash|object_size|offline_help_helper|old_packages|Ops_roman|package_skeleton|packageDate|packageDescription|packageName|packageStatus|packageVersion|page|person|personList|pico|print_aspell|print_aspell_inspect_context|print_bibentry|print_Bibtex|print_browseVignettes|print_changedFiles|print_citation|print_fileSnapshot|print_findLineNumResult|print_getAnywhere|print_hashtab|print_help_files_with_topic|print_hsearch|print_hsearch_db|print_Latex|print_ls_str|print_MethodsFunction|print_news_db|print_object_size|print_packageDescription|print_packageIQR|print_packageStatus|print_person|print_roman|print_sessionInfo|print_socket|print_summary_packageStatus|print_vignette|printhsearchInternal|process_events|prompt|prompt_data_frame|prompt_default|promptData|promptImport|promptPackage|rc_getOption|rc_options|rc_settings|rc_status|read_csv|read_csv2|read_delim|read_delim2|read_DIF|read_fortran|read_fwf|read_socket|read_table|readCitationFile|recover|registerNames|regquote|relist|relist_default|relist_factor|relist_list|relist_matrix|remhash|remove_packages|removeSource|rep_bibentry|rep_person|rep_roman|resolvePkgType|Rprof|Rprof_memory_summary|Rprofmem|RShowDoc|RSiteSearch|rtags|rtags_file|Rtangle|RtangleFinish|RtangleRuncode|RtangleSetup|RtangleWritedoc|RweaveChunkPrefix|RweaveEvalWithOpt|RweaveLatex|RweaveLatexFinish|RweaveLatexOptions|RweaveLatexRuncode|RweaveLatexSetup|RweaveLatexWritedoc|RweaveTryStop|savehistory|select_list|sessionInfo|setBreakpoint|sethash|setIsFirstArg|setRepositories|setTxtProgressBar|shorten_to_string|simplifyRepos|sort_bibentry|specialCompletions|specialFunctionArgs|specialOpCompletionsHelper|specialOpLocs|stack|stack_data_frame|stack_default|Stangle|str|str_data_frame|str_Date|str_default|str_hashtab|str_POSIXt|str2logical|strcapture|strextract|strOptions|strslice|subset_news_db|substr_with_tabs|summary_aspell|summary_packageStatus|Summary_roman|summaryRprof|suppressForeignCheck|Sweave|SweaveGetSyntax|SweaveHooks|SweaveParseOptions|SweaveReadFile|SweaveSyntConv|tail|tail_array|tail_default|tail_ftable|tail_function|tail_matrix|tar|timestamp|toBibtex|toBibtex_bibentry|toBibtex_person|toLatex|toLatex_sessionInfo|toLatexPDlist|topicName|transform_bibentry|txtProgressBar|type_convert|type_convert_data_frame|type_convert_default|type_convert_list|typhash|undebugcall|unique_bibentry|unique_person|unlist_relistable|unstack|unstack_data_frame|unstack_default|untar|untar2|unzip|update_packages|update_packageStatus|upgrade|upgrade_packageStatus|url_show|URLdecode|URLencode|vi|View|vignette|warnErrList|write_csv|write_csv2|write_ctags|write_etags|write_socket|write_table|wsbrowser|xedit|xemacs|zip)\b
-        name: support.function.misc.r
-
-      # Python (legacy built-in functions)
-      - match: \b(file|reduce|intern|raw_input|unicode|cmp|basestring|execfile|long|xrange)\b
-        name: support.function.legacy.builtin.python
-
-      # JavaScript and CoffeeScript Functions
+      # JavaScript
+      - match: \b(Array|ArrayBuffer|Blob|Boolean|Date|document|Function|Int(8|16|32|64)Array|Math|Map|Number|Object|Proxy|RegExp|Set|String|WeakMap|window|Uint(8|16|32|64)Array|XMLHttpRequest)\b
+        name: support.class.coffee
+      - match: \b(console)\b
+        name: entity.name.type.object.coffee
+      - match: \b(debug|warn|info|log|error|time|timeEnd|assert)\b
+        name: support.function.console.coffee
+      - match: \b(apply|call|concat|every|filter|forEach|from|hasOwnProperty|indexOf|isPrototypeOf|join|lastIndexOf|map|of|pop|propertyIsEnumerable|push|reduce(Right)?|reverse|shift|slice|some|sort|splice|to(Locale)?String|unshift|valueOf)\b
+        name: support.function.method.array.coffee
+      - match: \b(isArray)\b
+        name: support.function.static.array.coffee
+      - match: \b(create|definePropert(ies|y)|freeze|getOwnProperty(Descriptors?|Names)|getProperty(Descriptor|Names)|getPrototypeOf|is(Extensible|Frozen|Sealed)?|isnt|keys|preventExtensions|seal)\b
+        name: support.function.static.object.coffee
+      - match: \b(abs|acos|acosh|asin|asinh|atan|atan2|atanh|ceil|cos|cosh|exp|expm1|floor|hypot|log|log10|log1p|log2|max|min|pow|random|round|sign|sin|sinh|sqrt|tan|tanh|trunc)\b
+        name: support.function.static.math.coffee
+      - match: \b(is(Finite|Integer|NaN)|toInteger)\b
+        name: support.function.static.number.coffee
       - match: \bon(Rowsinserted|Rowsdelete|Rowenter|Rowexit|Resize|Resizestart|Resizeend|Reset|Readystatechange|Mouseout|Mouseover|Mousedown|Mouseup|Mousemove|Before(cut|deactivate|unload|update|paste|print|editfocus|activate)|Blur|Scrolltop|Submit|Select|Selectstart|Selectionchange|Hover|Help|Change|Contextmenu|Controlselect|Cut|Cellchange|Clock|Close|Deactivate|Datasetchanged|Datasetcomplete|Dataavailable|Drop|Drag|Dragstart|Dragover|Dragdrop|Dragenter|Dragend|Dragleave|Dblclick|Unload|Paste|Propertychange|Error|Errorupdate|Keydown|Keyup|Keypress|Focus|Load|Activate|Afterupdate|Afterprint|Abort)\b
         name: support.function.event-handler.coffee
       - match: \b(shift|showModelessDialog|showModalDialog|showHelp|scroll|scrollX|scrollByPages|scrollByLines|scrollY|scrollTo|stop|strike|sizeToContent|sidebar|signText|sort|sup|sub|substr|substring|splice|split|send|set(Milliseconds|Seconds|Minutes|Hours|Month|Year|FullYear|Date|UTC(Milliseconds|Seconds|Minutes|Hours|Month|FullYear|Date)|Time|Hotkeys|Cursor|ZOptions|Active|Resizable|RequestHeader)|search|slice|savePreferences|small|home|handleEvent|navigate|char|charCodeAt|charAt|concat|contextual|confirm|compile|clear|captureEvents|call|createStyleSheet|createPopup|createEventObject|to(GMTString|UTCString|String|Source|UpperCase|LowerCase|LocaleString)|test|taint|taintEnabled|indexOf|italics|disableExternalCapture|dump|detachEvent|unshift|untaint|unwatch|updateCommands|join|javaEnabled|pop|push|plugins.refresh|paddings|parse|print|prompt|preference|enableExternalCapture|exec|execScript|valueOf|UTC|find|file|fileModifiedDate|fileSize|fileCreatedDate|fileUpdatedDate|fixed|fontsize|fontcolor|forward|fromCharCode|watch|link|load|lastIndexOf|anchor|attachEvent|atob|apply|alert|abort|routeEvents|resize|resizeBy|resizeTo|recalc|returnValue|replace|reverse|reload|releaseCapture|releaseEvents|go|get(Milliseconds|Seconds|Minutes|Hours|Month|Day|Year|FullYear|Time|Date|TimezoneOffset|UTC(Milliseconds|Seconds|Minutes|Hours|Day|Month|FullYear|Date)|Attention|Selection|ResponseHeader|AllResponseHeaders)|moveBy|moveBelow|moveTo|moveToAbsolute|moveAbove|mergeAttributes|match|margins|btoa|big|bold|borderWidths|blink|back)\b
@@ -9717,10 +9612,6 @@ repository:
       - include: source.python#builtin-functions
       - include: source.python#builtin-types
       - include: source.python#magic-function-names
-
-      # Swift Built-in Functions
-      - include: source.swift#builtin-functions
-      - include: source.swift#builtin-global-functions
 
       # HTML tags and built-in functions
       - include: "#html-builtins"
