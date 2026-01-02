@@ -448,7 +448,7 @@ repository:
       (?x) \s*
 
       (?!
-        (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+        (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?: # keywords
           # wordlike operators
           [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -465,7 +465,7 @@ repository:
           |for|while|until|loop|break|skip|redo
           |(?:re)?try|switch|[cm]atch|case|def|throw
           |return|yield|await|goto|pass|defer|sync|select
-          |copy|move|drop
+          |copy|move|drop|raise|error|final
           |[gd]o|from|where|import|intern|export|extern
 
           # miscellaneous keywords
@@ -692,7 +692,7 @@ repository:
         patterns:
           - match: ","
             name: punctuation.separator.arguments.ruko
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
             name: keyword.operator.expression.as.ruko
           - match: (?<=[\w\s][(|])\.
             name: punctuation.definition.metadata.ruko
@@ -817,27 +817,27 @@ repository:
 
   type-keywords:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(from)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
         name: storage.type.extends.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for)\b\s*
         name: storage.type.implements.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(infer|as)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(infer|as)\b\s*
         name: keyword.operator.expression.$1.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((inst|value|pair|type|name|size|key)of)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((inst|value|pair|type|name|size|key)of)\b\s*
         name: keyword.operator.expression.$1.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(instof)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(instof)\b\s*
         name: keyword.operator.expression.instanceof.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(ext)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(ext)\b\s*
         name: storage.type.extends.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(impl)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(impl)\b\s*
         name: storage.type.implements.ruko
       - &in-of-expression
-        match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(?:(not)\s+)?([io]n|of)\b\s*
+        match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(?:(not)\s+)?([io]n|of)\b\s*
         captures:
           1: { name: keyword.operator.expression.logical.ruko }
           2: { name: keyword.operator.expression.$2.ruko }
       - &is-has-expression
-        match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(is|has|can)(?:\s+(not))?\b\s*
+        match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(is|has|can)(?:\s+(not))?\b\s*
         captures:
           1: { name: keyword.operator.expression.$1.ruko }
           2: { name: keyword.operator.expression.logical.ruko }
@@ -986,7 +986,7 @@ repository:
     patterns:
       - match: |-
           (?x)
-          (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (?:
             (true|false) # boolean
             |(null|nan) # null and not-a-number
@@ -1015,7 +1015,7 @@ repository:
           11: { name: variable.language.underscore.ruko }
       - match: |-
           (?x)
-          (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (
             console|document|window|global|process|require|module|exports
             |navigator|location|history|localStorage|sessionStorage
@@ -1361,7 +1361,7 @@ repository:
             |for|while|until|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
-            |copy|move|drop
+            |copy|move|drop|raise|error|final
             |[gd]o|from|where|import|intern|export|extern
 
             # miscellaneous keywords
@@ -2298,7 +2298,7 @@ repository:
           (\$) # beginning of identifier
           # ignore all keywords
           (?!
-            (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -2315,7 +2315,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop
+              |copy|move|drop|raise|error|final
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -2382,7 +2382,7 @@ repository:
                 \b
                 # ignore all keywords
                 (?!
-                  (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                  (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                   (?: # keywords
                     # wordlike operators
                     [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -2399,7 +2399,7 @@ repository:
                     |for|while|until|loop|break|skip|redo
                     |(?:re)?try|switch|[cm]atch|case|def|throw
                     |return|yield|await|goto|pass|defer|sync|select
-                    |copy|move|drop
+                    |copy|move|drop|raise|error|final
                     |[gd]o|from|where|import|intern|export|extern
 
                     # miscellaneous keywords
@@ -3380,7 +3380,7 @@ repository:
           (?x)
           # ignore all keywords
           (?!
-            (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -3397,7 +3397,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop
+              |copy|move|drop|raise|error|final
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -4047,7 +4047,7 @@ repository:
               (?x) \s*
 
               (?!
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 (?: # keywords
                   # wordlike operators
                   [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -4064,7 +4064,7 @@ repository:
                   |for|while|until|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
                   |return|yield|await|goto|pass|defer|sync|select
-                  |copy|move|drop
+                  |copy|move|drop|raise|error|final
                   |[gd]o|from|where|import|intern|export|extern
 
                   # miscellaneous keywords
@@ -4349,7 +4349,7 @@ repository:
     comment: "Operator declarations. Format: <prec> <associativity> <fixity> <operator> (-> <return type>)"
     patterns:
       - include: "#comments"
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(prec)\b\s*(?:(\d+)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*))
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(prec)\b\s*(?:(\d+)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*))
         captures:
           1: { name: storage.modifier.precedence.ruko }
           2: { name: constant.numeric.integer.ruko }
@@ -4485,7 +4485,7 @@ repository:
         captures:
           1: { name: punctuation.definition.parameters.ruko }
         patterns:
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
             name: keyword.operator.expression.as.ruko
           - include: "#clauses"
           - include: "#constants"
@@ -4501,7 +4501,7 @@ repository:
         patterns:
           - include: "#attribute-selectors"
           - include: $self
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(from|to|except|only|as)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from|to|except|only|as)\b\s*
         name: keyword.operator.expression.ruko
       - include: "#format-syntax"
 
@@ -4712,7 +4712,7 @@ repository:
 
   jsdoc-name-path-scopes:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*(?=[\p{Pc}\p{L}\p{Nl}])
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*(?=[\p{Pc}\p{L}\p{Nl}])
         captures:
           1: { name: keyword.as.jsdoc }
       - match: \s*(?:([\p{Pc}\p{L}\p{Nl}&&\P{Ll}]+\w*)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*))(?=[\s\-~.#]|$)
@@ -4888,7 +4888,7 @@ repository:
                     |for|while|until|loop|break|skip|redo
                     |(?:re)?try|switch|[cm]atch|case|def|throw
                     |return|yield|await|goto|pass|defer|sync|select
-                    |copy|move|drop
+                    |copy|move|drop|raise|error|final
                     |[gd]o|from|where|import|intern|export|extern
 
                     # miscellaneous keywords
@@ -4909,7 +4909,7 @@ repository:
           (
             # ignore all keywords
             (?!
-              (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -4926,7 +4926,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -4962,7 +4962,7 @@ repository:
           (
             # ignore all keywords
             (?!
-              (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -4979,7 +4979,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5046,7 +5046,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5067,7 +5067,7 @@ repository:
       (
         # ignore all keywords
         (?!
-          (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (?: # keywords
             # wordlike operators
             [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -5084,7 +5084,7 @@ repository:
             |for|while|until|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
-            |copy|move|drop
+            |copy|move|drop|raise|error|final
             |[gd]o|from|where|import|intern|export|extern
 
             # miscellaneous keywords
@@ -5126,7 +5126,7 @@ repository:
         )
         # ignore all keywords
         (?!
-          (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (?: # keywords
             # wordlike operators
             [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -5143,7 +5143,7 @@ repository:
             |for|while|until|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
-            |copy|move|drop
+            |copy|move|drop|raise|error|final
             |[gd]o|from|where|import|intern|export|extern
 
             # miscellaneous keywords
@@ -5184,7 +5184,7 @@ repository:
             (?: # identifier
               # ignore all keywords
               (?!
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 (?: # keywords
                   # wordlike operators
                   [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -5393,7 +5393,7 @@ repository:
               | [)}\]] # close bracket or pipe
               | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.) # pipe
               | [,;] # separator
-              | (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b # as keyword (aliasing)
+              | (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword (aliasing)
               | \s (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
             )
           )
@@ -5597,7 +5597,7 @@ repository:
             \b
             # ignore all keywords
             (?!
-              (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -5614,7 +5614,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5900,7 +5900,7 @@ repository:
         (?:
           # ignore all keywords
           (?!
-            (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -5917,7 +5917,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop
+              |copy|move|drop|raise|error|final
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -5931,7 +5931,7 @@ repository:
         )+
       )
       (?=
-        \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+        \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?: # declaration keywords
           var|mut|let|auto|const
           |func|pro[pc]|type|class|actor|trait|enum|in?ter
@@ -5952,7 +5952,7 @@ repository:
           (
             # ignore all keywords
             (?!
-              (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -5969,7 +5969,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5983,7 +5983,7 @@ repository:
           \b\s*
           (?=
             (?!
-              (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -6000,7 +6000,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -6194,14 +6194,14 @@ repository:
 
   declaration-keywords:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl|ignore|safe|unsafe)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|ignore|safe|unsafe)\b\s*
         name: keyword.other.declare.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(var|mut|let|auto|const)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(var|mut|let|auto|const)\b\s*
         name: storage.type.ruko
       - match: |-
           (?x)
           \s*
-          (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b (?: # declaration keywords
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b (?: # declaration keywords
             var|mut|let|auto|const
             |func|pro[pc]|type|class|actor|trait|enum|in?ter
             |module|schema|struct|record|object|union|macro|space
@@ -6212,45 +6212,45 @@ repository:
   general-keywords:
     comment: general keywords
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if|un|elif|elun|else|guard)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if|un|elif|elun|else|guard)\b\s*
         name: keyword.control.conditional.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for|while|until|loop|break|skip|redo)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for|while|until|loop|break|skip|redo)\b\s*
         name: keyword.control.loop.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|throw|catch|then|raise|error|retry)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:re)?try|throw|catch|then|raise|error|final)\b\s*
         name: keyword.control.error.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(match|case|def)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(match|case|def)\b\s*
         name: keyword.control.match.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(switch|case|def)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(switch|case|def)\b\s*
         name: keyword.control.switch.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(return|yield|await|goto|pass|defer|sync|select)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(return|yield|await|goto|pass|defer|sync|select)\b\s*
         name: keyword.control.flow.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(copy|move|drop)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(copy|move|drop)\b\s*
         name: keyword.control.movement.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(import|intern|export|extern)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(import|intern|export|extern)\b\s*
         name: keyword.control.module.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(where)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
         name: keyword.control.validate.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([gd]o|defer|ref|begin|end|from)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([gd]o|defer|ref|begin|end|from)\b\s*
         name: keyword.control.$1.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(when)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(when)\b\s*
         name: keyword.control.signal.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl|ignore|safe|unsafe)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|ignore|safe|unsafe)\b\s*
         name: keyword.other.declare.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(debug|assert|check|use|echo|eval|exec)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|use|echo|eval|exec)\b\s*
         name: keyword.other.$1.ruko
 
   expression-keywords:
     comment: expression keywords
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|off?|[ai]s|has|new|old|to|by|(?:de)?ref|[gs]et|[iou]nto)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|off?|[ai]s|has|new|old|to|by|(?:de)?ref|[gs]et|[iou]nto)\b\s*
         name: keyword.operator.expression.$1.ruko
       - *in-of-expression
       - *is-has-expression
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(del)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(del)\b\s*
         name: keyword.operator.expression.delete.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(unset)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(unset)\b\s*
         name: keyword.operator.expression.void.ruko
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(n?and|x?n?or|c?n?imply|not)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(n?and|x?n?or|c?n?imply|not)\b\s*
         name: keyword.operator.expression.logical.ruko
 
   keywords:
@@ -6269,7 +6269,7 @@ repository:
 
   loop-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(break|skip|redo)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(break|skip|redo)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.loop.ruko }
@@ -6279,7 +6279,7 @@ repository:
 
   error-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(retry)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(retry)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.error.ruko }
@@ -6289,7 +6289,7 @@ repository:
 
   flow-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(goto|pass|scope)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(goto|pass|scope)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.flow.ruko }
@@ -6299,7 +6299,7 @@ repository:
 
   extern-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:in|ex)tern)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:in|ex)tern)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.module.ruko }
@@ -6309,7 +6309,7 @@ repository:
 
   module-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:im|ex)port)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:im|ex)port)\b\s*
     end: (?=)|$
     beginCaptures:
       1: { name: keyword.control.module.ruko }
@@ -6347,7 +6347,7 @@ repository:
 
   validation-expression:
     comment: In validation expressions, every identifier that begins a newline is a keyword unless it is preceded by a dot or is a known keyword.
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(where)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
     beginCaptures:
       1: { name: keyword.control.validate.ruko }
     end: (?=[;)\]}])
@@ -6359,7 +6359,7 @@ repository:
             \b
             # ignore all keywords
             (?!
-              (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -6376,7 +6376,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop
+                |copy|move|drop|raise|error|final
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -6392,7 +6392,7 @@ repository:
 
   query-expression:
     comment: "RINQ (Ruko INtegrated Query) expression mini-language TODO: unify the query clauses to reduce redundancy, since they are mostly similar in structure."
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(from)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
     beginCaptures:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
@@ -6415,7 +6415,7 @@ repository:
   in-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           [io]n|of
         )
@@ -6432,7 +6432,7 @@ repository:
   join-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           (?:inner|left|right|outer|cross)? \b\s*\b join
         )
@@ -6443,7 +6443,7 @@ repository:
       3: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]nto|[io]n|of|where)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]nto|[io]n|of|where)\b\s*
         end: (?=[;)\]}])
         beginCaptures:
           1: { name: keyword.control.query.ruko }
@@ -6454,7 +6454,7 @@ repository:
   where-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           where|having|filter|reject
         )
@@ -6463,7 +6463,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(any|all|some|every)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(any|all|some|every)\b\s*
         end: (?=[;)\]}])
         name: keyword.control.query.ruko
         patterns: *query-body
@@ -6473,7 +6473,7 @@ repository:
   sort-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           (?:sort|order|then) \b\s*\b (?:by|with)?
         )
@@ -6482,7 +6482,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(asc|desc)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(asc|desc)\b\s*
         name: keyword.control.query.ruko
       - include: "#query-body"
       - include: $self
@@ -6490,7 +6490,7 @@ repository:
   select-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           (?:select|map) \b\s*\b (?:unique|any|all|some|every)?
         )
@@ -6499,7 +6499,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|with|while)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|with|while)\b\s*
         end: (?=[;)\]}])
         name: keyword.control.query.ruko
         patterns: *query-body
@@ -6509,7 +6509,7 @@ repository:
   take-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           (?:take|drop|limit|offset|limit) \b\s*\b (?:first|last|head|tail)?
         )
@@ -6518,7 +6518,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|with|while)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|with|while)\b\s*
         end: (?=[;)\]}])
         name: keyword.control.query.ruko
         patterns: *query-body
@@ -6528,7 +6528,7 @@ repository:
   reduce-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           (?:fold|reduce|scan) \b\s*\b (?:first|last|left|right)?
         )
@@ -6537,7 +6537,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(to|by)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(to|by)\b\s*
         name: keyword.control.query.ruko
       - include: "#query-body"
       - include: $self
@@ -6545,7 +6545,7 @@ repository:
   group-clause:
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           group|lookup
         )
@@ -6554,7 +6554,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|[io]nto)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|[io]nto)\b\s*
         end: (?=[;)\]}])
         name: keyword.control.query.ruko
         patterns: *query-body
@@ -6576,7 +6576,7 @@ repository:
       - cnimply: converse non-implication or denial of the consequent, >: or >!
     begin: |-
       (?x)\s*
-      (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (
           (?: n?and # and, nand
             | x?n?or # or, xor, nor, xnor 
@@ -6589,7 +6589,7 @@ repository:
       1: { name: keyword.control.query.ruko }
     end: (?=[;)\]}])
     patterns:
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(by|with|while)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by|with|while)\b\s*
         end: (?=[;)\]}])
         name: keyword.control.query.ruko
         patterns: *query-body
@@ -6605,7 +6605,7 @@ repository:
   declarations:
     patterns:
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(quote)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(quote)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.quote.ruko }
@@ -6626,7 +6626,7 @@ repository:
           - match: *entity-name
             name: entity.name.quote.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(style)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(style)\b\s*
         end: (?=$|['"`\w\s]|\#?[(\[{])
         beginCaptures:
           1: { name: storage.type.style.ruko }
@@ -6639,7 +6639,7 @@ repository:
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.style.ruko
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(oper)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(oper)\b\s*
         end: (:?=(?:\s+|$)(?!\#?[(\[{]))|(?=\#?{|[,;]|$)
         beginCaptures:
           1: { name: storage.type.operator.ruko }
@@ -6653,7 +6653,7 @@ repository:
           - match: *entity-name
             name: variable.parameter.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(shader)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(shader)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.shader.ruko }
@@ -6664,7 +6664,7 @@ repository:
           - match: *entity-name
             name: entity.name.shader.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(script)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(script)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.script.ruko }
@@ -6676,7 +6676,7 @@ repository:
           - match: *entity-name
             name: entity.name.script.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(compo)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(compo)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.component.ruko }
@@ -6687,17 +6687,17 @@ repository:
             name: entity.name.component.ruko
             patterns: [{ include: "#html-tags" }]
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(var|mut|let|auto|const)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(var|mut|let|auto|const)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.variable.ruko }
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(decl|ignore)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|ignore)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: keyword.other.declare.ruko }
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(func)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(func)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.function.ruko }
@@ -6707,7 +6707,7 @@ repository:
           - match: *entity-name
             name: entity.name.function.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(actor)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(actor)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.actor.ruko }
@@ -6717,7 +6717,7 @@ repository:
           - match: *entity-name
             name: entity.name.actor.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(prop)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(prop)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.property.ruko }
@@ -6727,7 +6727,7 @@ repository:
           - match: *entity-name
             name: entity.name.property.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(proc)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(proc)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.procedure.ruko }
@@ -6737,7 +6737,7 @@ repository:
           - match: *entity-name
             name: entity.name.procedure.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(temp)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(temp)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.template.ruko }
@@ -6747,7 +6747,7 @@ repository:
           - match: *entity-name
             name: entity.name.template.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(class)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(class)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.class.ruko }
@@ -6757,7 +6757,7 @@ repository:
           - match: *entity-name
             name: entity.name.class.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(inter)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(inter)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.interface.ruko }
@@ -6767,7 +6767,7 @@ repository:
           - match: *entity-name
             name: entity.name.interface.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(enum)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(enum)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.enum.ruko }
@@ -6777,7 +6777,7 @@ repository:
           - match: *entity-name
             name: entity.name.enum.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(module)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(module)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.module.ruko }
@@ -6787,7 +6787,7 @@ repository:
           - match: *entity-name
             name: entity.name.module.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(iter)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(iter)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.iterator.ruko }
@@ -6797,7 +6797,7 @@ repository:
           - match: *entity-name
             name: entity.name.iterator.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(schema)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(schema)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.schema.ruko }
@@ -6807,7 +6807,7 @@ repository:
           - match: *entity-name
             name: entity.name.schema.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(macro)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(macro)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.macro.ruko }
@@ -6817,7 +6817,7 @@ repository:
           - match: *entity-name
             name: entity.name.macro.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(query)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(query)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.query.ruko }
@@ -6827,7 +6827,7 @@ repository:
           - match: *entity-name
             name: entity.name.query.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(object)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(object)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.object.ruko }
@@ -6837,7 +6837,7 @@ repository:
           - match: *entity-name
             name: entity.name.object.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(record)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(record)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.record.ruko }
@@ -6847,7 +6847,7 @@ repository:
           - match: *entity-name
             name: entity.name.record.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(trait)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(trait)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.trait.ruko }
@@ -6857,7 +6857,7 @@ repository:
           - match: *entity-name
             name: entity.name.trait.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(realm)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(realm)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.realm.ruko }
@@ -6867,7 +6867,7 @@ repository:
           - match: *entity-name
             name: entity.name.realm.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(union)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(union)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.union.ruko }
@@ -6876,7 +6876,7 @@ repository:
           - match: *entity-name
             name: entity.name.union.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(struct)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(struct)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.struct.ruko }
@@ -6886,7 +6886,7 @@ repository:
           - match: *entity-name
             name: entity.name.struct.ruko
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(space)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(space)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: storage.type.namespace.ruko }
@@ -6953,7 +6953,7 @@ repository:
         (?:
           # ignore all keywords
           (?!
-            (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
@@ -6970,7 +6970,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop
+              |copy|move|drop|raise|error|final
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -7006,7 +7006,7 @@ repository:
             (?:
               (?:
               \s*
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
@@ -7040,7 +7040,7 @@ repository:
             (?:
               (?:
               \s*
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
@@ -7079,7 +7079,7 @@ repository:
             (?:
               (?:
               \s*
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
@@ -7114,7 +7114,7 @@ repository:
             (?:
               (?:
               \s*
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
@@ -7181,7 +7181,7 @@ repository:
   argument-list-content:
     name: meta.function.arguments.content.ruko
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
         name: keyword.operator.expression.as.ruko
       - match: (?<=[\w\s][(|])\.
         name: punctuation.definition.metadata.ruko
@@ -7203,13 +7203,13 @@ repository:
       - include: "#type-clause"
 
   do-clause:
-    match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(do)\b\s*
+    match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(do)\b\s*
     name: keyword.control.do.ruko
 
   type-clause:
     patterns:
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(old|new)\b
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(old|new)\b
         end: (?=)|$
         beginCaptures:
           1: { name: keyword.operator.expression.$1.ruko }
@@ -7219,20 +7219,20 @@ repository:
           - include: "#brackets"
           - include: "#types"
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
         end: (?=)|$
         beginCaptures:
           1: { name: keyword.operator.expression.as.ruko }
         patterns: [{ include: "#types" }]
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(is|has|can)(?:\s+(not))?\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(is|has|can)(?:\s+(not))?\b\s*
         end: (?=)|$
         captures:
           1: { name: keyword.operator.expression.$1.ruko }
           2: { name: keyword.operator.expression.logical.ruko }
         patterns: [{ include: "#types" }]
       - applyEndPatternLast: true
-        begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(type)\b\s*
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(type)\b\s*
         end: (?=)|$
         captures:
           1: { name: keyword.other.typedef.ruko }
@@ -7243,7 +7243,7 @@ repository:
               1: { name: keyword.operator.assignment.ruko }
 
   try-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(try|then|raise)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(try|then|raise)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
     name: meta.try.ruko
     beginCaptures:
@@ -7251,18 +7251,18 @@ repository:
     endCaptures:
       1: { name: punctuation.terminator.colon.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|of|as|await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
         name: keyword.control.error.ruko
       - include: $self
 
   catch-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(catch|error)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(catch|error)\b\s*
     end: \s*(?=[,;)}\]])|$
     name: meta.catch.ruko
     beginCaptures:
       1: { name: keyword.control.error.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
         name: keyword.control.error.ruko
       - begin: \s*({)\s*
         end: \s*(})\s*
@@ -7275,11 +7275,11 @@ repository:
 
   catch-case-clause:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(def|else)\b\s*(:)
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(def|else)\b\s*(:)
         captures:
           1: { name: keyword.control.error.ruko }
           2: { name: punctuation.definition.case-statement.ruko }
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(case)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
         end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
         beginCaptures:
           1: { name: keyword.control.error.ruko }
@@ -7288,18 +7288,18 @@ repository:
         patterns:
           - include: "#argument-list"
           - applyEndPatternLast: true
-            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:is|has|can)(?:\s+not)?)\b\s*
+            begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.error.ruko }
             patterns: [{ include: "#types" }]
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|if|un|elif|elun|if\s+not)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: keyword.control.error.ruko
           - include: "#type-keywords"
           - include: $self
 
   for-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(for(?:ever|\s+each)?|(?:while|until)(?:\s+not)?|loop)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for(?:ever|\s+each)?|(?:while|until)(?:\s+not)?|loop)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
     name: meta.for.ruko
     beginCaptures:
@@ -7307,12 +7307,12 @@ repository:
     endCaptures:
       1: { name: punctuation.terminator.colon.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b([io]n|of|as|await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
         name: keyword.control.loop.ruko
       - include: $self
 
   if-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(if|un|elif|elun|if\s+not|guard)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if|un|elif|elun|if\s+not|guard)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
     name: meta.if.ruko
     beginCaptures:
@@ -7320,18 +7320,18 @@ repository:
     endCaptures:
       1: { name: punctuation.terminator.colon.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: keyword.control.conditional.ruko
       - include: $self
 
   match-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(match)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(match)\b\s*
     end: \s*(?=[,;)}\]])|$
     name: meta.match.ruko
     beginCaptures:
       1: { name: keyword.control.match.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: keyword.control.match.ruko
       - begin: \s*({)\s*
         end: \s*(})\s*
@@ -7344,11 +7344,11 @@ repository:
 
   match-case-clause:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(def|else)\b\s*(:)
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(def|else)\b\s*(:)
         captures:
           1: { name: keyword.control.match.ruko }
           2: { name: punctuation.definition.case-statement.ruko }
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(case)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
         end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
         beginCaptures:
           1: { name: keyword.control.match.ruko }
@@ -7357,24 +7357,24 @@ repository:
         patterns:
           - include: "#argument-list"
           - applyEndPatternLast: true
-            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:is|has|can)(?:\s+not)?)\b\s*
+            begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.match.ruko }
             patterns: [{ include: "#types" }]
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|if|un|elif|elun|if\s+not)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: keyword.control.match.ruko
           - include: "#type-keywords"
           - include: $self
 
   switch-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(switch)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(switch)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
     name: meta.switch.ruko
     beginCaptures:
       1: { name: keyword.control.switch.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: keyword.control.switch.ruko
       - begin: \s*({)\s*
         end: \s*(})\s*
@@ -7387,11 +7387,11 @@ repository:
 
   switch-case-clause:
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(def|else)\b\s*(:)
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(def|else)\b\s*(:)
         captures:
           1: { name: keyword.control.switch.ruko }
           2: { name: punctuation.definition.case-statement.ruko }
-      - begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(case)\b\s*
+      - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
         end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
         beginCaptures:
           1: { name: keyword.control.switch.ruko }
@@ -7400,18 +7400,18 @@ repository:
         patterns:
           - include: "#argument-list"
           - applyEndPatternLast: true
-            begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b((?:is|has|can)(?:\s+not)?)\b\s*
+            begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
             end: (?=)|$
             beginCaptures:
               1: { name: keyword.control.switch.ruko }
             patterns: [{ include: "#types" }]
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as|if|un|elif|elun|if\s+not)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: keyword.control.switch.ruko
           - include: "#type-keywords"
           - include: $self
 
   when-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(when)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(when)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
     name: meta.if.ruko
     beginCaptures:
@@ -7419,12 +7419,12 @@ repository:
     endCaptures:
       1: { name: punctuation.terminator.colon.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: keyword.control.signal.ruko
       - include: $self
 
   with-clause:
-    begin: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(with)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(with)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
     name: meta.if.ruko
     beginCaptures:
@@ -7432,7 +7432,7 @@ repository:
     endCaptures:
       1: { name: punctuation.terminator.colon.ruko }
     patterns:
-      - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(await)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: keyword.control.with.ruko
       - include: $self
 
@@ -7470,11 +7470,11 @@ repository:
         name: variable.parameter.ruko
 
   as-keyword:
-    match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+    match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
     name: keyword.operator.expression.as.ruko
 
   given-using-keyword:
-    match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(given|using)\b\s*
+    match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(given|using)\b\s*
     name: keyword.operator.expression.$1.ruko
 
   binding-pattern-object:
@@ -7561,7 +7561,7 @@ repository:
             (?:
               (?:
               \s*
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
@@ -7595,7 +7595,7 @@ repository:
             (?:
               (?:
               \s*
-                (?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*
               )
               \b\s*
@@ -7938,7 +7938,7 @@ repository:
         patterns:
           - match: ","
             name: punctuation.separator.arguments.ruko
-          - match: \s*(?<!\b[.`])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b(as)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
             name: keyword.operator.expression.as.ruko
           - match: (?<=[\w\s][(|])\.
             name: punctuation.definition.metadata.ruko
@@ -8907,9 +8907,10 @@ repository:
           str: UTF-8 string
           sym: interned string (symbol)
           blob: byte array
+          buf: byte buffer
           unit: empty value
           num: numeric value (int, real, etc)
-          nat: natural number (0, 1, 2, ...);+
+          nat: natural number (0, 1, 2, ...)
           uint: alias for nat
           int: signed integer
           rat: rational number (p/q)
@@ -8918,137 +8919,138 @@ repository:
           comp: complex number (a + bi)
           quat: quaternion (a + bi + cj + dk)
           oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
+          decimal: arbitrary-precision decimal
+          bigint/bignum: arbitrary-size integer
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
-            [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[uU]nit
-            |[nN]um|[nN]at|[uU]?[iI]nt|[rRnN]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
-            |(?i:[nifrjqco])\d+ # match num types with bit sizes like i32, f64, etc
+            [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[bB]uf|[uU]nit
+            |[nN]um|[nN]at|[uU]?[iI]nt|[rR]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
+            |[dD]ecimal|[bB]ig(?:int|num)
+            |(?i:[iunfcjqo]\d+) # match num types with bit sizes like i32, u64, f16, c128, j32, q256, o512
           )\b
         name: support.type.builtin.primitive.ruko
       - comment: |-
-          Vector primitive types
-          Array: fixed-size array
-          Tuple: fixed-size heterogeneous array
-          List: single-linked list
-          DList: double-linked list
-          Set: unordered collection of unique items
-          Map: key-value associative array
-          Mat: mathematical matrix
-          Vec: mathematical vector
-          Grid: 2D array
-          Stack: LIFO collection
-          Heap: priority queue
-          Queue: FIFO collection
-          Deque: double-ended queue
-          Ring: circular buffer
-          Graph: set of nodes and edges
-          DGraph: directed graph that may have cycles
-          Dag: directed acyclic graph
-          Tree: hierarchical collection
-          Trie: prefix tree
-          Slice: dynamic array
-          Span: view over a contiguous sequence
-          Stream: sequence of data elements
-          Chan: communication channel
+          Numeric and math types
+          Vec2/Vec3/Vec4: small fixed-size vectors
+          MatNxM/Mat4: matrices
+          Tensor: multidimensional numerical array
+          Point/Rect/Size: geometry helpers
+          Color: color/rgba container
+          Quaternion/Complex/DualQuat: rotations and complex numbers
+          Fixed: fixed-point numeric type
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
-            [aA]rray|[tT]uple|[dD]?list|[sS]et|[mM]ap|[mM]at|[vV]ec|[gG]rid
-            |[sS]tack|[hH]eap|[qQ]ueue|[dD]eque|[rR]ing|[dD]?graph|[dD]ag
-            |[tT]r[ie]e|[sS]tream|[cC]han|[sS]lice|[sS]pan
+            (?:[vV]ec\d+|[vV]ector\d+|[mM]at\d+(?:x\d+)?|[tT]ensor|[pP]oint|[rR]ect|[sS]ize|[cC]olor)
+            |[qQ]uaternion|[cC]omplex|[dD]ual[qQ]uat|[fF]ixed
           )\b
-        name: support.type.builtin.ruko
-      - comment: Error types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([oO]ption|[rR]esult|[eE]rror|[eE]xception)\b
+        name: support.type.math.ruko
+      - comment: |-
+          Collection and container types
+          Array/Tuple/List/Set/Map: standard collections
+          Slice/Span: views and dynamic arrays
+          Stack/Queue/Deque/Ring: linear containers
+          Box/Option/Result: ownership and optional/error containers
+          HashMap/HashSet/BTreeMap/BTreeSet: sorted/hash collections
+          Graph/Tree/Dag: graph-like structures
+        match: |-
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [aA]rray|[tT]uple|[lL]ist|[dD]?list|[sS]et|[mM]ap|[hH]ash(?:[mM]ap|[sS]et)|[bB]tree(?:[mM]ap|[sS]et)?
+            |[sS]lice|[sS]pan|[bB]ox|[oO]ption|[rR]esult
+            |[sS]tack|[qQ]ueue|[dD]eque|[rR]ing|[gG]raph|[tT]ree|[dD]ag
+          )\b
+        name: support.type.collection.ruko
+      - comment: |-
+          Algebraic & error handling types
+          Option/Some/None, Result/Ok/Err, Either/Left/Right, Maybe, Void
+        match: |-
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+            [oO]ption|[sS]ome|[nN]one|[rR]esult|[oO]k|[eE]rr|[eE]ither|[lL]eft|[rR]ight
+            |[mM]aybe|[vV]oid|[eE]mpty|[nN]ull
+          )\b
         name: support.class.error.ruko
       - comment: |-
-          Algebraic primitive types
-          Option: optional value
-          Either: value of one of two possible types
-          Result: success or error value
-          Pair: tuple of two values
-          Some: wrapper for an existing value
-          None: absence of a value
-          Left: left value of an Either type
-          Right: right value of an Either type
-          Just: wrapper for an existing value
-          Ok: success value
-          Err: error value
-          Fail: failure value
-          Void: empty type
-          True/False: boolean values
-          Maybe: optional value
-          Any/All/Each/Every: universal quantifiers
+          Concurrency and synchronization types
+          Future/Promise/Task/Thread/Mutex/RwLock/Semaphore/Channel/Actor
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
-            [oO]ption|[eE]ither|[rR]esult|[pP]air|[sS]ome|[nN]one
-            |[lL]eft|[rR]ight|[jJ]ust|[oO]k|[eE]rr|[fF]ail|[vV]oid
-            |[tT]rue|[fF]alse|[mM]aybe|[aA]ny|[aA]ll|[eE]ach|[eE]very
-          )\b
-        name: support.type.primitive.ruko
-      - comment: Concurrent primitive types
-        match: |-
-          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
-            [fF]uture|[pP]romise|[lL]ock|[mM]utex|[sS]emaphore
-            |[cC]ondition|[wW]aitGroup|[bB]arrier|[wW]orker|[tT]hread
-            |[pP]rocess|[jJ]ob|[qQ]uery|[eE]vent|[mM]ailbox|[sS]ignal
-            |[cCgG]oroutine|[aA]ctor|[cC]hannel|[rR]outine|[cC]oordinator
-            |[sS]cheduler|[tT]ask|[eE]xecutor
+            [fF]uture|[pP]romise|[tT]ask|[tT]hread|[mM]utex|[rR]w[lL]ock|[sS]emaphore
+            |[lL]ock|[cC]ondition|[wW]ait[Gg]roup|[bB]arrier|[cC]hannel|[aA]ctor|[cC]oroutine
+            |[tT]hreadpool|[wW]orker|[eE]xecutor
           )\b
         name: support.class.concurrent.ruko
-      - comment: File and IO types
+      - comment: |-
+          File system & IO types
+          File/Dir/Path/Stream/Reader/Writer/BufReader/BufWriter/Socket
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
-            [fF]ile|[fF]older|[dD]ir|[pP]ath|[sS]tream|[bB]uffer
-            |[rR]eader|[wW]riter|[sS]erializer|[dD]eserializer
-            |[lL]ogger|[tT]erminal|[cC]onsole|[iI]nput|[oO]utput
-            |[eE]ncoder|[dD]ecoder|[eE]mitter|[rR]eceiver
-            |[fF]ormatter|[pP]arser|[qQ]ueue|[sS]ocket
-            |[iI]O|[cC]hannel|[cC]ommunicator|[cC]onnection
-            |[cC]lient|[sS]erver|[pP]rotocol|[mM]essage
-            |[tT]ransport|[sS]ession|[rR]esource
+            [fF]ile|[dD]ir|[fF]older|[pP]ath|[sS]tream|[rR]eader|[wW]riter|[bB]uf(?:[rR]eader|[wW]riter)?
+            |[sS]ocket|[eE]ndpoint|[cC]onnection|[cC]lient|[sS]erver|[pP]rotocol
           )\b
         name: support.class.io.ruko
-      - comment: Network types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]ocket|[hH]ttp|[uU]dp|[tT]cp)\b
+      - comment: |-
+          Networking and protocol types
+          Socket/Http/Tcp/Udp/Request/Response/Route/Router
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]ocket|[hH]ttp|[tT]cp|[uU]dp|[rR]equest|[rR]esponse|[rR]outer|[rR]oute)\b
         name: support.class.network.ruko
-      - comment: Date and Time types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([dD]ate|[tT]ime|[dD]atetime|[tT]imestamp)\b
-        name: support.class.datetime.ruko
-      - comment: Pattern matching types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([rR]egex|[pP]attern|[mM]atcher)\b
-        name: support.class.pattern.ruko
-      - comment: Serialization types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]erializer|[dD]eserializer|[eE]ncoder|[dD]ecoder)\b
-        name: support.class.serialization.ruko
-      - comment: Shader types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]hader|[mM]aterial|[tT]exture|[sS]ampler|[bB]uffer)\b
-        name: support.class.shader.ruko
-      - comment: Database types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([dD]atabase|[cC]onnection|[qQ]uery|[rR]esultSet|[tT]ransaction)\b
+      - comment: |-
+          Database types
+          Database/Connection/Pool/Query/ResultSet/Row/Transaction/Record
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([dD]atabase|[cC]onnection|[pP]ool|[qQ]uery|[rR]esult[Ss]et|[rR]ow|[tT]ransaction|[rR]ecord)\b
         name: support.class.database.ruko
-      - comment: Cryptography types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]ipher|[hH]ash|[sS]ignature|[kK]ey|[sS]sl|[tT]ls)\b
-        name: support.class.crypto.ruko
-      - comment: Graphics types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]anvas|[iI]mage|[sS]prite|[bB]itmap|[fF]ont|[cC]olor)\b
+      - comment: |-
+          Date, time and scheduling types
+          Date/Time/DateTime/Duration/Timestamp/Instant/Timezone/Calendar
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([dD]ate|[tT]ime|[dD]atetime|[dD]uration|[tT]imestamp|[iI]nstant|[zZ]one|[zZ]one?offset|[tT]imezone)\b
+        name: support.class.datetime.ruko
+      - comment: |-
+          Pattern, parsing and regex types
+          Regex/Pattern/Parser/Tokenizer/Matcher
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([rR]egex|[pP]attern|[pP]arser|[tT]okenizer|[mM]atcher)\b
+        name: support.class.pattern.ruko
+      - comment: |-
+          Serialization, codecs and RPC types
+          Serializer/Deserializer/Encoder/Decoder/Codec/Proto/JSON/RPC
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]erializer|[dD]eserializer|[eE]ncoder|[dD]ecoder|[cC]odec|[pP]roto|[jJ](son|SON)|[rR](pc|PC))\b
+        name: support.class.serialization.ruko
+      - comment: |-
+          Graphics and multimedia types
+          Canvas/Image/Texture/Shader/Mesh/Material/Framebuffer/VertexBuffer/Font/Color
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]anvas|[iI]mage|[tT]exture|[sS]hader|[mM]esh|[mM]aterial|[fF]ramebuffer|[vV]ertex[Bb]uffer|[fF]ont|[cC]olor)\b
         name: support.class.graphics.ruko
-      - comment: Audio types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]ound|[mM]usic|[aA]udio|[bB]uffer|[sS]ource|[lL]istener)\b
+      - comment: |-
+          Audio and sound types
+          Sound/Music/Buffer/Source/Mixer/Listener/Reverb
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([sS]ound|[mM]usic|[aA]udio|[bB]uffer|[sS]ource|[mM]ixer|[lL]istener|[rR]everb)\b
         name: support.class.audio.ruko
-      - comment: Physics types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([bB]ody|[cC]ollider|[sS]hape|[fF]orce|[vV]ector\d+|[qQ]uaternion)\b
+      - comment: |-
+          Physics and simulation types
+          Body/Collider/Shape/Constraint/Force/Vector3/Quaternion
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([bB]ody|[cC]ollider|[sS]hape|[cC]onstraint|[fF]orce|[vV]ector\d+|[qQ]uaternion)\b
         name: support.class.physics.ruko
-      - comment: AI and Machine Learning types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([nN]euralNet|[mM]odel|[dD]ataset|[lL]ayer|[aA]lgorithm)\b
+      - comment: |-
+          Cryptography types
+          Cipher/Hash/HMAC/Signature/KeyPair/PublicKey/PrivateKey/Certificate/RNG
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]ipher|[hH]ash|[mM]ac|[sS]ignature|[kK]ey(?:Pair|Id)?)\b
+        name: support.class.crypto.ruko
+      - comment: |-
+          AI & Machine Learning types
+          Tensor/Model/Layer/Optimizer/Dataset/DataLoader/Loss/Metric/Trainer
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([tT]ensor|[mM]odel|[lL]ayer|[oO]ptimizer|[dD]ataset|[dD]ata[Ll]oader|[lL]oss|[mM]etric|[tT]rainer)\b
         name: support.class.ai.ruko
-      - comment: Web development types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([rR]equest|[rR]esponse|[sS]ession|[cC]ookie|[hH]andler)\b
+      - comment: |-
+          Web application types
+          Request/Response/Router/Route/Handler/Middleware/Cookie/Session
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([rR]equest|[rR]esponse|[rR]outer|[rR]oute|[hH]andler|[mM]iddleware|[cC]ookie|[sS]ession)\b
         name: support.class.web.ruko
-      - comment: Testing types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([tT]estCase|[mM]ock|[sS]py|[aA]ssertion|[fF]ixture)\b
+      - comment: |-
+          Testing & tooling types
+          TestSuite/TestCase/Mock/Spy/Assertion/Fixture/Bench
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([tT]est[Ss]uite|[tT]est[Cc]ase|[mM]ock|[sS]py|[aA]ssertion|[fF]ixture|[bB]ench)\b
         name: support.class.testing.ruko
-      - comment: Miscellaneous types
-        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]onfig|[sS]ettings|[lL]ogger|[eE]vent|[mM]anager)\b
+      - comment: |-
+          Miscellaneous types
+          Config/Settings/Logger/Event/Manager/Resource/Handle
+        match: (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b([cC]onfig|[sS]ettings|[lL]ogger|[eE]vent|[mM]anager|[rR]esource|[hH]andle)\b
         name: support.class.misc.ruko
       - comment: Include built-in classes from other languages to improve recognition
         include: "#support-classes"
@@ -9063,6 +9065,14 @@ repository:
       - include: source.swift#builtin-types-builtin-struct-type
       - include: source.swift#builtin-types-builtin-enum-type
       - include: source.swift#builtin-types-builtin-class-type
+
+      # JavaScript DOM and Web API types
+      - comment: |-
+          DOM & Web API types
+          Common browser and web platform interfaces (HTML, DOM, Fetch, WebAudio, WebGPU, WebXR, etc.)
+        match: |-
+          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(AbortController|AbortSignal|AbsoluteOrientationSensor|AbstractRange|AccelerometerExperimental|AesCbcParams|AesCtrParams|AesDerivedKeyParams|AesGcmParams|AesKeyGenParams|AmbientLightSensorExperimental|AnalyserNode|ANGLE_instanced_arrays|Animation|AnimationEffect|AnimationEvent|AnimationPlaybackEvent|AnimationTimeline|Attr|AudioBuffer|AudioBufferSourceNode|AudioContext|AudioData|AudioDecoder|AudioDestinationNode|AudioEncoder|AudioListener|AudioNode|AudioParam|AudioParamDescriptor|AudioParamMap|AudioProcessingEventDeprecated|AudioScheduledSourceNode|AudioSinkInfoExperimental|AudioTrack|AudioTrackList|AudioWorklet|AudioWorkletGlobalScope|AudioWorkletNode|AudioWorkletProcessor|AuthenticatorAssertionResponse|AuthenticatorAttestationResponse|AuthenticatorResponse|BackgroundFetchEventExperimental|BackgroundFetchManagerExperimental|BackgroundFetchRecordExperimental|BackgroundFetchRegistrationExperimental|BackgroundFetchUpdateUIEventExperimental|BarcodeDetectorExperimental|BarProp|BaseAudioContext|BatteryManager|BeforeInstallPromptEventExperimentalNon-standard|BeforeUnloadEvent|BiquadFilterNode|Blob|BlobEvent|BluetoothExperimental|BluetoothCharacteristicPropertiesExperimental|BluetoothDeviceExperimental|BluetoothRemoteGATTCharacteristicExperimental|BluetoothRemoteGATTDescriptorExperimental|BluetoothRemoteGATTServerExperimental|BluetoothRemoteGATTServiceExperimental|BluetoothUUID|BroadcastChannel|BrowserCaptureMediaStreamTrackExperimental|ByteLengthQueuingStrategy|Cache|CacheStorage|CanMakePaymentEventExperimental|CanvasCaptureMediaStreamTrack|CanvasGradient|CanvasPattern|CanvasRenderingContext2D|CaptureControllerExperimental|CaretPosition|CDATASection|ChannelMergerNode|ChannelSplitterNode|ChapterInformationExperimental|CharacterBoundsUpdateEventExperimental|CharacterData|Client|Clients|Clipboard|ClipboardEvent|ClipboardItem|CloseEvent|CloseWatcherExperimental|CommandEvent|Comment|CompositionEvent|CompressionStream|console|ConstantSourceNode|ContactAddressExperimental|ContactsManagerExperimental|ContentIndexExperimental|ContentIndexEventExperimental|ContentVisibilityAutoStateChangeEvent|ConvolverNode|CookieChangeEvent|CookieStore|CookieStoreManager|CountQueuingStrategy|CreateMonitorExperimental|Credential|CredentialsContainer|CropTargetExperimental|Crypto|CryptoKey|CryptoKeyPair|CSPViolationReportBody|CSS|CSSAnimation|CSSConditionRule|CSSContainerRule|CSSCounterStyleRule|CSSFontFaceRule|CSSFontFeatureValuesRule|CSSFontPaletteValuesRule|CSSFunctionDeclarationsExperimental|CSSFunctionDescriptorsExperimental|CSSFunctionRuleExperimental|CSSGroupingRule|CSSImageValue|CSSImportRule|CSSKeyframeRule|CSSKeyframesRule|CSSKeywordValue|CSSLayerBlockRule|CSSLayerStatementRule|CSSMathInvert|CSSMathMax|CSSMathMin|CSSMathNegate|CSSMathProduct|CSSMathSum|CSSMathValue|CSSMatrixComponent|CSSMediaRule|CSSNamespaceRule|CSSNestedDeclarations|CSSNumericArray|CSSNumericValue|CSSPageDescriptors|CSSPageRule|CSSPerspective|CSSPositionTryDescriptors|CSSPositionTryRule|CSSPositionValue|CSSPrimitiveValueDeprecated|CSSPropertyRule|CSSPseudoElementExperimental|CSSRotate|CSSRule|CSSRuleList|CSSScale|CSSScopeRule|CSSSkew|CSSSkewX|CSSSkewY|CSSStartingStyleRule|CSSStyleDeclaration|CSSStyleProperties|CSSStyleRule|CSSStyleSheet|CSSStyleValue|CSSSupportsRule|CSSTransformComponent|CSSTransformValue|CSSTransition|CSSTranslate|CSSUnitValue|CSSUnparsedValue|CSSValueDeprecated|CSSValueListDeprecated|CSSVariableReferenceValue|CSSViewTransitionRule|CustomElementRegistry|CustomEvent|CustomStateSet|DataTransfer|DataTransferItem|DataTransferItemList|DecompressionStream|DedicatedWorkerGlobalScope|DeferredRequestInitExperimental|DelayNode|DelegatedInkTrailPresenterExperimental|DeprecationReportBodyExperimental|DeviceMotionEvent|DeviceMotionEventAcceleration|DeviceMotionEventRotationRate|DeviceOrientationEvent|DevicePostureExperimental|DirectoryEntrySync|DirectoryReaderSync|Document|DocumentFragment|DocumentPictureInPictureExperimental|DocumentPictureInPictureEventExperimental|DocumentTimeline|DocumentType|DOMErrorDeprecated|DOMException|DOMHighResTimeStamp|DOMImplementation|DOMMatrix|DOMMatrixReadOnly|DOMParser|DOMPoint|DOMPointReadOnly|DOMQuad|DOMRect|DOMRectList|DOMRectReadOnly|DOMStringList|DOMStringMap|DOMTokenList|DragEvent|DynamicsCompressorNode|EcdhKeyDeriveParams|EcdsaParams|EcKeyGenParams|EcKeyImportParams|EncodedAudioChunk|EncodedVideoChunk|ErrorEvent|Event|EventCounts|EventSource|EventTarget|ExtendableCookieChangeEvent|ExtendableEvent|ExtendableMessageEvent|EyeDropperExperimental|FeaturePolicyExperimental|FederatedCredentialExperimental|FederatedCredentialInit|FenceExperimental|FencedFrameConfigExperimental|FetchEvent|FetchLaterResultExperimental|File|FileEntrySync|FileList|FileReader|FileReaderSync|FileSystem|FileSystemChangeRecord|FileSystemDirectoryEntry|FileSystemDirectoryHandle|FileSystemEntry|FileSystemFileEntry|FileSystemFileHandle|FileSystemHandle|FileSystemObserverExperimentalNon-standard|FileSystemSync|FileSystemSyncAccessHandle|FileSystemWritableFileStream|FocusEvent|FontDataExperimental|FontFace|FontFaceSet|FontFaceSetLoadEvent|FormData|FormDataEvent|FragmentDirective|GainNode|Gamepad|GamepadButton|GamepadEvent|GamepadHapticActuator|GamepadPoseExperimental|Geolocation|GeolocationCoordinates|GeolocationPosition|GeolocationPositionError|GestureEventNon-standard|GPU|GPUAdapter|GPUAdapterInfo|GPUBindGroup|GPUBindGroupLayout|GPUBuffer|GPUCanvasContext|GPUCommandBuffer|GPUCommandEncoder|GPUCompilationInfo|GPUCompilationMessage|GPUComputePassEncoder|GPUComputePipeline|GPUDevice|GPUDeviceLostInfo|GPUError|GPUExternalTexture|GPUInternalError|GPUOutOfMemoryError|GPUPipelineError|GPUPipelineLayout|GPUQuerySet|GPUQueue|GPURenderBundle|GPURenderBundleEncoder|GPURenderPassEncoder|GPURenderPipeline|GPUSampler|GPUShaderModule|GPUSupportedFeatures|GPUSupportedLimits|GPUTexture|GPUTextureView|GPUUncapturedErrorEvent|GPUValidationError|GravitySensor|Gyroscope|HashChangeEvent|Headers|HIDExperimental|HIDConnectionEventExperimental|HIDDeviceExperimental|HIDInputReportEventExperimental|Highlight|HighlightRegistry|History|HkdfParams|HmacImportParams|HmacKeyGenParams|HMDVRDevice|HTMLAllCollection|HTMLAnchorElement|HTMLAreaElement|HTMLAudioElement|HTMLBaseElement|HTMLBodyElement|HTMLBRElement|HTMLButtonElement|HTMLCanvasElement|HTMLCollection|HTMLDataElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDivElement|HTMLDListElement|HTMLDocument|HTMLElement|HTMLEmbedElement|HTMLFencedFrameElementExperimental|HTMLFieldSetElement|HTMLFontElementDeprecated|HTMLFormControlsCollection|HTMLFormElement|HTMLFrameSetElementDeprecated|HTMLHeadElement|HTMLHeadingElement|HTMLHRElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLInputElement|HTMLLabelElement|HTMLLegendElement|HTMLLIElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElementDeprecated|HTMLMediaElement|HTMLMenuElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLObjectElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOptionsCollection|HTMLOutputElement|HTMLParagraphElement|HTMLParamElementDeprecated|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLSelectedContentElementExperimental|HTMLSelectElement|HTMLSlotElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTimeElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|IDBCursor|IDBCursorWithValue|IDBDatabase|IDBFactory|IDBIndex|IDBKeyRange|IDBObjectStore|IDBOpenDBRequest|IDBRequest|IDBTransaction|IDBVersionChangeEvent|IdentityCredentialExperimental|IdentityCredentialErrorExperimental|IdentityCredentialRequestOptionsExperimental|IdentityProviderExperimental|IdleDeadline|IdleDetectorExperimental|IIRFilterNode|ImageBitmap|ImageBitmapRenderingContext|ImageCapture|ImageData|ImageDecoder|ImageTrack|ImageTrackList|InkExperimental|InputDeviceCapabilitiesExperimental|InputDeviceInfo|InputEvent|InstallEvent|IntegrityViolationReportBody|InterestEventExperimentalNon-standard|IntersectionObserver|IntersectionObserverEntry|InterventionReportBodyExperimental|KeyboardExperimental|KeyboardEvent|KeyboardLayoutMapExperimental|KeyframeEffect|LanguageDetectorExperimental|LargestContentfulPaint|LaunchParamsExperimental|LaunchQueueExperimental|LayoutShiftExperimental|LayoutShiftAttributionExperimental|LinearAccelerationSensor|Location|Lock|LockManager|MagnetometerExperimental|MathMLElement|MediaCapabilities|MediaDeviceInfo|MediaDevices|MediaElementAudioSourceNode|MediaEncryptedEvent|MediaError|MediaKeyMessageEvent|MediaKeys|MediaKeySession|MediaKeyStatusMap|MediaList|MediaMetadata|MediaQueryList|MediaQueryListEvent|MediaRecorder|MediaRecorderErrorEvent|MediaSession|MediaSource|MediaSourceHandle|MediaStream|MediaStreamAudioDestinationNode|MediaStreamAudioSourceNode|MediaStreamEvent|MediaStreamTrack|MediaStreamTrackAudioSourceNode|MediaStreamTrackEvent|MediaStreamTrackGeneratorExperimentalNon-standard|MediaStreamTrackProcessor|MediaTrackConstraints|MediaTrackSettings|MediaTrackSupportedConstraints|MerchantValidationEventDeprecated|MessageChannel|MessageEvent|MessagePort|MetadataExperimentalNon-standard|MIDIAccess|MIDIConnectionEvent|MIDIInput|MIDIInputMap|MIDIMessageEvent|MIDIOutput|MIDIOutputMap|MIDIPort|MimeTypeDeprecated|MimeTypeArrayDeprecated|MouseEvent|MouseScrollEvent|MutationEvent|MutationObserver|MutationRecord|NamedNodeMap|NavigateEvent|Navigation|NavigationActivation|NavigationCurrentEntryChangeEvent|NavigationDestination|NavigationHistoryEntry|NavigationPrecommitController|NavigationPreloadManager|NavigationTransition|Navigator|NavigatorLogin|NavigatorUADataExperimental|NDEFMessageExperimental|NDEFReaderExperimental|NDEFReadingEventExperimental|NDEFRecordExperimental|NetworkInformation|Node|NodeIterator|NodeList|Notification|NotificationEvent|NotRestoredReasonDetailsExperimental|NotRestoredReasonsExperimental|OES_draw_buffers_indexed|OfflineAudioCompletionEvent|OfflineAudioContext|OffscreenCanvas|OffscreenCanvasRenderingContext2D|OrientationSensor|OscillatorNode|OTPCredentialExperimental|OverconstrainedError|PageRevealEvent|PageSwapEvent|PageTransitionEvent|PaintRenderingContext2D|PaintSize|PaintWorkletGlobalScopeExperimental|PannerNode|PasswordCredentialExperimental|PasswordCredentialInit|Path2D|PaymentAddress|PaymentManagerExperimental|PaymentMethodChangeEvent|PaymentRequest|PaymentRequestEventExperimental|PaymentRequestUpdateEvent|PaymentResponse|Pbkdf2Params|Performance|PerformanceElementTimingExperimental|PerformanceEntry|PerformanceEventTiming|PerformanceLongAnimationFrameTimingExperimental|PerformanceLongTaskTimingExperimental|PerformanceMark|PerformanceMeasure|PerformanceNavigationDeprecated|PerformanceNavigationTiming|PerformanceObserver|PerformancePaintTiming|PerformanceResourceTiming|PerformanceScriptTimingExperimental|PerformanceServerTiming|PerformanceTimingDeprecated|PeriodicSyncEventExperimental|PeriodicSyncManagerExperimental|PeriodicWave|Permissions|PermissionStatus|PictureInPictureEvent|PictureInPictureWindow|PluginDeprecated|PluginArrayDeprecated|Point|PointerEvent|PopStateEvent|PositionSensorVRDevice|PresentationExperimental|PresentationAvailabilityExperimental|PresentationConnectionExperimental|PresentationConnectionAvailableEventExperimental|PresentationConnectionCloseEventExperimental|PresentationConnectionListExperimental|PresentationReceiverExperimental|PresentationRequestExperimental|PressureObserverExperimental|PressureRecordExperimental|ProcessingInstruction|ProfilerExperimental|ProgressEvent|PromiseRejectionEvent|PublicKeyCredential|PublicKeyCredentialCreationOptions|PublicKeyCredentialRequestOptions|PushEvent|PushManager|PushMessageData|PushSubscription|PushSubscriptionOptions|QuotaExceededErrorExperimental|RadioNodeList|Range|ReadableByteStreamController|ReadableStream|ReadableStreamBYOBReader|ReadableStreamBYOBRequest|ReadableStreamDefaultController|ReadableStreamDefaultReader|RelativeOrientationSensor|RemotePlayback|Report|ReportBody|ReportingObserver|Request|RequestInit|ResizeObserver|ResizeObserverEntry|ResizeObserverSize|Response|RestrictionTargetExperimental|RsaHashedImportParams|RsaHashedKeyGenParams|RsaOaepParams|RsaPssParams|RTCAudioSourceStats|RTCCertificate|RTCCertificateStats|RTCCodecStats|RTCDataChannel|RTCDataChannelEvent|RTCDataChannelStats|RTCDtlsTransport|RTCDTMFSender|RTCDTMFToneChangeEvent|RTCEncodedAudioFrame|RTCEncodedVideoFrame|RTCError|RTCErrorEvent|RTCIceCandidate|RTCIceCandidatePair|RTCIceCandidatePairStats|RTCIceCandidateStats|RTCIceParameters|RTCIceTransport|RTCIdentityAssertionExperimental|RTCInboundRtpStreamStats|RTCOutboundRtpStreamStats|RTCPeerConnection|RTCPeerConnectionIceErrorEvent|RTCPeerConnectionIceEvent|RTCPeerConnectionStats|RTCRemoteInboundRtpStreamStats|RTCRemoteOutboundRtpStreamStats|RTCRtpReceiver|RTCRtpScriptTransform|RTCRtpScriptTransformer|RTCRtpSender|RTCRtpTransceiver|RTCSctpTransport|RTCSessionDescription|RTCStatsReport|RTCTrackEvent|RTCTransformEvent|RTCTransportStats|RTCVideoSourceStats|SanitizerExperimental|SanitizerConfigExperimental|Scheduler|SchedulingExperimental|Screen|ScreenDetailedExperimental|ScreenDetailsExperimental|ScreenOrientation|ScriptProcessorNodeDeprecated|ScrollTimeline|SecurePaymentConfirmationRequest|SecurityPolicyViolationEvent|Selection|Sensor|SensorErrorEvent|SerialExperimental|SerialPortExperimental|ServiceWorker|ServiceWorkerContainer|ServiceWorkerGlobalScope|ServiceWorkerRegistration|ShadowRoot|SharedStorageDeprecated|SharedStorageOperationDeprecated|SharedStorageRunOperationDeprecated|SharedStorageWorkletDeprecated|SharedStorageWorkletGlobalScopeDeprecated|SharedWorker|SharedWorkerGlobalScope|SnapEventExperimental|SourceBuffer|SourceBufferList|SpeechGrammarDeprecated|SpeechGrammarListDeprecated|SpeechRecognition|SpeechRecognitionAlternative|SpeechRecognitionErrorEvent|SpeechRecognitionEvent|SpeechRecognitionPhraseExperimental|SpeechRecognitionResult|SpeechRecognitionResultList|SpeechSynthesis|SpeechSynthesisErrorEvent|SpeechSynthesisEvent|SpeechSynthesisUtterance|SpeechSynthesisVoice|StaticRange|StereoPannerNode|Storage|StorageAccessHandle|StorageEvent|StorageManager|StylePropertyMap|StylePropertyMapReadOnly|StyleSheet|StyleSheetList|SubmitEvent|SubtleCrypto|SummarizerExperimental|SVGAElement|SVGAngle|SVGAnimateColorElementDeprecated|SVGAnimatedAngle|SVGAnimatedBoolean|SVGAnimatedEnumeration|SVGAnimatedInteger|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedPreserveAspectRatio|SVGAnimatedRect|SVGAnimatedString|SVGAnimatedTransformList|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGDefsElement|SVGDescElement|SVGDiscardElementDeprecated|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGradientElement|SVGGraphicsElement|SVGImageElement|SVGLength|SVGLengthList|SVGLinearGradientElement|SVGLineElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMPathElement|SVGNumber|SVGNumberList|SVGPathElement|SVGPatternElement|SVGPointDeprecated|SVGPointList|SVGPolygonElement|SVGPolylineElement|SVGPreserveAspectRatio|SVGRadialGradientElement|SVGRect|SVGRectElement|SVGRenderingIntentDeprecated|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStringList|SVGStyleElement|SVGSVGElement|SVGSwitchElement|SVGSymbolElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGTransform|SVGTransformList|SVGTSpanElement|SVGUnitTypes|SVGUseElement|SVGViewElement|SyncEvent|SyncManager|TaskAttributionTimingExperimental|TaskController|TaskPriorityChangeEvent|TaskSignal|Text|TextDecoder|TextDecoderStream|TextEncoder|TextEncoderStream|TextEventDeprecated|TextFormatExperimental|TextFormatUpdateEventExperimental|TextMetrics|TextTrack|TextTrackCue|TextTrackCueList|TextTrackList|TextUpdateEventExperimental|TimeEvent|TimeRanges|ToggleEvent|Touch|TouchEvent|TouchList|TrackEvent|TransformStream|TransformStreamDefaultController|TransitionEvent|TranslatorExperimental|TreeWalker|TrustedHTML|TrustedScript|TrustedScriptURL|TrustedTypePolicy|TrustedTypePolicyFactory|UIEvent|URL|URLPattern|URLSearchParams|USBExperimental|USBAlternateInterfaceExperimental|USBConfigurationExperimental|USBConnectionEventExperimental|USBDeviceExperimental|USBEndpointExperimental|USBInterfaceExperimental|USBInTransferResultExperimental|USBIsochronousInTransferPacketExperimental|USBIsochronousInTransferResultExperimental|USBIsochronousOutTransferPacketExperimental|USBIsochronousOutTransferResultExperimental|USBOutTransferResultExperimental|UserActivation|ValidityState|VideoColorSpace|VideoDecoder|VideoEncoder|VideoFrame|VideoPlaybackQuality|VideoTrack|VideoTrackGeneratorExperimental|VideoTrackList|ViewportExperimental|ViewTimeline|ViewTransitionTypeSet|VirtualKeyboardExperimental|VisibilityStateEntryExperimental|VisualViewport|VRDisplay|VRDisplayCapabilities|VRDisplayEvent|VREyeParameters|VRFieldOfView|VRFrameData|VRLayerInit|VRPose|VRStageParameters|VTTCue|VTTRegion|WakeLock|WakeLockSentinel|WaveShaperNode|WebGL2RenderingContext|WebGLActiveInfo|WebGLBuffer|WebGLContextEvent|WebGLFramebuffer|WebGLObjectExperimental|WebGLProgram|WebGLQuery|WebGLRenderbuffer|WebGLRenderingContext|WebGLSampler|WebGLShader|WebGLShaderPrecisionFormat|WebGLSync|WebGLTexture|WebGLTransformFeedback|WebGLUniformLocation|WebGLVertexArrayObject|WebSocket|WebSocketStreamExperimental|WebTransport|WebTransportBidirectionalStream|WebTransportDatagramDuplexStream|WebTransportError|WebTransportReceiveStreamExperimental|WebTransportSendStreamExperimental|WGSLLanguageFeatures|WheelEvent|Window|WindowClient|WindowControlsOverlayExperimental|WindowControlsOverlayGeometryChangeEventExperimental|WindowSharedStorageDeprecated|Worker|WorkerGlobalScope|WorkerLocation|WorkerNavigator|Worklet|WorkletGlobalScope|WorkletSharedStorageDeprecated|WritableStream|WritableStreamDefaultController|WritableStreamDefaultWriter|XMLDocument|XMLHttpRequest|XMLHttpRequestEventTarget|XMLHttpRequestUpload|XMLSerializer|XPathEvaluator|XPathExpression|XPathResult|XRAnchorExperimental|XRAnchorSetExperimental|XRBoundedReferenceSpaceExperimental|XRCompositionLayerExperimental|XRCPUDepthInformationExperimental|XRCubeLayerExperimental|XRCylinderLayerExperimental|XRDepthInformationExperimental|XREquirectLayerExperimental|XRFrameExperimental|XRHand|XRHitTestResultExperimental|XRHitTestSourceExperimental|XRInputSource|XRInputSourceArrayExperimental|XRInputSourceEvent|XRInputSourcesChangeEvent|XRJointPose|XRJointSpace|XRLayerExperimental|XRLayerEventExperimental|XRLightEstimateExperimental|XRLightProbeExperimental|XRMediaBindingExperimental|XRPose|XRProjectionLayerExperimental|XRQuadLayerExperimental|XRRayExperimental|XRReferenceSpace|XRReferenceSpaceEvent|XRRenderStateExperimental|XRRigidTransform|XRSessionExperimental|XRSessionEvent|XRSpace|XRSubImageExperimental|XRSystemExperimental|XRTransientInputHitTestResultExperimental|XRTransientInputHitTestSourceExperimental|XRViewExperimental|XRViewerPose|XRViewport|XRWebGLBindingExperimental|XRWebGLDepthInformationExperimental|XRWebGLLayerExperimental|XRWebGLSubImageExperimental|XSLTProcessor)\b
+        name: support.class.dom.ruko
 
       # ShaderLab
       - name: support.type.basic.shaderlab

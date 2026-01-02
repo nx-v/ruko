@@ -124,7 +124,7 @@ export class MTRand {
         mut ok = true
         for i in 0..<N {
           let bytes = ur.get.read_bytes(4)
-          if bytes.len != 4 {ok = false; break}
+          if bytes.len != 4 {ok := false; break}
           big[i] := bytes.to_u32(0)
         }
         ur.get.close()
@@ -254,22 +254,14 @@ export class MTRand {
     }
 
     // operator overloads
-    right oper prec 4 (
-      o_stream: &io.OutputStream
-    ) <- (
-      mt_rand: &MTRand
-    ): &io.OutputStream {
+    right oper prec 4 (o_stream: &io.OutputStream) <- (mt_rand: &MTRand): &io.OutputStream {
       for i in 0..<N:
         o_stream.write_str(mt_rand.state[i] as str ++ '\t')
       o_stream.write_str(mt_rand.left as str)
       o_stream // implicit return
     }
 
-    left oper prec 4 (
-      i_stream: &io.InputStream
-    ) -> (
-      mt_rand: &MTRand
-    ): &io.InputStream {
+    left oper prec 4 (i_stream: &io.InputStream) -> (mt_rand: &MTRand): &io.InputStream {
       for i in 0..<N {
         let line = i_stream.read_line()
         mt_rand.state[i] := line as u32

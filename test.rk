@@ -30,22 +30,6 @@ proc main {
   }]
 }
 
-// regex examples
-/[\d\D]/
-/\p{L}+/
-/\p{Script=Latin}+/
-/\p{sc=Han}+/
-/\p{blk=UCAS_Ext_A}+/
-/\p{name~=/(SMILING|GRINNING) FACE/}/g
-/\p{InGreek}+/i
-/\p{Script=Hiragana}+/m
-/\p{Emoji_Presentation}+/gi
-
-// generating a random string
-let randomString |repeat, seed = 3**32|: str =
-  [/[\da-z]/i random: seed, repeat toIter: join: '']
-print randomString
-
 // imperative style
 func sortedPowerSet(arr: i32[]): i32[][] {
   mut result: i32[][] = []
@@ -57,7 +41,7 @@ func sortedPowerSet(arr: i32[]): i32[][] {
     result.=push subset
   }
 
-  return result.=sortBy |a, b| {
+  return result.=sort |a, b| {
     let countA = a.reduce 0, |c,, i| c + 1
     let countB = b.reduce 0, |d,, i| d + 1
     if countA != countB:
@@ -95,7 +79,29 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
   ) then by a.len - b.len
 )
 
-// Objective-C style
+// Haskell/ML/Python style
+func sortedPowerSet(arr: i32[]): i32[][] =
+  let result = []: i32[][]
+
+  for let i in 0 ..< 1 << arr.len
+    let subset = []: i32[]
+    for let j in 0 ..< arr.len
+      if (i >> j) & 1
+        subset = push subset arr[j]
+    result = push result subset
+
+  sort result |a, b| {
+    let countA = reduce a 0, |c,, i| c + 1
+    let countB = reduce b 0, |d,, i| d + 1
+    if countA != countB
+      countA - countB
+    for let i in 0 ..< min a.len b.len
+      if a[i] != b[i]
+        a[i] - b[i]
+    a.len - b.len
+  }
+
+// Objective-C & Ruby style
 func sortedPowerSet(arr: i32[]): i32[][] {
   let result: i32[][] = []
 
@@ -106,7 +112,7 @@ func sortedPowerSet(arr: i32[]): i32[][] {
     [result =push: subset]
   }]
 
-  return [result =sortBy: |a, b| {
+  return [result =sort: |a, b| {
     let countA = [a reduce: 0, |c,, i| c + 1]
     let countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB: return countA - countB
@@ -130,7 +136,7 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
     (push result subset)
   )
 
-  (return (sortBy result (|a, b| (
+  (return (sort result (|a, b| (
     (let (type i32) countA (reduce a 0 (|c,, i| (+ c 1))))
     (let (type i32) countB (reduce b 0 (|d,, i| (+ d 1))))
     (if (!= countA countB)
@@ -157,7 +163,7 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
     </for>
     result.=push subset
   </for>
-  result.=sortBy |a, b| <>
+  result.=sort |a, b| <>
     <let (type i32) $countA=(a.reduce 0, |c,, i| c + 1)/>
     <let (type i32) $countB=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
@@ -175,6 +181,18 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
 
 for let i in sortedPowerSet [1...16]:
   echo i
+
+// using the various sortedPowerSet implementations
+for let i in sortedPowerSet [1...16]:
+  echo i
+
+// LINQ-style queries
+let formatPowerSet = |a: i32[][]|: str =
+  a.iter(iter: from let (subset: i32[]) in a where subset.len > 0
+    select '[' ++ [subset map: str x join: ','] ++ ']'
+  ).join ', '
+
+print <| formatPowerSet sortedPowerSet [1..<10]
 
 // shader language subset example (WGSL-like)
 shader MazeGenerator {
@@ -224,22 +242,6 @@ shader MazeGenerator {
     randomCarveCellWalls <| Vec2<i32> %id->xy
   }
 }
-
-// using the various sortedPowerSet implementations
-for let i in sortedPowerSet [1...16]:
-  echo i
-
-// LINQ-style queries
-let formatPowerSet = |a: i32[][]|: str =
-  a.iter(iter: from let (subset: i32[]) in a where subset.len > 0
-    select '[' ++ [subset map: str x join: ','] ++ ']'
-  ).join ', '
-
-print <| formatPowerSet sortedPowerSet [1..<10]
-
-// function call with different argument types
-funcName(arg1: 10, &mut arg2: 2, stat arg3: {k: v} as MyType)
-v = #{a: pub|*a| a + 1}
 
 // Style DSL example
 style style͏ {
@@ -296,6 +298,34 @@ style {
   additional_style: true
 }
 
+// regex examples
+/[\d\D]/
+/\p{L}+/
+/\p{Script=Latin}+/
+/\p{sc=Han}+/
+/\p{blk=UCAS_Ext_A}+/
+/\p{name~=/(SMILING|GRINNING) FACE/}/g
+/\p{InGreek}+/i
+/\p{Script=Hiragana}+/m
+/\p{Emoji_Presentation}+/gi
+
+// generating a random string
+let randomString |repeat, seed = 3**32|: str =
+  [/[\da-z]/i random: seed, repeat toIter: join: '']
+print randomString
+
+// function call with different argument types
+funcName(arg1: 10, &mut arg2: 2, stat arg3: {k: v} as MyType)
+v = #{a: pub|*a| a + 1}
+
+// chaining with custom operators
+// Haskell-style
+iter 4 $ every 3 (||+ n "10 20") $ (n "0 1 3") # s "triangle" # crush 4 
+// JavaScript-style
+iter(4, every(3, add.squeeze("10 20"), n("0 1 3").s("triangle").crush(4)))
+n("0 1 3").every(3, add.squeeze("10 20")).iter(4).s("triangle").crush(4)
+
+// iterating with index
 for let item, index in items:
   print $"Item $index: $item.name"
 
@@ -346,3 +376,46 @@ scope for͏ for let in͏ in [var͏ alloc: init: release:]:
     <span>$"Other: $i"</span>
   </if>
 </for>
+
+// "coastline" @by eddyflux
+// @version 1.0
+// from the Strudel Synthesizer Crate
+samples("github:eddyflux/crate");
+setcps(0.75);
+let chords = chord("<Bbm9 Fm9>/4").dict("ireal");
+stack(
+  stack(
+    // DRUMS
+    s("bd").struct("<[x*<1 2> [~@3 x]] x>"),
+    s("~ [rim, sd:<2 3>]").room("<0 0.2>"),
+    n("[0 <1 3>]*<2!3 4>").s("hh"),
+    s("rd:<1!3 2>*2").mask("<0 0 1 1>/16").gain(0.5),
+  )
+    .bank("crate")
+    .mask("<[0 1] 1 1 1>/16".early(0.5)), // CHORDS
+  chords.offset(-1).voicing().s("gm_epiano1:1").phaser(4).room(0.5), // MELODY
+  n("<0!3 1*2>").set(chords).mode("root:g2").voicing().s("gm_acoustic_bass"),
+  chords
+    .n("[0 <4 3 <2 5>>*2](<3 5>,8)")
+    .anchor("D5")
+    .voicing()
+    .segment(4)
+    .clip(rand.range(0.4, 0.8))
+    .room(0.75)
+    .shape(0.3)
+    .delay(0.25)
+    .fm(sine.range(3, 8).slow(8))
+    .lpf(sine.range(500, 1000).slow(8))
+    .lpq(5)
+    .rarely(ply("2"))
+    .chunk(4, fast(2))
+    .gain(perlin.range(0.6, 0.9))
+    .mask("<0 1 1 0>/16"),
+)
+  .late("[0 0.01]*4")
+  .late("[0 0.01]*2")
+  .size(4)
+  .delay(0.125)
+  .size(2)
+  .mix(0.3)
+  .run(64)
