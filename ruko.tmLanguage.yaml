@@ -465,7 +465,7 @@ repository:
           |for|while|until|loop|break|skip|redo
           |(?:re)?try|switch|[cm]atch|case|def|throw
           |return|yield|await|goto|pass|defer|sync|select
-          |copy|move|drop|raise|error|final
+          |raise|error|final|copy|move|drop
           |[gd]o|from|where|import|intern|export|extern
 
           # miscellaneous keywords
@@ -1361,7 +1361,7 @@ repository:
             |for|while|until|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
-            |copy|move|drop|raise|error|final
+            |raise|error|final|copy|move|drop
             |[gd]o|from|where|import|intern|export|extern
 
             # miscellaneous keywords
@@ -2315,7 +2315,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop|raise|error|final
+              |raise|error|final|copy|move|drop
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -2399,7 +2399,7 @@ repository:
                     |for|while|until|loop|break|skip|redo
                     |(?:re)?try|switch|[cm]atch|case|def|throw
                     |return|yield|await|goto|pass|defer|sync|select
-                    |copy|move|drop|raise|error|final
+                    |raise|error|final|copy|move|drop
                     |[gd]o|from|where|import|intern|export|extern
 
                     # miscellaneous keywords
@@ -3397,7 +3397,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop|raise|error|final
+              |raise|error|final|copy|move|drop
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -4064,7 +4064,7 @@ repository:
                   |for|while|until|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
                   |return|yield|await|goto|pass|defer|sync|select
-                  |copy|move|drop|raise|error|final
+                  |raise|error|final|copy|move|drop
                   |[gd]o|from|where|import|intern|export|extern
 
                   # miscellaneous keywords
@@ -4888,7 +4888,7 @@ repository:
                     |for|while|until|loop|break|skip|redo
                     |(?:re)?try|switch|[cm]atch|case|def|throw
                     |return|yield|await|goto|pass|defer|sync|select
-                    |copy|move|drop|raise|error|final
+                    |raise|error|final|copy|move|drop
                     |[gd]o|from|where|import|intern|export|extern
 
                     # miscellaneous keywords
@@ -4926,7 +4926,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -4952,11 +4952,12 @@ repository:
             patterns: [{ include: "#function-names" }]
       - comment: Piped function calls
         name: meta.function.arguments.ruko
-        match: |
+        match: |-
           (?x)
           (?<=
-              \s+ (?:<?[|+*$]>|[.·°¢]) \s+ # infix operator
-            | \b  (?:<?[|+*$]>|[·°]) \b  # primary operator
+              (?:^ | \s+)
+                 (?:<?[|+*$]>|[.·°¢]) \s+ # infix operator
+            | \b (?:<?[|+*$]>|[·°]) \b  # primary operator
           )
           \b
           (
@@ -4979,7 +4980,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5046,7 +5047,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5084,7 +5085,7 @@ repository:
             |for|while|until|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
-            |copy|move|drop|raise|error|final
+            |raise|error|final|copy|move|drop
             |[gd]o|from|where|import|intern|export|extern
 
             # miscellaneous keywords
@@ -5115,45 +5116,6 @@ repository:
         \s+ \\ # infix function operator
             [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-      )
-      (?! # function name
-        \s*
-        (?:\s (?:
-            (?:\?[:>]?=?) | # 1: optional access/unwrap
-            (?:![:>]?=?) | # 2: assert/unwrap operator
-            (?:[:>]?=?) # 3: access operator
-          ) \s*
-        )
-        # ignore all keywords
-        (?!
-          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-          (?: # keywords
-            # wordlike operators
-            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-            |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
-
-            # declaration keywords
-            |var|mut|let|auto|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|un|elif|elun|else|[tw]hen|guard|with
-            |for|while|until|loop|break|skip|redo
-            |(?:re)?try|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|sync|select
-            |copy|move|drop|raise|error|final
-            |[gd]o|from|where|import|intern|export|extern
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
-        )
-        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-        : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -5276,6 +5238,230 @@ repository:
       - include: "#accessor-operators"
 
   # Objective-C-style messages
+
+  selector-function-calls:
+    comment: Normal (bracketed or bracketless) function calls within selectors
+    name: meta.function.arguments.ruko
+    match: |-
+      (?x)
+      (?<=
+        (?:
+            (?: 
+              ^ # start of line
+              | [,;] # delimiter 
+              | (?: ['"`)}\]\w\s] | \\.)[\\:] # postfix colon or backslash
+              | \#? [({\[] # opening bracket
+            ) \s*
+          | # infix operator
+            \s+ (?:
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \s+
+          | # primary operator that isn't an accessor or assignment
+            \b (?:
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \b
+          | (?:
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # keywords
+                # wordlike operators
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
+
+                # declaration keywords
+                |var|mut|let|auto|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|un|elif|elun|else|[tw]hen|guard|with
+                |for|while|until|loop|break|skip|redo
+                |(?:re)?try|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|sync|select
+                |raise|error|final|copy|move|drop
+                |[gd]o|from|where|import|intern|export|extern
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              )
+            \b
+          ) \s*
+        )
+        [\p{P}\p{S}&&[^,;'"`/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+      )
+      (?<! # accessor or assignment
+        \b (?:
+          (?:[?!]?\.|[?!:]:|[?!-]>)=?
+        ) \b
+      )
+      (
+        # ignore all keywords
+        (?!
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+          (?: # keywords
+            # wordlike operators
+            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+            |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
+
+            # declaration keywords
+            |var|mut|let|auto|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+
+            # control flow keywords
+            |if|un|elif|elun|else|[tw]hen|guard|with
+            |for|while|until|loop|break|skip|redo
+            |(?:re)?try|switch|[cm]atch|case|def|throw
+            |return|yield|await|goto|pass|defer|sync|select
+            |raise|error|final|copy|move|drop
+            |[gd]o|from|where|import|intern|export|extern
+
+            # miscellaneous keywords
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
+            |begin|end
+          ) \b
+        )
+        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+        (?:
+          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+          `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+        )*
+      )
+      \b
+      (?!
+        : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
+      )
+      (?! # infix operator
+        \s+
+        [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        (?:[\p{P}\p{S}]*
+          [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        )?
+        (?=\s|$)
+      )
+      (?! # function name
+        \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+      )
+      (?! # function name
+        \s*
+        (?:\s (?:
+            (?:\?[:>]?=?) | # 1: optional access/unwrap
+            (?:![:>]?=?) | # 2: assert/unwrap operator
+            (?:[:>]?=?) # 3: access operator
+          ) \s*
+        )
+        # ignore all keywords
+        (?!
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+          (?: # keywords
+            # wordlike operators
+            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+            |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
+
+            # declaration keywords
+            |var|mut|let|auto|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+
+            # control flow keywords
+            |if|un|elif|elun|else|[tw]hen|guard|with
+            |for|while|until|loop|break|skip|redo
+            |(?:re)?try|switch|[cm]atch|case|def|throw
+            |return|yield|await|goto|pass|defer|sync|select
+            |raise|error|final|copy|move|drop
+            |[gd]o|from|where|import|intern|export|extern
+
+            # miscellaneous keywords
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
+            |begin|end
+          ) \b
+        )
+        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+        : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
+      )
+      (?=
+            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | [!~] \#?[({] # macro and destructor calls
+          | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
+          | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
+        (?:
+            \s+ (?:\w*|[`$#%]*)['"] # strings
+          | \s+ \b\d # numbers
+          | \s+ `\N # unquoted strings / stropped identifiers
+          | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
+          | \s+ \#? [(\[] # opening brackets
+          | \s+ /['"`\w\\(\[{] # regexp literal
+          | \s+ <(?:`?[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+                [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+                (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+          | \s+ \|(?: \#?[(\[{] )? # opening bracket
+                (?: [,;] \s* )* # optional separators
+                (?:
+                  ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
+                  (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+                  ([!?&*]*) # optional sigils
+                  \s*
+                )
+          | \s+ [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+            (?: # identifier
+              # ignore all keywords
+              (?!
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                (?: # keywords
+                  # wordlike operators
+                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                  |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
+
+                  # declaration keywords
+                  |var|mut|let|auto|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |module|schema|struct|record|object|union|macro|space
+                  |query|quote|style|script|shader|compo|temp|oper|realm
+
+                  # control flow keywords
+                  |if|un|elif|elun|else|[tw]hen|guard|with
+                  |for|while|until|loop|break|skip|redo
+                  |(?:re)?try|switch|[cm]atch|case|def|throw
+                  |return|yield|await|goto|pass|defer|sync|select
+                  |[gd]o|from|where|import|intern|export|extern
+
+                  # miscellaneous keywords
+                  |debug|assert|check|decl|ignore
+                  |use|echo|eval|exec|scope|safe|unsafe
+                  |begin|end
+                )
+                \b
+              )
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+              (?:
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              )*
+            )
+            \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+        )
+      )
+    captures:
+      1:
+        name: meta.function.name.ruko
+        patterns: [{ include: "#function-names" }]
 
   selector-calls:
     applyEndPatternLast: true
@@ -5614,7 +5800,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -5917,7 +6103,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop|raise|error|final
+              |raise|error|final|copy|move|drop
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -5969,7 +6155,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -6000,7 +6186,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -6376,7 +6562,7 @@ repository:
                 |for|while|until|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
-                |copy|move|drop|raise|error|final
+                |raise|error|final|copy|move|drop
                 |[gd]o|from|where|import|intern|export|extern
 
                 # miscellaneous keywords
@@ -6970,7 +7156,7 @@ repository:
               |for|while|until|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
-              |copy|move|drop|raise|error|final
+              |raise|error|final|copy|move|drop
               |[gd]o|from|where|import|intern|export|extern
 
               # miscellaneous keywords
@@ -8041,9 +8227,31 @@ repository:
         name: meta.brace.square.ruko
         captures:
           1: { name: punctuation.definition.sequence.ruko }
-        patterns:
+        patterns: &selector-core # duplicated from #core
           - include: "#selector-calls"
           - include: "#punctuation"
+          - include: "#directives"
+          - include: "#ignore-long-lines"
+          - include: "#clauses"
+          - include: "#declarations"
+          - include: "#keywords"
+          - include: "#comments"
+          - include: "#symbols"
+          - include: "#type-signature"
+          - include: "#argument-list"
+          - include: "#function-clause"
+          - include: "#selector-function-calls"
+          - include: "#decorators"
+          - include: "#splice-brackets"
+          - include: "#xml"
+          - include: "#generics"
+          - include: "#literals"
+          - include: "#accessor-operators"
+          - include: "#brackets"
+          - include: "#operators"
+          - include: "#variables"
+          - include: "#illegal"
+          - include: "#space"
           - include: $self
       - begin: |-
           (?x)
@@ -8063,10 +8271,7 @@ repository:
         name: meta.brace.square.ruko
         captures:
           1: { name: punctuation.definition.array.ruko }
-        patterns:
-          - include: "#selector-calls"
-          - include: "#punctuation"
-          - include: $self
+        patterns: *selector-core
       - begin: |-
           (?x)
           (?<= 
@@ -8087,19 +8292,13 @@ repository:
         name: meta.brace.square.ruko
         captures:
           1: { name: punctuation.definition.sequence.ruko }
-        patterns:
-          - include: "#selector-calls"
-          - include: "#punctuation"
-          - include: $self
+        patterns: *selector-core
       - begin: (\[)\s*
         end: \s*(\])
         name: meta.brace.square.ruko
         captures:
           1: { name: punctuation.definition.array.ruko }
-        patterns:
-          - include: "#selector-calls"
-          - include: "#punctuation"
-          - include: $self
+        patterns: *selector-core
 
   # Support
 
