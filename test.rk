@@ -34,14 +34,15 @@ proc main {
 style {
   width: 200px
   draw: %path(M 100 100 L 300 100 L 200 300 Z)
-  background: %#222
+  background: %322
   color: %rgb(255, 255, 255)
+  fill: %url(https://example.com/resource.txt)
   fontFamily: ['Courier New', :monospace]
   margin: 20px
   padding: 10px
   border: 2px :solid %#ff5733
   fontSize: 14px
-  animation: blink(1s :infinite :easeInOut :alternate)
+  animation: blink(1s, :infinite, :easeInOut, :alternate)
 }
 
 // imperative style
@@ -348,14 +349,115 @@ style style͏ {
   animation: slideIn 3s :easeInOut :infinite :alternate
 }
 
-// CSS codegen example
-style {
-  for let i in arr: .item-[i] {
-    color: if i % 2 == 0: :red else :blue
-    width: (100 + i * 10)px
-    opacity: i / len arr
+// SQL query example
+from users
+left join posts on users.id = posts.user_id
+where users.active = 1
+group by users.id, users.name
+having post_count > 10
+order by post_count, desc
+limit 50
+select users.id, users.name, count(posts.id) as post_count;
+
+script sql {
+  select users.id, users.name, count(posts.id) as post_count
+  from users
+  left join posts on users.id = posts.user_id
+  where users.active = 1
+  group by users.id, users.name
+  having post_count > 10
+  order by post_count desc
+  limit 50;
+}
+
+// PHP & Laravel broadcasting example
+script php {
+  class PostCreated implements ShouldBroadcast {
+    use Dispatchable, SerializesModels;
+    public $post;
+    public function __construct(Post $post) {
+      $this->post = $post;
+    }
   }
-  additional_style: true
+
+  class PostController extends Controller {
+    public function store(Request $request) {
+      $post = Post::create($request->all());
+      broadcast(new PostCreated($post))->toOthers();
+      return response()->json($post, 201);
+    }
+  }
+
+  class Post extends Model {
+    protected $fillable = ['title', 'content'];
+  }
+
+  class BroadcastServiceProvider extends ServiceProvider {
+    public function boot() {
+      Broadcast::routes();
+      require base_path('routes/channels.php');
+    }
+  }
+
+  class UserChannel {
+    public function join(User $user) {
+      return Auth::check();
+    }
+  }
+
+  class PostChannel {
+    public function join(User $user) {
+      return Auth::check();
+    }
+  }
+
+  'x'
+  channel('user.{id}', UserChannel::class);
+  channel('post.{id}', PostChannel::class);
+}
+
+// JavaScript codegen example
+script js {
+  import React, { useEffect, useState } from 'react';
+  import { io } from "socket.io-client";
+
+  interface Post {
+    id: number;
+    title: string;
+    content: string;
+  }
+
+  const socket = io("http://localhost:6001");
+
+  const App: React.FC = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+
+    useEffect(() => {
+      socket.on("PostCreated", (data: Post) => {
+        setPosts((prevPosts) => [...prevPosts, data]);
+      });
+
+      return () => {
+        socket.off("PostCreated");
+      };
+    }, []);
+
+    return (
+      <div>
+        <h1>Posts</h1>
+        <ul>
+          {posts.map((post) => (
+            <li key={post.id}>
+              <h2>{post.title}</h2>
+              <p>{post.content}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+  export default App;
 }
 
 // regex examples
