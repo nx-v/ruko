@@ -436,8 +436,8 @@ repository:
       - include: "#embedded-formatting"
       - include: "#embedded-arguments"
       - include: "#angle-brackets"
-      - include: "#type-modifiers"
       - include: "#type-keywords"
+      - include: "#type-modifiers"
       - include: "#type-names"
       - include: "#literals"
       - include: "#type-variables"
@@ -467,7 +467,7 @@ repository:
           |(?:re)?try|switch|[cm]atch|case|def|throw
           |return|yield|await|goto|pass|defer|sync|select
           |raise|error|final|copy|move|drop
-          |[gd]o|from|where|import|export|intern|extern
+          |[gd]o|from|where|use|ext
 
           # miscellaneous keywords
           |debug|assert|check|decl|ignore
@@ -816,22 +816,68 @@ repository:
           - include: "#types"
           - include: "$self"
 
+  types-inherited:
+    patterns:
+      - include: "#type-operators"
+      - match: &entity-name |
+          (?x) \s*
+
+          (?!
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+              |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
+
+              # declaration keywords
+              |var|mut|let|auto|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|un|elif|elun|else|[tw]hen|guard|with
+              |for|while|until|loop|break|skip|redo
+              |(?:re)?try|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|sync|select
+              |raise|error|final|copy|move|drop
+              |[gd]o|from|where|use|ext
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+
+          # identifier
+          (`?\b[\p{Pc}\p{L}\p{Nl}]\w*)
+          \b
+        name: "entity.other.inherited-class.ruko"
+
   type-keywords:
     patterns:
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
-        name: "storage.type.extends.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for)\b\s*
+      - applyEndPatternLast: true
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(ext|of)\b\s*
+        end: (?=)|$
+        captures:
+          1: {name: "storage.type.extends.ruko"}
+        patterns:
+          - include: "#type-operators"
+          - include: "#types-inherited"
+      - applyEndPatternLast: true
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(impl|for)\b\s*
+        end: (?=)|$
         name: "storage.type.implements.ruko"
+        patterns:
+          - include: "#type-operators"
+          - include: "#types-inherited"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(infer|as)\b\s*
         name: "keyword.operator.expression.$1.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((inst|value|pair|type|name|size|key)of)\b\s*
         name: "keyword.operator.expression.$1.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(instof)\b\s*
         name: "keyword.operator.expression.instanceof.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(ext)\b\s*
-        name: "storage.type.extends.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(impl)\b\s*
-        name: "storage.type.implements.ruko"
       - &in-of-expression
         match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(?:(not)\s+)?([io]n|of)\b\s*
         captures:
@@ -842,6 +888,10 @@ repository:
         captures:
           1: {name: "keyword.operator.expression.$1.ruko"}
           2: {name: "keyword.operator.expression.logical.ruko"}
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(ext|of)\b\s*
+        name: "storage.type.extends.ruko"
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(impl|for)\b\s*
+        name: "storage.type.implements.ruko"
 
   type-operators:
     patterns:
@@ -977,17 +1027,18 @@ repository:
     patterns:
       - include: "#colors"
       - include: "#base64"
-      - include: "#path-commands"
+      - include: "#path-drawing"
+      - include: "#timestamps"
       - include: "#urls"
-      - include: "#word-array"
-      - include: "#file-path"
+      - include: "#word-arrays"
+      - include: "#file-paths"
       - include: "#regexps"
       - include: "#strings"
-      - include: "#numbers"
-      - include: "#constants"
       - include: "#strings-unquoted"
       - include: "#strings-bracketed"
       - include: "#symbols"
+      - include: "#numbers"
+      - include: "#constants"
       - include: "#unit-suffix"
 
   constants:
@@ -1371,7 +1422,7 @@ repository:
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
             |raise|error|final|copy|move|drop
-            |[gd]o|from|where|import|export|intern|extern
+            |[gd]o|from|where|use|ext
 
             # miscellaneous keywords
             |debug|assert|check|decl|ignore
@@ -2325,7 +2376,7 @@ repository:
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
               |raise|error|final|copy|move|drop
-              |[gd]o|from|where|import|export|intern|extern
+              |[gd]o|from|where|use|ext
 
               # miscellaneous keywords
               |debug|assert|check|decl|ignore
@@ -2409,7 +2460,7 @@ repository:
                     |(?:re)?try|switch|[cm]atch|case|def|throw
                     |return|yield|await|goto|pass|defer|sync|select
                     |raise|error|final|copy|move|drop
-                    |[gd]o|from|where|import|export|intern|extern
+                    |[gd]o|from|where|use|ext
 
                     # miscellaneous keywords
                     |debug|assert|check|decl|ignore
@@ -3415,7 +3466,7 @@ repository:
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
               |raise|error|final|copy|move|drop
-              |[gd]o|from|where|import|export|intern|extern
+              |[gd]o|from|where|use|ext
 
               # miscellaneous keywords
               |debug|assert|check|decl|ignore
@@ -4060,40 +4111,7 @@ repository:
           - include: "#style-pair"
           - include: "#style-rules"
           - include: "#declaration-clause"
-          - match: &entity-name |
-              (?x) \s*
-
-              (?!
-                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                (?: # keywords
-                  # wordlike operators
-                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|[gs]et|unset|n?and|x?n?or|c?n?imply|not
-
-                  # declaration keywords
-                  |var|mut|let|auto|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|un|elif|elun|else|[tw]hen|guard|with
-                  |for|while|until|loop|break|skip|redo
-                  |(?:re)?try|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|sync|select
-                  |raise|error|final|copy|move|drop
-                  |[gd]o|from|where|import|export|intern|extern
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                ) \b
-              )
-
-              # identifier
-              (`?\b[\p{Pc}\p{L}\p{Nl}]\w*)
-              \b
+          - match: *entity-name
             name: "entity.name.style.ruko"
             patterns:
               - match: "`"
@@ -4136,14 +4154,64 @@ repository:
 
   # Directive literals
 
-  path-commands:
+  file-paths:
+    comment: File path literals
+    begin: \s*(\%)(file)\s*(\()\s*
+    beginCaptures:
+      1: {name: "punctuation.definition.directive.ruko"}
+      2: {name: "storage.type.directive.ruko"}
+      3: {name: "punctuation.definition.link.ruko"}
+    end: \s*(\))\s*
+    endCaptures:
+      1: {name: "punctuation.definition.link.ruko"}
+    name: "meta.literal.file-paths.ruko"
+    patterns:
+      - match: ([a-zA-Z]:\\|\\\\|/)?((?:[\N&&[^?\\/:*"<>\|]]+\\)*+)([\N&&[^\\/:*"<>\|.]]+)(\.[\N&&[^\\/:*"<>\|.]]+)?
+        captures:
+          1: {name: "constant.other.file-paths.drive-letter.ruko"}
+          2: {name: "string.quoted.file-paths.directory.ruko"}
+          3: {name: "string.quoted.file-paths.filename.ruko"}
+          4: {name: "string.quoted.file-paths.extension.ruko"}
+      - match: '[\\/]'
+        name: "punctuation.separator.file-paths.ruko"
+      - include: "#embedded"
+      - include: "#space"
+      - include: "#illegal"
+
+  timestamps:
+    comment: Timestamp literals
+    begin: \s*(\%)(date|time|datetime)\s*(\()\s*
+    beginCaptures:
+      1: {name: "punctuation.definition.directive.ruko"}
+      2: {name: "storage.type.directive.ruko"}
+      3: {name: "punctuation.definition.constant.ruko"}
+    end: \s*(\))\s*
+    endCaptures:
+      1: {name: "punctuation.definition.constant.ruko"}
+    name: "meta.literal.timestamp.ruko"
+    patterns:
+      - match: \d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])
+        name: "constant.other.date.ruko"
+      - match: (?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?
+        name: "constant.other.time.ruko"
+      - match: 'Z|[+-](?:[01]\d|2[0-3]):?[0-5]\d'
+        name: "constant.other.timezone.ruko"
+      - match: '[-+](?=\d)'
+        name: "keyword.operator.sign.ruko"
+      - match: T
+        name: "keyword.operator.timestamp.ruko"
+      - include: "#embedded"
+      - include: "#space"
+      - include: "#illegal"
+
+  path-drawing:
     begin: \s*(%(path))\s*(\()\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
       2: {name: "storage.type.directive.css"}
       3: {name: "punctuation.definition.quote.css"}
     end: (\))\s*
-    name: "meta.property.path.ruko"
+    name: "meta.literal.path.ruko"
     endCaptures:
       1: {name: "punctuation.definition.quote.css"}
     patterns:
@@ -4156,29 +4224,7 @@ repository:
       - include: "#numbers"
       - include: "#constants"
       - include: "#space"
-
-  file-path:
-    comment: File path literals
-    begin: \s*(\%)(file)\s*(\()\s*
-    beginCaptures:
-      1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
-      3: {name: "punctuation.definition.link.ruko"}
-    end: \s*(\))\s*
-    endCaptures:
-      1: {name: "punctuation.definition.link.ruko"}
-    name: "meta.property.file-path.ruko"
-    patterns:
-      - match: ([a-zA-Z]:\\|\\\\|/)?((?:[\N&&[^?\\/:*"<>\|]]+\\)*+)([\N&&[^\\/:*"<>\|.]]+)(\.[\N&&[^\\/:*"<>\|.]]+)?
-        captures:
-          1: {name: "constant.other.file-path.drive-letter.ruko"}
-          2: {name: "string.quoted.file-path.directory.ruko"}
-          3: {name: "string.quoted.file-path.filename.ruko"}
-          4: {name: "string.quoted.file-path.extension.ruko"}
-      - match: '[\\/]'
-        name: "punctuation.separator.file-path.ruko"
-      - include: "#embedded"
-      - include: "#space"
+      - include: "#illegal"
 
   urls:
     comment: URL literals
@@ -4190,7 +4236,7 @@ repository:
     end: \s*(\))\s*
     endCaptures:
       1: {name: "punctuation.definition.link.ruko"}
-    name: "meta.property.url.ruko"
+    name: "meta.literal.url.ruko"
     patterns:
       - match: '%\h{2}'
         name: "constant.character.escape.url.ruko"
@@ -4206,6 +4252,7 @@ repository:
         name: "string.quoted.url.ruko"
       - include: "#embedded"
       - include: "#space"
+      - include: "#illegal"
 
   strings-bracketed:
     comment: Array of strings
@@ -4223,7 +4270,7 @@ repository:
   bracketed-patterns:
     patterns: *bracketed-patterns
 
-  word-array:
+  word-arrays:
     comment: Array of strings
     begin: \s*(\%)(words)\s*(\()\s*
     beginCaptures:
@@ -4233,11 +4280,11 @@ repository:
     end: \s*(\))\s*
     endCaptures:
       1: {name: "punctuation.definition.sequence.ruko"}
-    name: "meta.directive.word-array.ruko"
+    name: "meta.literal.word-arrays.ruko"
     patterns:
       - include: "#embedded"
       - match: \S++
-        name: "string.unquoted.word-array.ruko"
+        name: "string.unquoted.word-arrays.ruko"
       - include: "#strings"
       - include: "#space"
 
@@ -4251,16 +4298,17 @@ repository:
     end: \s*(\))\s*
     endCaptures:
       1: {name: "punctuation.definition.constant.ruko"}
-    name: "meta.directive.byte-array.ruko"
+    name: "meta.literal.byte-array.ruko"
     patterns:
       - match: (?i)([\da-z+/]{4})*+([\da-z+/]{2}==|[\da-z+/]{3}=)?
         name: "string.encoded.base64.ruko"
       - include: "#space"
+      - include: "#illegal"
 
   colors:
     patterns:
       - comment: RGBA color values
-        name: "meta.directive.color.rgb.ruko"
+        name: "meta.literal.color.rgb.ruko"
         begin: \s*(\%)(rgba?)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
@@ -4287,7 +4335,7 @@ repository:
               7: {name: "constant.other.color.alpha-value.rgb.css"}
           - include: "$self"
       - comment: CMYK color values
-        name: "meta.directive.color.rgb.ruko"
+        name: "meta.literal.color.rgb.ruko"
         begin: \s*(\%)(rgba?)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
@@ -4317,7 +4365,7 @@ repository:
         endCaptures:
           1: {name: "punctuation.definition.parameters.css"}
       - comment: HSL/HSV/OKLCH color values
-        name: "meta.directive.color.hsl.ruko"
+        name: "meta.literal.color.hsl.ruko"
         begin: \s*(\%)((?:ok)h(?:s[lv]|cl)a?)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
@@ -4347,7 +4395,7 @@ repository:
               10: {name: "constant.other.color.alpha-value.hsl.css"}
           - include: "$self"
       - comment: LAB color values
-        name: "meta.directive.color.lab.ruko"
+        name: "meta.literal.color.lab.ruko"
         begin: \s*(\%)(lab)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
@@ -4377,7 +4425,7 @@ repository:
               13: {name: "constant.other.color.alpha-value.lab.css"}
           - include: "$self"
       - comment: Hex color values
-        name: "meta.directive.color.hex.ruko"
+        name: "meta.literal.color.hex.ruko"
         match: \s*(%)(\#)\b(\h{3,4}|\h{6}|\h{8})\b\s*
         captures:
           1: {name: "punctuation.definition.directive.css"}
@@ -4496,6 +4544,18 @@ repository:
       - begin: \b((?i:html))\b\s*({)\s*
         <<: *script-blocks
         patterns: [{include: "text.html.basic"}]
+      - begin: \b((?i:scss))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.css"}]
+      - begin: \b((?i:less))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.less"}]
+      - begin: \b((?i:sass))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.sass"}]
+      - begin: \b((?i:gql))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.graphql"}]
       - begin: \b((?i:css))\b\s*({)\s*
         <<: *script-blocks
         patterns: [{include: "source.css"}]
@@ -5086,7 +5146,7 @@ repository:
                     |(?:re)?try|switch|[cm]atch|case|def|throw
                     |return|yield|await|goto|pass|defer|sync|select
                     |raise|error|final|copy|move|drop
-                    |[gd]o|from|where|import|export|intern|extern
+                    |[gd]o|from|where|use|ext
 
                     # miscellaneous keywords
                     |debug|assert|check|decl|ignore
@@ -5124,7 +5184,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -5178,7 +5238,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -5245,7 +5305,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -5283,7 +5343,7 @@ repository:
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
             |raise|error|final|copy|move|drop
-            |[gd]o|from|where|import|export|intern|extern
+            |[gd]o|from|where|use|ext
 
             # miscellaneous keywords
             |debug|assert|check|decl|ignore
@@ -5360,7 +5420,7 @@ repository:
                   |for|while|until|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
                   |return|yield|await|goto|pass|defer|sync|select
-                  |[gd]o|from|where|import|export|intern|extern
+                  |[gd]o|from|where|use|ext
 
                   # miscellaneous keywords
                   |debug|assert|check|decl|ignore
@@ -5483,7 +5543,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -5521,7 +5581,7 @@ repository:
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
             |raise|error|final|copy|move|drop
-            |[gd]o|from|where|import|export|intern|extern
+            |[gd]o|from|where|use|ext
 
             # miscellaneous keywords
             |debug|assert|check|decl|ignore
@@ -5580,7 +5640,7 @@ repository:
             |(?:re)?try|switch|[cm]atch|case|def|throw
             |return|yield|await|goto|pass|defer|sync|select
             |raise|error|final|copy|move|drop
-            |[gd]o|from|where|import|export|intern|extern
+            |[gd]o|from|where|use|ext
 
             # miscellaneous keywords
             |debug|assert|check|decl|ignore
@@ -5637,7 +5697,7 @@ repository:
                   |for|while|until|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
                   |return|yield|await|goto|pass|defer|sync|select
-                  |[gd]o|from|where|import|export|intern|extern
+                  |[gd]o|from|where|use|ext
 
                   # miscellaneous keywords
                   |debug|assert|check|decl|ignore
@@ -5998,7 +6058,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -6301,7 +6361,7 @@ repository:
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
               |raise|error|final|copy|move|drop
-              |[gd]o|from|where|import|export|intern|extern
+              |[gd]o|from|where|use|ext
 
               # miscellaneous keywords
               |debug|assert|check|decl|ignore
@@ -6353,7 +6413,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -6384,7 +6444,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -6609,7 +6669,7 @@ repository:
         name: "keyword.control.flow.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(copy|move|drop)\b\s*
         name: "keyword.control.movement.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(import|export|intern|extern)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(use|ext)\b\s*
         name: "keyword.control.module.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
         name: "keyword.control.validate.ruko"
@@ -6619,7 +6679,7 @@ repository:
         name: "keyword.control.signal.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|ignore|safe|unsafe)\b\s*
         name: "keyword.other.declare.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|use|echo|eval|exec)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|echo|eval|exec)\b\s*
         name: "keyword.other.$1.ruko"
 
   expression-keywords:
@@ -6682,7 +6742,7 @@ repository:
 
   extern-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:in|ex)tern)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(ext)\b\s*
     end: (?=)|$
     beginCaptures:
       1: {name: "keyword.control.module.ruko"}
@@ -6692,7 +6752,7 @@ repository:
 
   module-expression:
     applyEndPatternLast: true
-    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:im|ex)port)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(use)\b\s*
     end: (?=)|$
     beginCaptures:
       1: {name: "keyword.control.module.ruko"}
@@ -6721,7 +6781,7 @@ repository:
       - include: "#regexp-patterns"
       - include: "#type-keywords"
       - match: \s*(?<!\*)\*(?!\*)\s*
-        name: "constant.language.import-export-all.ruko"
+        name: "keyword.generator.asterisk.ruko"
       - include: "#type-modifiers"
       - include: "#comma"
       - include: "#line-continuation"
@@ -6760,7 +6820,7 @@ repository:
                 |(?:re)?try|switch|[cm]atch|case|def|throw
                 |return|yield|await|goto|pass|defer|sync|select
                 |raise|error|final|copy|move|drop
-                |[gd]o|from|where|import|export|intern|extern
+                |[gd]o|from|where|use|ext
 
                 # miscellaneous keywords
                 |debug|assert|check|decl|ignore
@@ -7364,7 +7424,7 @@ repository:
               |(?:re)?try|switch|[cm]atch|case|def|throw
               |return|yield|await|goto|pass|defer|sync|select
               |raise|error|final|copy|move|drop
-              |[gd]o|from|where|import|export|intern|extern
+              |[gd]o|from|where|use|ext
 
               # miscellaneous keywords
               |debug|assert|check|decl|ignore
@@ -8062,7 +8122,7 @@ repository:
     begin: \s*(,)\s*(?=/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)|$)
     end: ^\s*(?=\S)
     captures:
-      1: {name: "punctuation.separator.continuation.ruko"}
+      1: {name: "punctuation.separator.sequence.ruko"}
     patterns: [{include: "#comments"}]
 
   comma:
