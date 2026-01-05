@@ -37,6 +37,7 @@ style {
   background: %322
   color: %rgb(255, 255, 255)
   fill: %url(https://example.com/resource.txt)
+  content: %quote(\((({Hello, World!})\)))
   fontFamily: ['Courier New', :monospace]
   margin: 20px
   padding: 10px
@@ -47,11 +48,11 @@ style {
 }
 
 // imperative style
-func sortedPowerSet(arr: i32[]): i32[][] {
-  mut result: i32[][] = []
+func sortedPowerSet(arr: [i32]): [[i32]] {
+  mut result: [[i32]] = []
 
   for let i in 0 ..< 1 << arr.len {
-    mut subset: i32[] = []
+    mut subset: [i32] = []
     for let j in 0 ..< arr.len if (i >> j) & 1:
       subset.=push arr[j]
     result.=push subset
@@ -68,7 +69,7 @@ func sortedPowerSet(arr: i32[]): i32[][] {
   }
 }
 
-// infix function chaining style
+// infix functional style
 let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \sort\ |a, b| (-) ([a, b] \map\
       |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
@@ -76,7 +77,7 @@ let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // LINQ style 
-func sortedPowerSet(arr: i32[]): i32[][] = (
+func sortedPowerSet(arr: [i32]): [[i32]] = (
   from let i in 0 ..< (1 << arr.len)
   select (
     from let j in 0 ..< arr.len
@@ -96,11 +97,11 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
 )
 
 // Haskell/ML/Python style
-func sortedPowerSet(arr: i32[]): i32[][] =
-  let result = []: i32[][]
+func sortedPowerSet(arr: [i32]): [[i32]] =
+  let result = []: [[i32]]
 
   for let i in 0 ..< 1 << arr.len
-    let subset = []: i32[]
+    let subset = []: [i32]
     for let j in 0 ..< arr.len
       if (i >> j) & 1
         subset = push subset arr[j]
@@ -117,11 +118,11 @@ func sortedPowerSet(arr: i32[]): i32[][] =
     a.len - b.len
 
 // Objective-C & Ruby style
-func sortedPowerSet(arr: i32[]): i32[][] {
-  let result: i32[][] = []
+func sortedPowerSet(arr: [i32]): [[i32]] {
+  let result: [[i32]] = []
 
   [0 ..< 1 << arr.len each: |i| {
-    let subset: i32[] = []
+    let subset: [i32] = []
     [0 ..< arr.len each: |j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset]
@@ -138,11 +139,11 @@ func sortedPowerSet(arr: i32[]): i32[][] {
 }
 
 // Clojure style
-func sortedPowerSet(arr: i32[]): i32[][] = (
-  (mut (type i32[][]) result [])
+func sortedPowerSet(arr: [i32]): [[i32]] = (
+  (mut (type [[i32]]) result [])
 
   (for (let i) in (..< 0 (<< 1 arr.len))) (
-    (mut (type i32[]) subset [])
+    (mut (type [i32]) subset [])
     (for (let j) in (..< 0 arr.len)) (
       (if (& 1 (>> i j)) 
         (push subset arr[j])
@@ -167,10 +168,10 @@ func sortedPowerSet(arr: i32[]): i32[][] = (
 )
 
 // JSX style
-<func (type i32[]) $sortedPowerSet(arr: type i32)>
-  <mut (type i32[][]) $result=[]/>
+<func (type [i32]) $sortedPowerSet(arr: type i32)>
+  <mut (type [[i32]]) $result=[]/>
   <for let=i in=(0 ..< 1 << arr.len)>
-    <mut (type i32[]) $subset=[]/>
+    <mut (type [i32]) $subset=[]/>
     <for let=j in=(0 ..< arr.len)> 
       <if ((i >> j) & 1)>
         subset.=push arr[j]
@@ -199,8 +200,8 @@ for let i in sortedPowerSet [1...16]:
   echo i
 
 // LINQ-style queries
-let formatPowerSet = |a: i32[][]|: str =
-  a.iter(iter: from let (subset: i32[]) in a where subset.len > 0
+let formatPowerSet = |a: [[i32]]|: str =
+  a.iter(iter: from let (subset: [i32]) in a where subset.len > 0
     select '[' ++ [subset map: str x join: ','] ++ ']'
   ).join ', '
 
@@ -493,7 +494,7 @@ for let item, index in items:
   print $"Item $index: $item.name"
 
 // cursed C++ pointers
-var val: i32* (*(*(**[]) (i8, i32* i32*)) []) (i8**, i32** ()) =
+let val: i32* (*(*(**[]) (i8, i32* i32*)) []) (i8**, i32** ()) = null
 
 // simple linked list node
 struct Node {
@@ -508,7 +509,7 @@ struct Node {
   }
 }
 
-let head: *Node = Node 1
+mut head: *Node = Node 1
 head.next = Node 2
 head.next.next = Node 3
 head.next.next.next = null
@@ -523,7 +524,7 @@ const͏ let͏ var var͏: in͏ i32 = 10
 scope for͏ for let in͏ in [var͏ alloc: init: release:]:
   print in͏
 
-// jsx with inline code
+// jsx with inline styles and dynamic class names
 <div>
   for item in items:
     <span .item-[item.id]=item.id> item.name </span>
@@ -539,3 +540,67 @@ scope for͏ for let in͏ in [var͏ alloc: init: release:]:
     <span>$"Other: $i"</span>
   </if>
 </for>
+
+// string literals with interpolation and raw strings.
+// unlike in other languages, function and method calls can be used inside interpolations.
+let x: i32 = 42
+
+let multilineString: str = $"""
+  This is a multiline string.
+  It can span multiple lines.
+  The value of x is: $x.toStr().concat('!').format(toHex: true)
+  End of string.
+"""
+
+let rawString: str = `"""
+  This is a raw string.
+  It does not process escape sequences like \n or \t.
+  You can include quotes " and backslashes \ without escaping.
+"""
+
+let combinedStr = $`"""
+  Here is a raw string combined with interpolation.
+  The value of x is: $x
+"""
+
+// regex with inline comments and whitespace
+/
+  (&)(?:
+      (\# 0*\d{1,7}) // decimal
+    | (\#b0*[01]{1,16}) // binary
+    | (\#t0*[0123]{1,20}) // ternary
+    | (\#q0*[0-3]{1,18}) // quaternary
+    | (\#s0*[0-5]{1,14}) // senary
+    | (\#o0*[0-7]{1,11}) // octal
+    | (\#z0*[\d↊↋ab]{1,10}) // duodecimal
+    | (\#x0*(?:10\h{6}|\h{1,5})) // hexadecimal
+    | (\b[\p{Pd}\w]+\b) // named
+    | ([^;\s]++) // invalid
+  )(;)
+/xi.test('&#x1F600;
+  &#128512;
+  &#b110000001010100000000000000000;
+  &#t1002202000000;
+  &#q10023020000;
+  &#s1003200;
+  &#o1405000;
+  &#z468a0;
+  &#x1F600;
+  &#invalid;')
+
+// matches various numeral systems with comments and whitespace enabled
+print "Regex matched valid numeral entities!"
+
+<div>
+  ###### Yuh this is Markdown
+  > this starts a blockquote [x]
+  . this starts a paragraph **with bold text** and _italic text_. 
+  . Do not forget to escape special characters like \* and \_.
+  - this is a list item
+  - another list item
+  + numbered list item (automatic)
+
+  <func $exampleMarkdownFunc(param: str): str>
+    <return $"You passed: $param"/>
+  </func>
+</div>

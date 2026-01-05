@@ -19,6 +19,26 @@ patterns: [{include: "#core"}]
 
 # Planned features / TODOs:
 #
+# - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
+#   ASCIIDoc and other lightweight markup languages for inspiration.
+#   - [x] Headings and subheadings
+#   - [x] Deleted and inserted text ~~deleted~~ ++inserted++
+#   - [x] Superscript ^super^
+#   - [x] Subscript ~sub~
+#   - [x] Highlighted text ==highlight==
+#   - [x] Redacted text ||redacted||
+#   - [ ] Inline math $$math$$
+#   - [ ] Spans !!.custom.classes span!!
+#   - [ ] Selectors and anchors #anchor .class
+#   - [ ] Code blocks
+#   - [ ] Definition blocks :::
+#   - [ ] Tables | Header 1 | Header 2 |
+#   - [ ] Citations
+#   - References:
+#     https://docs.asciidoctor.org/asciidoc/latest/
+#     https://typst.app/docs/reference/
+#     https://texy.nette.org/en/
+#     https://textile-lang.com/
 # - [ ] Add more DSLs (domain-specific languages) with the %directive syntax.
 # - [ ] Add standard library based on the JavaScript, Node and Deno
 #   standard libraries, based on this link.
@@ -51,26 +71,6 @@ patterns: [{include: "#core"}]
 #   for inspiration.
 #   https://safecpp.org/draft.html
 #   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
-# - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
-#   ASCIIDoc and other lightweight markup languages for inspiration.
-#   - [x] Headings and subheadings
-#   - [x] Deleted and inserted text ~~deleted~~ ++inserted++
-#   - [x] Superscript ^super^
-#   - [x] Subscript ~sub~
-#   - [x] Highlighted text ==highlight==
-#   - [x] Redacted text ||redacted||
-#   - [ ] Inline math $$math$$
-#   - [ ] Spans !!.custom.classes span!!
-#   - [ ] Selectors and anchors #anchor .class
-#   - [ ] Code blocks
-#   - [ ] Definition blocks :::
-#   - [ ] Tables | Header 1 | Header 2 |
-#   - [ ] Citations
-#   - References:
-#     https://docs.asciidoctor.org/asciidoc/latest/
-#     https://typst.app/docs/reference/
-#     https://texy.nette.org/en/
-#     https://textile-lang.com/
 # - [ ] Plan and implement all the built-in modules, classes, objects, constants
 #   functions and properties for Ruko's standard library.
 #   This would all be done in a separate PR and once the grammar is completely
@@ -2635,11 +2635,23 @@ repository:
       1: {name: "punctuation.definition.comment.ruko"}
     patterns: &bracketed-patterns
       - include: "#embedded-verbatim"
+      - comment: capture line continuations first
+        begin: (\\)\s*$
+        end: ^\s*(?=\S)
+        captures:
+          1: {name: "constant.character.escape.newline.ruko"}
       - comment: match but don't capture escaped characters
-        match: \\.|[^\\()]+
-      - comment: allow nesting but don't capture
+        match: \\.|[^(){}\[\]\\]+
+        name: "constant.character.escape.ruko"
+      - comment: allow nesting of brackets but don't capture
         begin: \(
         end: \)
+        patterns: [{include: "#bracketed-patterns"}]
+      - begin: \[
+        end: \]
+        patterns: [{include: "#bracketed-patterns"}]
+      - begin: \{
+        end: \}
         patterns: [{include: "#bracketed-patterns"}]
 
   fuzzy-expression:
@@ -3374,10 +3386,19 @@ repository:
     captures:
       1: {name: "punctuation.definition.tag.ruko"}
     patterns:
+      - include: "#comments"
+      - include: "#xml-entities"
+      - include: "#html-tag"
       - include: "#paragraph"
+      - include: "#inline-styles"
+      - include: "#headings"
+      - include: "#blockquote"
+      - include: "#unordered-list"
+      - include: "#ordered-list"
       - include: "#xml-entities"
       - include: "#tag-component-name"
       - include: "#xml-comments"
+      - include: "#escapes-embedded"
       - include: "$self"
 
   tag-attributes:
@@ -4264,7 +4285,7 @@ repository:
     end: \s*(\))\s*
     endCaptures:
       1: {name: "punctuation.definition.string.ruko"}
-    name: "string.unquoted.bracketed.ruko"
+    name: "string.unquoted.ruko"
     patterns: *bracketed-patterns
 
   bracketed-patterns:

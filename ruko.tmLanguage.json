@@ -4066,13 +4066,42 @@
           "include": "#embedded-verbatim"
         },
         {
-          "comment": "match but don't capture escaped characters",
-          "match": "\\\\.|[^\\\\()]+"
+          "comment": "capture line continuations first",
+          "begin": "(\\\\)\\s*$",
+          "end": "^\\s*(?=\\S)",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.newline.ruko"
+            }
+          }
         },
         {
-          "comment": "allow nesting but don't capture",
+          "comment": "match but don't capture escaped characters",
+          "match": "\\\\.|[^(){}\\[\\]\\\\]+",
+          "name": "constant.character.escape.ruko"
+        },
+        {
+          "comment": "allow nesting of brackets but don't capture",
           "begin": "\\(",
           "end": "\\)",
+          "patterns": [
+            {
+              "include": "#bracketed-patterns"
+            }
+          ]
+        },
+        {
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [
+            {
+              "include": "#bracketed-patterns"
+            }
+          ]
+        },
+        {
+          "begin": "\\{",
+          "end": "\\}",
           "patterns": [
             {
               "include": "#bracketed-patterns"
@@ -5634,7 +5663,31 @@
       },
       "patterns": [
         {
+          "include": "#comments"
+        },
+        {
+          "include": "#xml-entities"
+        },
+        {
+          "include": "#html-tag"
+        },
+        {
           "include": "#paragraph"
+        },
+        {
+          "include": "#inline-styles"
+        },
+        {
+          "include": "#headings"
+        },
+        {
+          "include": "#blockquote"
+        },
+        {
+          "include": "#unordered-list"
+        },
+        {
+          "include": "#ordered-list"
         },
         {
           "include": "#xml-entities"
@@ -5644,6 +5697,9 @@
         },
         {
           "include": "#xml-comments"
+        },
+        {
+          "include": "#escapes-embedded"
         },
         {
           "include": "$self"
@@ -7616,19 +7672,48 @@
           "name": "punctuation.definition.string.ruko"
         }
       },
-      "name": "string.unquoted.bracketed.ruko",
+      "name": "string.unquoted.ruko",
       "patterns": [
         {
           "include": "#embedded-verbatim"
         },
         {
-          "comment": "match but don't capture escaped characters",
-          "match": "\\\\.|[^\\\\()]+"
+          "comment": "capture line continuations first",
+          "begin": "(\\\\)\\s*$",
+          "end": "^\\s*(?=\\S)",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.newline.ruko"
+            }
+          }
         },
         {
-          "comment": "allow nesting but don't capture",
+          "comment": "match but don't capture escaped characters",
+          "match": "\\\\.|[^(){}\\[\\]\\\\]+",
+          "name": "constant.character.escape.ruko"
+        },
+        {
+          "comment": "allow nesting of brackets but don't capture",
           "begin": "\\(",
           "end": "\\)",
+          "patterns": [
+            {
+              "include": "#bracketed-patterns"
+            }
+          ]
+        },
+        {
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [
+            {
+              "include": "#bracketed-patterns"
+            }
+          ]
+        },
+        {
+          "begin": "\\{",
+          "end": "\\}",
           "patterns": [
             {
               "include": "#bracketed-patterns"
@@ -7643,13 +7728,42 @@
           "include": "#embedded-verbatim"
         },
         {
-          "comment": "match but don't capture escaped characters",
-          "match": "\\\\.|[^\\\\()]+"
+          "comment": "capture line continuations first",
+          "begin": "(\\\\)\\s*$",
+          "end": "^\\s*(?=\\S)",
+          "captures": {
+            "1": {
+              "name": "constant.character.escape.newline.ruko"
+            }
+          }
         },
         {
-          "comment": "allow nesting but don't capture",
+          "comment": "match but don't capture escaped characters",
+          "match": "\\\\.|[^(){}\\[\\]\\\\]+",
+          "name": "constant.character.escape.ruko"
+        },
+        {
+          "comment": "allow nesting of brackets but don't capture",
           "begin": "\\(",
           "end": "\\)",
+          "patterns": [
+            {
+              "include": "#bracketed-patterns"
+            }
+          ]
+        },
+        {
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [
+            {
+              "include": "#bracketed-patterns"
+            }
+          ]
+        },
+        {
+          "begin": "\\{",
+          "end": "\\}",
           "patterns": [
             {
               "include": "#bracketed-patterns"
