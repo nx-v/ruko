@@ -502,7 +502,7 @@ repository:
         (?! [?!]?\.\.+ ) # not a range operator
         (?=
             (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
-          | \#?\[ # or array access
+          | [#<]?\[ # or array access
         )
         |
         (?: # variables
@@ -531,7 +531,7 @@ repository:
   type-signature:
     applyEndPatternLast: true
     name: "meta.type.ruko"
-    begin: (?<=(?:[)}\]\w'"`]|\\.)>*\|?|^\|?)(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+    begin: (?<=(?:[)}\]\w'"`]|\\.)>*\|?|^\|?)(:)(?=$|<*(?:['"`\w\s]|[#<]?[(\[{]))
     end: (?=)|$
     beginCaptures:
       1: {name: "punctuation.definition.annotation.ruko"}
@@ -549,7 +549,7 @@ repository:
         patterns:
           - match: ","
             name: "punctuation.separator.mapping.ruko"
-          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*):(?=(?:['"`\w\s]|\#?[(\[{])|$)
+          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*):(?=(?:['"`\w\s]|[#<]?[(\[{])|$)
             name: "punctuation.separator.key-value.ruko"
 
     patterns:
@@ -567,7 +567,7 @@ repository:
             >* # after generics
             \s*
           )
-          (\#?{)\s*
+          ([#<]?{)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
@@ -677,7 +677,7 @@ repository:
               (?:['"`)}\]\w]|\\.) # literal
             | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
-          (\#?{)\s*
+          ([#<]?{)\s*
         end: \s*(})
         name: "meta.brace.round.ruko"
         captures:
@@ -705,7 +705,7 @@ repository:
               (?:['"`)}\]\w]|\\.) # literal
             | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
-          (\#?\()\s*
+          ([#<]?\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
         captures:
@@ -727,7 +727,7 @@ repository:
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \s*
           )
-          (\#?\()\s*
+          ([#<]?\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
         captures:
@@ -767,7 +767,7 @@ repository:
               (?:['"`)}\]\w]|\\.) # literal
             | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
-          (\#?\[)\s*
+          ([#<]?\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
         captures:
@@ -788,7 +788,7 @@ repository:
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \s*
           )
-          (\#?\[)\s*
+          ([#<]?\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
         captures:
@@ -924,7 +924,7 @@ repository:
             |(\+) # arithmetic
             |(\.\.) # spread
           )
-          (?=[\w'"`]|\#?[(\[{<])
+          (?=[\w'"`]|[#<]?[(\[{<])
         captures: &prefix-type-operator-captures
           1: {name: "keyword.operator.pointer.ruko"}
           2: {name: "keyword.operator.reference.ruko"}
@@ -957,7 +957,7 @@ repository:
               |(\?)|(!)   # conditionals
               |(\+>|<\+)  # composition
             )
-          (?=['"`\w\s]|\#?[(\[{])
+          (?=['"`\w\s]|[#<]?[(\[{])
         captures:
           1: {name: "keyword.operator.sum.ruko"}
           2: {name: "keyword.operator.difference.ruko"}
@@ -2393,10 +2393,10 @@ repository:
           - include: "#generics"
           - include: "#brackets"
           - include: "#embedded-function-calls"
-          - match: (?<=>|\w)(!)(?=\#?[({])
+          - match: (?<=>|\w)(!)(?=[#<]?[({])
             captures:
               1: {name: "keyword.operator.macro.ruko"}
-          - match: (?<=>|\w)(~)(?=\#?[({])
+          - match: (?<=>|\w)(~)(?=[#<]?[({])
             captures:
               1: {name: "keyword.operator.destructor.ruko"}
           - include: "#variables"
@@ -2523,10 +2523,10 @@ repository:
           - include: "#generics"
           - include: "#brackets"
           - include: "#embedded-function-calls"
-          - match: (?<=>|\w)(!)(?=\#?[({])
+          - match: (?<=>|\w)(!)(?=[#<]?[({])
             captures:
               1: {name: "keyword.operator.macro.ruko"}
-          - match: (?<=>|\w)(~)(?=\#?[({])
+          - match: (?<=>|\w)(~)(?=[#<]?[({])
             captures:
               1: {name: "keyword.operator.destructor.ruko"}
           - include: "#variables"
@@ -2590,7 +2590,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#? [({\[] # opening bracket
+          | [#<]? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
@@ -2793,7 +2793,7 @@ repository:
           1: {name: "punctuation.definition.fuzzy.ruko"}
         patterns:
           - applyEndPatternLast: true
-            begin: (?<=^|\\.|\#?[(\[{]|[,;'"`)\]}\w\s])(:)
+            begin: (?<=^|\\.|[#<]?[(\[{]|[,;'"`)\]}\w\s])(:)
             beginCaptures:
               1: {name: "punctuation.separator.key-value.ruko"}
             end: (?=[,;}]|)|$
@@ -3274,7 +3274,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#? [({\[] # opening bracket
+          | [#<]? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
@@ -3481,10 +3481,10 @@ repository:
           - include: "#generics"
           - include: "#brackets"
           - include: "#embedded-function-calls"
-          - match: (?<=>|\w)(!)(?=\#?[({])
+          - match: (?<=>|\w)(!)(?=[#<]?[({])
             captures:
               1: {name: "keyword.operator.macro.ruko"}
-          - match: (?<=>|\w)(~)(?=\#?[({])
+          - match: (?<=>|\w)(~)(?=[#<]?[({])
             captures:
               1: {name: "keyword.operator.destructor.ruko"}
           - include: "#variables"
@@ -4706,7 +4706,7 @@ repository:
         name: "entity.name.schema.ruko"
 
   style-pair:
-    begin: (?<=(?:^|;|\#?[(\[{])\s*)((?:\[.*\]|[\p{Pd}\w]+)*)\s*(:)(?=\s+|$)
+    begin: (?<=(?:^|;|[#<]?[(\[{])\s*)((?:\[.*\]|[\p{Pd}\w]+)*)\s*(:)(?=\s+|$)
     end: (?=[;}\])])|$
     name: "meta.property.css.ruko"
     beginCaptures:
@@ -5012,7 +5012,7 @@ repository:
       (?x)
       (?:
         (?<=
-          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+          (?:^ | [,;'"`)\]}\w\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
           (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
         )
         \b # methods
@@ -5024,12 +5024,12 @@ repository:
           )
         \b
         (?=
-            [!~]? \#?[({] # opening macro, destructor, or function call
+            [!~]? [#<]?[({] # opening macro, destructor, or function call
           | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
         )
         |
         (?<= ^ # beginning of line
-          | (?: [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal
+          | (?: [,;'"`)}\]\w\s] | [#<]?[(\[{] | \\.) # literal
           (?: # operators
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
           )?
@@ -5042,7 +5042,7 @@ repository:
           )
         \b
           (?=
-              [!~]? \#?[({] # opening macro, destructor, or function call
+              [!~]? [#<]?[({] # opening macro, destructor, or function call
             | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
           )
       )
@@ -5090,9 +5090,9 @@ repository:
       \b
       (?=
         (?:
-            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~] \#?[({] # macro and destructor calls
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? [#<]?[({] # C-style function call
+          | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|[#<]?[(\[{]) # generics
+          | [!~] [#<]?[({] # macro and destructor calls
         )
       )
     captures:
@@ -5110,7 +5110,7 @@ repository:
                   ^ # start of line
                   | [,;] # delimiter
                   | (?: ['"`)}\]\w\s] | \\.)[\\:] # postfix colon or backslash
-                  | \#? [({\[] # opening bracket
+                  | [#<]? [({\[] # opening bracket
                 ) \s*
               | # infix operator
                 \s+ (?:
@@ -5269,7 +5269,7 @@ repository:
               ^ # start of line
               | [,;] # delimiter
               | (?: ['"`)}\]\w\s] | \\.)[\\:] # postfix colon or backslash
-              | \#? [({\[] # opening bracket
+              | [#<]? [({\[] # opening bracket
             ) \s*
           | # infix operator
             \s+ (?:
@@ -5359,7 +5359,7 @@ repository:
       )
       \b
       (?!
-        : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
+        : (?: \s* (?: [,;'"`)}\]\w\s] | [#<]?[(\[{]|\\.) | $) # postfix colon or delimiter
       )
       (?! # infix operator
         \s+
@@ -5372,12 +5372,12 @@ repository:
       (?! # function name
         \s+ \\ # infix function operator
             [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-            (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+            (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
       )
       (?=
-            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~] \#?[({] # macro and destructor calls
+            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? [#<]?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|[#<]?[(\[{]) # generics
+          | [!~] [#<]?[({] # macro and destructor calls
           | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
           | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
         (?:
@@ -5385,13 +5385,13 @@ repository:
           | \s+ \b\d # numbers
           | \s+ `\N # unquoted strings / stropped identifiers
           | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
-          | \s+ \#? [(\[] # opening brackets
+          | \s+ [#<]? [(\[] # opening brackets
           | \s+ /['"`\w\\(\[{] # regexp literal
           | \s+ <(?:`?[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
                 [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
-                (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-          | \s+ \|(?: \#?[(\[{] )? # opening bracket
+                (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
+          | \s+ \|(?: [#<]?[(\[{] )? # opening bracket
                 (?: [,;] \s* )* # optional separators
                 (?:
                   ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
@@ -5456,7 +5456,7 @@ repository:
           (?x)
           (?:
             (?<=
-              (?: [,;'"`)\]}\w] | \#?[(\[{] | \\.?) # literal, bracket or space
+              (?: [,;'"`)\]}\w] | [#<]?[(\[{] | \\.?) # literal, bracket or space
               (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
             )
             \b # methods
@@ -5470,11 +5470,11 @@ repository:
             (?=
                 $ # end of line
               | (?: <\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
-                (?:[,;'"`)}\]\w\s] | \#?[(\[{] | \\.)
+                (?:[,;'"`)}\]\w\s] | [#<]?[(\[{] | \\.)
             )
             |
             (?<=
-              (?: ^ | [,;'"`)}\]\w\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              (?: ^ | [,;'"`)}\]\w\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
               [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # operators
             )
               (?: # variables
@@ -5487,7 +5487,7 @@ repository:
               (?=
                   $ # end of line
                 | (?: <\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
-                  (?:[,;'"`)}\]\w\s] | \#?[(\[{] | \\.)
+                  (?:[,;'"`)}\]\w\s] | [#<]?[(\[{] | \\.)
               )
           )
         captures: *built-in-names
@@ -5507,7 +5507,7 @@ repository:
               ^ # start of line
               | [,;] # delimiter
               | (?: ['"`)}\]\w\s] | \\.)[\\:] # postfix colon or backslash
-              | \#? [({\[] # opening bracket
+              | [#<]? [({\[] # opening bracket
             ) \s*
           | # infix operator
             \s+ (?:
@@ -5597,7 +5597,7 @@ repository:
       )
       \b
       (?!
-        : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
+        : (?: \s* (?: [,;'"`)}\]\w\s] | [#<]?[(\[{]|\\.) | $) # postfix colon or delimiter
       )
       (?! # infix operator
         \s+
@@ -5610,7 +5610,7 @@ repository:
       (?! # function name
         \s+ \\ # infix function operator
             [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-            (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+            (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
       )
       (?! # function name
         \s*
@@ -5649,12 +5649,12 @@ repository:
           ) \b
         )
         `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-        : (?: \s* (?: [,;'"`)}\]\w\s] | \#?[(\[{]|\\.) | $) # postfix colon or delimiter
+        : (?: \s* (?: [,;'"`)}\]\w\s] | [#<]?[(\[{]|\\.) | $) # postfix colon or delimiter
       )
       (?=
-            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~] \#?[({] # macro and destructor calls
+            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? [#<]?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|[#<]?[(\[{]) # generics
+          | [!~] [#<]?[({] # macro and destructor calls
           | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
           | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
         (?:
@@ -5662,13 +5662,13 @@ repository:
           | \s+ \b\d # numbers
           | \s+ `\N # unquoted strings / stropped identifiers
           | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
-          | \s+ \#? [(\[] # opening brackets
+          | \s+ [#<]? [(\[] # opening brackets
           | \s+ /['"`\w\\(\[{] # regexp literal
           | \s+ <(?:`?[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
                 [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
-                (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-          | \s+ \|(?: \#?[(\[{] )? # opening bracket
+                (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
+          | \s+ \|(?: [#<]?[(\[{] )? # opening bracket
                 (?: [,;] \s* )* # optional separators
                 (?:
                   ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
@@ -5738,7 +5738,7 @@ repository:
 
       ([?!]?[:>]?=?) # message accessor
       (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # message name
-      (?=:(?:\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$))
+      (?=:(?:\s*(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.)|$))
     end: (?=)|$
     name: "meta.message.ruko"
     beginCaptures:
@@ -5781,7 +5781,7 @@ repository:
                 patterns: *function-names
     patterns:
       - include: "#brackets"
-      - match: (:)(?=\s*(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.)|$)
+      - match: (:)(?=\s*(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.)|$)
         name: "punctuation.separator.key-value.ruko"
 
   # Variables
@@ -5789,7 +5789,7 @@ repository:
   call-arguments:
     patterns:
       - applyEndPatternLast: true
-        begin: (?<=(?:(?:[)}\]\w'"`]|\\.)[!?]?>*)*)(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+        begin: (?<=(?:(?:[)}\]\w'"`]|\\.)[!?]?>*)*)(:)(?=$|<*(?:['"`\w\s]|[#<]?[(\[{]))
         end: (?=)|$
         beginCaptures:
           1: {name: "punctuation.definition.annotation.ruko"}
@@ -5801,17 +5801,17 @@ repository:
             (?:
               ^ # start of line
               | (?:^ | [^|]) \| # open pipe
-              | \#?[({\[] # open bracket
+              | [#<]?[({\[] # open bracket
               | [,;] # separator
               | [(|]\. \s # uncurried function
-              | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
+              | (?:^ | [,;'"`)}\]\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
                 \b (?: # declaration keywords
                   var|mut|let|auto|const
                   |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
                   |module|schema|struct|record|object|union|macro|space
                   |query|quote|style|script|shader|compo|temp|oper|realm
                 ) \b
-                (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.)
+                (?:$|[,;'"`)}\]\s] | [#<]?[(\[{] | \\.)
             ) \s*
           )
 
@@ -5834,10 +5834,10 @@ repository:
           (?=
             $ | \s* (?: # end of line
               | [)}\]] # close bracket or pipe
-              | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]|\\.) # pipe
+              | \|:? (?:$|['"`<\w\s)\]}]|[#<]?[(\[{]|\\.) # pipe
               | [,;] # separator
               | (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword (aliasing)
-              | \s (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
+              | \s (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|[#<]?[(\[{]) # type specifier and assignment
             )
           )
         captures:
@@ -5870,17 +5870,17 @@ repository:
         (?:
           ^ # start of line
           | (?:^ | [^|]) \| # open pipe
-          | \#?[({\[] # open bracket
+          | [#<]?[({\[] # open bracket
           | [,;] # separator
           | [(|]\. \s # uncurried function
-          | (?:^ | [,;'"`)}\]\s] | \#?[(\[{] | \\.) # literal, bracket or space
+          | (?:^ | [,;'"`)}\]\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
             \b (?: # declaration keywords
               var|mut|let|auto|const
               |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
               |module|schema|struct|record|object|union|macro|space
               |query|quote|style|script|shader|compo|temp|oper|realm
             ) \b
-            (?:$|[,;'"`)}\]\s] | \#?[(\[{] | \\.)
+            (?:$|[,;'"`)}\]\s] | [#<]?[(\[{] | \\.)
         ) \s*
       )
 
@@ -5900,7 +5900,7 @@ repository:
         \s*
       )
 
-      (:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+      (:)(?=$|<*(?:['"`\w\s]|[#<]?[(\[{]))
     captures:
       1:
         name: "keyword.operator.prefix.ruko"
@@ -5969,7 +5969,7 @@ repository:
             (?! [?!]?\.\.+ ) # not a range operator
             (?=
                 (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
-              | \#?\[ # or array access
+              | [#<]?\[ # or array access
             )
             |
             (?: # variables
@@ -6007,13 +6007,13 @@ repository:
 
   special-operators:
     patterns:
-      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)(\.\.)(?=[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+      - match: (?<=(?:^|[,;]|[#<]?[(\[{])\s*)(\.\.)(?=[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]*(?:['"`\w]|[#<]?[(\[{]))
         captures:
           1: {name: "keyword.operator.spread.ruko"}
-      - match: (?<=>|\w)(!)(?=\#?[({])
+      - match: (?<=>|\w)(!)(?=[#<]?[({])
         captures:
           1: {name: "keyword.operator.macro.ruko"}
-      - match: (?<=>|\w)(~)(?=\#?[({])
+      - match: (?<=>|\w)(~)(?=[#<]?[({])
         captures:
           1: {name: "keyword.operator.destructor.ruko"}
 
@@ -6021,7 +6021,7 @@ repository:
     comment: 'Named infix operators: x \fn\ y'
     contentName: "keyword.operator.infix.named.ruko"
     begin: (?<=^|['"`)}\]\w\s]|\\.)(\\)\s*
-    end: \s*(\\)(?=$|['"`\w\s]|\#?[(\[{])
+    end: \s*(\\)(?=$|['"`\w\s]|[#<]?[(\[{])
     captures:
       1: {name: "punctuation.definition.operator.ruko"}
     patterns:
@@ -6236,14 +6236,14 @@ repository:
         | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
         | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
         | ( [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # other operators
-      )(?=(?:['"`\w]|\#?[(\[{]))
+      )(?=(?:['"`\w]|[#<]?[(\[{]))
     captures:
       <<: *infix-operator-captures
       32: {name: "keyword.operator.interfix.ruko"}
 
   prefix-operators:
     comment: Prefix operators
-    match: ([\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]])(?=[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+    match: ([\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]])(?=[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]*(?:['"`\w]|[#<]?[(\[{]))
     name: "keyword.operator.prefix.ruko"
     captures:
       1:
@@ -6797,7 +6797,7 @@ repository:
     patterns:
       - match: |-
           (?x)
-          (?<=(?:^|[,;]|\#?[(\[{])\s*)
+          (?<=(?:^|[,;]|[#<]?[(\[{])\s*)
           (
             \b
             # ignore all keywords
@@ -7070,7 +7070,7 @@ repository:
             name: "entity.name.quote.ruko"
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(style)\b\s*
-        end: (?=$|['"`\w\s]|\#?[(\[{])
+        end: (?=$|['"`\w\s]|[#<]?[(\[{])
         beginCaptures:
           1: {name: "storage.type.style.ruko"}
         name: "meta.style.ruko"
@@ -7083,7 +7083,7 @@ repository:
           - match: *entity-name
             name: "entity.name.style.ruko"
       - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(oper)\b\s*
-        end: (:?=(?:\s+|$)(?!\#?[(\[{]))|(?=\#?{|[,;]|$)
+        end: (:?=(?:\s+|$)(?![#<]?[(\[{]))|(?=[#<]?{|[,;]|$)
         beginCaptures:
           1: {name: "storage.type.operator.ruko"}
         endCaptures:
@@ -7502,7 +7502,7 @@ repository:
 
           \s*
           (\|) (?=
-            (?: \#?[(\[{] )? # opening bracket
+            (?: [#<]?[(\[{] )? # opening bracket
             (?: [,;] \s* )* # optional separators
             (?:
               ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
@@ -7576,7 +7576,7 @@ repository:
 
           \s*
           (\|) (?=
-            (?: \#?[(\[{] )? # opening bracket
+            (?: [#<]?[(\[{] )? # opening bracket
             (?: [,;] \s* )* # optional separators
             (?:
               ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
@@ -7605,7 +7605,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#? [({\[] # opening bracket
+          | [#<]? [({\[] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
@@ -7617,7 +7617,7 @@ repository:
         ) \s*
       ) \s*
       (\|) (?=
-        (?: \#?[(\[{] )? # opening bracket
+        (?: [#<]?[(\[{] )? # opening bracket
         (?: [,;] \s* )* # optional separators
         (?:
           ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
@@ -7697,7 +7697,7 @@ repository:
 
   try-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(try|then|raise)\b\s*
-    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.try.ruko"
     beginCaptures:
       1: {name: "keyword.control.error.ruko"}
@@ -7733,7 +7733,7 @@ repository:
           1: {name: "keyword.control.error.ruko"}
           2: {name: "punctuation.definition.case-statement.ruko"}
       - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
-        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|$
         beginCaptures:
           1: {name: "keyword.control.error.ruko"}
         endCaptures:
@@ -7753,7 +7753,7 @@ repository:
 
   for-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for(?:ever|\s+each)?|(?:while|until)(?:\s+not)?|loop)\b\s*
-    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.for.ruko"
     beginCaptures:
       1: {name: "keyword.control.loop.ruko"}
@@ -7766,7 +7766,7 @@ repository:
 
   if-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if|un|elif|elun|if\s+not|guard)\b\s*
-    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.if.ruko"
     beginCaptures:
       1: {name: "keyword.control.conditional.ruko"}
@@ -7802,7 +7802,7 @@ repository:
           1: {name: "keyword.control.match.ruko"}
           2: {name: "punctuation.definition.case-statement.ruko"}
       - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
-        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|$
         beginCaptures:
           1: {name: "keyword.control.match.ruko"}
         endCaptures:
@@ -7822,7 +7822,7 @@ repository:
 
   switch-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(switch)\b\s*
-    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.switch.ruko"
     beginCaptures:
       1: {name: "keyword.control.switch.ruko"}
@@ -7845,7 +7845,7 @@ repository:
           1: {name: "keyword.control.switch.ruko"}
           2: {name: "punctuation.definition.case-statement.ruko"}
       - begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
-        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|$
+        end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|$
         beginCaptures:
           1: {name: "keyword.control.switch.ruko"}
         endCaptures:
@@ -7865,7 +7865,7 @@ repository:
 
   when-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(when)\b\s*
-    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.if.ruko"
     beginCaptures:
       1: {name: "keyword.control.signal.ruko"}
@@ -7878,7 +7878,7 @@ repository:
 
   with-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(with)\b\s*
-    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|\#?[(\[{]|\\.))|(?=[;)\]}])|$
+    end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.if.ruko"
     beginCaptures:
       1: {name: "keyword.control.with.ruko"}
@@ -7892,7 +7892,7 @@ repository:
   # Binding patterns
 
   object-key:
-    begin: (?<=(?:^|[,;]|\#?[(\[{])\s*)
+    begin: (?<=(?:^|[,;]|[#<]?[(\[{])\s*)
     end: \s*(?=[,;)\]}]|$)|\s*(:)
     name: "meta.object-key.ruko"
     endCaptures:
@@ -7901,7 +7901,7 @@ repository:
       - include: "#literals"
       - include: "#embedded-expressions"
       - include: "#brackets"
-      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*(?=[,;)\]}:]|$)
+      - match: (?<=(?:^|[,;]|[#<]?[(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*(?=[,;)\]}:]|$)
         name: "constant.other.object.key.ruko"
       - include: "#space"
       - include: "#comments"
@@ -7910,16 +7910,16 @@ repository:
 
   object-value:
     patterns:
-      - match: (?<=(?:^|[,;(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
+      - match: (?<=(?:^|[,;(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|[#<]?[(\[{])|$))
         name: "variable.other.constant.ruko"
-      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
+      - match: (?<=(?:^|[,;]|[#<]?[(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|[#<]?[(\[{])|$)
         name: "variable.other.constant.ruko"
 
   object-argument:
     patterns:
-      - match: (?<=(?:^|[,;(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$))
+      - match: (?<=(?:^|[,;(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b(?=\s*(?:[,;)\]}]|=(?:['"`\w\s]|[#<]?[(\[{])|$))
         name: "variable.parameter.ruko"
-      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|\#?[(\[{])|$)
+      - match: (?<=(?:^|[,;]|[#<]?[(\[{])\s*)`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b\s*(?=[,;)\]}]|=(?:['"`\w\s]|[#<]?[(\[{])|$)
         name: "variable.parameter.ruko"
 
   as-keyword:
@@ -7931,7 +7931,7 @@ repository:
     name: "keyword.operator.expression.$1.ruko"
 
   binding-pattern-object:
-    begin: (\#?{)\s*
+    begin: ([#<]?{)\s*
     end: \s*(})
     name: "meta.brace.curly.ruko"
     captures:
@@ -7946,7 +7946,7 @@ repository:
       - include: "#illegal"
 
   binding-pattern-tuple:
-    begin: (\#?\()\s*
+    begin: ([#<]?\()\s*
     end: \s*(\))
     name: "meta.brace.curly.ruko"
     captures:
@@ -7959,7 +7959,7 @@ repository:
       - include: "#illegal"
 
   binding-pattern-array:
-    begin: (\#?\[)\s*
+    begin: ([#<]?\[)\s*
     end: \s*(])
     name: "meta.brace.curly.ruko"
     captures:
@@ -7972,7 +7972,7 @@ repository:
       - include: "#illegal"
 
   default-value:
-    begin: (?<=^|[\s({\[])(\=)(?=$|[)}\]\s])|(?<=['")}\]\w]|\\.)(\=)(?=(?:['"`\w]|\#?[(\[{]))
+    begin: (?<=^|[\s({\[])(\=)(?=$|[)}\]\s])|(?<=['")}\]\w]|\\.)(\=)(?=(?:['"`\w]|[#<]?[(\[{]))
     captures:
       1: {name: "keyword.operator.assignment.ruko"}
       2: {name: "keyword.operator.assignment.ruko"}
@@ -8004,7 +8004,7 @@ repository:
       - comment: "Function def before function keyword: x = def()"
         match: |-
           (?x)
-          (?<=(?:^|[,;]|\#?[(\[{])\s*)
+          (?<=(?:^|[,;]|[#<]?[(\[{])\s*)
 
           (\b[\w\p{Pd}]+\b) # label
           (:) # key value separator
@@ -8038,7 +8038,7 @@ repository:
           3: {patterns: [{include: "#modifiers"}]}
       - begin: |-
           (?x)
-          (?<=(?:^|[,;]|\#?[(\[{])\s*)
+          (?<=(?:^|[,;]|[#<]?[(\[{])\s*)
 
           (\b[\w\p{Pd}]+\b) # label
           (:) # key value separator
@@ -8057,7 +8057,7 @@ repository:
 
           \s*
           (\|) (?=
-            (?: \#?[(\[{] )? # opening bracket
+            (?: [#<]?[(\[{] )? # opening bracket
             (?: [,;] \s* )* # optional separators
             (?:
               ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
@@ -8078,7 +8078,7 @@ repository:
         patterns: [{include: "#argument-list-content"}]
       - match: |-
           (?x)
-          (?<=(?:^|[,;]|\#?[(\[{])\s*)
+          (?<=(?:^|[,;]|[#<]?[(\[{])\s*)
           (\b[\w\p{Pd}]+\b) # Label
           (:) # Key value separator
         name: "meta.object-literal.key.ruko"
@@ -8096,7 +8096,7 @@ repository:
 
   slice-syntax:
     patterns:
-      - match: (?<=[:'"`\w\s]|\\.)(:)(?=[:'"`\w\s]|\#?[(\[{]|$)
+      - match: (?<=[:'"`\w\s]|\\.)(:)(?=[:'"`\w\s]|[#<]?[(\[{]|$)
         name: "keyword.operator.slice.ruko"
       - include: "#numbers"
       - include: "#space"
@@ -8148,13 +8148,13 @@ repository:
   generics: &generics
     patterns:
       - comment: <> empty generics
-        match: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(>)(?=[!~]?(?:['"`\w<]|\#?[(\[{]))
+        match: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(>)(?=[!~]?(?:['"`\w<]|[#<]?[(\[{]))
         captures:
           1: {name: "punctuation.type.arguments.ruko"}
           2: {name: "punctuation.type.arguments.ruko"}
       - comment: <...> generics
         name: "meta.type-arguments.ruko"
-        begin: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|\#?[(\[{]))
+        begin: (?<=^|['"`)}\]>\w\s]|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=[!@#$%^&*\-+|\\/~:.?<]*(?:['"`\w]|[#<]?[(\[{]))
         end: (?<=^|['"`)}\]>\w])(>)(?:(!)|(~))?
         beginCaptures:
           1: {name: "punctuation.type.arguments.ruko"}
@@ -8195,7 +8195,7 @@ repository:
         patterns:
           - match: ","
             name: "punctuation.separator.mapping.ruko"
-          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*):(?=(?:['"`\w\s]|\#?[(\[{])|$)
+          - match: (?<=(?:['"`)}\]\w]|\\.)[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*):(?=(?:['"`\w\s]|[#<]?[(\[{])|$)
             name: "punctuation.separator.key-value.ruko"
 
     patterns:
@@ -8256,7 +8256,7 @@ repository:
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \s*
           )
-          (\#?{)\s*
+          ([#<]?{)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
@@ -8364,7 +8364,7 @@ repository:
               (?:['"`)}\]\w]|\\.) # literal
             | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
-          (\#?{)\s*
+          ([#<]?{)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
@@ -8410,7 +8410,7 @@ repository:
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \s*
           )
-          (\#?\()\s*
+          ([#<]?\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
         captures:
@@ -8425,7 +8425,7 @@ repository:
               (?:['"`)}\]\w]|\\.) # literal
             | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
-          (\#?\()\s*
+          ([#<]?\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
         captures:
@@ -8467,7 +8467,7 @@ repository:
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \s*
           )
-          (\#?\[)\s*
+          ([#<]?\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
         captures:
@@ -8545,7 +8545,7 @@ repository:
               (?:['"`)}\]\w]|\\.) # literal
             | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
           )
-          (\#?\[)\s*
+          ([#<]?\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
         captures:
