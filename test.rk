@@ -168,10 +168,10 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
 )
 
 // JSX style
-<func (type [i32]) $sortedPowerSet(arr: type i32)>
-  <mut (type [[i32]]) $result=[]/>
+<func(type [i32]) $sortedPowerSet(arr: type i32)>
+  <mut(type [[i32]]) $result=[]/>
   <for let=i in=(0 ..< 1 << arr.len)>
-    <mut (type [i32]) $subset=[]/>
+    <mut(type [i32]) $subset=[]/>
     <for let=j in=(0 ..< arr.len)> 
       <if ((i >> j) & 1)>
         subset.=push arr[j]
@@ -180,8 +180,8 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
     result.=push subset
   </for>
   result.=sort |a, b| <>
-    <let (type i32) $countA=(a.reduce 0, |c,, i| c + 1)/>
-    <let (type i32) $countB=(b.reduce 0, |d,, i| d + 1)/>
+    <let(type i32) $countA=(a.reduce 0, |c,, i| c + 1)/>
+    <let(type i32) $countB=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -203,7 +203,7 @@ for let i in sortedPowerSet [1...16]:
 let formatPowerSet = |a: [[i32]]|: str =
   a.iter(iter: from let (subset: [i32]) in a where subset.len > 0
     select '[' ++ [subset map: str x join: ','] ++ ']'
-  ).join ', '
+  ).join(', ')
 
 print $ formatPowerSet sortedPowerSet [1..<10]
 
@@ -413,7 +413,6 @@ script php {
     }
   }
 
-  'x'
   channel('user.{id}', UserChannel::class);
   channel('post.{id}', PostChannel::class);
 }
@@ -577,7 +576,7 @@ let combinedStr = $`"""
     | (\b[\p{Pd}\w]+\b) // named
     | ([^;\s]++) // invalid
   )(;)
-/xi.test('&#x1F600;
+/xi.test('&#x1F600; 
   &#128512;
   &#b110000001010100000000000000000;
   &#t1002202000000;
@@ -588,19 +587,42 @@ let combinedStr = $`"""
   &#x1F600;
   &#invalid;')
 
-// matches various numeral systems with comments and whitespace enabled
 print "Regex matched valid numeral entities!"
 
 <div>
-  ###### Yuh this is Markdown
-  > this starts a blockquote [x]
-  . this starts a paragraph **with bold text** and _italic text_. 
-  . Do not forget to escape special characters like \* and \_.
-  - this is a list item
-  - another list item
-  + numbered list item (automatic)
+  # Generic Heading 1
+  ## Generic Heading 2
+  ### Generic Heading 3
+  #### Generic Heading 4
+  ##### Generic Heading 5
+  ###### Generic Heading 6
 
-  <func $exampleMarkdownFunc(param: str): str>
-    <return $"You passed: $param"/>
-  </func>
-</div>
+  <func(type void) $exampleMarkdownRender()>
+    <div .markdown-container>
+      : definition term
+      : definition description
+      + _x
+      + a_ n
+
+      > this starts a blockquote [example link](https://example.com)
+      > > this is a nested blockquote
+      > > _nested italic text
+      > > continuing the nested blockquote
+      > last line of the outer blockquote
+
+      . this starts a paragraph **with bold text** and _italic text 
+      . with a raw string:_ `C:\Users\Name\Documents\file.txt`
+      + ++underline++ ~~strikethrough~~ ==highlight== ||spoiler|| 
+      - this is a list item
+      - another list item
+      + numbered list item (automatic)
+      . [link text](https://example.com) 
+      . and an image: ![alt text](https://example.com/image.png)
+      . `inline code`
+      . $\a + y = z ^ 2 - \sqrt{y + x}$
+      . !!!tag.class span tag with custom attributes 
+      .  !!x nested?! !! 
+      . !!!
+    </>
+  </>
+</>

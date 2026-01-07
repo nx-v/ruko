@@ -3,7 +3,7 @@ scopeName: "source.spwn" # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
 patterns: [{include: "#core"}]
 
-# Last updated: January 3, 2026
+# Last updated: January 8, 2026
 #
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
@@ -21,20 +21,27 @@ patterns: [{include: "#core"}]
 #
 # - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
 #   ASCIIDoc and other lightweight markup languages for inspiration.
+#   Use "while" regex matches to avoid conflicts with existing syntax.
+#   Current planned features:
 #   - [x] Headings and subheadings
 #   - [x] Deleted and inserted text ~~deleted~~ ++inserted++
+#   - [x] Definition blocks :::
 #   - [x] Superscript ^super^
 #   - [x] Subscript ~sub~
 #   - [x] Highlighted text ==highlight==
 #   - [x] Redacted text ||redacted||
-#   - [ ] Inline math $$math$$
-#   - [ ] Spans !!.custom.classes span!!
+#   - [x] Blockquotes
+#   - [x] Inline math $$math$$ via Typst/LaTeX hybrid syntax
+#   - [x] Citations
+#   - [x] Footnotes
+#   - [x] Spans !!.custom.classes span!!
 #   - [ ] Selectors and anchors #anchor .class
 #   - [ ] Code blocks
-#   - [ ] Definition blocks :::
 #   - [ ] Tables | Header 1 | Header 2 |
-#   - [ ] Citations
-#   - References:
+#   - [ ] Task lists - [x] Task item
+#   - [x] Links and images ![alt text](url)
+#   - [x] Lists (ordered and unordered)
+#   - References and further reading for inline Markdown syntax:
 #     https://docs.asciidoctor.org/asciidoc/latest/
 #     https://typst.app/docs/reference/
 #     https://texy.nette.org/en/
@@ -3388,7 +3395,7 @@ repository:
     patterns:
       - include: "#comments"
       - include: "#xml-entities"
-      - include: "#html-tag"
+      - include: "#tag-component-name"
       - include: "#paragraph"
       - include: "#inline-styles"
       - include: "#headings"
@@ -3557,6 +3564,7 @@ repository:
     patterns:
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#underline"
@@ -3565,17 +3573,72 @@ repository:
       - include: "#subscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
       - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
+
+  math-inline:
+    comment: Inline math delimited by $ ... $
+    begin: (\$+)
+    end: (\1)
+    name: "meta.embedded.math.markdown"
+    captures:
+      1: {name: "punctuation.definition.math.markdown"}
+    patterns: &math-inline
+      - include: "#comments"
+      - include: "#math-commands"
+      - include: "#math-entities"
+      - include: "#numbers"
+      - match: '[\p{P}\p{S}&&[^$\\()\[\]{}]]+'
+        name: "keyword.operator.math.markdown"
+        captures:
+          0: {patterns: [{include: "#operators"}]}
+      - include: "#punctuation"
+      - include: "#escapes-embedded"
+      - include: "#space"
+
+  math-entities:
+    match: (\\)(\b[\p{Pd}\w]+\b)(;?)
+    captures:
+      1: {name: "punctuation.definition.entity.math.markdown"}
+      2: {name: "constant.character.entity.name.math.markdown"}
+      3: {name: "punctuation.definition.entity.math.markdown"}
+
+  math-commands:
+    applyEndPatternLast: true
+    begin: (\\)(\b[\p{Pd}\w]+\b)(?={)
+    beginCaptures:
+      1: {name: "punctuation.definition.command.math.markdown"}
+      2: {name: "entity.name.command.math.markdown"}
+    end: (?=)|$
+    patterns:
+      - begin: ({)
+        end: (})
+        name: "meta.brace.curly.math.markdown meta.embedded.math.markdown"
+        captures:
+          1: {name: "punctuation.definition.brace.curly.math.markdown"}
+          2: {name: "punctuation.definition.brace.curly.math.markdown"}
+        patterns: *math-inline
+
+  evaluated-code:
+    begin: ({)
+    end: (})
+    name: "meta.inline.code.markdown"
+    captures:
+      1: {name: "punctuation.definition.inline.code.markdown"}
+    patterns: [{include: "$self"}]
 
   ampersand:
     comment: Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.
@@ -3588,9 +3651,10 @@ repository:
       1: {name: "punctuation.definition.bold.markdown"}
     end: (?<=\S)(\1)
     name: "markup.bold.markdown"
-    patterns:
+    patterns: # everything except bold
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#italic"
       - include: "#underline"
       - include: "#strikethrough"
@@ -3598,11 +3662,15 @@ repository:
       - include: "#subscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3616,9 +3684,10 @@ repository:
       1: {name: "punctuation.definition.italic.markdown"}
     end: (?<=\S)(\1)((?!\1)|(?=\1\1))
     name: "markup.italic.markdown"
-    patterns:
+    patterns: # everything except italic
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#underline"
       - include: "#strikethrough"
@@ -3626,11 +3695,15 @@ repository:
       - include: "#subscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3644,9 +3717,10 @@ repository:
       1: {name: "punctuation.definition.strikethrough.markdown"}
     end: (?<=\S)(~~)
     name: "markup.strikethrough.markdown"
-    patterns:
+    patterns: # everything except strikethrough
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#underline"
@@ -3654,11 +3728,15 @@ repository:
       - include: "#subscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3672,9 +3750,10 @@ repository:
       1: {name: "punctuation.definition.underline.markdown"}
     end: (?<=\S)(\+\+)
     name: "markup.underline.markdown"
-    patterns:
+    patterns: # everything except underline
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#strikethrough"
@@ -3682,11 +3761,15 @@ repository:
       - include: "#subscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3700,9 +3783,10 @@ repository:
       1: {name: "punctuation.definition.redacted.markdown"}
     end: (?<=\S)(\|\|)
     name: "markup.redacted.markdown"
-    patterns:
+    patterns: # everything except redacted
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#underline"
@@ -3710,11 +3794,15 @@ repository:
       - include: "#superscript"
       - include: "#subscript"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3728,9 +3816,10 @@ repository:
       1: {name: "punctuation.definition.highlight.markdown"}
     end: (?<=\S)(==)
     name: "markup.highlight.markdown"
-    patterns:
+    patterns: # everything except highlight
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#underline"
@@ -3738,11 +3827,15 @@ repository:
       - include: "#superscript"
       - include: "#subscript"
       - include: "#redacted"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3756,9 +3849,10 @@ repository:
       1: {name: "punctuation.definition.superscript.markdown"}
     end: (?<=\S)(\^)
     name: "markup.superscript.markdown"
-    patterns:
+    patterns: # everything except superscript
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#underline"
@@ -3766,11 +3860,15 @@ repository:
       - include: "#subscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3784,9 +3882,10 @@ repository:
       1: {name: "punctuation.definition.subscript.markdown"}
     end: (?<=\S)(~)
     name: "markup.subscript.markdown"
-    patterns:
+    patterns: # everything except subscript
       - include: "#ampersand"
       - include: "#bracket"
+      - include: "#evaluated-code"
       - include: "#bold"
       - include: "#italic"
       - include: "#underline"
@@ -3794,11 +3893,15 @@ repository:
       - include: "#superscript"
       - include: "#redacted"
       - include: "#highlight"
-      - include: "#escapes-embedded"
-      - include: "#raw"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#monospace"
+      - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
       - include: "#image-ref"
+      - include: "#footnote"
+      - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
@@ -3815,6 +3918,40 @@ repository:
     comment: Escape characters in Markdown
     match: \\[-`*_#+.!()\[\]{}\\>~|=]
     name: "constant.character.escape.markdown"
+
+  span:
+    begin: (?<!!)(!!+)(?!!)
+    end: (?<!!)(\1)(?!!)
+    captures:
+      1: {name: "punctuation.definition.span.markdown"}
+    name: "markup.span.markdown"
+    patterns:
+      - applyEndPatternLast: true
+        comment: style selectors
+        begin: (?<=!!)(\s*)
+        end: (?=)|$
+        captures:
+          1: {name: "punctuation.definition.selector.markdown"}
+        patterns:
+          - begin: (\()
+            end: (\))
+            name: "meta.brace.round.markdown"
+            captures:
+              1: {name: "punctuation.definition.brace.round.markdown"}
+              2: {name: "punctuation.definition.brace.round.markdown"}
+            patterns: [{include: "#tag-attributes"}]
+          - include: "#style-selectors"
+          - match: '\b[\p{Pd}\w]+\b'
+            name: "entity.name.tag.ruko"
+            patterns: [{include: "#html-tags"}]
+      - include: "#markdown"
+
+  monospace:
+    begin: (`+)
+    end: (\1)
+    captures:
+      1: {name: "punctuation.definition.raw.markdown"}
+    name: "markup.inline.raw.string.markdown"
 
   image-inline:
     comment: Inline image ![alt text](url "optional title")
@@ -3853,6 +3990,9 @@ repository:
       18: {name: "punctuation.definition.metadata.markdown"}
 
   image-ref:
+    match: (\!\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(.*?)(\])
+    name: "meta.image.reference.markdown"
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: "punctuation.definition.string.begin.markdown"}
       2: {name: "string.other.link.description.markdown"}
@@ -3860,29 +4000,42 @@ repository:
       5: {name: "punctuation.definition.constant.markdown"}
       6: {name: "constant.other.reference.link.markdown"}
       7: {name: "punctuation.definition.constant.markdown"}
-    match: (\!\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(.*?)(\])
-    name: "meta.image.reference.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
   link-email:
+    match: (<)((?:mailto:)?[a-zA-Z\d.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z\d-]+(?:\.[a-zA-Z\d-]+)*)(>)
+    name: "meta.link.email.lt-gt.markdown"
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: "punctuation.definition.link.markdown"}
       2: {name: "markup.underline.link.markdown"}
       4: {name: "punctuation.definition.link.markdown"}
-    match: (<)((?:mailto:)?[a-zA-Z\d.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z\d-]+(?:\.[a-zA-Z\d-]+)*)(>)
-    name: "meta.link.email.lt-gt.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
   link-inet:
+    match: (<)((?:https?|ftp)://.*?)(>)
+    name: "meta.link.inet.markdown"
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: "punctuation.definition.link.markdown"}
       2: {name: "markup.underline.link.markdown"}
       3: {name: "punctuation.definition.link.markdown"}
-    match: (<)((?:https?|ftp)://.*?)(>)
-    name: "meta.link.inet.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
   link-inline:
+    match: |-
+      (?x)
+      (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])
+      # Match the link text.
+      (\() # Opening paren for url
+        (<?)((?<url>(?>[^\s()]+)|\(\g<url>*\))*)(>?) # The url
+        [ \t]* # Optional whitespace
+        (?:
+            ((\().+?(\))) # Match title in parens...
+          | ((").+?(")) # or in double quotes...
+          | ((').+?(')) # or in single quotes.
+        )? # Title is optional
+        \s* # Optional whitespace
+      (\))
+    name: "meta.link.inline.markdown"
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: "punctuation.definition.string.begin.markdown"}
       2: {name: "string.other.link.title.markdown"}
@@ -3901,24 +4054,11 @@ repository:
       17: {name: "punctuation.definition.string.begin.markdown"}
       18: {name: "punctuation.definition.string.end.markdown"}
       19: {name: "punctuation.definition.metadata.markdown"}
-    match: |-
-      (?x)
-      (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])
-      # Match the link text.
-      (\() # Opening paren for url
-        (<?)((?<url>(?>[^\s()]+)|\(\g<url>*\))*)(>?) # The url
-        [ \t]* # Optional whitespace
-        (?:
-            ((\().+?(\))) # Match title in parens...
-          | ((").+?(")) # or in double quotes...
-          | ((').+?(')) # or in single quotes.
-        )? # Title is optional
-        \s* # Optional whitespace
-      (\))
-    name: "meta.link.inline.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
   link-ref:
+    match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])(\[)([^\]]*+)(\])
+    name: "meta.link.reference.markdown"
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: "punctuation.definition.string.begin.markdown"}
       2: {name: "string.other.link.title.markdown"}
@@ -3926,38 +4066,52 @@ repository:
       5: {name: "punctuation.definition.constant.begin.markdown"}
       6: {name: "constant.other.reference.link.markdown"}
       7: {name: "punctuation.definition.constant.end.markdown"}
-    match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])(\[)([^\]]*+)(\])
-    name: "meta.link.reference.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
   link-ref-literal:
+    match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(\])
+    name: "meta.link.reference.literal.markdown"
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: "punctuation.definition.string.begin.markdown"}
       2: {name: "string.other.link.title.markdown"}
       4: {name: "punctuation.definition.string.end.markdown"}
       5: {name: "punctuation.definition.constant.begin.markdown"}
       6: {name: "punctuation.definition.constant.end.markdown"}
-    match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(\])
-    name: "meta.link.reference.literal.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
   link-ref-shortcut:
+    match: (\[)(\S+?)(\])
+    patterns: [{include: "#string-escapes"}]
+    name: "meta.link.reference.markdown"
     captures:
       1: {name: "punctuation.definition.string.begin.markdown"}
       2: {name: "string.other.link.title.markdown"}
       3: {name: "punctuation.definition.string.end.markdown"}
-    match: (\[)(\S+?)(\])
-    name: "meta.link.reference.markdown"
-    patterns: [{include: "#escapes-embedded"}]
 
-  raw:
+  footnote:
+    match: (\[\^)([^\]\s]+)(\])
+    name: "meta.footnote.markdown"
     captures:
-      1: {name: "punctuation.definition.raw.markdown"}
-      2: {patterns: [{include: "#escapes-embedded"}]}
-      3: {name: "punctuation.definition.raw.markdown"}
-    match: (`+)([^`]|(?!(?<!`)\1(?!`))`)*+(\1)
-    name: "markup.inline.raw.string.markdown"
-    patterns: [{include: "#escapes-embedded"}]
+      1: {name: "punctuation.definition.footnote.begin.markdown"}
+      2: {name: "constant.other.footnote.markdown"}
+      3: {name: "punctuation.definition.footnote.end.markdown"}
+
+  footnote-definition:
+    begin: ^(\[\^)([^\]\s]+)(\]:)(\s*)
+    end: (?=$|^\s*$)
+    name: "meta.footnote.definition.markdown"
+    captures:
+      1: {name: "punctuation.definition.footnote.begin.markdown"}
+      2: {name: "constant.other.footnote.markdown"}
+      3: {name: "punctuation.definition.footnote.end.markdown"}
+    patterns: [{include: "#markdown"}]
+
+  citation:
+    match: (\[@)([^\]\s]+)(\])
+    name: "meta.citation.markdown"
+    captures:
+      1: {name: "punctuation.definition.citation.begin.markdown"}
+      2: {name: "constant.other.citation.markdown"}
+      3: {name: "punctuation.definition.citation.end.markdown"}
 
   escapes-embedded:
     patterns:
@@ -3968,99 +4122,92 @@ repository:
     patterns:
       - include: "#comments"
       - include: "#xml-entities"
-      - include: "#html-tag"
-      - include: "#escapes-embedded"
+      - include: "#tag-component-name"
       - include: "#paragraph"
       - include: "#inline-styles"
       - include: "#headings"
       - include: "#blockquote"
+      - include: "#definition-list"
       - include: "#unordered-list"
       - include: "#ordered-list"
       - include: "#inline-markdown"
+      - include: "#escapes-embedded"
 
   headings:
-    applyEndPatternLast: true
-    comment: "### Headings"
-    begin: ^\s*(\#{1,6})\s+(.*)\n*
-    end: (?=|$)
-    beginCaptures:
-      1: {name: "punctuation.definition.heading.markdown"}
-      2:
-        patterns:
-          - applyEndPatternLast: true
-            begin: (?<=\#{6}\s*)
-            end: (?=|$)
-            name: "heading.6.markdown entity.name.section.markdown"
-            patterns: [{include: "#markdown"}]
-          - applyEndPatternLast: true
-            begin: (?<=\#{5}\s*)
-            end: (?=|$)
-            name: "heading.5.markdown entity.name.section.markdown"
-            patterns: [{include: "#markdown"}]
-          - applyEndPatternLast: true
-            begin: (?<=\#{4}\s*)
-            end: (?=|$)
-            name: "heading.4.markdown entity.name.section.markdown"
-            patterns: [{include: "#markdown"}]
-          - applyEndPatternLast: true
-            begin: (?<=\#{3}\s*)
-            end: (?=|$)
-            name: "heading.3.markdown entity.name.section.markdown"
-            patterns: [{include: "#markdown"}]
-          - applyEndPatternLast: true
-            begin: (?<=\#{2}\s*)
-            end: (?=|$)
-            name: "heading.2.markdown entity.name.section.markdown"
-            patterns: [{include: "#markdown"}]
-          - applyEndPatternLast: true
-            begin: (?<=\#\s*)
-            end: (?=|$)
-            name: "heading.1.markdown entity.name.section.markdown"
-            patterns: [{include: "#markdown"}]
-    name: "markup.heading.markdown"
-    patterns: [{include: "#markdown"}]
+    define: &heading
+      applyEndPatternLast: true
+      captures:
+        1: {name: "punctuation.definition.heading.markdown"}
+      patterns: [{include: "#markdown"}]
+
+    patterns:
+      - begin: &heading-6 ^\s*(\#{6}\s*)(?!\#)
+        while: *heading-6
+        <<: *heading
+        name: "heading.6.markdown entity.name.section.markdown"
+      - begin: &heading-5 ^\s*(\#{5}\s*)(?!\#)
+        while: *heading-5
+        <<: *heading
+        name: "heading.5.markdown entity.name.section.markdown"
+      - begin: &heading-4 ^\s*(\#{4}\s*)(?!\#)
+        while: *heading-4
+        <<: *heading
+        name: "heading.4.markdown entity.name.section.markdown"
+      - begin: &heading-3 ^\s*(\#{3}\s*)(?!\#)
+        while: *heading-3
+        <<: *heading
+        name: "heading.3.markdown entity.name.section.markdown"
+      - begin: &heading-2 ^\s*(\#{2}\s*)(?!\#)
+        while: *heading-2
+        <<: *heading
+        name: "heading.2.markdown entity.name.section.markdown"
+      - begin: &heading-1 ^\s*(\#{1}\s*)(?!\#)
+        while: *heading-1
+        <<: *heading
+        name: "heading.1.markdown entity.name.section.markdown"
 
   blockquote:
     comment: "* blockquote"
-    applyEndPatternLast: true
-    begin: ^\s*(>)(?!>)(\s+.*)\n*
-    end: (?=|$)
-    beginCaptures:
+    begin: &blockquote (?<=^|>\s)\s*(>)
+    while: *blockquote
+    captures:
       1: {name: "punctuation.definition.quote.begin.markdown"}
-      2: {patterns: [{include: "#markdown"}]}
     name: "markup.quote.markdown"
     patterns: [{include: "#markdown"}]
 
   unordered-list:
     comment: "- unordered list"
-    applyEndPatternLast: true
-    begin: ^\s*(-)(?!>)(\s+.*)\n*
-    end: (?=|$)
-    beginCaptures:
-      1: {name: "punctuation.definition.list.begin.markdown"}
-      2: {patterns: [{include: "#markdown"}]}
+    begin: ^(\s*)(-)
+    while: ^(\1)(-)
+    captures:
+      2: {name: "punctuation.definition.list.begin.markdown"}
     name: "markup.list.unnumbered.markdown"
     patterns: [{include: "#markdown"}]
 
   ordered-list:
     comment: + ordered list
-    applyEndPatternLast: true
-    begin: ^\s*(\+)(?!>)(\s+.*)\n*
-    end: (?=|$)
-    beginCaptures:
-      1: {name: "punctuation.definition.list.begin.markdown"}
-      2: {patterns: [{include: "#markdown"}]}
+    begin: ^(\s*)(\+)
+    while: ^(\1)(\+)
+    captures:
+      2: {name: "punctuation.definition.list.begin.markdown"}
     name: "markup.list.numbered.markdown"
+    patterns: [{include: "#markdown"}]
+
+  definition-list:
+    comment: ": definition list"
+    begin: ^(\s*)(:)
+    while: ^(\1)(:)
+    captures:
+      2: {name: "punctuation.definition.list.begin.markdown"}
+    name: "markup.list.definition.markdown"
     patterns: [{include: "#markdown"}]
 
   paragraph:
     comment: . paragraph
-    applyEndPatternLast: true
-    begin: ^\s*(\.)(?!>)(\s+.*)\n*
-    end: (?=|$)
-    beginCaptures:
+    begin: &paragraph ^\s*(\.)
+    while: *paragraph
+    captures:
       1: {name: "fenced_code.block.language.markdown"}
-      2: {patterns: [{include: "#markdown"}]}
     name: "meta.paragraph.markdown"
     patterns: [{include: "#markdown"}]
 
@@ -4153,25 +4300,6 @@ repository:
       - include: "source.css.scss#constant_important"
       - include: "source.css.scss#constant_default"
       - include: "source.css.scss#constant_optional"
-
-  style-list:
-    begin: \s*(\[)\s*
-    end: \s*(\])\s*
-    name: "meta.brace.square.ruko"
-    captures:
-      1: {name: "punctuation.definition.expression.ruko"}
-    patterns:
-      - include: "#punctuation"
-      - include: "#style-property-values"
-      - include: "$self"
-
-  style-property-values:
-    patterns:
-      - include: "#function-calls"
-      - include: "#literals"
-      - include: "#embedded"
-      - *primary-expression
-      - include: "$self"
 
   # Directive literals
 
@@ -4719,10 +4847,7 @@ repository:
       - begin: \s*(?<=@)\b
         <<: *attribute-selectors
         name: "entity.name.decorator.ruko"
-      - begin: \s*(?<=!)\b
-        <<: *attribute-selectors
-        name: "entity.name.module.ruko"
-      - begin: \s*(?<=#)\b
+      - begin: \s*(?<=\?)\b
         <<: *attribute-selectors
         name: "entity.name.schema.ruko"
 
@@ -4782,6 +4907,25 @@ repository:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from|to|except|only|as)\b\s*
         name: "keyword.operator.expression.ruko"
       - include: "#format-syntax"
+
+  style-list:
+    begin: \s*(\[)\s*
+    end: \s*(\])\s*
+    name: "meta.brace.square.ruko"
+    captures:
+      1: {name: "punctuation.definition.expression.ruko"}
+    patterns:
+      - include: "#punctuation"
+      - include: "#style-property-values"
+      - include: "$self"
+
+  style-property-values:
+    patterns:
+      - include: "#function-calls"
+      - include: "#literals"
+      - include: "#embedded"
+      - *primary-expression
+      - include: "$self"
 
   # Comments
 
