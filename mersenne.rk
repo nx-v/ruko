@@ -13,9 +13,9 @@
 // and Takuji Nishimura.
 // Translated into Ruko from https://gist.github.com/yuikns/10017640
 
-use {io, limit, fs, time, math, crypto}
+use {Io, Fs, Time, Math, Crypto}
 
-ext class MTRand for IO.Serializable {
+ext class MTRand for Io.Serializable {
   pub: 
     enum {N = 624}
     enum {SAVE = N + 1}
@@ -37,7 +37,7 @@ ext class MTRand for IO.Serializable {
       $seed(big_seed, seed_length)
     proc MTRand() = $seed()
     proc MTRand(o: &MTRand) {
-      for i in 0..<N: $state[i] := o.state[i]
+      for let i in 0..<N: $state[i] := o.state[i]
       $left := o.left
       $p_next := if $left == 0: &$state.0 else &$state[N - $left]
     }
@@ -62,7 +62,7 @@ ext class MTRand for IO.Serializable {
     func rand_int(n: u32): u32 {
       // find the biggest used bit
       mut used = n
-      for i in 0..5:
+      for let i in 0..5:
         used |= used >> (1 << i)
 
       mut i: u32
@@ -113,12 +113,12 @@ ext class MTRand for IO.Serializable {
 
     // seed with system entropy or time-based seed
     proc seed() {
-      let ur = crypto.open_urandom()
+      let ur = Crypto.open_urandom()
 
       if ?ur {
         mut big: [u32; N]
         mut ok = true
-        for i in 0..<N {
+         for iin 0..<N {
           let bytes = ur.get.read_bytes(4)
           if bytes.len != 4 {ok := false; break}
           big[i] := bytes.to_u32(0)
@@ -127,15 +127,15 @@ ext class MTRand for IO.Serializable {
         if ok {$seed(&big.0, N); return}
       }
 
-      let t = time.now().to_unix()
-      let c = time.clock.to_nanosecs()
+      let t = Time.now().to_unix()
+      let c = Time.clock.to_nanosecs()
       $seed($hash(t, c))
     }
 
     proc initialize(one_seed: u32) {
       $state.0 := one_seed & 0xffffffff
 
-      for i in 1..<N {
+      for let i in 1..<N {
         let x = $state[i - 1] ^ ($state[i - 1] >> 30)
         $state[i] := (0x6c078965 * x + i) & 0xffffffff
       }
@@ -161,13 +161,13 @@ ext class MTRand for IO.Serializable {
 
     proc save(save_array: &u32) {
       mut sa = save_array
-      for i in 0..<N: sa[i] := $state[i]
+      for let i in 0..<N: sa[i] := $state[i]
       sa[N] := $left
     }
 
     proc load(load_array: &u32) {
       mut la = load_array
-      for i in 0..<N: $state[i] := la[i]
+      for let i in 0..<N: $state[i] := la[i]
       $left := la[N]
       $p_next := &$state[N - $left]
     }
@@ -176,14 +176,14 @@ ext class MTRand for IO.Serializable {
     func hash(t: time.time, c: time.clock): u32 {
       mut h1: u32 = 0
       let tb = t as &u8
-      for i in 0..<sizeof(time.time) {
+      for let i in 0..<sizeof(time.time) {
         h1 *= u8.max_value + 2
         h1 += tb[i] as u32
       }
 
       mut h2: u32 = 0
       let cb = c as &u8
-      for i in 0..<sizeof(time.clock) {
+      for let i in 0..<sizeof(time.clock) {
         h2 *= u8.max_value + 2
         h2 += cb[i] as u32
       }
@@ -243,22 +243,22 @@ ext class MTRand for IO.Serializable {
         r := x**2 + y**2
       } while r >= 1.0 || r == 0.0
 
-      let s = math.sqrt(-2.0 * math.log(r) / r)
+      let s = Math.sqrt(-2.0 * Math.log(r) / r)
       $next_gauss := y * s + mean
       $has_gauss := true
       x * s * std_dev + mean
     }
 
     // operator overloads
-    right oper prec 4 (o_stream: &io.OutputStream) <- (mt_rand: &MTRand): &io.OutputStream {
-      for i in 0..<N:
+    right oper prec 4 (o_stream: &Io.OutputStream) <- (mt_rand: &MTRand): &Io.OutputStream {
+      for let i in 0..<N:
         o_stream.write_str(mt_rand.state[i] as str ++ '\t')
       o_stream.write_str(mt_rand.left as str)
       o_stream // implicit return
     }
 
-    left oper prec 4 (i_stream: &io.InputStream) -> (mt_rand: &MTRand): &io.InputStream {
-      for i in 0..<N {
+    left oper prec 4 (i_stream: &Io.InputStream) -> (mt_rand: &MTRand): &Io.InputStream {
+      for let i in 0..<N {
         let line = i_stream.read_line()
         mt_rand.state[i] := line as u32
       }
@@ -271,7 +271,7 @@ ext class MTRand for IO.Serializable {
 
     right oper prec 1 =(o: &MTRand): &MTRand {
       if *self == o: return *self
-      for i in 0..<N: $state[i] := o.state[i]
+      for let i in 0..<N: $state[i] := o.state[i]
       $left := o.left
       $p_next := &$state[N - $left]
       *self // implicit return
@@ -281,5 +281,5 @@ ext class MTRand for IO.Serializable {
 rand = new MTRand
 rand.seed()
 
-rand -> fs.open('mtstate.txt', fm_write).get.close()
-rand <- fs.open('mtstate.txt', fm_read).get.close()
+rand -> Fs.open('mtstate.txt', fm_write).get.close()
+rand <- Fs.open('mtstate.txt', fm_read).get.close()

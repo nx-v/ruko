@@ -30,7 +30,7 @@ patterns: [{include: "#core"}]
 #   - [x] Subscript ~sub~
 #   - [x] Highlighted text ==highlight==
 #   - [x] Redacted text ||redacted||
-#   - [x] Blockquotes
+#   - [x] Block-quotes
 #   - [x] Inline math $$math$$ via Typst/LaTeX hybrid syntax
 #   - [x] Citations
 #   - [x] Footnotes
@@ -197,9 +197,9 @@ patterns: [{include: "#core"}]
 #       > let y = 20
 #       More normal text.
 #     </>
-#   - Blockquotes now start with '*' rather than '>', to avoid conflicts with code blocks.
+#   - Block-quotes now start with '*' rather than '>', to avoid conflicts with code blocks.
 #     <div>
-#       * This is a blockquote.
+#       * This is a block-quote.
 #         It can span multiple lines.
 #     </>
 #   - '+' and '-' indicate ordered and unordered list items respectively.
@@ -380,7 +380,7 @@ repository:
         captures:
           1: {name: "punctuation.definition.directive.ruko"}
           2: {name: "keyword.control.directive.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - applyEndPatternLast: true
         begin: ^\s*(\%)(define|undef)\b
         end: $
@@ -406,7 +406,7 @@ repository:
                 patterns:
                   - include: "#back-references"
                   - include: "#escapes-embedded"
-                  - include: "$self"
+                  - include: $self
           - match: .+
             name: "meta.directive.definition.ruko"
       - applyEndPatternLast: true
@@ -424,14 +424,14 @@ repository:
         captures:
           1: {name: "punctuation.definition.directive.ruko"}
           2: {name: "keyword.control.directive.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - comment: null directive
         match: ^\s*(\%)\s*$
         name: "meta.directive.ruko"
         captures:
           1: {name: "punctuation.definition.directive.ruko"}
           2: {name: "text.whitespace.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
 
   # Types
 
@@ -585,7 +585,7 @@ repository:
           - include: "#punctuation"
           - include: "#as-keyword"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -609,7 +609,7 @@ repository:
           - include: "#object-labels"
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -633,7 +633,7 @@ repository:
           - include: "#object-labels"
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -655,7 +655,7 @@ repository:
           - include: "#object-labels"
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -677,7 +677,7 @@ repository:
           - include: "#object-labels"
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -692,7 +692,7 @@ repository:
         patterns:
           - include: "#call-parameters"
           - include: "#types"
-          - include: "$self"
+          - include: $self
 
   type-round-brackets:
     repository:
@@ -720,7 +720,7 @@ repository:
         patterns:
           - include: "#call-arguments"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -742,7 +742,7 @@ repository:
         patterns:
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: (\#\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
@@ -750,7 +750,7 @@ repository:
           1: {name: "punctuation.definition.tuple.ruko"}
         patterns:
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: (\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
@@ -758,7 +758,7 @@ repository:
           1: {name: "punctuation.definition.expression.ruko"}
         patterns:
           - include: "#types"
-          - include: "$self"
+          - include: $self
 
   type-square-brackets:
     repository:
@@ -781,7 +781,7 @@ repository:
           1: {name: "punctuation.definition.attribute-selector.ruko"}
         patterns:
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -803,7 +803,7 @@ repository:
         patterns:
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: (\#\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
@@ -812,7 +812,7 @@ repository:
         patterns:
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
       - begin: (\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
@@ -821,7 +821,7 @@ repository:
         patterns:
           - include: "#punctuation"
           - include: "#types"
-          - include: "$self"
+          - include: $self
 
   types-inherited:
     patterns:
@@ -1395,7 +1395,7 @@ repository:
             name: "constant.other.symbol.ruko"
             patterns:
               - match: (?<=:)\d\w*
-                patterns: [include: "#numbers"]
+                patterns: [{include: "#numbers"}]
               - include: "#constants"
               - include: "#css-property-values"
               - include: "#unicode-property-values"
@@ -2252,8 +2252,7 @@ repository:
       - comment: standard \x escapes
         match: \\x(\h|[0-7]\h)
         name: "constant.character.escape.ascii.ruko"
-      - comment: ASCII control character escapes.
-          u8\df are mapped to \C rather than \c
+      - comment: ASCII control character escapes. u8\df are mapped to \C rather than \c
         match: \\[cC][@-_]
         name: "constant.character.escape.control.ruko"
       - comment: Null character escape
@@ -2356,7 +2355,7 @@ repository:
         name: "meta.embedded.expression.ruko"
         captures:
           1: {name: "punctuation.definition.variable.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - comment: Interpolated expression
         applyEndPatternLast: true
         name: "meta.embedded.expression.ruko"
@@ -2499,7 +2498,7 @@ repository:
           1: {name: "punctuation.definition.anchor.ruko"}
         patterns:
           - include: "#call-arguments"
-          - include: "$self"
+          - include: $self
 
   # Format and flag specifiers
 
@@ -2688,7 +2687,7 @@ repository:
             name: "punctuation.separator.mapping.ruko"
           - include: "#object-labels"
           - include: "#fuzzy-expression"
-          - include: "$self"
+          - include: $self
       - begin: (\[)\s*
         end: \s*(\])
         captures:
@@ -2697,7 +2696,7 @@ repository:
           - match: ","
             name: "punctuation.separator.sequence.ruko"
           - include: "#fuzzy-expression"
-          - include: "$self"
+          - include: $self
       - begin: (\()\s*
         end: \s*(\))
         captures:
@@ -2706,7 +2705,7 @@ repository:
           - match: ","
             name: "punctuation.separator.arguments.ruko"
           - include: "#fuzzy-expression"
-          - include: "$self"
+          - include: $self
 
   back-references:
     patterns:
@@ -2971,7 +2970,7 @@ repository:
               3: {name: "punctuation.definition.tag.ruko"}
               4: {patterns: [{include: "#function-names"}]}
               5: {name: "punctuation.definition.tag.ruko"}
-            patterns: [{include: "$self"}]
+            patterns: [{include: $self}]
           - include: "#regexp-patterns"
       - comment: Atomic groups
         begin: (\(\?>)
@@ -3274,14 +3273,14 @@ repository:
         captures:
           1: {name: "punctuation.definition.splice.curly.ruko"}
           2: {name: "punctuation.definition.splice.curly.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - begin: \s*(<\[)
         end: \s*(\]>)
         name: "meta.splicing.ruko"
         captures:
           1: {name: "punctuation.definition.splice.square.ruko"}
           2: {name: "punctuation.definition.splice.square.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
 
   # XML (JSX) and Markdown
 
@@ -3331,7 +3330,7 @@ repository:
             name: "meta.expression.tag.ruko"
             captures:
               1: {name: "punctuation.definition.splice.round.ruko"}
-            patterns: [{include: "$self"}]
+            patterns: [{include: $self}]
           - include: "#tag-attributes"
           - include: "#tag-termination"
           - match: (?<=</)(>)
@@ -3394,19 +3393,14 @@ repository:
       1: {name: "punctuation.definition.tag.ruko"}
     patterns:
       - include: "#comments"
+      - include: "#markdown"
       - include: "#xml-entities"
       - include: "#tag-component-name"
-      - include: "#paragraph"
       - include: "#inline-styles"
-      - include: "#headings"
-      - include: "#blockquote"
-      - include: "#unordered-list"
-      - include: "#ordered-list"
-      - include: "#xml-entities"
       - include: "#tag-component-name"
       - include: "#xml-comments"
       - include: "#escapes-embedded"
-      - include: "$self"
+      - include: $self
 
   tag-attributes:
     patterns:
@@ -3431,7 +3425,7 @@ repository:
               1: {name: "punctuation.definition.variable.ruko"}
             patterns:
               - include: "#style-property-values"
-              - include: "$self"
+              - include: $self
       - include: "#literals"
       - include: "#embedded-expressions"
       - include: "#embedded-formatting"
@@ -3638,7 +3632,7 @@ repository:
     name: "meta.inline.code.markdown"
     captures:
       1: {name: "punctuation.definition.inline.code.markdown"}
-    patterns: [{include: "$self"}]
+    patterns: [{include: $self}]
 
   ampersand:
     comment: Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.
@@ -3651,7 +3645,8 @@ repository:
       1: {name: "punctuation.definition.bold.markdown"}
     end: (?<=\S)(\1)
     name: "markup.bold.markdown"
-    patterns: # everything except bold
+    patterns:
+      # everything except bold
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3684,7 +3679,8 @@ repository:
       1: {name: "punctuation.definition.italic.markdown"}
     end: (?<=\S)(\1)((?!\1)|(?=\1\1))
     name: "markup.italic.markdown"
-    patterns: # everything except italic
+    patterns:
+      # everything except italic
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3717,7 +3713,8 @@ repository:
       1: {name: "punctuation.definition.strikethrough.markdown"}
     end: (?<=\S)(~~)
     name: "markup.strikethrough.markdown"
-    patterns: # everything except strikethrough
+    patterns:
+      # everything except strikethrough
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3750,7 +3747,8 @@ repository:
       1: {name: "punctuation.definition.underline.markdown"}
     end: (?<=\S)(\+\+)
     name: "markup.underline.markdown"
-    patterns: # everything except underline
+    patterns:
+      # everything except underline
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3783,7 +3781,8 @@ repository:
       1: {name: "punctuation.definition.redacted.markdown"}
     end: (?<=\S)(\|\|)
     name: "markup.redacted.markdown"
-    patterns: # everything except redacted
+    patterns:
+      # everything except redacted
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3816,7 +3815,8 @@ repository:
       1: {name: "punctuation.definition.highlight.markdown"}
     end: (?<=\S)(==)
     name: "markup.highlight.markdown"
-    patterns: # everything except highlight
+    patterns:
+      # everything except highlight
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3849,7 +3849,8 @@ repository:
       1: {name: "punctuation.definition.superscript.markdown"}
     end: (?<=\S)(\^)
     name: "markup.superscript.markdown"
-    patterns: # everything except superscript
+    patterns:
+      # everything except superscript
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -3882,7 +3883,8 @@ repository:
       1: {name: "punctuation.definition.subscript.markdown"}
     end: (?<=\S)(~)
     name: "markup.subscript.markdown"
-    patterns: # everything except subscript
+    patterns:
+      # everything except subscript
       - include: "#ampersand"
       - include: "#bracket"
       - include: "#evaluated-code"
@@ -4120,22 +4122,21 @@ repository:
 
   markdown:
     patterns:
-      - include: "#comments"
-      - include: "#xml-entities"
-      - include: "#tag-component-name"
-      - include: "#paragraph"
-      - include: "#inline-styles"
-      - include: "#headings"
-      - include: "#blockquote"
       - include: "#definition-list"
       - include: "#unordered-list"
       - include: "#ordered-list"
+      - include: "#block-quote"
+      - include: "#headings"
+      - include: "#paragraph"
+      - include: "#xml-entities"
+      - include: "#tag-component-name"
+      - include: "#inline-styles"
       - include: "#inline-markdown"
+      - include: "#comments"
       - include: "#escapes-embedded"
 
   headings:
     define: &heading
-      applyEndPatternLast: true
       captures:
         1: {name: "punctuation.definition.heading.markdown"}
       patterns: [{include: "#markdown"}]
@@ -4166,48 +4167,48 @@ repository:
         <<: *heading
         name: "heading.1.markdown entity.name.section.markdown"
 
-  blockquote:
-    comment: "* blockquote"
-    begin: &blockquote (?<=^|>\s)\s*(>)
-    while: *blockquote
+  block-quote:
+    comment: "> block-quote"
+    begin: &block-quote (?<=^|(?:[->+:#]\s+)*)\s*(>)(?=\s|$)
+    while: *block-quote
     captures:
-      1: {name: "punctuation.definition.quote.begin.markdown"}
+      1: {name: "punctuation.definition.quote.markdown"}
     name: "markup.quote.markdown"
     patterns: [{include: "#markdown"}]
 
   unordered-list:
     comment: "- unordered list"
-    begin: ^(\s*)(-)
-    while: ^(\1)(-)
+    begin: &unordered-list (?<=^|(?:[->+:#]\s+)*)\s*(-)(?=\s|$)
+    while: *unordered-list
     captures:
-      2: {name: "punctuation.definition.list.begin.markdown"}
+      1: {name: "punctuation.definition.list.unnumbered.markdown"}
     name: "markup.list.unnumbered.markdown"
     patterns: [{include: "#markdown"}]
 
   ordered-list:
-    comment: + ordered list
-    begin: ^(\s*)(\+)
-    while: ^(\1)(\+)
+    comment: "+ ordered list"
+    begin: &ordered-list (?<=^|(?:[->+:#]\s+)*)\s*(\+)(?=\s|$)
+    while: *ordered-list
     captures:
-      2: {name: "punctuation.definition.list.begin.markdown"}
+      1: {name: "punctuation.definition.list.numbered.markdown"}
     name: "markup.list.numbered.markdown"
     patterns: [{include: "#markdown"}]
 
   definition-list:
-    comment: ": definition list"
-    begin: ^(\s*)(:)
-    while: ^(\1)(:)
+    comment: "+ definition list"
+    begin: &definition-list (?<=^|(?:[->+:#]\s+)*)\s*(:)(?=\s|$)
+    while: *definition-list
     captures:
-      2: {name: "punctuation.definition.list.begin.markdown"}
+      1: {name: "punctuation.definition.list.definition.markdown"}
     name: "markup.list.definition.markdown"
     patterns: [{include: "#markdown"}]
 
   paragraph:
     comment: . paragraph
-    begin: &paragraph ^\s*(\.)
+    begin: &paragraph ^\s*(\.)(?=\s|$)
     while: *paragraph
     captures:
-      1: {name: "fenced_code.block.language.markdown"}
+      1: {name: "punctuation.definition.paragraph.markdown"}
     name: "meta.paragraph.markdown"
     patterns: [{include: "#markdown"}]
 
@@ -4233,21 +4234,21 @@ repository:
           1: {name: "punctuation.definition.directive.ruko"}
         patterns:
           - include: "#attribute-selectors"
-          - include: "$self"
+          - include: $self
       - begin: ({)\s*
         end: \s*(})
         captures:
           1: {name: "punctuation.definition.mapping.ruko"}
         patterns:
           - include: "#style-properties"
-          - include: "$self"
+          - include: $self
       - begin: (\()\s*
         end: \s*(\))
         captures:
           1: {name: "punctuation.definition.parameters.ruko"}
         patterns:
           - include: "#tag-attributes"
-          - include: "$self"
+          - include: $self
       - include: "#literals"
       - include: "#regexps"
       - include: "#punctuation"
@@ -4482,7 +4483,7 @@ repository:
               5: {name: "constant.other.color.blue-value.rgb.css"}
               6: {name: "punctuation.separator.comma.css"}
               7: {name: "constant.other.color.alpha-value.rgb.css"}
-          - include: "$self"
+          - include: $self
       - comment: CMYK color values
         name: "meta.literal.color.rgb.ruko"
         begin: \s*(\%)(rgba?)\s*(\()\s*
@@ -4509,7 +4510,7 @@ repository:
               7: {name: "constant.other.color.black-value.cmyk.css"}
               8: {name: "punctuation.separator.comma.css"}
               9: {name: "constant.other.color.alpha-value.cmyk.css"}
-          - include: "$self"
+          - include: $self
         end: \s*(\))\s*
         endCaptures:
           1: {name: "punctuation.definition.parameters.css"}
@@ -4542,7 +4543,7 @@ repository:
               8: {name: "constant.other.color.lightness-value.hsl.css"}
               9: {name: "punctuation.separator.comma.css"}
               10: {name: "constant.other.color.alpha-value.hsl.css"}
-          - include: "$self"
+          - include: $self
       - comment: LAB color values
         name: "meta.literal.color.lab.ruko"
         begin: \s*(\%)(lab)\s*(\()\s*
@@ -4572,7 +4573,7 @@ repository:
               10: {name: "constant.other.color.b-value.lab.css"}
               12: {name: "punctuation.separator.comma.css"}
               13: {name: "constant.other.color.alpha-value.lab.css"}
-          - include: "$self"
+          - include: $self
       - comment: Hex color values
         name: "meta.literal.color.hex.ruko"
         match: \s*(%)(\#)\b(\h{3,4}|\h{6}|\h{8})\b\s*
@@ -4776,7 +4777,7 @@ repository:
     patterns:
       - include: "#style-properties"
       - include: "#style-list"
-      - include: "$self"
+      - include: $self
 
   style-selectors:
     define: &attribute-selectors
@@ -4793,7 +4794,7 @@ repository:
             1: {name: "punctuation.definition.variable.ruko"}
           patterns:
             - include: "#style-property-values"
-            - include: "$self"
+            - include: $self
 
     patterns:
       - begin: (?<=^|\s+)\b
@@ -4878,7 +4879,7 @@ repository:
       - include: "#style-rules"
       - include: "#style-block"
       - include: "#space"
-      - include: "$self"
+      - include: $self
 
   style-rules:
     patterns:
@@ -4896,14 +4897,14 @@ repository:
           - include: "#expression-keywords"
           - include: "#style-pair"
           - include: "#call-arguments"
-          - include: "$self"
+          - include: $self
       - begin: \s*(\[)\s*
         end: \s*(\])\s*
         captures:
           1: {name: "punctuation.definition.selector.ruko"}
         patterns:
           - include: "#attribute-selectors"
-          - include: "$self"
+          - include: $self
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from|to|except|only|as)\b\s*
         name: "keyword.operator.expression.ruko"
       - include: "#format-syntax"
@@ -4917,7 +4918,7 @@ repository:
     patterns:
       - include: "#punctuation"
       - include: "#style-property-values"
-      - include: "$self"
+      - include: $self
 
   style-property-values:
     patterns:
@@ -4925,7 +4926,7 @@ repository:
       - include: "#literals"
       - include: "#embedded"
       - *primary-expression
-      - include: "$self"
+      - include: $self
 
   # Comments
 
@@ -6239,7 +6240,7 @@ repository:
             name: "entity.name.function.ruko"
             patterns: [{include: "#function-names"}]
       - include: "#operators"
-      - include: "$self"
+      - include: $self
 
   infix-operators:
     patterns:
@@ -6921,7 +6922,7 @@ repository:
     end: (?=)|$
     beginCaptures:
       1: {name: "keyword.control.module.ruko"}
-    patterns: [include: "#module-content"]
+    patterns: [{include: "#module-content"}]
 
   module-content:
     patterns:
@@ -6934,7 +6935,7 @@ repository:
         patterns:
           - include: "#module-content"
           - include: "#extern-expression"
-          - include: "$self"
+          - include: $self
       - include: "#strings"
       - include: "#regexps"
       - include: "#symbols"
@@ -6996,7 +6997,7 @@ repository:
             `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
           )
         name: "keyword.control.validate.ruko"
-      - include: "$self"
+      - include: $self
 
   query-expression:
     comment: "RINQ (Ruko INtegrated Query) expression mini-language TODO: unify the query clauses to reduce redundancy, since they are mostly similar in structure."
@@ -7006,7 +7007,7 @@ repository:
     end: (?=[;)\]}])
     patterns: &query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   query-body:
     patterns:
@@ -7030,12 +7031,12 @@ repository:
       \b\s*
     beginCaptures:
       1: {name: "keyword.control.query.ruko"}
-      2: {patterns: [{include: "$self"}]}
+      2: {patterns: [{include: $self}]}
       3: {name: "keyword.control.query.ruko"}
     end: (?=[;)\]}])
     patterns:
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   join-clause:
     begin: |-
@@ -7047,7 +7048,7 @@ repository:
       \b\s*
     beginCaptures:
       1: {name: "keyword.control.query.ruko"}
-      2: {patterns: [{include: "$self"}]}
+      2: {patterns: [{include: $self}]}
       3: {name: "keyword.control.query.ruko"}
     end: (?=[;)\]}])
     patterns:
@@ -7057,7 +7058,7 @@ repository:
           1: {name: "keyword.control.query.ruko"}
         patterns: *query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   where-clause:
     begin: |-
@@ -7076,7 +7077,7 @@ repository:
         name: "keyword.control.query.ruko"
         patterns: *query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   sort-clause:
     begin: |-
@@ -7093,7 +7094,7 @@ repository:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(asc|desc)\b\s*
         name: "keyword.control.query.ruko"
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   select-clause:
     begin: |-
@@ -7112,7 +7113,7 @@ repository:
         name: "keyword.control.query.ruko"
         patterns: *query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   take-clause:
     begin: |-
@@ -7131,7 +7132,7 @@ repository:
         name: "keyword.control.query.ruko"
         patterns: *query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   reduce-clause:
     begin: |-
@@ -7148,7 +7149,7 @@ repository:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(to|by)\b\s*
         name: "keyword.control.query.ruko"
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   group-clause:
     begin: |-
@@ -7167,7 +7168,7 @@ repository:
         name: "keyword.control.query.ruko"
         patterns: *query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   set-clause:
     comment: |-
@@ -7202,7 +7203,7 @@ repository:
         name: "keyword.control.query.ruko"
         patterns: *query-body
       - include: "#query-body"
-      - include: "$self"
+      - include: $self
 
   namespace-separators:
     patterns:
@@ -7228,7 +7229,7 @@ repository:
               - include: "#embedded-expressions"
               - include: "#embedded-formatting"
               - include: "#embedded-arguments"
-              - include: "$self"
+              - include: $self
           - include: "#declaration-clause"
           - include: "#namespace-separators"
           - match: *entity-name
@@ -7538,14 +7539,14 @@ repository:
           1: {name: "punctuation.definition.parameters.ruko"}
         patterns:
           - include: "#binding-pattern"
-          - include: "$self"
+          - include: $self
       - begin: (\#{)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
           1: {name: "punctuation.definition.class.ruko"}
         patterns:
-          - include: "$self"
+          - include: $self
       - begin: ({)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
@@ -7553,7 +7554,7 @@ repository:
           1: {name: "punctuation.definition.block.ruko"}
         patterns:
           - include: "#modifier-clause"
-          - include: "$self"
+          - include: $self
       - include: "#embedded-expressions"
       - include: "#embedded-formatting"
       - include: "#embedded-arguments"
@@ -7871,7 +7872,7 @@ repository:
     patterns:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
         name: "keyword.control.error.ruko"
-      - include: "$self"
+      - include: $self
 
   catch-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(catch|error)\b\s*
@@ -7888,8 +7889,8 @@ repository:
           1: {name: "punctuation.definition.block.ruko"}
         patterns:
           - include: "#catch-case-clause"
-          - include: "$self"
-      - include: "$self"
+          - include: $self
+      - include: $self
 
   catch-case-clause:
     patterns:
@@ -7914,7 +7915,7 @@ repository:
           - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: "keyword.control.error.ruko"
           - include: "#type-keywords"
-          - include: "$self"
+          - include: $self
 
   for-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for(?:ever|\s+each)?|(?:while|until)(?:\s+not)?|loop)\b\s*
@@ -7927,7 +7928,7 @@ repository:
     patterns:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
         name: "keyword.control.loop.ruko"
-      - include: "$self"
+      - include: $self
 
   if-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if|un|elif|elun|if\s+not|guard)\b\s*
@@ -7940,7 +7941,7 @@ repository:
     patterns:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: "keyword.control.conditional.ruko"
-      - include: "$self"
+      - include: $self
 
   match-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(match)\b\s*
@@ -7957,8 +7958,8 @@ repository:
           1: {name: "punctuation.definition.block.ruko"}
         patterns:
           - include: "#match-case-clause"
-          - include: "$self"
-      - include: "$self"
+          - include: $self
+      - include: $self
 
   match-case-clause:
     patterns:
@@ -7983,7 +7984,7 @@ repository:
           - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: "keyword.control.match.ruko"
           - include: "#type-keywords"
-          - include: "$self"
+          - include: $self
 
   switch-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(switch)\b\s*
@@ -8000,8 +8001,8 @@ repository:
           1: {name: "punctuation.definition.block.ruko"}
         patterns:
           - include: "#switch-case-clause"
-          - include: "$self"
-      - include: "$self"
+          - include: $self
+      - include: $self
 
   switch-case-clause:
     patterns:
@@ -8026,7 +8027,7 @@ repository:
           - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
             name: "keyword.control.switch.ruko"
           - include: "#type-keywords"
-          - include: "$self"
+          - include: $self
 
   when-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(when)\b\s*
@@ -8039,7 +8040,7 @@ repository:
     patterns:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: "keyword.control.signal.ruko"
-      - include: "$self"
+      - include: $self
 
   with-clause:
     begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(with)\b\s*
@@ -8052,7 +8053,7 @@ repository:
     patterns:
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
         name: "keyword.control.with.ruko"
-      - include: "$self"
+      - include: $self
 
   # Binding patterns
 
@@ -8071,7 +8072,7 @@ repository:
       - include: "#space"
       - include: "#comments"
       - include: "#line-continuation"
-      - include: "$self"
+      - include: $self
 
   object-value:
     patterns:
@@ -8142,7 +8143,7 @@ repository:
       1: {name: "keyword.operator.assignment.ruko"}
       2: {name: "keyword.operator.assignment.ruko"}
     end: (?=\|(?:$|[^|])|[,;)}\]])
-    patterns: [{include: "$self"}]
+    patterns: [{include: $self}]
 
   binding-pattern:
     patterns:
@@ -8385,7 +8386,7 @@ repository:
         name: "meta.brace.curly.ruko"
         captures:
           1: {name: "punctuation.definition.class.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - begin: |-
           (?x)
           (?<=
@@ -8407,7 +8408,7 @@ repository:
         name: "meta.brace.curly.ruko"
         captures:
           1: {name: "punctuation.definition.block.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - begin: |-
           (?x)
           (?<=
@@ -8432,7 +8433,7 @@ repository:
           - include: "#object-value"
           - include: "#object-key"
           - include: "#as-keyword"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8456,7 +8457,7 @@ repository:
           - include: "#punctuation"
           - include: "#object-value"
           - include: "#object-key"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8480,7 +8481,7 @@ repository:
           - include: "#punctuation"
           - include: "#object-value"
           - include: "#object-key"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8501,7 +8502,7 @@ repository:
           - include: "#punctuation"
           - include: "#object-value"
           - include: "#object-key"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8522,7 +8523,7 @@ repository:
           - include: "#punctuation"
           - include: "#object-value"
           - include: "#object-key"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8536,19 +8537,19 @@ repository:
           1: {name: "punctuation.definition.template.ruko"}
         patterns:
           - include: "#call-parameters"
-          - include: "$self"
+          - include: $self
       - begin: (\#{)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
           1: {name: "punctuation.definition.class.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - begin: ({)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
           1: {name: "punctuation.definition.block.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
 
   round-brackets:
     repository:
@@ -8583,7 +8584,7 @@ repository:
         patterns:
           - include: "#as-keyword"
           - include: "#punctuation"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8597,19 +8598,19 @@ repository:
           1: {name: "punctuation.definition.parameters.ruko"}
         patterns:
           - include: "#call-parameters"
-          - include: "$self"
+          - include: $self
       - begin: (\#\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
         captures:
           1: {name: "punctuation.definition.tuple.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
       - begin: (\()\s*
         end: \s*(\))
         name: "meta.brace.round.ruko"
         captures:
           1: {name: "punctuation.definition.expression.ruko"}
-        patterns: [{include: "$self"}]
+        patterns: [{include: $self}]
 
   square-brackets:
     repository:
@@ -8640,7 +8641,7 @@ repository:
         patterns:
           - include: "#punctuation"
           - include: "#as-keyword"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8659,7 +8660,9 @@ repository:
         name: "meta.brace.square.ruko"
         captures:
           1: {name: "punctuation.definition.sequence.ruko"}
-        patterns: &selector-core # duplicated from #core
+        patterns:
+          # duplicated from #core
+          &selector-core
           - include: "#selector-calls"
           - include: "#punctuation"
           - include: "#directives"
@@ -8684,7 +8687,7 @@ repository:
           - include: "#variables"
           - include: "#illegal"
           - include: "#space"
-          - include: "$self"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8718,7 +8721,7 @@ repository:
         patterns:
           - include: "#slice-syntax"
           - include: "#punctuation"
-          - include: "$self"
+          - include: $self
       - begin: (\#\[)\s*
         end: \s*(\])
         name: "meta.brace.square.ruko"
@@ -9523,7 +9526,7 @@ repository:
         name: "support.constant.media.css.ruko"
       - match: |-
           (?x)\b(
-            a|abbr|acronym|address|altGlyph|altGlyphDef|altGlyphItem|animate|animateColor|animateMotion|animateTransform|annotation|annotationXml|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|blockquote|body|br|button|canvas|caption|center|circle|cite|clipPath|code|col|colgroup|colorProfile|command|content|cursor|data|datalist|dd|defs|del|desc|details|dfn|dialog|dir|discard|div|dl|dt|elem|ellipse|em|embed|feBlend|feColorMatrix|feComponentTransfer|feComposite|feConvolveMatrix|feDiffuseLighting|feDisplacementMap|feDistantLight|feDropShadow|feFlood|feFuncA|feFuncB|feFuncG|feFuncR|feGaussianBlur|feImage|feMerge|feMergeNode|feMorphology|feOffset|fePointLight|feSpecularLighting|feSpotLight|feTile|feTurbulence|fieldset|figcaption|figure|filter|font|fontFace|fontFaceFormat|fontFaceName|fontFaceSrc|fontFaceUri|footer|foreignObject|form|frame|frameset|g|glyph|glyphRef|hatch|hatchpath|hd|head|header|hgroup|hkern|hr|html|h[1-6]|i|iframe|image|img|input|ins|isindex|kbd|keygen|label|legend|li|line|linearGradient|link|listing|maction|main|maligngroup|malignmark|map|mark|marker|marquee|mask|math|menclose|menu|menuitem|merror|mesh|meshgradient|meshpatch|meshrow|meta|metadata|meter|mfenced|mfrac|mglyph|mi|missingGlyph|mlabeledtr|mlongdiv|mmultiscripts|mn|mo|mover|mpadded|mpath|mphantom|mroot|mrow|ms|mscarries|mscarry|msgroup|msline|mspace|msqrt|msrow|mstack|mstyle|msub|msubsup|msup|mtable|mtd|mtext|mtr|multicol|munder|munderover|nav|nextid|nobr|noembed|noframes|noscript|object|ol|optgroup|option|output|p|param|path|pattern|picture|plaintext|polygon|polyline|pre|progress|q|radialGradient|rb|rect|rp|rt|rtc|ruby|s|samp|script|section|select|semantics|set|shadow|slot|small|solidcolor|source|spacer|span|stop|strike|strong|style|sub|summary|sup|svg|switch|symbol|table|tbody|td|template|text|textarea|textPath|tfoot|th|thead|time|title|tr|track|tref|tspan|tt|u|ul|use|var|video|view|vkern|wbr|xmp
+            a|abbr|acronym|address|altGlyph|altGlyphDef|altGlyphItem|animate|animateColor|animateMotion|animateTransform|annotation|annotationXml|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|block-quote|body|br|button|canvas|caption|center|circle|cite|clipPath|code|col|colgroup|colorProfile|command|content|cursor|data|datalist|dd|defs|del|desc|details|dfn|dialog|dir|discard|div|dl|dt|elem|ellipse|em|embed|feBlend|feColorMatrix|feComponentTransfer|feComposite|feConvolveMatrix|feDiffuseLighting|feDisplacementMap|feDistantLight|feDropShadow|feFlood|feFuncA|feFuncB|feFuncG|feFuncR|feGaussianBlur|feImage|feMerge|feMergeNode|feMorphology|feOffset|fePointLight|feSpecularLighting|feSpotLight|feTile|feTurbulence|fieldset|figcaption|figure|filter|font|fontFace|fontFaceFormat|fontFaceName|fontFaceSrc|fontFaceUri|footer|foreignObject|form|frame|frameset|g|glyph|glyphRef|hatch|hatchpath|hd|head|header|hgroup|hkern|hr|html|h[1-6]|i|iframe|image|img|input|ins|isindex|kbd|keygen|label|legend|li|line|linearGradient|link|listing|maction|main|maligngroup|malignmark|map|mark|marker|marquee|mask|math|menclose|menu|menuitem|merror|mesh|meshgradient|meshpatch|meshrow|meta|metadata|meter|mfenced|mfrac|mglyph|mi|missingGlyph|mlabeledtr|mlongdiv|mmultiscripts|mn|mo|mover|mpadded|mpath|mphantom|mroot|mrow|ms|mscarries|mscarry|msgroup|msline|mspace|msqrt|msrow|mstack|mstyle|msub|msubsup|msup|mtable|mtd|mtext|mtr|multicol|munder|munderover|nav|nextid|nobr|noembed|noframes|noscript|object|ol|optgroup|option|output|p|param|path|pattern|picture|plaintext|polygon|polyline|pre|progress|q|radialGradient|rb|rect|rp|rt|rtc|ruby|s|samp|script|section|select|semantics|set|shadow|slot|small|solidcolor|source|spacer|span|stop|strike|strong|style|sub|summary|sup|svg|switch|symbol|table|tbody|td|template|text|textarea|textPath|tfoot|th|thead|time|title|tr|track|tref|tspan|tt|u|ul|use|var|video|view|vkern|wbr|xmp
           )\b
         name: "entity.name.tag.css.ruko"
 
