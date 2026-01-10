@@ -32,25 +32,25 @@ ext class MTRand for Io.Serializable {
     stat mut differ: u32 = 0
 
     // constructor overloads
-    proc MTRand(one_seed: u32) = $seed(one_seed)
+    proc MTRand(one_seed: u32) = #seed(one_seed)
     proc MTRand(big_seed: &u32, seed_length: u32 = N) =
-      $seed(big_seed, seed_length)
-    proc MTRand() = $seed()
+      #seed(big_seed, seed_length)
+    proc MTRand() = #seed()
     proc MTRand(o: &MTRand) {
-      for let i in 0..<N: $state[i] := o.state[i]
-      $left := o.left
-      $p_next := if $left == 0: &$state.0 else &$state[N - $left]
+      for let i in 0..<N: #state[i] := o.state[i]
+      #left := o.left
+      #p_next := if #left == 0: &#state.0 else &#state[N - #left]
     }
 
     proc ~MTRand() // destructor
 
     func rand_int(): u32 {
       // generate N words at one time
-      if $left == 0: $reload()
-      $left -= 1
+      if #left == 0: #reload()
+      #left -= 1
 
-      mut s1: u32 = *$p_next
-      $p_next += 1
+      mut s1: u32 = *#p_next
+      #p_next += 1
 
       s1 ^= (s1 >> 11)
       s1 ^= (s1 << 7) & 0x9d2c5680
@@ -66,49 +66,49 @@ ext class MTRand for Io.Serializable {
         used |= used >> (1 << i)
 
       mut i: u32
-      loop i := $rand_int() & used while i > n
+      loop i := #rand_int() & used while i > n
 
       i // implicit return
     }
 
     // seed overloads
     proc seed(one_seed: u32) {
-      $initialize(one_seed)
-      $reload()
+      #initialize(one_seed)
+      #reload()
     }
 
     // seed with an array
     func seed(big_seed: &u32, seed_length: u32 = N) {
-      $initialize(19650218)
+      #initialize(19650218)
 
       mut i: i32 = 1
       mut j: u32 = 0
       mut k: i32 = if N > seed_length: N else seed_length
 
       for in 0..<k {
-        $state[i] := $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 0x19660d)
-        $state[i] += (big_seed[j] & 0xffffffff) + j
-        $state[i] &= 0xffffffff
+        #state[i] := #state[i] ^
+          ((#state[i - 1] ^ (#state[i - 1] >> 30)) * 0x19660d)
+        #state[i] += (big_seed[j] & 0xffffffff) + j
+        #state[i] &= 0xffffffff
 
         i += 1; j += 1
 
-        if i >= N {$state.0 := $state[N - 1]; i := 1}
+        if i >= N {#state.0 := #state[N - 1]; i := 1}
         if j >= seed_length: j := 0
       }
 
       for in 0..<N - 1 {
-        $state[i] := $state[i] ^
-          (($state[i - 1] ^ ($state[i - 1] >> 30)) * 0x5d588b65)
-        $state[i] -= i
-        $state[i] &= 0xffffffff
+        #state[i] := #state[i] ^
+          ((#state[i - 1] ^ (#state[i - 1] >> 30)) * 0x5d588b65)
+        #state[i] -= i
+        #state[i] &= 0xffffffff
 
         i += 1
-        if i >= N {$state.0 := $state[N - 1]; i := 1}
+        if i >= N {#state.0 := #state[N - 1]; i := 1}
       }
 
-      $state.0 := 0x80000000
-      $reload()
+      #state.0 := 0x80000000
+      #reload()
     }
 
     // seed with system entropy or time-based seed
@@ -118,58 +118,58 @@ ext class MTRand for Io.Serializable {
       if ?ur {
         mut big: [u32; N]
         mut ok = true
-         for iin 0..<N {
+         for let i in 0..<N {
           let bytes = ur.get.read_bytes(4)
           if bytes.len != 4 {ok := false; break}
           big[i] := bytes.to_u32(0)
         }
         ur.get.close()
-        if ok {$seed(&big.0, N); return}
+        if ok {#seed(&big.0, N); return}
       }
 
       let t = Time.now().to_unix()
       let c = Time.clock.to_nanosecs()
-      $seed($hash(t, c))
+      #seed(#hash(t, c))
     }
 
     proc initialize(one_seed: u32) {
-      $state.0 := one_seed & 0xffffffff
+      #state.0 := one_seed & 0xffffffff
 
       for let i in 1..<N {
-        let x = $state[i - 1] ^ ($state[i - 1] >> 30)
-        $state[i] := (0x6c078965 * x + i) & 0xffffffff
+        let x = #state[i - 1] ^ (#state[i - 1] >> 30)
+        #state[i] := (0x6c078965 * x + i) & 0xffffffff
       }
     }
 
     proc reload() {
-      mut p = &$state.0
+      mut p = &#state.0
 
       for in 0..<(N - M) {
-        p.0 := $twist(p[M], p.0, p.1)
+        p.0 := #twist(p[M], p.0, p.1)
         p += 1
       }
 
       for in 0..<(M - 1) {
-        p.0 := $twist(p[M - N], p.0, p.1)
+        p.0 := #twist(p[M - N], p.0, p.1)
         p += 1
       }
 
-      p.0 := $twist(p[M - N], p.0, $state.0)
-      $left := N
-      $p_next := &$state.0
+      p.0 := #twist(p[M - N], p.0, #state.0)
+      #left := N
+      #p_next := &#state.0
     }
 
     proc save(save_array: &u32) {
       mut sa = save_array
-      for let i in 0..<N: sa[i] := $state[i]
-      sa[N] := $left
+      for let i in 0..<N: sa[i] := #state[i]
+      sa[N] := #left
     }
 
     proc load(load_array: &u32) {
       mut la = load_array
-      for let i in 0..<N: $state[i] := la[i]
-      $left := la[N]
-      $p_next := &$state[N - $left]
+      for let i in 0..<N: #state[i] := la[i]
+      #left := la[N]
+      #p_next := &#state[N - #left]
     }
 
     // hash function for time-based seed
@@ -194,7 +194,7 @@ ext class MTRand for Io.Serializable {
     }
 
     func twist(m: u32, s0: u32, s1: u32): u32 =
-      m ^ ($mix_bits(s0, s1) >> 1) ^ $magic(s1)
+      m ^ (#mix_bits(s0, s1) >> 1) ^ #magic(s1)
 
     func mix_bits(u: u32, v: u32): u32 =
       (u & 0x80000000) | (v & 0x7fffffff)
@@ -204,48 +204,48 @@ ext class MTRand for Io.Serializable {
 
     // additional generation functions
     func rand(): f64 =
-      ($rand_int() as f64) * (1.0 / 0xffffffff.0)
+      (#rand_int() as f64) * (1.0 / 0xffffffff.0)
     func rand(n: f64): f64 =
-      $rand() * n
+      #rand() * n
     func rand_exc(): f64 =
-      ($rand_int() as f64) * (1.0 / 0x100000000.0)
+      (#rand_int() as f64) * (1.0 / 0x100000000.0)
     func rand_exc(n: f64): f64 =
-      $rand_exc() * n
+      #rand_exc() * n
     func rand_dbl_exc(): f64 =
-      (($rand_int() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
+      ((#rand_int() as f64) + 0x0.8) * (1.0 / 0x100000000.0)
     func rand_dbl_exc(n: f64): f64 =
-      $rand_dbl_exc() * n
+      #rand_dbl_exc() * n
 
     func rand_53(): f64 {
-      let a = $rand_int() >> 5 // 27 bits
-      let b = $rand_int() >> 6 // 26 bits
+      let a = #rand_int() >> 5 // 27 bits
+      let b = #rand_int() >> 6 // 26 bits
       (a as f64 * 0x4000000.0 + b as f64) *
         (1.0 / 0x20000000000000.0) // implicit return
     }
 
-    func genrand_int_31(): u32 = $rand_int() >> 1
-    func genrand_real_1(): f64 = $rand_dbl_exc()
-    func genrand_real_2(): f64 = $rand()
-    func genrand_real_3(): f64 = $rand_exc()
-    func genrand_res_53(): f64 = $rand_53()
+    func genrand_int_31(): u32 = #rand_int() >> 1
+    func genrand_real_1(): f64 = #rand_dbl_exc()
+    func genrand_real_2(): f64 = #rand()
+    func genrand_real_3(): f64 = #rand_exc()
+    func genrand_res_53(): f64 = #rand_53()
 
     // normally distributed number
     func rand_norm(mean: f64 = 0.0, std_dev: f64 = 1.0): f64 {
-      if $has_gauss {
-        $has_gauss := false
-        return $next_gauss * std_dev + mean
+      if #has_gauss {
+        #has_gauss := false
+        return #next_gauss * std_dev + mean
       }
 
       mut x: f64, y: f64, r: f64
       loop {
-        x := 2.0 * $rand() - 1.0
-        y := 2.0 * $rand() - 1.0
+        x := 2.0 * #rand() - 1.0
+        y := 2.0 * #rand() - 1.0
         r := x**2 + y**2
       } while r >= 1.0 || r == 0.0
 
       let s = Math.sqrt(-2.0 * Math.log(r) / r)
-      $next_gauss := y * s + mean
-      $has_gauss := true
+      #next_gauss := y * s + mean
+      #has_gauss := true
       x * s * std_dev + mean
     }
 
@@ -271,9 +271,9 @@ ext class MTRand for Io.Serializable {
 
     right oper prec 1 =(o: &MTRand): &MTRand {
       if *self == o: return *self
-      for let i in 0..<N: $state[i] := o.state[i]
-      $left := o.left
-      $p_next := &$state[N - $left]
+      for let i in 0..<N: #state[i] := o.state[i]
+      #left := o.left
+      #p_next := &#state[N - #left]
       *self // implicit return
     }
 }

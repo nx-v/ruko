@@ -1,7 +1,7 @@
 let fs = require("fs");
-let { stringify } = JSON;
-let { isArray } = Array;
-let { keys, values, entries } = Object;
+let {stringify} = JSON;
+let {isArray} = Array;
+let {keys, values, entries} = Object;
 
 let permutations = arr => {
   if (arr.length == 0) return [[]];
@@ -18,19 +18,19 @@ let powerSet = (arr, maxLen = arr.length) =>
     .map(e => [...arr].filter((_, i) => (e >> i) & 1))
     .filter(s => s.length <= maxLen);
 
-let escapeSym = s => s.replace(/[-/\\^$*+?.#()|[\]{}]/g, match => "\\" + match);
+let escapeSym = s => s.replace(/[-/\\^$*+?.#()|[\]{}]/g, "\\$&");
 
-let scope = ({ quote = "'", flags = "", multi = false }) => {
+let scope = ({quote = "'", flags = "", multi = false}) => {
   let delimiter = quote == "'" ? "single" : "double";
   let multiQuote = multi ? quote.repeat(3) + "+" : quote;
-  let patterns = flags.includes("`") ? [] : [{ include: "#string-escapes" }];
+  let patterns = flags.includes("`") ? [] : [{include: "#string-escapes"}];
   let escapes = [];
 
   let map = {
-    "`": ["verbatim", { match: escapes, name: "constant.character.escape.ruko" }, quote],
-    "%": ["format", { include: "#embedded-formatting" }],
-    "#": ["template", { include: "#embedded-arguments" }],
-    $: ["interpolated", { include: "#embedded-expressions" }],
+    "`": ["verbatim", {match: escapes, name: "constant.character.escape.ruko"}, quote],
+    "%": ["format", {include: "#embedded-formatting"}],
+    "@": ["template", {include: "#embedded-arguments"}],
+    "#": ["interpolated", {include: "#embedded-expressions"}],
   };
 
   if (flags.includes("`")) for (let key of flags) if (key in map) escapes.push(map[key][2] || key);
@@ -64,23 +64,23 @@ let scope = ({ quote = "'", flags = "", multi = false }) => {
     contentName: `string.quoted.${delimiter}.ruko`,
     end: `\\s*((\\2)(?!${quote}+))`,
     captures: {
-      1: { name: "storage.type.string.ruko" },
-      2: { name: "punctuation.definition.string.ruko" },
+      1: {name: "storage.type.string.ruko"},
+      2: {name: "punctuation.definition.string.ruko"},
     },
     patterns,
   };
 };
 
-let combinations = powerSet("`$%#")
+let combinations = powerSet("`#%@")
   .map(x => x.join``)
   .sort((a, b) => b.length - a.length);
 
 let map = [];
 for (let flag of combinations) {
-  map.push(scope({ quote: "'", flags: flag, multi: true }));
-  map.push(scope({ quote: '"', flags: flag, multi: true }));
-  map.push(scope({ quote: "'", flags: flag }));
-  map.push(scope({ quote: '"', flags: flag }));
+  map.push(scope({quote: "'", flags: flag, multi: true}));
+  map.push(scope({quote: '"', flags: flag, multi: true}));
+  map.push(scope({quote: "'", flags: flag}));
+  map.push(scope({quote: '"', flags: flag}));
 }
 
 map.sort((a, b) => keys(b.patterns).length - keys(a.patterns).length);
@@ -140,5 +140,5 @@ let toYAML = obj => {
   return serialize(obj);
 };
 
-console.log(require("util").inspect(map, { depth: null }));
-fs.writeFileSync("./code/ruko/string_processor.yaml", toYAML({ strings: { patterns: map } }));
+console.log(require("util").inspect(map, {depth: null}));
+fs.writeFileSync("./code/ruko/string_processor.yaml", toYAML({strings: {patterns: map}}));
