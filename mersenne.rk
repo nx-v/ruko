@@ -11,11 +11,12 @@
 // pseudorandom number generator (MT19937), loosely
 // translated from the original C code by Makoto Matsumoto
 // and Takuji Nishimura.
+
 // Translated into Ruko from https://gist.github.com/yuikns/10017640
 
 use {Io, Fs, Time, Math, Crypto}
 
-ext class MTRand for Io.Serializable {
+show class MTRand for Io.Serializable {
   pub: 
     enum {N = 624}
     enum {SAVE = N + 1}
@@ -29,7 +30,7 @@ ext class MTRand for Io.Serializable {
     prop has_gauss: bool = false
     prop next_gauss: f64 = 0.0
 
-    stat mut differ: u32 = 0
+    prop differ: stat u32 = 0
 
     // constructor overloads
     // # = "self"
@@ -43,14 +44,14 @@ ext class MTRand for Io.Serializable {
       #p_next := if #left == 0: &#state.0 else &#state[N - #left]
     }
 
-    proc ~MTRand() // destructor
+    proc ~MTRand() {} // no dynamic memory to free
 
     func rand_int(): u32 {
       // generate N words at one time
       if #left == 0: #reload()
       #left -= 1
 
-      mut s1: u32 = *#p_next
+      set s1: u32 = *#p_next
       #p_next += 1
 
       s1 ^= (s1 >> 11)
@@ -62,12 +63,12 @@ ext class MTRand for Io.Serializable {
 
     func rand_int(n: u32): u32 {
       // find the biggest used bit
-      mut used = n
+      set used = n
       for let i in 0..5:
         used |= used >> (1 << i)
 
-      mut i: u32
-      loop i := #rand_int() & used while i > n
+      set i: u32
+      loop i := #rand_int() & used while i >= n
 
       i // implicit return
     }
@@ -82,9 +83,9 @@ ext class MTRand for Io.Serializable {
     func seed(big_seed: &u32, seed_length: u32 = N) {
       #initialize(19650218)
 
-      mut i: i32 = 1
-      mut j: u32 = 0
-      mut k: i32 = if N > seed_length: N else seed_length
+      set i: i32 = 1
+      set j: u32 = 0
+      set k: i32 = if N > seed_length: N else seed_length
 
       for in 0..<k {
         #state[i] := #state[i] ^
@@ -117,8 +118,8 @@ ext class MTRand for Io.Serializable {
       let ur = Crypto.open_urandom()
 
       if ?ur {
-        mut big: [u32; N]
-        mut ok = true
+        set big: [u32; N]
+        set ok = true
          for let i in 0..<N {
           let bytes = ur.get.read_bytes(4)
           if bytes.len != 4 {ok := false; break}
@@ -143,7 +144,7 @@ ext class MTRand for Io.Serializable {
     }
 
     proc reload() {
-      mut p = &#state.0
+      set p = &#state.0
 
       for in 0..<(N - M) {
         p.0 := #twist(p[M], p.0, p.1)
@@ -161,30 +162,30 @@ ext class MTRand for Io.Serializable {
     }
 
     proc save(save_array: &u32) {
-      mut sa = save_array
+      set sa = save_array
       for let i in 0..<N: sa[i] := #state[i]
       sa[N] := #left
     }
 
     proc load(load_array: &u32) {
-      mut la = load_array
+      set la = load_array
       for let i in 0..<N: #state[i] := la[i]
       #left := la[N]
-      #p_next := &#state[N - #left]
+      #p_next := if #left == 0: &#state.0 else &#state[N - #left]
     }
 
     // hash function for time-based seed
-    func hash(t: time.time, c: time.clock): u32 {
-      mut h1: u32 = 0
+    func hash(t: Time.time, c: Time.clock): u32 {
+      set h1: u32 = 0
       let tb = t as &u8
-      for let i in 0..<sizeof(time.time) {
+      for let i in 0..<sizeof(Time.time) {
         h1 *= u8.max_value + 2
         h1 += tb[i] as u32
       }
 
-      mut h2: u32 = 0
+      set h2: u32 = 0
       let cb = c as &u8
-      for let i in 0..<sizeof(time.clock) {
+      for let i in 0..<sizeof(Time.clock) {
         h2 *= u8.max_value + 2
         h2 += cb[i] as u32
       }
@@ -237,7 +238,7 @@ ext class MTRand for Io.Serializable {
         return #next_gauss * std_dev + mean
       }
 
-      mut x: f64, y: f64, r: f64
+      set x: f64, y: f64, r: f64
       loop {
         x := 2.0 * #rand() - 1.0
         y := 2.0 * #rand() - 1.0
@@ -251,7 +252,7 @@ ext class MTRand for Io.Serializable {
     }
 
     // operator overloads
-    oper() (): f64 = #rand()
+    oper()(): f64 = #rand()
 
     right oper prec 4 (o_stream: &Io.OutputStream) <- (mt_rand: &MTRand): &Io.OutputStream {
       for let i in 0..<N:

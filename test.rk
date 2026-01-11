@@ -49,10 +49,10 @@ style {
 
 // imperative style
 func sortedPowerSet(arr: [i32]): [[i32]] {
-  mut result: [[i32]] = []
+  set result: [[i32]] = []
 
   for let i in 0 ..< 1 << arr.len {
-    mut subset: [i32] = []
+    set subset: [i32] = []
     for let j in 0 ..< arr.len if (i >> j) & 1:
       subset.=push arr[j]
     result.=push subset
@@ -140,10 +140,10 @@ func sortedPowerSet(arr: [i32]): [[i32]] {
 
 // Clojure style
 func sortedPowerSet(arr: [i32]): [[i32]] = (
-  (mut (type [[i32]]) result [])
+  (set (type [[i32]]) result [])
 
   (for (let i) in (..< 0 (<< 1 arr.len))) (
-    (mut (type [i32]) subset [])
+    (set (type [i32]) subset [])
     (for (let j) in (..< 0 arr.len)) (
       (if (& 1 (>> i j)) 
         (push subset arr[j])
@@ -168,7 +168,7 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
 )
 
 // JSX style
-<let (func sortedPowerSet(arr: i32): [[i32]])=(
+<decl (func sortedPowerSet(arr: i32): [[i32]])=(
   <mut(type [[i32]]) (result)=[]/>
   <for let=i in=(0 ..< 1 << arr.len)>
     <mut(type [i32]) (subset)=[]/>
@@ -192,8 +192,8 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
     </for>
     <return (a.len - b.len)/>
   </>
-  <return (result)/>)
-/>
+  <return (result)/>
+)/>
 
 // using the various sortedPowerSet implementations
 for let i in sortedPowerSet [1...16]:
@@ -221,7 +221,7 @@ shader MazeGenerator {
   }
 
   func coinFlip(p: Vec2<f32>): f32 {
-    mut p3: Vec3<f32> = fract $ Vec3 p->xyx * 0.1031
+    set p3: Vec3<f32> = fract $ Vec3 p->xyx * 0.1031
     p3 += dot p3 (p3->yzx + 33.33)
     step 0.5 (fract (p3->x + p3->y) * p3->z)
   }
@@ -239,7 +239,7 @@ shader MazeGenerator {
     const lWallType: i32 = 1 // left
 
     // isOnEdge -> Vec2(isMostLeftEdge, isMostBottomEdge)
-    mut isOnEdge: Vec2<bool> = cellCoords == Vec2 0
+    set isOnEdge: Vec2<bool> = cellCoords == Vec2 0
 
     // main body: bottom and left edges
     let bottomNotLeft: f32 = coinFlip $ Vec2<f32> cellCoords
@@ -320,23 +320,26 @@ style style͏ {
   customKey: addedValue
   dynamic[key]-sub[key]: dynamicValue
 
-  @media(max-width: 600px)
+  @media(max-width: 600px) {
     background: :red
+  }
 
-  @keyframes slidein
+  @keyframes slidein {
     from͏(transform: translateX 0%)
     to͏(transform: translateX 100%)
+  }
 
-  @fontFace
+  @fontFace {
     fontFamily: 'MyFont'
     src: [url '../fonts/myfont.woff2' format: :woff2]
+    fontWeight: :normal
+    fontStyle: :normal
+  }
 
-  ^hover
-    color: :green
+  ^hover {color: :green}
 
-  &active
-    color: :yellow
-
+  &active {color: :yellow}
+    
   /* Nested selectors */
   .container {
     display: :flex
@@ -552,7 +555,7 @@ struct Node {
   }
 }
 
-mut head: *Node = Node 1
+set head: *Node = Node 1
 head.next = Node 2
 head.next.next = Node 3
 head.next.next.next = null
@@ -570,17 +573,17 @@ scope for͏ for let in͏ in [var͏ alloc: init: release:]:
 // jsx with inline styles and dynamic class names
 <div>
   for item in items:
-    <span .item-[item.id]=item.id> item.name </span>
+    <span .item-[item.id]=item.id>(item.name)</span>
 </div>
 
 // JSX control structures
 <for let=i in=(0...10)>
   <if (x % 2 == 0)>
-    <span> #"Even: #i" </span>
+    <span>#"Even: #i"</span>
   <elif (x % 3 == 0)/>
-    <span> #"Divisible by 3: #i" </span>
+    <span>#"Divisible by 3: #i"</span>
   <else/>
-    <span> #"Other: #i" </span>
+    <span>#"Other: #i"</span>
   </if>
 </for>
 
@@ -608,7 +611,7 @@ let combinedStr = #`"""
 let templateString: str = @"""
   This is a template string, that is, a function returning a string.
   Arguments are provided for interpolation, with the syntax @varName
-  or @{mut varName = expression}.
+  or @{set varName = expression}.
   The value of x doubled is: @{x = x * 2}
 """
 
