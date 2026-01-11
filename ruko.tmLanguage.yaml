@@ -1094,20 +1094,6 @@ repository:
 
   # Numbers
 
-  unit-suffix:
-    match: (?<=['")}\]\w]|\\.)(`?[\p{Pc}\p{L}\p{Nl}]\w*)\b
-    name: "keyword.other.unit.ruko"
-
-  byte-shift-suffix:
-    match: |-
-      (?ix)(\\?p) # power-of-two
-      ([+-])? # sign
-      ([\d_]+) # exponent
-    captures:
-      1: {name: "keyword.operator.expression.exponent.ruko"}
-      2: {name: "keyword.operator.exponent.sign.ruko"}
-      3: {name: "constant.numeric.decimal.exponent.ruko"}
-
   numbers:
     applyEndPatternLast: true
     begin: (?=\d)
@@ -1361,6 +1347,20 @@ repository:
               2: {name: "constant.numeric.decimal.denominator.ruko"}
           - include: "#byte-shift-suffix"
           - include: "#unit-suffix"
+
+  unit-suffix:
+    match: (?<=['")}\]\w]|\\.)(`?[\p{Pc}\p{L}\p{Nl}]\w*)\b
+    name: "keyword.other.unit.ruko"
+
+  byte-shift-suffix:
+    match: |-
+      (?ix)(\\?p) # power-of-two
+      ([+-])? # sign
+      ([\d_]+) # exponent
+    captures:
+      1: {name: "keyword.operator.expression.exponent.ruko"}
+      2: {name: "keyword.operator.exponent.sign.ruko"}
+      3: {name: "constant.numeric.decimal.exponent.ruko"}
 
   # Symbols
 
@@ -3692,7 +3692,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -3800,7 +3800,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -3834,7 +3834,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -3868,7 +3868,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -3902,7 +3902,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -3936,7 +3936,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -3970,7 +3970,7 @@ repository:
       - include: "#redacted"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -4004,7 +4004,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -4038,7 +4038,7 @@ repository:
       - include: "#highlight"
       - include: "#math-inline"
       - include: "#string-escapes"
-      - include: "#monospace"
+      - include: "#prerendered"
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
@@ -4063,33 +4063,54 @@ repository:
     name: "constant.character.escape.markdown"
 
   span:
-    begin: (?<!!)(!!+)(?!!)
-    end: (?<!!)(\1)(?!!)
+    begin: (!\()
+    end: (\))
     captures:
       1: {name: "punctuation.definition.span.markdown"}
     name: "markup.span.markdown"
     patterns:
       - applyEndPatternLast: true
-        comment: style selectors
-        begin: (?<=!!)(\s*)
+        comment: markup inside span !!...!!
+        begin: (?<=!\()
         end: (?=)|$
-        captures:
-          1: {name: "punctuation.definition.selector.markdown"}
+        name: "meta.tag.span.markdown"
         patterns:
-          - begin: (\()
+          - comment: tag attributes inside span !!...!!
+            begin: (\()
             end: (\))
             name: "meta.brace.round.markdown"
             captures:
               1: {name: "punctuation.definition.brace.round.markdown"}
               2: {name: "punctuation.definition.brace.round.markdown"}
             patterns: [{include: "#tag-attributes"}]
-          - include: "#style-selectors"
-          - match: '\b[\p{Pd}\w]+\b'
+          - comment: attribute selector inside span !!...!!
+            begin: (\[)
+            end: (\])
+            name: "meta.brace.square.markdown"
+            captures:
+              1: {name: "punctuation.definition.selector.ruko"}
+            patterns:
+              - include: "#attribute-selectors"
+              - include: $self
+          - comment: style block inside span !!...!!
+            begin: (\{)
+            end: (\})
+            name: "meta.brace.curly.markdown"
+            captures:
+              1: {name: "punctuation.definition.style.ruko"}
+              2: {name: "punctuation.definition.style.ruko"}
+            patterns:
+              - include: "#style-properties"
+              - include: "#style-list"
+              - include: $self
+          - comment: tag name inside span !!...!!
+            match: (?<=!\()\b[\p{Pd}\w]+\b
             name: "entity.name.tag.ruko"
             patterns: [{include: "#html-tag-names"}]
+          - include: "#style-selectors"
       - include: "#markdown-content"
 
-  monospace:
+  prerendered:
     begin: (`+)
     end: (\1)
     captures:
