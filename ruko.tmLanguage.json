@@ -3083,6 +3083,22 @@
           ]
         },
         {
+          "comment": "Extended character classes (negated)",
+          "begin": "(\\(\\?\\[\\^)",
+          "end": "\\s*(\\]\\))",
+          "name": "meta.group.extended-character-class.negated.ruko",
+          "captures": { "1": { "name": "punctuation.definition.character-class.negated.ruko" } },
+          "patterns": [ { "include": "#regexp-character-group" } ]
+        },
+        {
+          "comment": "Extended character classes (non-negated)",
+          "begin": "(\\(\\?\\[)",
+          "end": "\\s*(\\]\\))",
+          "name": "meta.group.extended-character-class.ruko",
+          "captures": { "1": { "name": "punctuation.definition.character-class.ruko" } },
+          "patterns": [ { "include": "#regexp-character-group" } ]
+        },
+        {
           "comment": "Named groups (angle brackets)",
           "begin": "\\(\\?(?=<(?![!=]))",
           "end": "\\s*(\\))",
@@ -3148,6 +3164,25 @@
           "captures": { "1": { "name": "punctuation.definition.group.ruko" } },
           "patterns": [ { "include": "#regexp-patterns" } ]
         }
+      ]
+    },
+    "regexp-character-group": {
+      "patterns": [
+        { "include": "#type-operators" },
+        { "include": "#comments" },
+        { "include": "#math-commands" },
+        { "include": "#math-entities" },
+        { "include": "#numbers" },
+        {
+          "match": "[\\p{P}\\p{S}&&[^$\\\\()\\[\\]{}]]+",
+          "name": "keyword.operator.math.markdown",
+          "captures": { "0": { "patterns": [ { "include": "#operators" } ] } }
+        },
+        { "include": "#punctuation" },
+        { "include": "#embedded" },
+        { "include": "#regexp-patterns" },
+        { "include": "#strings" },
+        { "include": "#space" }
       ]
     },
     "regexp-character-class": {
@@ -4492,30 +4527,104 @@
         { "include": "source.css.scss#constant_optional" }
       ]
     },
+    "glob-syntax": {
+      "patterns": [
+        {
+          "match": "(\\*)(\\*)",
+          "captures": {
+            "1": { "name": "keyword.operator.quantifier.ruko" },
+            "2": { "name": "keyword.operator.quantifier.ruko" }
+          }
+        },
+        {
+          "match": "\\?",
+          "name": "keyword.operator.quantifier.ruko"
+        },
+        {
+          "begin": "(\\{)",
+          "end": "(\\})",
+          "captures": {
+            "1": { "name": "punctuation.definition.group.ruko" },
+            "2": { "name": "punctuation.definition.group.ruko" }
+          },
+          "name": "meta.group.glob-syntax.ruko",
+          "patterns": [
+            {
+              "match": ",",
+              "name": "punctuation.separator.group.ruko"
+            },
+            {
+              "match": "\\d+(-\\d+)?",
+              "name": "constant.numeric.range.glob-syntax.ruko"
+            }
+          ]
+        },
+        {
+          "begin": "(\\[)(!?)",
+          "end": "(\\])",
+          "captures": {
+            "1": { "name": "punctuation.definition.character-class.ruko" },
+            "2": { "name": "keyword.operator.negation.ruko" },
+            "3": { "name": "punctuation.definition.character-class.ruko" }
+          },
+          "name": "meta.character-class.glob-syntax.ruko",
+          "patterns": [
+            {
+              "match": "-",
+              "name": "keyword.operator.range.glob-syntax.ruko"
+            }
+          ]
+        }
+      ]
+    },
     "file-paths": {
       "comment": "File path literals",
-      "begin": "\\s*(\\%)(file)\\s*(\\()\\s*",
+      "begin": "\\s*(\\%)(file)\\s*(\")\\s*",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.directive.ruko" },
         "2": { "name": "storage.type.directive.ruko" },
         "3": { "name": "punctuation.definition.link.ruko" }
       },
-      "end": "\\s*(\\))\\s*",
+      "end": "\\s*(\")\\s*",
       "endCaptures": { "1": { "name": "punctuation.definition.link.ruko" } },
       "name": "meta.literal.file-paths.ruko",
       "patterns": [
         {
-          "match": "([a-zA-Z]:\\\\|\\\\\\\\|/)?((?:[\\N&&[^?\\\\/:*\"<>\\|]]+\\\\)*+)([\\N&&[^\\\\/:*\"<>\\|.]]+)(\\.[\\N&&[^\\\\/:*\"<>\\|.]]+)?",
+          "comment": "relative paths",
+          "match": "(\\.\\.?)",
           "captures": {
-            "1": { "name": "constant.other.file-paths.drive-letter.ruko" },
-            "2": { "name": "string.quoted.file-paths.directory.ruko" },
-            "3": { "name": "string.quoted.file-paths.filename.ruko" },
-            "4": { "name": "string.quoted.file-paths.extension.ruko" }
+            "1": { "name": "keyword.operator.wildcard.ruko" },
+            "2": { "name": "punctuation.separator.directory.ruko" }
           }
         },
         {
-          "match": "[\\\\/]",
-          "name": "punctuation.separator.file-paths.ruko"
+          "match": "([\\\\/])",
+          "name": "punctuation.separator.directory.ruko"
+        },
+        {
+          "comment": "directory names",
+          "match": "([^\\n\\\\/:\"<>\\|]+?)(?=[\\\\/])",
+          "captures": {
+            "1": {
+              "name": "entity.name.directory.ruko",
+              "patterns": [ { "include": "#glob-syntax" } ]
+            }
+          }
+        },
+        {
+          "comment": "file names & extensions",
+          "match": "([^\\n\\\\/:\"<>\\|]+?)(\\.)([^\\n?\\\\/:\"<>\\|]+)?",
+          "captures": {
+            "1": {
+              "name": "variable.language.filename.ruko",
+              "patterns": [ { "include": "#glob-syntax" } ]
+            },
+            "2": { "name": "punctuation.type.ruko" },
+            "3": {
+              "name": "support.type.extension.ruko",
+              "patterns": [ { "include": "#glob-syntax" } ]
+            }
+          }
         },
         { "include": "#embedded" },
         { "include": "#space" },
@@ -4524,13 +4633,13 @@
     },
     "timestamps": {
       "comment": "Timestamp literals",
-      "begin": "\\s*(\\%)(date|time|datetime)\\s*(\\()\\s*",
+      "begin": "\\s*(\\%)(date|time|datetime)\\s*(['\"])\\s*",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.directive.ruko" },
         "2": { "name": "storage.type.directive.ruko" },
         "3": { "name": "punctuation.definition.constant.ruko" }
       },
-      "end": "\\s*(\\))\\s*",
+      "end": "\\s*(\\3)\\s*",
       "endCaptures": { "1": { "name": "punctuation.definition.constant.ruko" } },
       "name": "meta.literal.timestamp.ruko",
       "patterns": [
@@ -4566,8 +4675,8 @@
         "2": { "name": "storage.type.directive.css" },
         "3": { "name": "punctuation.definition.quote.css" }
       },
-      "end": "(\\))\\s*",
       "name": "meta.literal.path.ruko",
+      "end": "\\s*(\\))\\s*",
       "endCaptures": { "1": { "name": "punctuation.definition.quote.css" } },
       "patterns": [
         {
@@ -4588,13 +4697,13 @@
     },
     "urls": {
       "comment": "URL literals",
-      "begin": "\\s*(\\%)(url)\\s*(\\()\\s*",
+      "begin": "\\s*(\\%)(url)\\s*(\")\\s*",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.directive.ruko" },
         "2": { "name": "storage.type.directive.ruko" },
         "3": { "name": "punctuation.definition.link.ruko" }
       },
-      "end": "\\s*(\\))\\s*",
+      "end": "\\s*(\")\\s*",
       "endCaptures": { "1": { "name": "punctuation.definition.link.ruko" } },
       "name": "meta.literal.url.ruko",
       "patterns": [
@@ -4603,7 +4712,7 @@
           "name": "constant.character.escape.url.ruko"
         },
         {
-          "match": "(?i)(https?|ftp|file)(://[^\\s)]+)",
+          "match": "(?i)(https?|ftp|file)(://[^\\s\"]+)",
           "captures": {
             "1": { "name": "constant.other.url.scheme.ruko" },
             "2": { "name": "string.quoted.url.ruko" }
@@ -4617,7 +4726,7 @@
           }
         },
         {
-          "match": "[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}(/[^\\s)]*)?",
+          "match": "[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}(/[^\\s\"]*)?",
           "name": "string.quoted.url.ruko"
         },
         { "include": "#embedded" },
@@ -4714,7 +4823,7 @@
         { "include": "#embedded" },
         {
           "match": "\\S++",
-          "name": "string.unquoted.word-arrays.ruko"
+          "name": "string.unquoted.word-array.ruko"
         },
         { "include": "#strings" },
         { "include": "#space" }
@@ -4722,13 +4831,13 @@
     },
     "base64": {
       "comment": "Byte array, base64 encoded",
-      "begin": "\\s*(\\%)(b(?:ase)?64)\\s*(\\()\\s*",
+      "begin": "\\s*(\\%)(b(?:ase)?64)\\s*(['\"])\\s*",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.directive.ruko" },
         "2": { "name": "storage.type.directive.ruko" },
         "3": { "name": "punctuation.definition.constant.ruko" }
       },
-      "end": "\\s*(\\))\\s*",
+      "end": "\\s*(\\3)\\s*",
       "endCaptures": { "1": { "name": "punctuation.definition.constant.ruko" } },
       "name": "meta.literal.byte-array.ruko",
       "patterns": [
