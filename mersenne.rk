@@ -32,6 +32,7 @@ ext class MTRand for Io.Serializable {
     stat mut differ: u32 = 0
 
     // constructor overloads
+    // # = "self"
     proc MTRand(one_seed: u32) = #seed(one_seed)
     proc MTRand(big_seed: &u32, seed_length: u32 = N) =
       #seed(big_seed, seed_length)
@@ -188,8 +189,8 @@ ext class MTRand for Io.Serializable {
         h2 += cb[i] as u32
       }
 
-      let out = (h1 + MTRand.differ) ^ h2
-      MTRand.differ += 1
+      let out = (h1 + #differ) ^ h2
+      #differ += 1
       out // implicit return
     }
 
