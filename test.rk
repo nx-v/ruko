@@ -23,12 +23,17 @@ proc main {
   }
 
   [FS writeFile: :utf-8, new Log{
-    path: 'C://users/NexoV/memories/2025'
+    path: 'C://users/NexoV/memories/2025',
     message: 'before there was code, there was\n' *
-      Figlet.toAscii (str prophecy)
-    title: 'nu-Eden: Sundered Skies'
+      Figlet.toAscii (str prophecy),
+    title: 'nu-Eden: Sundered Skies',
   }]
 }
+
+// variable declaration with and without type annotation
+&Type a = 10
+(int | 'hello world ting') b = "hello world ting"
+let b: i32 = 20
 
 // style DSL example
 style {
@@ -59,8 +64,8 @@ func sortedPowerSet(arr: [i32]): [[i32]] {
   }
 
   return result.=sort |a, b| {
-    let countA = a.reduce 0, |c,, i| c + 1
-    let countB = b.reduce 0, |d,, i| d + 1
+    let countA = a.reduce 0 (|c,, i| c + 1)
+    let countB = b.reduce 0 (|d,, i| d + 1)
     if countA != countB:
       countA - countB
     for let i in 0 ..< min a.len b.len if a[i] != b[i]:
@@ -108,8 +113,8 @@ func sortedPowerSet(arr: [i32]): [[i32]] =
     result = push result subset
 
   sort result |a, b|
-    let countA = reduce a 0, |c,, i| c + 1
-    let countB = reduce b 0, |d,, i| d + 1
+    let countA = reduce a 0 (|c,, i| c + 1)
+    let countB = reduce b 0 (|d,, i| d + 1)
     if countA != countB
       countA - countB
     for let i in 0 ..< min a.len b.len
@@ -168,7 +173,7 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
 )
 
 // JSX style
-<decl (func sortedPowerSet(arr: i32): [[i32]])=(
+<decl(func sortedPowerSet(arr: i32): [[i32]])=(
   <set(type [[i32]]) (result)=[]/>
   <for let=i in=(0 ..< 1 << arr.len)>
     <set(type [i32]) (subset)=[]/>
@@ -238,7 +243,7 @@ shader MazeGenerator {
     const bWallType: i32 = 0 // bottom
     const lWallType: i32 = 1 // left
 
-    // isOnEdge -> Vec2(isMostLeftEdge, isMostBottomEdge)
+    // isOnEdge -> Vec2 isMostLeftEdge isMostBottomEdge
     set isOnEdge: Vec2<bool> = cellCoords == Vec2 0
 
     // main body: bottom and left edges
@@ -290,36 +295,46 @@ n("0 1 3").every(3, add.squeeze("10 20")).iter(4).s("triangle").crush(4)
 for let item, index in items:
   print #"Item #index: #item.name"
 
-// cursed C++ pointer manipulation example
-set x: <x>(
-  *(*(*[x]))? as [i32; 20]
-)(
-  y?: ?*(*x),
-  &mut z: ?*(*x) when !?x,
-  _: (|x| [*i32]) | str
-) = unsafe {
-  let p: ?*x = null
-  let q: *(*x) = null
+// arbitrary base digits
+16b0123456789۵۸۷۲٤۶
 
-  for let i = 0, i < 20, i += 1 {
-    if ?y: p := &y
+// cursed C++ pointer manipulation example
+proc x(
+  struct{size: u32} a,
+  *mut u8 addr,
+  *const f64 b?,
+  pub *i32 c?,
+): <α, β, γ>(
+  ***[(α & β) | γ]? as [[*((|α| -> β) ^ γ)]?; 20]
+)(
+  stat (<K>(K where K ~ (α + β + γ))) u,
+  *pub ((|T, U| <T as [*U]?> (U ^ T)) | str) v,
+  (*&mut (α | β)?) y?,
+  &mut (*(*(γ?))? where !(α & β)?) z?,
+) = unsafe {
+  let p: *α? = null
+  let q: *(*(β?)) = null
+  let r: *(*(γ?)) = null
+
+  for let i = 0, i < a::size + 17, i += 1 {
+    if y? && !p?:
+      p := &y as *α
     if p != null {
-      q := &*p
-      q[i] := i * i ^ 0xdeadbeef
+      q := &*(p as *(*β))
+      q[i % 20] := (i * i << (i & 3)) ^ 0xfeedface
     }
   }
 
-  if ?z:
+  if z? && z != false:
     for let j = 0, j < 20, j += 1:
-      if z != null:
-        *(*z)[j] := (*(*z)[j] ?? 0) + j
+      *(*z)[j] := ((*(*z)[j] ?? 0) + j) as γ
 
-  let foo = |a: *[i32]|: str {
-    a[0] = 1337
-    format #"ptr[0] = #a[0], ptr[1] = #a[1]"
+  let λ = |θ: (*[*i32])|: str {
+    θ[0][0] := θ[0][0] ^ 1337
+    <div style={color: :green}>#"Pointer value: #{(*θ)[0]}"</>
   }
 
-  foo &q
+  λ(&q as *[*i32])
 }
 
 print x
