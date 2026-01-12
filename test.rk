@@ -32,8 +32,8 @@ proc main {
 
 // variable declaration with and without type annotation
 &Type a = 10
-(int | 'hello world ting') b = "hello world ting"
-let b: i32 = 20
+(int | 'hello world') b = "hello world"
+let b: int = 20
 
 // style DSL example
 style {
@@ -53,22 +53,22 @@ style {
 }
 
 // imperative style
-func sortedPowerSet(arr: [i32]): [[i32]] {
-  set result: [[i32]] = []
+func sortedPowerSet([int] arr): [[int]] {
+  [[int]] result = []
 
-  for let i in 0 ..< 1 << arr.len {
-    set subset: [i32] = []
-    for let j in 0 ..< arr.len if (i >> j) & 1:
+  for int i in 0 ..< 1 << arr.len {
+    [int] subset = []
+    for int j in 0 ..< arr.len if (i >> j) & 1:
       subset.=push arr[j]
     result.=push subset
   }
 
   return result.=sort |a, b| {
-    let countA = a.reduce 0 (|c,, i| c + 1)
-    let countB = b.reduce 0 (|d,, i| d + 1)
+    int countA = a.reduce 0 (|c,, i| c + 1)
+    int countB = b.reduce 0 (|d,, i| d + 1)
     if countA != countB:
       countA - countB
-    for let i in 0 ..< min a.len b.len if a[i] != b[i]:
+    for int i in 0 ..< min a.len b.len if a[i] != b[i]:
       a[i] - b[i]
     a.len - b.len
   }
@@ -82,7 +82,7 @@ let sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // LINQ style
-func sortedPowerSet(arr: [i32]): [[i32]] = (
+func sortedPowerSet([int] arr): [[int]] = (
   from let i in 0 ..< (1 << arr.len)
   select (
     from let j in 0 ..< arr.len
@@ -102,11 +102,11 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
 )
 
 // Haskell/ML/Python style
-func sortedPowerSet(arr: [i32]): [[i32]] =
-  let result = []: [[i32]]
+func sortedPowerSet([int] arr): [[int]] =
+  let result = []: [[int]]
 
   for let i in 0 ..< 1 << arr.len
-    let subset = []: [i32]
+    let subset = []: [int]
     for let j in 0 ..< arr.len
       if (i >> j) & 1
         subset = push subset arr[j]
@@ -117,39 +117,39 @@ func sortedPowerSet(arr: [i32]): [[i32]] =
     let countB = reduce b 0 (|d,, i| d + 1)
     if countA != countB
       countA - countB
-    for let i in 0 ..< min a.len b.len
+    for int i in 0 ..< min a.len b.len
       if a[i] != b[i]
         a[i] - b[i]
     a.len - b.len
 
 // Objective-C & Ruby style
-func sortedPowerSet(arr: [i32]): [[i32]] {
-  let result: [[i32]] = []
+func sortedPowerSet([int] arr): [[int]] {
+  [[int]] result = []
 
   [0 ..< 1 << arr.len each: |i| {
-    let subset: [i32] = []
+    [int] subset = []
     [0 ..< arr.len each: |j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset]
   }]
 
   return [result =sort: |a, b| {
-    let countA = [a reduce: 0, |c,, i| c + 1]
-    let countB = [b reduce: 0, |d,, i| d + 1]
+    [int] countA = [a reduce: 0, |c,, i| c + 1]
+    [int] countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB: return countA - countB
-    for let i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
+    for int i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
       return a[i] - b[i]
     a.len - b.len
   }]
 }
 
 // Clojure style
-func sortedPowerSet(arr: [i32]): [[i32]] = (
-  (set (type [[i32]]) result [])
+func sortedPowerSet([int] arr): [[int]] = (
+  (set (type [[int]]) result [])
 
-  (for (let i) in (..< 0 (<< 1 arr.len))) (
-    (set (type [i32]) subset [])
-    (for (let j) in (..< 0 arr.len)) (
+  (for (let (type int) i) in (..< 0 (<< 1 arr.len))) (
+    (set (type [int]) subset [])
+    (for (let (type int) j) in (..< 0 arr.len)) (
       (if (& 1 (>> i j))
         (push subset arr[j])
       )
@@ -158,12 +158,12 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
   )
 
   (return (sort result (|a, b| (
-    (let (type i32) countA (reduce a 0 (|c,, i| (+ c 1))))
-    (let (type i32) countB (reduce b 0 (|d,, i| (+ d 1))))
+    (let (type int) countA (reduce a 0 (|c,, i| (+ c 1))))
+    (let (type int) countB (reduce b 0 (|d,, i| (+ d 1))))
     (if (!= countA countB)
       (- countA countB)
     )
-    (for (let i) in (..< 0 (min a.len b.len))) (
+    (for (let (type int) i) in (..< 0 (min a.len b.len))) (
       (if (!= a[i] b[i])
         (- a[i] b[i])
       )
@@ -173,11 +173,11 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
 )
 
 // JSX style
-<decl(func sortedPowerSet(arr: i32): [[i32]])=(
-  <set(type [[i32]]) (result)=[]/>
-  <for let=i in=(0 ..< 1 << arr.len)>
-    <set(type [i32]) (subset)=[]/>
-    <for let=j in=(0 ..< arr.len)>
+<decl(func sortedPowerSet(arr: int): [[int]])=(
+  <set(type [[int]]) (result)=[]/>
+  <for let(type int)=i in=(0 ..< 1 << arr.len)>
+    <set(type [int]) (subset)=[]/>
+    <for let(type int)=j in=(0 ..< arr.len)>
       <if ((i >> j) & 1)>
         subset.=push arr[j]
       </if>
@@ -185,12 +185,12 @@ func sortedPowerSet(arr: [i32]): [[i32]] = (
     result.=push subset
   </for>
   result.=sort |a, b| <>
-    <let(type i32) (countA)=(a.reduce 0, |c,, i| c + 1)/>
-    <let(type i32) (countB)=(b.reduce 0, |d,, i| d + 1)/>
+    <let(type int) (countA)=(a.reduce 0, |c,, i| c + 1)/>
+    <let(type int) (countB)=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
-    <for let=i in=(0 ..< min a.len b.len)>
+    <for let(type int)=i in=(0 ..< min a.len b.len)>
       <if (a[i] != b[i])>
         <return (a[i] - b[i])/>
       </if>
@@ -205,8 +205,8 @@ for let i in sortedPowerSet [1...16]:
   echo i
 
 // LINQ-style queries
-let formatPowerSet = |a: [[i32]]|: str =
-  a.iter(iter: from let (subset: [i32]) in a where subset.len > 0
+let formatPowerSet = |a: [[int]]|: str =
+  a.iter(iter: from let (subset: [int]) in a where subset.len > 0
     select '[' ++ [subset map: str x join: ','] ++ ']'
   ).join(', ')
 
@@ -214,10 +214,10 @@ print $ formatPowerSet sortedPowerSet [1..<10]
 
 // shader language subset example (WGSL-like)
 shader MazeGenerator {
-  struct Uniforms { prop mazeSize: n32, numWalls: n32 }
-  struct WallsArray { prop values: n32[] }
+  struct Uniforms { prop mazeSize: u32, numWalls: u32 }
+  struct WallsArray { prop values: u32[] }
   uniform set<grp 0, id 0> uniforms: Uniforms
-  storage set<grp 0, id 1> walls: n32[]
+  storage set<grp 0, id 1> walls: u32[]
   storage set<grp 0, id 2> wallsArray: WallsArray
 
   func getCellIndex(cellCoords: Vec2<i32>): i32 {
@@ -252,11 +252,11 @@ shader MazeGenerator {
     let lWallIndex: i32 = cellIndex * 2 + lWallType
     let carveBottom: f32 = mix bottomNotLeft 1.0 (f32 isOnEdge->x)
     let carveLeft: f32 = mix (1.0 - bottomNotLeft) 1.0 (f32 isOnEdge->y)
-    wallsArray.values[bWallIndex] = n32 bottomNotLeft
-    wallsArray.values[lWallIndex] = n32 $ 1.0 - bottomNotLeft
+    wallsArray.values[bWallIndex] = u32 bottomNotLeft
+    wallsArray.values[lWallIndex] = u32 $ 1.0 - bottomNotLeft
   }
 
-  compute proc<threadGrp 8 8> main(@id: Vec3<n32>) {
+  compute proc<threadGrp 8 8> main(@id: Vec3<u32>) {
     randomCarveCellWalls $ Vec2<i32> @id->xy
   }
 }
@@ -300,23 +300,23 @@ for let item, index in items:
 
 // cursed C++ pointer manipulation example
 proc x(
-  struct{size: u32} a,
+  struct {size: u32} a,
   *mut u8 addr,
   *const f64 b?,
   pub *i32 c?,
 ): <α, β, γ>(
   ***[(α & β) | γ]? as [[*((|α| -> β) ^ γ)]?; 20]
 )(
-  stat (<K>(K where K ~ (α + β + γ))) u,
+  stat (K where K ~ (α + β + γ)) u,
   *pub ((|T, U| <T as [*U]?> (U ^ T)) | str) v,
   (*&mut (α | β)?) y?,
   &mut (*(*(γ?))? where !(α & β)?) z?,
 ) = unsafe {
-  let p: *α? = null
-  let q: *(*(β?)) = null
-  let r: *(*(γ?)) = null
+  *α? p = null
+  *(*(β?)) q = null
+  *(*(γ?)) r  = null
 
-  for let i = 0, i < a::size + 17, i += 1 {
+  for int i = 0, i < a::size + 17, i += 1 {
     if y? && !p?:
       p := &y as *α
     if p != null {
@@ -326,10 +326,10 @@ proc x(
   }
 
   if z? && z != false:
-    for let j = 0, j < 20, j += 1:
+    for int j = 0, j < 20, j += 1:
       *(*z)[j] := ((*(*z)[j] ?? 0) + j) as γ
 
-  let λ = |θ: (*[*i32])|: str {
+  func l = |θ: (*[*i32])|: str {
     θ[0][0] := θ[0][0] ^ 1337
     <div style={color: :green}>#"Pointer value: #{(*θ)[0]}"</>
   }

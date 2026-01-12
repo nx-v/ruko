@@ -3,7 +3,7 @@ scopeName: "source.spwn" # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
 patterns: [{include: "#core"}]
 
-# Last updated: January 11, 2026
+# Last updated: January 12, 2026
 #
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
@@ -38,7 +38,7 @@ patterns: [{include: "#core"}]
 #   - [ ] Selectors and anchors #anchor .class
 #   - [ ] Code blocks
 #   - [ ] Tables | Header 1 | Header 2 |
-#   - [ ] Task lists - [x] Task item
+#   - [ ] Checklists - [x] Task 1 - [ ] Task 2
 #   - [x] Links and images ![alt text](url)
 #   - [x] Lists (ordered and unordered)
 #   - References and further reading for inline Markdown syntax:
@@ -100,6 +100,9 @@ patterns: [{include: "#core"}]
 
 # Changelog of notable changes since initial release:
 #
+# - Added C-style prefix modifiers for declarations and bindings, in addition
+#   to existing suffix modifiers. For example: mut
+# - Added prefix type-cast syntax in addition to
 # - Add \* *\ and \\ syntax for Markdown literals.
 # - Add ternary, senary and duodecimal bases for numeric literals.
 # - Reworked escape sequences for UTF-8, UTF-16, UTF-32, and all numeric bases.
@@ -325,7 +328,6 @@ repository:
       - include: "#ignore-long-lines"
       - include: "#punctuation"
       - include: "#directives"
-      - include: "#binding-pattern-type"
       - include: "#clauses"
       - include: "#declarations"
       - include: "#keywords"
@@ -341,8 +343,8 @@ repository:
       - include: "#generics"
       - include: "#literals"
       - include: "#accessor-operators"
-      - include: "#brackets"
       - include: "#operators"
+      - include: "#brackets"
       - include: "#variables"
       - include: "#illegal"
       - include: "#space"
@@ -3658,6 +3660,7 @@ repository:
       - include: "#unordered-list"
       - include: "#ordered-list"
       - include: "#block-quote"
+      - include: "#footnote-definition"
       - include: "#headings"
       - include: "#xml-entities"
       - include: "#tag-component-name"
@@ -6054,7 +6057,7 @@ repository:
       - match: (:)(?=\s*(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.)|$)
         name: "punctuation.separator.key-value.ruko"
 
-  # Variables
+  # Call arguments
 
   call-arguments:
     patterns:
@@ -6083,19 +6086,19 @@ repository:
                 ) \b
                 (?:$|[,;'"`)}\]\s] | [#<]?[(\[{] | \\.)
             ) \s*
-          )
+          ) \s*
 
           (
             (?:
               (?: # type
                 (?:[*&%@^!~?\\\-+]|\.\.)* # any sigils
                 (?:
-                  [#<]?[(\[{].*[)\]}] | # brackets for generics
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # identifier
-                  (?:<.*>)? # optional generics
-                )
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* | # identifier
+                  \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
+                  <.*> # generics
+                )+
                 [!?&*]* # optional sigils
-              )+
+              )
               \s+
             )*
           )
@@ -6120,7 +6123,9 @@ repository:
         captures:
           1:
             name: "storage.type.ruko"
-            patterns: [{include: "#types"}]
+            patterns:
+              - include: "#declarations"
+              - include: "#types"
           2:
             name: "keyword.operator.prefix.ruko"
             patterns: [{include: "#parameter-type-operators"}]
@@ -6154,19 +6159,19 @@ repository:
             ) \b
             (?:$|[,;'"`)}\]\s] | [#<]?[(\[{] | \\.)
         ) \s*
-      )
+      ) \s*
 
       (
         (?:
           (?: # type
             (?:[*&%@^!~?\\\-+]|\.\.)* # any sigils
             (?:
-              [#<]?[(\[{].*[)\]}] | # brackets for generics
-              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # identifier
-              (?:<.*>)? # optional generics
-            )
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* | # identifier
+              \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
+              <.*> # generics
+            )+
             [!?&*]* # optional sigils
-          )+
+          )
           \s+
         )*
       )
@@ -6183,7 +6188,9 @@ repository:
     captures:
       1:
         name: "storage.type.ruko"
-        patterns: [{include: "#types"}]
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
       2:
         name: "keyword.operator.prefix.ruko"
         patterns: [{include: "#parameter-type-operators"}]
@@ -6195,6 +6202,8 @@ repository:
         patterns: [{include: "#parameter-type-operators"}]
       5: {name: "punctuation.definition.key-value.ruko"}
     name: "meta.binding-pattern.ruko"
+
+  # Variables
 
   variables:
     patterns:
@@ -6270,6 +6279,7 @@ repository:
 
   operators:
     patterns:
+      - include: "#type-cast-operators"
       - include: "#named-infix-operators"
       - include: "#special-operators"
       - include: "#infix-operators"
@@ -6288,6 +6298,174 @@ repository:
       - match: (?<=>|\w)(~)(?=[#<]?[({])
         captures:
           1: {name: "keyword.operator.destructor.ruko"}
+
+  type-cast-operators:
+    comment: (named) type-cast operators (int) x
+    match: |-
+      (?x)
+      (?<=
+        (?:
+            (?:
+              ^ # start of line
+              | [,;] # delimiter
+              | (?: ['"`)}\]\w\s] | \\.)[\\:] # postfix colon or backslash
+              | [#<]? [({\[] # opening bracket
+            ) \s*
+          | # infix operator
+            \s+ (?:
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \s+
+          | # primary operator that isn't an accessor or assignment
+            \b (?:
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \b
+          | (?:
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # keywords
+                # wordlike operators
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                |ref|void|n?and|x?n?or|c?n?imp|not
+
+                # declaration keywords
+                |va[rl]|[lgs]et|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|un|elif|elun|else|[tw]hen|guard|with
+                |for|while|until|loop|break|skip|redo
+                |(?:re)?try|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|sync|select
+                |raise|error|final|copy|move|drop
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              )
+            \b
+          ) \s*
+        )
+        [\p{P}\p{S}&&[^,;'"`/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+      )
+      (?<! # accessor or assignment
+        \b (?:
+          (?:[?!]?\.|[?!:]:|[?!-]>)=?
+        ) \b
+      )
+      (\() # opening parenthesis
+      \s*
+      ( # type
+        (?:[*&%@^!~?\\\-+]|\.\.)* # any sigils
+        (?:
+          `?\b[\p{Pc}\p{L}\p{Nl}]\w* | # identifier
+          \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
+          <.*> # generics
+        )+
+        [!?&*]* # optional sigils
+      )
+      \s*
+      (\)) # closing parenthesis
+      (?!
+        [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+        : (?: \s* (?: [,;'"`)}\]\w\s] | [#<]?[(\[{]|\\.) | $) # postfix colon or delimiter
+      )
+      (?! # infix operator
+        \s+
+        [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        (?:[\p{P}\p{S}]*
+          [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        )?
+        (?=\s|$)
+      )
+      (?! # function name
+        \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
+      )
+      (?=
+            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? [#<]?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|[#<]?[(\[{]) # generics
+          | [!~] [#<]?[({] # macro and destructor calls
+          | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
+          | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
+        (?:
+            \s+ (?:\w*|[`$#%]*)['"] # strings
+          | \s+ \b\d # numbers
+          | \s+ `\N # unquoted strings / stropped identifiers
+          | \s+ :`?\b[\p{Pc}\p{L}\p{Nl}]\w* # symbols
+          | \s+ [#<]? [(\[] # opening brackets
+          | \s+ /['"`\w\\(\[{] # regexp literal
+          | \s+ <(?:`?[\p{Pc}\p{L}\p{Nl}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+                [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+                (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
+          | \s+ \|(?: [#<]?[(\[{] )? # opening bracket
+                (?: [,;] \s* )* # optional separators
+                (?:
+                  ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
+                  (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+                  ([!?&*]*) # optional sigils
+                  \s*
+                )
+          | \s+ [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+            (?: # identifier
+              # ignore all keywords
+              (?!
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                (?: # keywords
+                  # wordlike operators
+                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                  |ref|void|n?and|x?n?or|c?n?imp|not
+
+                  # declaration keywords
+                  |va[rl]|[lgs]et|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                  |module|schema|struct|record|object|union|macro|space
+                  |query|quote|style|script|shader|compo|temp|oper|realm
+
+                  # control flow keywords
+                  |if|un|elif|elun|else|[tw]hen|guard|with
+                  |for|while|until|loop|break|skip|redo
+                  |(?:re)?try|switch|[cm]atch|case|def|throw
+                  |return|yield|await|goto|pass|defer|sync|select
+                  |[gd]o|from|where|use|show|hide
+
+                  # miscellaneous keywords
+                  |debug|assert|check|decl|ignore
+                  |use|echo|eval|exec|scope|safe|unsafe
+                  |begin|end
+                )
+                \b
+              )
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+              (?:
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              )*
+            )
+            \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+        )
+      )
+    captures:
+      1: {name: "punctuation.definition.operator.ruko"}
+      2:
+        name: "storage.type.ruko"
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+      3: {name: "punctuation.definition.operator.ruko"}
+
+    contentName: "keyword.operator.type-cast.ruko"
 
   named-infix-operators:
     comment: 'Named infix operators: x \fn\ y'
@@ -6604,6 +6782,12 @@ repository:
             name: "keyword.operator.accessor.ruko"
           - match: \\
             name: "keyword.operator.lifetime.ruko"
+
+  namespace-separators:
+    patterns:
+      - include: "#accessor-operators"
+      - match: (?<!\\)\\(?!\\)
+        name: "punctuation.separator.namespace.ruko"
 
   # Clauses and Keywords
 
@@ -7321,14 +7505,93 @@ repository:
       - include: "#query-body"
       - include: $self
 
-  namespace-separators:
+  typed-declarations:
     patterns:
-      - include: "#accessor-operators"
-      - match: (?<!\\)\\(?!\\)
-        name: "punctuation.separator.namespace.ruko"
+      - comment: Prefix (C-style) type annotation in bindings.
+        match: |-
+          (?x)
+          (?<=
+            (?:
+                (?:
+                  ^ # start of line
+                  | [,;] # delimiter
+                  | [#<]? [({\[] # opening bracket
+                ) \s*
+              | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+                \b
+                  (?: # control flow keywords
+                     if|un|elif|elun|else|[tw]hen|guard|with
+                    |for|while|until|loop|break|skip|redo
+                    |(?:re)?try|switch|[cm]atch|case|def|throw
+                    |return|yield|await|goto|pass|defer|sync|select
+                    |raise|error|final|copy|move|drop
+                    |[gd]o|from|where|use|show|hide
+                  )
+                \b\s*
+            )
+          )
+          (
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                |ref|void|n?and|x?n?or|c?n?imp|not
+
+                # declaration keywords
+                |va[rl]|[lgs]et|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|un|elif|elun|else|[tw]hen|guard|with
+                |for|while|until|loop|break|skip|redo
+                |(?:re)?try|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|sync|select
+                |raise|error|final|copy|move|drop
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              ) \b
+            )
+            (?:
+              (?: # type
+                (?:[*&%@^!~?\\\-+]|\.\.)* # any sigils
+                (?:
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* | # identifier
+                  \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
+                  <.*> # generics
+                )+
+                [!?&*]* # optional sigils
+              )
+              \s+
+            )*
+          )
+          (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+          \s+
+          (?=
+              (?::?=|{)(?:\s|$) # type annotation before initialization or block
+            | 
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|of|to|by
+              ) \b
+          )
+        name: "meta.binding-pattern.ruko"
+        captures:
+          1:
+            name: "storage.type.ruko"
+            patterns: [{include: "#types"}]
+          2: {patterns: [{include: "#variables"}]}
 
   declarations:
     patterns:
+      - include: "#typed-declarations"
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(quote)\b\s*
         end: (?=)|$
@@ -7924,6 +8187,8 @@ repository:
         name: "punctuation.separator.arguments.ruko"
       - include: "#binding-pattern"
 
+  # Control flow clauses
+
   clauses:
     patterns:
       - include: "#do-clause"
@@ -8212,65 +8477,6 @@ repository:
     match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(given|using)\b\s*
     name: "keyword.operator.expression.$1.ruko"
 
-  binding-pattern-type:
-    comment: Prefix (C-style) type annotation in binding patterns
-      e.g., Type x, &Type x, *Type x. Includes brackets for generics.
-    match: |-
-      (?x)
-      (?<=^|[,;({\[])
-      \s*
-      (?!
-        (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-        (?: # keywords
-          # wordlike operators
-          [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-          |ref|void|n?and|x?n?or|c?n?imp|not
-
-          # declaration keywords
-          |va[rl]|[lgs]et|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|un|elif|elun|else|[tw]hen|guard|with
-          |for|while|until|loop|break|skip|redo
-          |(?:re)?try|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|sync|select
-          |raise|error|final|copy|move|drop
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
-      )
-      (
-        (?:
-          (?: # type
-            (?:[*&%@^!~?\\\-+]|\.\.)* # any sigils
-            (?:
-              [#<]?[(\[{].*[)\]}] | # brackets for generics
-              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # identifier
-              (?:<.*>)? # optional generics
-            )
-            [!?&*]* # optional sigils
-          )+
-          \s+
-        )*
-      )
-      (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
-      \s+
-      (:?=)
-    name: "meta.binding-pattern.type.ruko"
-    captures:
-      1:
-        name: "storage.type.ruko"
-        patterns: [{include: "#types"}]
-      2: {name: "variable.other.readwrite.ruko"}
-      3: {name: "keyword.operator.assignment.ruko"}
-
   binding-pattern-object:
     begin: ([#<]?{)\s*
     end: \s*(})
@@ -8322,13 +8528,13 @@ repository:
 
   binding-pattern:
     patterns:
+      - include: "#call-arguments"
       - include: "#default-value"
       - include: "#as-keyword"
       - include: "#given-using-keyword"
       - include: "#binding-pattern-object"
       - include: "#binding-pattern-tuple"
       - include: "#binding-pattern-array"
-      - include: "#call-arguments"
       - include: "#type-operators"
       - include: "#type-signature"
       - include: "#space"
