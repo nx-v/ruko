@@ -148,32 +148,22 @@ func sortedPowerSet([int] arr): [[int]] {
 
 // Clojure style
 func sortedPowerSet([int] arr): [[int]] = {
-  (mut
-    (type [[int]]) result [])
-
-  (for (let
-    (type int) i) in (..< 0 (<< 1 arr.len))) (
-    (mut
-      (type [int]) subset [])
-    (for (let
-      (type int) j) in (..< 0 arr.len)) (
-      (if (& 1 (>> i j))
-        (push subset arr[j])
-      )
+  (mut [[int]] result = [])
+  (for let int i in (..< 0 (<< 1 arr.len))) (
+    (mut [int] subset = [])
+    (for let int j in (..< 0 arr.len)) (
+      (if (& 1 (>> i j)) (push subset arr[j]))
     )
     (push result subset)
   )
 
   (return (sort result (|a, b| (
-    (let
-      (type int) countA (reduce a 0 (|c,, i| (+ c 1))))
-    (let
-      (type int) countB (reduce b 0 (|d,, i| (+ d 1))))
+    (let int countA = (reduce a 0 (|c,, i| (+ c 1))))
+    (let int countB = (reduce b 0 (|d,, i| (+ d 1))))
     (if (!= countA countB)
       (- countA countB)
     )
-    (for (let
-      (type int) i) in (..< 0 (min a.len b.len))) (
+    (for let int i in (..< 0 (min a.len b.len))) (
         (if (!= a[i] b[i])
           (- a[i] b[i])
         )
@@ -231,7 +221,7 @@ shader MazeGenerator {
   storage mut<grp 0, id 1> walls: u32[]
   storage mut<grp 0, id 2> wallsArray: WallsArray
 
-  func i32 getCellIndex(cellCoords: Vec2<i32>) {
+  func i32 getCellIndex(Vec2<i32> cellCoords) {
     let size = i32 uniforms.mazeSize
     cellCoords->y * size + cellCoords->x
   }
