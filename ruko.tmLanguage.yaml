@@ -19,9 +19,10 @@ patterns: [{include: "#core"}]
 
 # Planned features / TODOs:
 #
-# - Fix bugs with prefix type annotations in function parameters,
+# - [x] Fix bugs with prefix type annotations in function parameters,
 #   variable declarations, bindings, and type casts to use a recursive
-#   pattern rather than a single greedy match.
+#   pattern with subroutines rather than a single greedy .*+ match.
+#   Uses atomic groups and recursion (?>...) and \g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*" for proper nesting.
 # - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
 #   ASCIIDoc and other lightweight markup languages for inspiration.
 #   Use "while" regex matches to avoid conflicts with existing syntax.
@@ -103,9 +104,11 @@ patterns: [{include: "#core"}]
 
 # Changelog of notable changes since initial release:
 #
-# - Added C-style prefix modifiers for declarations and bindings, in addition
-#   to existing suffix modifiers. For example: mut
-# - Added prefix type-cast syntax in addition to
+# - Added C-style prefix modifier/type annotations for declarations, bindings and casts.
+#   Now, both C and Rust-style annotations can be used interchangeably, and should
+#   work in simple cases. It is not recommended to nest brackets in prefix annotations
+#   like ((((((((((((((((type))))))))))))))))), since this can lead to bugs that
+#   break syntax highlighting due to the greedy nature of the current implementation.
 # - Add \* *\ and \\ syntax for Markdown literals.
 # - Add ternary, senary and duodecimal bases for numeric literals.
 # - Reworked escape sequences for UTF-8, UTF-16, UTF-32, and all numeric bases.
@@ -117,7 +120,7 @@ patterns: [{include: "#core"}]
 # - Refactored identifier syntax to accept a single backtick (`) at the start
 #   of an identifier to allow for reserved keywords to be used as identifiers.
 #   For example: `if`, `while`, `func`, etc. A similar way to strop keywords
-#   is to suffix them with an underscore OR a CGJ (U+034F) character.
+#   is to append an underscore OR a CGJ (U+034F) character.
 # - Refactored and improved syntax highlighting for operators.
 #   - Infix operators at the end of lines continue to the next line.
 #   - Interfix operators (without spaces on both sides) have a higher precedence
@@ -6071,7 +6074,6 @@ repository:
 
   # Call arguments
 
-  # TODO
   call-arguments:
     patterns:
       - applyEndPatternLast: true
@@ -6101,7 +6103,7 @@ repository:
             ) \s*
           ) \s*
 
-          (
+          (?<type>
             (?:
               (?: # type
                 (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
@@ -6110,13 +6112,14 @@ repository:
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
                     (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                   )*
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*(?:<.*>)? | # last part of identifier
-                  \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
-                  <.*> # generics
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  (?:  < (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics with recursion
+                  \#? \( (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses with recursion
+                  \#? \[ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets with recursion
+                  \#? \{ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces with recursion
                 )+
                 [!?&*]* # suffix sigils
               )
-              \s+
             )*
           )
 
@@ -6154,7 +6157,6 @@ repository:
             name: "keyword.operator.suffix.ruko"
             patterns: [{include: "#parameter-type-operators"}]
 
-  # TODO
   call-parameters:
     match: |-
       (?x)
@@ -6176,7 +6178,7 @@ repository:
         ) \s*
       ) \s*
 
-      (
+      (?<type>
         (?:
           (?: # type
             (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
@@ -6185,13 +6187,14 @@ repository:
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
                 (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
               )*
-              `?\b[\p{Pc}\p{L}\p{Nl}]\w*(?:<.*>)? | # last part of identifier
-              \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
-              <.*> # generics
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              (?:  < (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics with recursion
+              \#? \( (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses with recursion
+              \#? \[ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets with recursion
+              \#? \{ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces with recursion
             )+
             [!?&*]* # suffix sigils
           )
-          \s+
         )*
       )
 
@@ -6321,7 +6324,6 @@ repository:
         captures:
           1: {name: "keyword.generator.asterisk.ruko"}
 
-  # TODO
   type-cast-operators:
     comment: (named) type-cast operators (int) x
     match: |-
@@ -6385,23 +6387,31 @@ repository:
           (?:[?!]?\.|[?!:]:|[?!-]>)=?
         ) \b
       )
+
       (\() # opening parenthesis
       \s*
-      ( # type
-        (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+      (?<type>
         (?:
-          (?:
-            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-          )*
-          `?\b[\p{Pc}\p{L}\p{Nl}]\w*(?:<.*>)? | # last part of identifier
-          \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
-          <.*> # generics
+          (?: # type
+            (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+            (?:
+              (?:
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+              )*
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              (?:  < (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics with recursion
+              \#? \( (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses with recursion
+              \#? \[ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets with recursion
+              \#? \{ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces with recursion
+            )+
+            [!?&*]* # suffix sigils
+          )
         )+
-        [!?&*]* # suffix sigils
       )
       \s*
       (\)) # closing parenthesis
+
       (?!
         [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
         : (?: \s* (?: [,;'"`)}\]\w\s] | [#<]?[(\[{]|\\.) | $) # postfix colon or delimiter
@@ -7530,7 +7540,6 @@ repository:
       - include: "#query-body"
       - include: $self
 
-  # TODO
   typed-bindings:
     patterns:
       - comment: Prefix (C-style) type annotation in bindings.
@@ -7553,7 +7562,7 @@ repository:
               )
             \b\s*
           )
-          (
+          (?<type>
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -7589,14 +7598,16 @@ repository:
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
                     (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                   )*
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*(?:<.*>)? | # last part of identifier
-                  \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
-                  <.*> # generics
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  (?:  < (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics with recursion
+                  \#? \( (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses with recursion
+                  \#? \[ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets with recursion
+                  \#? \{ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces with recursion
                 )+
                 [!?&*]* # suffix sigils
               )
-              \s+
-            )*
+              \s*
+            )+
           )
           (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
           \s*
@@ -7625,7 +7636,7 @@ repository:
               | [#<]? [({\[] # opening bracket
             ) \s*
           )
-          (
+          (?<type>
             (?!
               (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
@@ -7661,14 +7672,16 @@ repository:
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
                     (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                   )*
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*(?:<.*>)? | # last part of identifier
-                  \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
-                  <.*> # generics
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  (?:  < (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics with recursion
+                  \#? \( (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses with recursion
+                  \#? \[ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets with recursion
+                  \#? \{ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces with recursion
                 )+
                 [!?&*]* # suffix sigils
               )
-              \s+
-            )*
+              \s*
+            )+
           )
           (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
           \s*
@@ -7687,13 +7700,13 @@ repository:
             patterns: [{include: "#types"}]
           2: {patterns: [{include: "#variables"}]}
 
-  # TODO
   typed-declaration:
     comment: Prefix (C-style) type annotation in declarations.
     # Fixed: highlight type prefixes before identifiers inside declaration clauses
     match: |-
       (?x)
-      ( # highlight everything before the identifier as type
+      (?<type>
+        # highlight everything before the identifier as type
         (?!
           (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (?: # keywords
@@ -7729,15 +7742,18 @@ repository:
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
                 (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
               )*
-              `?\b[\p{Pc}\p{L}\p{Nl}]\w*(?:<.*>)? | # last part of identifier
-              \#?\(.*\)|\#?\[.*\]|\#?{.*} | # brackets
-              <.*> # generics
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              (?:  < (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics with recursion
+              \#? \( (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses with recursion
+              \#? \[ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets with recursion
+              \#? \{ (?>(?:\g<type>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces with recursion
             )+
             [!?&*]* # suffix sigils
           )
-          \s+
+          \s*
         )+
       )
+
       (?=
         `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
       )
@@ -9978,7 +9994,6 @@ repository:
         name: "support.type.vendored.property-name.css.ruko"
 
   css-property-values:
-    comment: TODO
     patterns:
       - match: |-
           (?x)\b(

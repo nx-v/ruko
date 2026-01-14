@@ -31,12 +31,15 @@ proc main {
 }
 
 // variable declaration with and without type annotation
+let mut i32 a = 20
+pub let i32 a = 20
 &Type a = 10
 (int | 'hello world') b = "hello world"
-let b = 20
+[int] [int] result = []
+[(((((((((((((((((((((((((((((((((((((((((((((((int | str)))))))))))))))))))))))))))))))))))))))))))))))] c = 30
 
-func int x(mut [int] arr) =
-  arr.reduce 0 (|sum,, val| sum + val)
+func int x(mut [int] arr)
+  arr.reduce 0 (|int sum, value| sum + value)
 
 // style DSL example
 style {
@@ -55,8 +58,9 @@ style {
   timestamp: %time'2024-06-01T12:00:00Z'
 }
 
+
 // imperative style
-func sortedPowerSet([int] arr): [[int]] {
+func [[int]] sortedPowerSet([int] arr) {
   [[int]] result = []
 
   for int i in 0 ..< 1 << arr.len {
@@ -85,7 +89,7 @@ func sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // LINQ style
-func sortedPowerSet([int] arr): [[int]] = (
+func [[int]] sortedPowerSet([int] arr) = (
   from let i in 0 ..< (1 << arr.len)
   select (
     from let j in 0 ..< arr.len
@@ -105,7 +109,7 @@ func sortedPowerSet([int] arr): [[int]] = (
 )
 
 // Haskell/ML/Python style
-func sortedPowerSet([int] arr): [[int]] =
+func [[int]] sortedPowerSet([int] arr) =
   let result = []: [[int]]
 
   for let i in 0 ..< 1 << arr.len
@@ -120,13 +124,13 @@ func sortedPowerSet([int] arr): [[int]] =
     let countB = reduce b 0 (|d,, i| d + 1)
     if countA != countB
       countA - countB
-    for int i in 0 ..< min a.len b.len
+    for let i in 0 ..< min a.len b.len
       if a[i] != b[i]
         a[i] - b[i]
     a.len - b.len
 
 // Objective-C & Ruby style
-func sortedPowerSet([int] arr): [[int]] {
+func [[int]] sortedPowerSet([int] arr) {
   [[int]] result = []
 
   [0 ..< 1 << arr.len each: |i| {
@@ -147,7 +151,7 @@ func sortedPowerSet([int] arr): [[int]] {
 }
 
 // Clojure style
-func sortedPowerSet([int] arr): [[int]] = {
+func [[int]] sortedPowerSet([int] arr) = (
   (mut [[int]] result = [])
   (for let int i in (..< 0 (<< 1 arr.len))) (
     (mut [int] subset = [])
@@ -171,7 +175,7 @@ func sortedPowerSet([int] arr): [[int]] = {
     (- a.len b.len)
     ))
   ))
-}
+)
 
 // JSX style
 <decl(func sortedPowerSet(arr: int): [[int]])=(
