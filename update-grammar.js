@@ -14,28 +14,18 @@ function sortKeys(obj) {
         .sort()
         .map(k => [k, sortKeys(obj[k])]),
     );
-
   return obj;
 }
 
 // remove "comment" keys recursively
 parsed = JSON.stringify(parsed, (k, v) => {
-  switch (typeof v) {
-    case "string":
-      return /^(begin|match)$/.test(k) ? optimize(v).pattern : v;
-    case "object":
-      return v && "comment" in v ?
-          fromEntries(entries(v).filter(([k]) => k != "comment"))
-        : sortKeys(v);
-    default:
-      return v;
-  }
+  if (typeof v == "string" && ["begin", "match"].includes(k)) return optimize(v).pattern;
+  if (["comment", "define"].includes(k)) return undefined;
+  return v;
 });
 
-let output = parsed;
-
-fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", output);
+fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", parsed);
 fs.writeFileSync(
   "C:/Users/Admin/.vscode/extensions/spu7nix.spwn-language-support-0.0.5/syntaxes/spwn.tmLanguage.json",
-  output,
+  parsed,
 );
