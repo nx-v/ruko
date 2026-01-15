@@ -33,11 +33,11 @@ proc main {
 // variable declaration with and without type annotation
 let mut i32 a = 20
 pub let i32 a = 20
-[[[x]]] y = 1
+[[[int]]] y = [[[1]]]
 &Type a = 10
 (int | 'hello world') b = "hello world"
-[int] [int] result = []
-[(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((int | str)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))] c = 30
+[int] result = []
+[(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((int | str)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))] c = [1, "two", 3, "four"]
 
 pub func int x(mut [int] arr)
   arr.reduce 0 (|int sum, value| sum + value)
@@ -66,11 +66,11 @@ func [[int]] sortedPowerSet([int] arr) {
   for int i in 0 ..< 1 << arr.len {
     [int] subset = []
     for int j in 0 ..< arr.len if (i >> j) & 1:
-      subset.=push arr[j]
-    result.=push subset
+      subset .= push arr[j]
+    result .= push subset
   }
 
-  return result.=sort |a, b| {
+  return result .= sort |a, b| {
     int countA = a.reduce 0 (|c,, i| c + 1)
     int countB = b.reduce 0 (|d,, i| d + 1)
     if countA != countB:
@@ -80,7 +80,6 @@ func [[int]] sortedPowerSet([int] arr) {
     a.len - b.len
   }
 }
-
 
 // infix functional style
 func sortedPowerSet = |arr| 0 ..< 1 << arr.len
@@ -185,12 +184,12 @@ func [[int]] sortedPowerSet([int] arr) = (
     <mut(type [int]) (subset)=[]/>
     <for let(type int)=j in=(0 ..< arr.len)>
       <if ((i >> j) & 1)>
-        subset.=push arr[j]
+        subset .= push arr[j]
       </if>
     </for>
-    result.=push subset
+    result .= push subset
   </for>
-  result.=sort |a, b| <>
+  result .= sort |a, b| <>
     <let(type int) (countA)=(a.reduce 0, |c,, i| c + 1)/>
     <let(type int) (countB)=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
@@ -213,21 +212,22 @@ for let i in sortedPowerSet [1...16]:
 // LINQ-style queries
 let formatPowerSet = |a: [[int]]|: str =
   a.iter(iter: from let (subset: [int]) in a where subset.len > 0
-    select '[' ++ [subset map: str x join: ','] ++ ']'
+    select '[' ++ [subset map: str x join͏: ','] ++ ']'
   ).join(', ')
 
 print $ formatPowerSet sortedPowerSet [1..<10]
 
 // shader language subset example (WGSL-like)
 shader MazeGenerator {
-  struct Uniforms { prop mazeSize: u32, numWalls: u32 }
-  struct WallsArray { prop values: u32[] }
-  uniform mut<grp 0, id 0> uniforms: Uniforms
-  storage mut<grp 0, id 1> walls: u32[]
-  storage mut<grp 0, id 2> wallsArray: WallsArray
+  struct Uniforms { prop u32 mazeSize, u32 numWalls }
+  struct WallsArray { prop [u32] values }
+  uniform mut<grp 0 id 0> Uniforms uniforms
+  out mut<grp 0 id 1> [u32] walls
+  out mut<grp 0 id 2> WallsArray wallsArray
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
-    let size = i32 uniforms.mazeSize
+    print x
+    let i32 size = i32 uniforms.mazeSize
     cellCoords->y * size + cellCoords->x
   }
 
@@ -262,7 +262,7 @@ shader MazeGenerator {
     wallsArray.values[lWallIndex] = u32 $ 1.0 - bottomNotLeft
   }
 
-  compute proc<threadGrp 8 8> main(Vec3<u32> @id) {
+  compute proc<thread 8 8> main(Vec3<u32> @id) {
     randomCarveCellWalls $ Vec2<i32> @id->xy
   }
 }

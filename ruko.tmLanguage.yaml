@@ -297,7 +297,7 @@ patterns: [{include: "#core"}]
 #   These prefixes can be combined in any order, including multiple times.
 #   These will be added to regular expressions later on.
 # - Added Python negation syntax: is not, if not, not in, not of.
-#   - Removed unless/until keywords. Replaced by if not, while not.
+#   - Removed unless/until keywords. Replaced by if!/if not and while!/while not.
 # - Switched around regular expressions and unquoted strings:
 #   / triggers a regex when it begins an expression. ` is now used to begin
 #   unquoted strings.
@@ -306,8 +306,6 @@ patterns: [{include: "#core"}]
 # - Changed up syntax highlighting of switch and match statements to be more
 #   consistent with JavaScript.
 # - Function calls now trigger beside '(' and '{'.
-# - Removed Perl/Ruby's unless and until keywords. Use 'if!' and 'while!' instead.
-#   for! is not supported due to the way for-loops are structured.
 # - Fixed module syntax to be more consistent with JavaScript.
 # - Dashes will no longer be allowed in identifiers. Use underscores instead.
 # - Fixed XML highlighting and attributes, inspired by Svelte, Angular (TS), HAML
@@ -335,6 +333,7 @@ repository:
       - include: "#punctuation"
       - include: "#directives"
       - include: "#clauses"
+      - include: "#labels"
       - include: "#declarations"
       - include: "#function-clause"
       - include: "#modifier-keywords"
@@ -472,7 +471,7 @@ repository:
         (?: # keywords
           # wordlike operators
           [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-          |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+          |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
           # declaration keywords
           |va[rl]|let|mut|const
@@ -481,10 +480,10 @@ repository:
           |query|quote|style|script|shader|compo|temp|oper|realm
 
           # control flow keywords
-          |if|un|elif|elun|else|[tw]hen|guard|with
-          |for|while|until|loop|break|skip|redo
+          |if|elif|else|[tw]hen|guard|with
+          |for|while|loop|break|skip|redo
           |(?:re)?try|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|sync|select
+          |return|yield|await|goto|pass|defer|race|join
           |raise|error|final|copy|move|drop
           |[gd]o|from|where|use|show|hide
 
@@ -606,7 +605,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -630,7 +629,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -847,7 +846,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-              |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -856,10 +855,10 @@ repository:
               |query|quote|style|script|shader|compo|temp|oper|realm
 
               # control flow keywords
-              |if|un|elif|elun|else|[tw]hen|guard|with
-              |for|while|until|loop|break|skip|redo
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|sync|select
+              |return|yield|await|goto|pass|defer|race|join
               |raise|error|final|copy|move|drop
               |[gd]o|from|where|use|show|hide
 
@@ -1055,7 +1054,6 @@ repository:
       - include: "#markdown"
       - include: "#regexps"
       - include: "#strings"
-      - include: "#strings-unquoted"
       - include: "#strings-bracketed"
       - include: "#symbols"
       - include: "#numbers"
@@ -1448,64 +1446,11 @@ repository:
 
   # Strings
 
-  strings-unquoted:
-    applyEndPatternLast: true
-    begin: |-
-      (?x)
-      (`) # opening backtick
-      (?=
-        \\(?:.|$) # escape sequence or line continuation
-        | \b # ignore all keywords
-        (?!
-          (?<!\b[\\.])(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>))(?<!\b(?:[^\s.]\.|[:!?]:|[-!?]>)=)\b
-          (?: # keywords
-            # wordlike operators
-            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-            |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
-
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|un|elif|elun|else|[tw]hen|guard|with
-            |for|while|until|loop|break|skip|redo
-            |(?:re)?try|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|sync|select
-            |raise|error|final|copy|move|drop
-            |[gd]o|from|where|use|show|hide
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
-        )
-      )
-    end: (?=\W|$)
-    name: "string.template.ruko"
-    captures:
-      1: {name: "punctuation.definition.string.ruko"}
-    patterns:
-      - applyEndPatternLast: true
-        begin: (\\)\s*(?=/[/*]|$)
-        end: ^\s*(?=\S)
-        name: "punctuation.definition.comment.ruko"
-        captures:
-          1: {name: "punctuation.separator.continuation.line.ruko"}
-        patterns: [{include: "#comments"}]
-      - match: \\\s
-        name: "constant.character.escape.whitespace.ruko"
-      - include: "#embedded"
-      - include: "#string-escapes"
-
   strings:
     patterns:
       - comment: multi single-quoted verbatim, interpolated, format, and template string
         begin: \s*(`+\#+%+@+|`+\#+@+%+|`+%+\#+@+|`+%+@+\#+|`+@+\#+%+|`+@+%+\#+|\#+`+%+@+|\#+`+@+%+|\#+%+`+@+|\#+%+@+`+|\#+@+`+%+|\#+@+%+`+|%+`+\#+@+|%+`+@+\#+|%+\#+`+@+|%+\#+@+`+|%+@+`+\#+|%+@+\#+`+|@+`+\#+%+|@+`+%+\#+|@+\#+`+%+|@+\#+%+`+|@+%+`+\#+|@+%+\#+`+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1518,7 +1463,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted verbatim, interpolated, format, and template string
         begin: \s*(`+\#+%+@+|`+\#+@+%+|`+%+\#+@+|`+%+@+\#+|`+@+\#+%+|`+@+%+\#+|\#+`+%+@+|\#+`+@+%+|\#+%+`+@+|\#+%+@+`+|\#+@+`+%+|\#+@+%+`+|%+`+\#+@+|%+`+@+\#+|%+\#+`+@+|%+\#+@+`+|%+@+`+\#+|%+@+\#+`+|@+`+\#+%+|@+`+%+\#+|@+\#+`+%+|@+\#+%+`+|@+%+`+\#+|@+%+\#+`+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1531,7 +1476,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted verbatim, interpolated, format, and template string
         begin: \s*(`+\#+%+@+|`+\#+@+%+|`+%+\#+@+|`+%+@+\#+|`+@+\#+%+|`+@+%+\#+|\#+`+%+@+|\#+`+@+%+|\#+%+`+@+|\#+%+@+`+|\#+@+`+%+|\#+@+%+`+|%+`+\#+@+|%+`+@+\#+|%+\#+`+@+|%+\#+@+`+|%+@+`+\#+|%+@+\#+`+|@+`+\#+%+|@+`+%+\#+|@+\#+`+%+|@+\#+%+`+|@+%+`+\#+|@+%+\#+`+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1544,7 +1489,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted verbatim, interpolated, format, and template string
         begin: \s*(`+\#+%+@+|`+\#+@+%+|`+%+\#+@+|`+%+@+\#+|`+@+\#+%+|`+@+%+\#+|\#+`+%+@+|\#+`+@+%+|\#+%+`+@+|\#+%+@+`+|\#+@+`+%+|\#+@+%+`+|%+`+\#+@+|%+`+@+\#+|%+\#+`+@+|%+\#+@+`+|%+@+`+\#+|%+@+\#+`+|@+`+\#+%+|@+`+%+\#+|@+\#+`+%+|@+\#+%+`+|@+%+`+\#+|@+%+\#+`+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1557,7 +1502,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi single-quoted interpolated, format, and template string
         begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1569,7 +1514,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted interpolated, format, and template string
         begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1581,7 +1526,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted interpolated, format, and template string
         begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1593,7 +1538,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted interpolated, format, and template string
         begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1653,7 +1598,7 @@ repository:
           - include: "#embedded-formatting"
       - comment: multi single-quoted verbatim, interpolated, and template string
         begin: \s*(`+\#+@+|`+@+\#+|\#+`+@+|\#+@+`+|@+`+\#+|@+\#+`+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1665,7 +1610,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted verbatim, interpolated, and template string
         begin: \s*(`+\#+@+|`+@+\#+|\#+`+@+|\#+@+`+|@+`+\#+|@+\#+`+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1677,7 +1622,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted verbatim, interpolated, and template string
         begin: \s*(`+\#+@+|`+@+\#+|\#+`+@+|\#+@+`+|@+`+\#+|@+\#+`+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1689,7 +1634,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted verbatim, interpolated, and template string
         begin: \s*(`+\#+@+|`+@+\#+|\#+`+@+|\#+@+`+|@+`+\#+|@+\#+`+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1701,7 +1646,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi single-quoted verbatim, format, and template string
         begin: \s*(`+%+@+|`+@+%+|%+`+@+|%+@+`+|@+`+%+|@+%+`+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1713,7 +1658,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted verbatim, format, and template string
         begin: \s*(`+%+@+|`+@+%+|%+`+@+|%+@+`+|@+`+%+|@+%+`+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1725,7 +1670,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted verbatim, format, and template string
         begin: \s*(`+%+@+|`+@+%+|%+`+@+|%+@+`+|@+`+%+|@+%+`+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1737,7 +1682,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted verbatim, format, and template string
         begin: \s*(`+%+@+|`+@+%+|%+`+@+|%+@+`+|@+`+%+|@+%+`+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1793,7 +1738,7 @@ repository:
           - include: "#embedded-formatting"
       - comment: multi single-quoted interpolated and template string
         begin: \s*(\#+@+|@+\#+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1804,7 +1749,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted interpolated and template string
         begin: \s*(\#+@+|@+\#+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1815,7 +1760,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted interpolated and template string
         begin: \s*(\#+@+|@+\#+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1826,7 +1771,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted interpolated and template string
         begin: \s*(\#+@+|@+\#+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1837,7 +1782,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi single-quoted format and template string
         begin: \s*(%+@+|@+%+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1848,7 +1793,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted format and template string
         begin: \s*(%+@+|@+%+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1859,7 +1804,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted format and template string
         begin: \s*(%+@+|@+%+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1870,7 +1815,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted format and template string
         begin: \s*(%+@+|@+%+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1969,7 +1914,7 @@ repository:
           - include: "#embedded-formatting"
       - comment: multi single-quoted verbatim and template string
         begin: \s*(`+@+|@+`+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1980,7 +1925,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted verbatim and template string
         begin: \s*(`+@+|@+`+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -1991,7 +1936,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted verbatim and template string
         begin: \s*(`+@+|@+`+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -2002,7 +1947,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted verbatim and template string
         begin: \s*(`+@+|@+`+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -2093,7 +2038,7 @@ repository:
           - include: "#embedded-formatting"
       - comment: multi single-quoted template string
         begin: \s*(@+)('''+)\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -2103,7 +2048,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: multi double-quoted template string
         begin: \s*(@+)("""+)\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -2113,7 +2058,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: single-quoted template string
         begin: \s*(@+)(')\s*
-        contentName: string.quoted.single.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!'+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -2123,7 +2068,7 @@ repository:
           - include: "#embedded-arguments"
       - comment: double-quoted template string
         begin: \s*(@+)(")\s*
-        contentName: string.quoted.double.ruko
+        contentName: string.template.ruko
         end: \s*((\2)(?!"+))
         captures:
           1: {name: storage.type.string.ruko}
@@ -2414,7 +2359,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-              |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -2423,10 +2368,10 @@ repository:
               |query|quote|style|script|shader|compo|temp|oper|realm
 
               # control flow keywords
-              |if|un|elif|elun|else|[tw]hen|guard|with
-              |for|while|until|loop|break|skip|redo
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|sync|select
+              |return|yield|await|goto|pass|defer|race|join
               |raise|error|final|copy|move|drop
               |[gd]o|from|where|use|show|hide
 
@@ -2501,7 +2446,7 @@ repository:
                   (?: # keywords
                     # wordlike operators
                     [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                    |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                    |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                     # declaration keywords
                     |va[rl]|let|mut|const
@@ -2510,10 +2455,10 @@ repository:
                     |query|quote|style|script|shader|compo|temp|oper|realm
 
                     # control flow keywords
-                    |if|un|elif|elun|else|[tw]hen|guard|with
-                    |for|while|until|loop|break|skip|redo
+                    |if|elif|else|[tw]hen|guard|with
+                    |for|while|loop|break|skip|redo
                     |(?:re)?try|switch|[cm]atch|case|def|throw
-                    |return|yield|await|goto|pass|defer|sync|select
+                    |return|yield|await|goto|pass|defer|race|join
                     |raise|error|final|copy|move|drop
                     |[gd]o|from|where|use|show|hide
 
@@ -3330,7 +3275,7 @@ repository:
         name: "entity.other.attribute-name.key.ruko"
       - match: '&&|\|\||\^\^|!'
         name: "keyword.operator.logical.ruko"
-      - match: \b(n?and|x?n?or|c?n?imp|not)\b
+      - match: \b(n?and|x?n?or|n?imply|not)\b
         name: "keyword.operator.expression.logical.ruko"
       - match: ","
         name: "punctuation.separator.sequence.ruko"
@@ -3570,7 +3515,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-              |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -3579,10 +3524,10 @@ repository:
               |query|quote|style|script|shader|compo|temp|oper|realm
 
               # control flow keywords
-              |if|un|elif|elun|else|[tw]hen|guard|with
-              |for|while|until|loop|break|skip|redo
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|sync|select
+              |return|yield|await|goto|pass|defer|race|join
               |raise|error|final|copy|move|drop
               |[gd]o|from|where|use|show|hide
 
@@ -5420,7 +5365,7 @@ repository:
                   (?: # keywords
                     # wordlike operators
                     [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                    |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                    |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                     # declaration keywords
                     |va[rl]|let|mut|const
@@ -5429,10 +5374,10 @@ repository:
                     |query|quote|style|script|shader|compo|temp|oper|realm
 
                     # control flow keywords
-                    |if|un|elif|elun|else|[tw]hen|guard|with
-                    |for|while|until|loop|break|skip|redo
+                    |if|elif|else|[tw]hen|guard|with
+                    |for|while|loop|break|skip|redo
                     |(?:re)?try|switch|[cm]atch|case|def|throw
-                    |return|yield|await|goto|pass|defer|sync|select
+                    |return|yield|await|goto|pass|defer|race|join
                     |raise|error|final|copy|move|drop
                     |[gd]o|from|where|use|show|hide
 
@@ -5458,7 +5403,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5467,10 +5412,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -5512,7 +5457,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5521,10 +5466,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -5579,7 +5524,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5588,10 +5533,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -5617,7 +5562,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-            |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+            |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -5626,10 +5571,10 @@ repository:
             |query|quote|style|script|shader|compo|temp|oper|realm
 
             # control flow keywords
-            |if|un|elif|elun|else|[tw]hen|guard|with
-            |for|while|until|loop|break|skip|redo
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|sync|select
+            |return|yield|await|goto|pass|defer|race|join
             |raise|error|final|copy|move|drop
             |[gd]o|from|where|use|show|hide
 
@@ -5696,7 +5641,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -5705,10 +5650,10 @@ repository:
                   |query|quote|style|script|shader|compo|temp|oper|realm
 
                   # control flow keywords
-                  |if|un|elif|elun|else|[tw]hen|guard|with
-                  |for|while|until|loop|break|skip|redo
+                  |if|elif|else|[tw]hen|guard|with
+                  |for|while|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|sync|select
+                  |return|yield|await|goto|pass|defer|race|join
                   |[gd]o|from|where|use|show|hide
 
                   # miscellaneous keywords
@@ -5818,7 +5763,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5827,10 +5772,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -5856,7 +5801,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-            |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+            |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -5865,10 +5810,10 @@ repository:
             |query|quote|style|script|shader|compo|temp|oper|realm
 
             # control flow keywords
-            |if|un|elif|elun|else|[tw]hen|guard|with
-            |for|while|until|loop|break|skip|redo
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|sync|select
+            |return|yield|await|goto|pass|defer|race|join
             |raise|error|final|copy|move|drop
             |[gd]o|from|where|use|show|hide
 
@@ -5915,7 +5860,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-            |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+            |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -5924,10 +5869,10 @@ repository:
             |query|quote|style|script|shader|compo|temp|oper|realm
 
             # control flow keywords
-            |if|un|elif|elun|else|[tw]hen|guard|with
-            |for|while|until|loop|break|skip|redo
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|sync|select
+            |return|yield|await|goto|pass|defer|race|join
             |raise|error|final|copy|move|drop
             |[gd]o|from|where|use|show|hide
 
@@ -5973,7 +5918,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -5982,10 +5927,10 @@ repository:
                   |query|quote|style|script|shader|compo|temp|oper|realm
 
                   # control flow keywords
-                  |if|un|elif|elun|else|[tw]hen|guard|with
-                  |for|while|until|loop|break|skip|redo
+                  |if|elif|else|[tw]hen|guard|with
+                  |for|while|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|sync|select
+                  |return|yield|await|goto|pass|defer|race|join
                   |[gd]o|from|where|use|show|hide
 
                   # miscellaneous keywords
@@ -6344,7 +6289,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -6353,10 +6298,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -6450,7 +6395,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -6459,10 +6404,10 @@ repository:
                   |query|quote|style|script|shader|compo|temp|oper|realm
 
                   # control flow keywords
-                  |if|un|elif|elun|else|[tw]hen|guard|with
-                  |for|while|until|loop|break|skip|redo
+                  |if|elif|else|[tw]hen|guard|with
+                  |for|while|loop|break|skip|redo
                   |(?:re)?try|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|sync|select
+                  |return|yield|await|goto|pass|defer|race|join
                   |[gd]o|from|where|use|show|hide
 
                   # miscellaneous keywords
@@ -6517,7 +6462,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -6526,10 +6471,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -6819,39 +6764,45 @@ repository:
     match: |-
       (?x)
       (
+        # highlight everything before the identifier as type
+        (?!
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+          (?: # keywords
+            # wordlike operators
+            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+            |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+            # declaration keywords
+            |va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+
+            # control flow keywords
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
+            |(?:re)?try|switch|[cm]atch|case|def|throw
+            |return|yield|await|goto|pass|defer|race|join
+            |raise|error|final|copy|move|drop
+            |[gd]o|from|where|use|show|hide
+
+            # miscellaneous keywords
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
+            |begin|end
+          ) \b
+        )
         (?:
-          # ignore all keywords
-          (?!
-            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-            (?: # keywords
-              # wordlike operators
-              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-              |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|un|elif|elun|else|[tw]hen|guard|with
-              |for|while|until|loop|break|skip|redo
-              |(?:re)?try|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|sync|select
-              |raise|error|final|copy|move|drop
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
-          )
-          `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-          \s*
+          (?:
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+          )*
+          `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+          (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? # generics
+          \s* # whitespace
         )+
       )
+
       (?=
         \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
         (?: # declaration keywords
@@ -6863,7 +6814,12 @@ repository:
         \b\s*
       )
     captures:
-      1: {patterns: [{include: "#modifiers"}]}
+      1:
+        patterns:
+          - include: "#type-brackets"
+          - include: "#generics"
+          - include: "#type-operators"
+          - include: "#modifiers"
 
   type-modifiers:
     patterns:
@@ -6878,7 +6834,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -6887,10 +6843,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -6950,7 +6906,7 @@ repository:
                     (?: # keywords
                       # wordlike operators
                       [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                      |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                      |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                       # declaration keywords
                       |va[rl]|let|mut|const
@@ -6959,10 +6915,10 @@ repository:
                       |query|quote|style|script|shader|compo|temp|oper|realm
 
                       # control flow keywords
-                      |if|un|elif|elun|else|[tw]hen|guard|with
-                      |for|while|until|loop|break|skip|redo
+                      |if|elif|else|[tw]hen|guard|with
+                      |for|while|loop|break|skip|redo
                       |(?:re)?try|switch|[cm]atch|case|def|throw
-                      |return|yield|await|goto|pass|defer|sync|select
+                      |return|yield|await|goto|pass|defer|race|join
                       |[gd]o|from|where|use|show|hide
 
                       # miscellaneous keywords
@@ -6988,179 +6944,133 @@ repository:
     patterns:
       - comment: Access modifiers
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            pub|priv|prot|fin|read|writ|ovrd|ovld
-            |glob|loc|int|ext|mut|immt|mutl|init
-            |const|var|dyn|stat|shr|uniq|ali|auto
-            |post|get|set|put|del|req|opt|shr|stab
-            |safe|unsf|virt|seal|abst|frnd|enmy|refl
-            |inln|noil|cros|natv|embd|host|targ
-            # full
-            |final|write|override|overload
-            |global|local|intern|extern|immutable|mutual
-            |static|shared|unique|alias|unsafe|reflect
-            |inline|noinline|cross|native|embed|host|target
-          ) \b\s*
-        name: "storage.modifier.ruko"
-      - comment: Storage modifiers
+          (?x)\b(?:
+            pub|priv|prot
+            |intern|extern
+            |local|global
+          )\b
+        name: storage.modifier.access.ruko
+      - comment: Mutability and ownership
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            in|out|inout|inpl|ref|defr|asyn|sync
-            |stat|dyn|lazy|eagr|bnd|free|uniq
-            |unio|open|clos|seal|part|comp|appr
-            |tran|vola|pers|temp|cach|auto
-            |cros|natv|embd|host|targ|thrd
-            |gloc|glob|remo|clus|dist|grid
-            |atom|nomi|stru|cova|cont
-            |shr|copy|move|borr|ownd|weak|soft
-            # full
-            |inplace|defer|lazy|eager|bound|unique|union|closed
-            |approx|trans|volat|persist|temp|cache|cross|native|embed|host|target|thread
-            |glocal|local|global|remote|cluster|dist|grid|atomic|nominal|struct
-            |covariant|contravariant|shared|borrow|owned
-          ) \b\s*
-        name: "storage.modifier.declaration.ruko"
-      - comment: Functional modifiers
+          (?x)\b(?:
+            mut|mutable
+            |immut|immutable
+            |shared
+            |unique
+            |owned
+            |borrow|borrowed
+            |lend|lended
+            |alias
+          )\b
+        name: storage.modifier.mutability.ruko
+      - comment: Storage and lifetime
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            rec|gen|opr|curr|opaq|tail|macro|debug|trace
-            |part|var|null|opt|rest|sprd|fold|unfld
-            |coro|hook|evt|sig|slot|filt|asp|adv
-            |getr|setr|bldr|ctor|dtor|meth|acc
-            |prop|fld|attr|memb|evt|hndlr|stat
-            |act|cmd|lamb|clos|cont|thnk
-            |cb|prxy|adpt|wrap|deco|mon
-            |fact|sing|flyw|brid|med
-            |strat|tmpl|mixn|trat|role|intc
-            # full
-            |recursive|generic|operator|curried|opaque|tail|macro|debug|trace
-            |partial|variadic|nullable|optional|rest|spread|fold|unfold
-            |coroutine|hook|event|signal|slot|filter|aspect|advice
-            |getter|setter|builder|constructor|destructor|method|accessor
-            |property|field|attribute|member|event|handler|state
-            |action|command|lambda|closure|continue|thunk
-            |callback|proxy|adapter|wrapper|decorator|monitor
-            |factory|singleton|flyweight|bridge|mediator
-            |strategy|template|mixin|trait|role|interceptor
-          )\b\s*
-        name: "storage.modifier.function.ruko"
+          (?x)\b(?:
+            static|const
+            |thread
+            |atomic
+            |volatile
+            |persist
+            |temp
+          )\b
+        name: storage.modifier.declaration.ruko
+      - comment: Function modifiers
+        match: |-
+          (?x)\b(?:
+            rec|recursive
+            |gen|generic
+            |async|sync
+            |coro|coroutine
+            |inline|noinline
+            |tail
+            |macro
+            |oper|operator
+            |vararg|variadic
+            |opt|optional
+            |nullable
+          )\b
+        name: storage.modifier.function.ruko
       - comment: Behavioral modifiers
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            pure|imp|detm|nond
-            |idemp|atom|tran|side
-            |blk|nblk|conc|par
-            |sync|async|react|evt
-            |lazy|eager|defr|immed|prior
-            |int|unint|cancel
-            |recov|unrec|resil
-            # full
-            |pure|impure|deterministic|nondeterministic
-            |idempotent|atomic|transactional|sideeffect
-            |blocking|nonblocking|concurrent|parallel
-            |synchronous|asynchronous|reactive|eventual
-            |lazy|eager|deferred|immediate|prioritized
-            |interruptible|uninterruptible|cancellable
-            |recoverable|unrecoverable|resilient
-          )\b\s*
-        name: "storage.modifier.behavior.ruko"
-      - comment: Inheritance modifiers
-        match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            ext|impl|ovrd|spec
-            |mix|comp|incl|req|prov
-            |inh|deriv|conf|real
-            |own|borr|lend|share
-            # full
-            |extends|implements|overrides|specializes
-            |mixes|composes|includes|requires|provides
-            |inherits|derives|conforms|realizes
-            |owns|borrows|lends|shares
-          )\b\s*
-        name: "storage.modifier.inheritance.ruko"
+          (?x)\b(?:
+            pure|impure
+            |det|deterministic
+            |nondet|nondeterministic
+            |idem|idempotent
+            |trans|transactional
+            |atomic|nonatomic
+            |suspend|resumable
+            |yielding
+            |blocking|nonblocking
+            |para|parallel
+            |conc|concurrent
+            |lazy|eager
+            |deferred|immediate
+            |safe|unsafe
+          )\b
+        name: storage.modifier.behavior.ruko
       - comment: Type modifiers
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            null|nonn|opt|req
-            |gen|conc|abst|intf
-            |prim|comp|comps|enum
-            |stru|unstr|dyn|stat
-            |mut|immt|fix|var
-            |covar|contr|invar
-            |bnd|free|uniq|union
-            |arr|list|set|map
-            |dict|tbl|graph
-            |iter|strm|chan
-            |ptr|ref|slice|view
-            |val|box|rc|arc|weak
-            # full
-            |nullable|nonnullable|optional|required
-            |generic|concrete|abstract|interface
-            |primitive|complex|composite|enumerated
-            |structured|unstructured|dynamic|static
-            |mutable|immutable|fixed|variable
-            |covariant|contravariant|invariant
-            |bound|free|unique|union
-            |array|list|set|map
-            |dictionary|table|graph
-            |iterator|stream|channel
-            |pointer|reference|slice|view
-            |value|box|referencecounted|atomicreferencecounted|weak
-          )\b\s*
-        name: "storage.modifier.type.ruko"
-      - comment: Access control modifiers
+          (?x)\b(?:
+            abstract|abst
+            |final
+            |interface|intf
+            |concrete
+            |primitive
+            |composite
+            |structured|unstructured
+            |dynamic|dyn
+            |static|stat
+            |nullable|nonnull
+            |covar|covariant
+            |contravar|contravariant
+            |invar|invariant
+            |union
+          )\b
+        name: storage.modifier.type.ruko
+      - comment: Inheritance modifiers
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            pub|priv|prot|intnl|pkg
-            |frnd|enmy|ro|wo|rw
-            |fin|seal|open|close
-            |read|writ|get|set|put|del
-            |req|opt|shr|stab|safe
-            # full
-            |public|private|protected|internal|package
-            |friend|enemy|readonly|writeonly|readwrite
-            |final|sealed|open|closed
-            |read|write|get|set|put|delete
-            |request|optional|shared|stable|safe
-          )\b\s*
-        name: "storage.modifier.access-control.ruko"
+          (?x)\b(?:
+            extends
+            |implements
+            |overrides
+            |mixin
+            |compose|composes
+            |requires
+            |provides
+            |conforms
+          )\b
+        name: storage.modifier.inheritance.ruko
+      - comment: Platform modifiers
+        match: |-
+          (?x)\b(?:
+            native
+            |host
+            |target
+            |embed
+            |cross
+          )\b
+        name: storage.modifier.platform.ruko
       - comment: Annotation modifiers
         match: |-
-          (?x)\s*\b
-          (?:
-            # abbreviated
-            depr|exper|nore[pqt]
-            |srl|check|debug|obsol
-            |init|clnup|log|add|name
-            |test|bench|todo|fixme
-            |auth|ver|since|see|param
-            |vararg|retval|kwarg|alias
-            # full
-            |deprecated|experimental|noreturn|norequire|notest
-            |serial|check|debug|obsolete
-            |initialize|cleanup|log|address|name
-            |test|benchmark|todo|fixme
-            |author|version|since|see|parameter
-            |varargs|returnvalue|kwargs|alias
-          )\b\s*
-        name: "storage.modifier.annotation.ruko"
-      - comment: Custom modifiers
-        match: \s*(`?\b[\p{Pc}\p{L}\p{Nl}]\w*)\b\s*
-        name: "storage.modifier.specifier.ruko"
+          (?x)\b(?:
+            deprecated|depr
+            |experimental|exper
+            |test
+            |benchmark|bench
+            |todo
+            |fixme
+            |since
+            |auth|author
+            |version|ver
+            |see|seealso
+            |note|remark
+            |impt|important
+            |sensitive|hidden
+            |param|parameter
+            |retval|returnvalue
+          )\b
+        name: storage.modifier.annotation.ruko
 
   declaration-keywords:
     patterns:
@@ -7182,9 +7092,9 @@ repository:
   general-keywords:
     comment: general keywords
     patterns:
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if|un|elif|elun|else|guard)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:el)?if(?:\s+not)?|else)\b\s*
         name: "keyword.control.conditional.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for|while|until|loop|break|skip|redo)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for|while|loop|break|skip|redo)\b\s*
         name: "keyword.control.loop.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:re)?try|throw|catch|then|raise|error|final)\b\s*
         name: "keyword.control.error.ruko"
@@ -7192,22 +7102,24 @@ repository:
         name: "keyword.control.match.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(switch|case)\b\s*
         name: "keyword.control.switch.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(return|yield|await|goto|pass|defer|sync|select)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(return|yield|await|goto|pass|defer|race|join)\b\s*
         name: "keyword.control.flow.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(copy|move|drop)\b\s*
         name: "keyword.control.movement.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(use|show|hide)\b\s*
         name: "keyword.control.module.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
-        name: "keyword.control.validate.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([gd]o|defer|ref|begin|end|from)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b([gd]o|defer|ref|begin|end)\b\s*
         name: "keyword.control.$1.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(when)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(when|guard)\b\s*
         name: "keyword.control.signal.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|def|ignore|safe|unsafe)\b\s*
         name: "keyword.other.declare.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|echo|eval|exec)\b\s*
         name: "keyword.other.$1.ruko"
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
+        name: "keyword.control.validate.ruko"
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
+        name: "keyword.control.query.ruko"
 
   expression-keywords:
     comment: expression keywords
@@ -7216,7 +7128,7 @@ repository:
         name: "keyword.operator.expression.$1.ruko"
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(del)\b\s*
         name: "keyword.operator.expression.delete.ruko"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(n?and|x?n?or|c?n?imp|not)\b\s*
+      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(n?and|x?n?or|n?imply|not)\b\s*
         name: "keyword.operator.expression.logical.ruko"
       - *in-of-expression
       - *is-has-expression
@@ -7531,6 +7443,85 @@ repository:
   # Type annotations
 
   typed-bindings:
+    comment: Prefix (C-style) type annotation in bindings.
+    match: |-
+      (?x)
+      (?<=
+        (?:
+          ^ # start of line
+          | [,;] # delimiter
+          | [#<]? [({\[] # opening bracket
+        )
+      ) \s*
+
+      (
+        (?!
+          (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+          (?: # keywords
+            # wordlike operators
+            [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+            |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+
+            # declaration keywords
+            |va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+
+            # control flow keywords
+            |if|un|elif|elun|else|[tw]hen|guard|with
+            |for|while|until|loop|break|skip|redo
+            |(?:re)?try|switch|[cm]atch|case|def|throw
+            |return|yield|await|goto|pass|defer|sync|select
+            |raise|error|final|copy|move|drop
+            |[gd]o|from|where|use|show|hide
+
+            # miscellaneous keywords
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
+            |begin|end
+          ) \b
+        )
+        (?:
+          (?: # type
+            (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+            (?:
+              (?:
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+              )*
+              `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+              (?:  < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
+              \#? \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+              \#? \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+              \#? \{ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces
+            )+
+            [!?&*]* # suffix sigils
+          )
+          \s*
+        )+
+      )
+
+      \s*
+      (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+      \s*
+
+      (?=
+          \s(?::?=|{)(?:\s|$) # type annotation before initialization or block
+        | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+          (?: # keywords
+            # wordlike operators
+            [io]n|of|to|by
+          ) \b
+      )
+    name: "meta.binding-pattern.ruko"
+    captures:
+      1:
+        name: "storage.type.ruko"
+        patterns: [{include: "#types"}]
+      2: {patterns: [{include: "#variables"}]}
+
+  class-bindings:
     patterns:
       - comment: Prefix (C-style) type annotation in bindings.
         match: |-
@@ -7543,15 +7534,16 @@ repository:
                 va[rl]|let|mut|const
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
               )
             \b
-          ) \s*
+          )
+          \s*
 
           (
             (?!
@@ -7559,7 +7551,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -7568,10 +7560,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -7614,7 +7606,7 @@ repository:
                 [io]n|of|to|by
               ) \b
           )
-        name: "meta.binding-pattern.ruko"
+        name: "meta.binding-pattern.class.ruko"
         captures:
           1:
             name: "storage.type.ruko"
@@ -7629,7 +7621,8 @@ repository:
               | [,;] # delimiter
               | [#<]? [({\[] # opening bracket
             )
-          ) \s*
+          ) 
+          \s*
 
           (
             (?!
@@ -7637,7 +7630,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -7646,10 +7639,10 @@ repository:
                 |query|quote|style|script|shader|compo|temp|oper|realm
 
                 # control flow keywords
-                |if|un|elif|elun|else|[tw]hen|guard|with
-                |for|while|until|loop|break|skip|redo
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
                 |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|sync|select
+                |return|yield|await|goto|pass|defer|race|join
                 |raise|error|final|copy|move|drop
                 |[gd]o|from|where|use|show|hide
 
@@ -7684,14 +7677,15 @@ repository:
           \s*
 
           (?=
-              \s(?::?=|{)(?:\s|$) # type annotation before initialization or block
+              $ | [,;)\]}] # end of binding
+            | \s(?::?=|{)(?:\s|$) # type annotation before initialization or block
             | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
               (?: # keywords
                 # wordlike operators
                 [io]n|of|to|by
               ) \b
           )
-        name: "meta.binding-pattern.ruko"
+        name: "meta.binding-pattern.class.ruko"
         captures:
           1:
             name: "storage.type.ruko"
@@ -7704,13 +7698,12 @@ repository:
     match: |-
       (?x)
       (
-        # highlight everything before the identifier as type
         (?!
           (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
           (?: # keywords
             # wordlike operators
             [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-            |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+            |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -7719,10 +7712,10 @@ repository:
             |query|quote|style|script|shader|compo|temp|oper|realm
 
             # control flow keywords
-            |if|un|elif|elun|else|[tw]hen|guard|with
-            |for|while|until|loop|break|skip|redo
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
             |(?:re)?try|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|sync|select
+            |return|yield|await|goto|pass|defer|race|join
             |raise|error|final|copy|move|drop
             |[gd]o|from|where|use|show|hide
 
@@ -7845,10 +7838,67 @@ repository:
             name: "entity.name.component.ruko"
             patterns: [{include: "#html-tag-names"}]
       - applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
+        begin: |-
+          (?x) 
+          \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
+
+          (
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+                # declaration keywords
+                |va[rl]|let|mut|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
+                |(?:re)?try|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|race|join
+                |raise|error|final|copy|move|drop
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              ) \b
+            )
+            (?:
+              (?: # type
+                (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+                (?:
+                  (?:
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  )*
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  (?:  < (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
+                  \#? \( (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                  \#? \[ (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                  \#? \{ (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces
+                )+
+                [!?&*]* # suffix sigils
+              )
+              \s*
+            )+
+          )
+
+          (?=
+            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+          )
         end: (?=)|$
         beginCaptures:
           1: {name: "storage.type.variable.ruko"}
+          2:
+            name: "storage.type.ruko"
+            patterns: [{include: "#types"}]
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|ignore)\b\s*
         end: (?=)|$
@@ -7860,10 +7910,33 @@ repository:
         beginCaptures:
           1: {name: "storage.type.function.ruko"}
         patterns:
+          - include: "#curly-brackets"
           - include: "#declaration-clause"
           - include: "#namespace-separators"
           - match: *entity-name
             name: "entity.name.function.ruko"
+      - applyEndPatternLast: true
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(proc)\b\s*
+        end: (?=)|$
+        beginCaptures:
+          1: {name: "storage.type.procedure.ruko"}
+        patterns:
+          - include: "#curly-brackets"
+          - include: "#declaration-clause"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: "entity.name.procedure.ruko"
+      - applyEndPatternLast: true
+        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(iter)\b\s*
+        end: (?=)|$
+        beginCaptures:
+          1: {name: "storage.type.iterator.ruko"}
+        patterns:
+          - include: "#curly-brackets"
+          - include: "#declaration-clause"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: "entity.name.iterator.ruko"
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(actor)\b\s*
         end: (?=)|$
@@ -7884,16 +7957,6 @@ repository:
           - include: "#namespace-separators"
           - match: *entity-name
             name: "entity.name.property.ruko"
-      - applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(proc)\b\s*
-        end: (?=)|$
-        beginCaptures:
-          1: {name: "storage.type.procedure.ruko"}
-        patterns:
-          - include: "#declaration-clause"
-          - include: "#namespace-separators"
-          - match: *entity-name
-            name: "entity.name.procedure.ruko"
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(temp)\b\s*
         end: (?=)|$
@@ -7944,16 +8007,6 @@ repository:
           - include: "#namespace-separators"
           - match: *entity-name
             name: "entity.name.module.ruko"
-      - applyEndPatternLast: true
-        begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(iter)\b\s*
-        end: (?=)|$
-        beginCaptures:
-          1: {name: "storage.type.iterator.ruko"}
-        patterns:
-          - include: "#declaration-clause"
-          - include: "#namespace-separators"
-          - match: *entity-name
-            name: "entity.name.iterator.ruko"
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(impl)\b\s*
         end: (?=)|$
@@ -8091,20 +8144,14 @@ repository:
         patterns:
           - include: "#binding-pattern"
           - include: $self
-      - begin: (\#{)\s*
+      - begin: (\#?{)\s*
         end: \s*(})
         name: "meta.brace.curly.ruko"
         captures:
           1: {name: "punctuation.definition.class.ruko"}
         patterns:
-          - include: $self
-      - begin: ({)\s*
-        end: \s*(})
-        name: "meta.brace.curly.ruko"
-        captures:
-          1: {name: "punctuation.definition.block.ruko"}
-        patterns:
           - include: "#modifier-clause"
+          - include: "#class-bindings"
           - include: $self
       - include: "#embedded-expressions"
       - include: "#embedded-formatting"
@@ -8114,6 +8161,50 @@ repository:
       - include: "#literals"
       - match: \s+
         name: "meta.block.ruko"
+
+  labels:
+    comment: Modifiers for declarations in classes, objects, traits, etc.
+    match: |-
+      (?x)
+      ^\s*\b(
+        (?:
+          # ignore all keywords
+          (?!
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |(?:re)?try|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+          `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+          \s*
+        )
+      )
+      (:)(?=\s+|$)
+    name: "meta.modifier.declaration.ruko"
+    captures:
+      1: {name: "entity.name.label.ruko"}
+      2: {name: "punctuation.separator.section.ruko"}
 
   modifier-clause:
     comment: Modifiers for declarations in classes, objects, traits, etc.
@@ -8127,7 +8218,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-              |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -8136,10 +8227,10 @@ repository:
               |query|quote|style|script|shader|compo|temp|oper|realm
 
               # control flow keywords
-              |if|un|elif|elun|else|[tw]hen|guard|with
-              |for|while|until|loop|break|skip|redo
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
               |(?:re)?try|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|sync|select
+              |return|yield|await|goto|pass|defer|race|join
               |raise|error|final|copy|move|drop
               |[gd]o|from|where|use|show|hide
 
@@ -8465,13 +8556,13 @@ repository:
             beginCaptures:
               1: {name: "keyword.control.error.ruko"}
             patterns: [{include: "#types"}]
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|(?:el)?if(?:\s+not)?)\b\s*
             name: "keyword.control.error.ruko"
           - include: "#type-keywords"
           - include: $self
 
   for-clause:
-    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for(?:\s+ever|\s+each)?|(?:while|until)(?:\s+not)?|loop)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(for(?:\s+ever|\s+each)?|(?:while)(?:\s+not)?|loop)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.for.ruko"
     beginCaptures:
@@ -8484,7 +8575,7 @@ repository:
       - include: $self
 
   if-clause:
-    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(if|un|elif|elun|if\s+not|guard)\b\s*
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b((?:el)?if(?:\s+not)?|guard)\b\s*
     end: \s*(:)(?=(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.))|(?=[;)\]}])|$
     name: "meta.if.ruko"
     beginCaptures:
@@ -8534,7 +8625,7 @@ repository:
             beginCaptures:
               1: {name: "keyword.control.match.ruko"}
             patterns: [{include: "#types"}]
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|(?:el)?if(?:\s+not)?)\b\s*
             name: "keyword.control.match.ruko"
           - include: "#type-keywords"
           - include: $self
@@ -8577,7 +8668,7 @@ repository:
             beginCaptures:
               1: {name: "keyword.control.switch.ruko"}
             patterns: [{include: "#types"}]
-          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|if|un|elif|elun|if\s+not)\b\s*
+          - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as|(?:el)?if(?:\s+not)?)\b\s*
             name: "keyword.control.switch.ruko"
           - include: "#type-keywords"
           - include: $self
@@ -9020,7 +9111,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -9044,7 +9135,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|c?n?imp|not|[gs]et|new|old
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -9228,7 +9319,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |void|ref|n?and|x?n?or|c?n?imp|not
+                |void|ref|n?and|x?n?or|n?imply|not
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -9272,7 +9363,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|of|[ai]s|by|has|old|new|del
-                |void|ref|n?and|x?n?or|c?n?imp|not
+                |void|ref|n?and|x?n?or|n?imply|not
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -10401,7 +10492,7 @@ repository:
     comment: Core built-in functions from major languages, to improve recognition of cross-language codebases
     patterns:
       # Ruko support types
-      - include: "#support-types"
+      - include: "#support-classes"
 
       # C/C++
       - include: "source.objcpp#c_functions"

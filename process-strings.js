@@ -39,12 +39,12 @@ let scope = ({quote = "'", flags = "", multi = false}) => {
   for (let key of flags)
     if (key in map) {
       let match =
-        key != "`"
-          ? map[key][1]
-          : {
-              match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
-              name: "constant.character.escape.ruko",
-            };
+        key != "`" ?
+          map[key][1]
+        : {
+            match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
+            name: "constant.character.escape.ruko",
+          };
       patterns.push(match);
       results.push(map[key][0]);
     }
@@ -61,7 +61,7 @@ let scope = ({quote = "'", flags = "", multi = false}) => {
       .trim()
       .replace(/\s{2,}/g, match => match[0]),
     begin: `\\s*(${flagCombis})(${multiQuote})\\s*`,
-    contentName: `string.quoted.${delimiter}.ruko`,
+    contentName: /@/.test(flags) ? "string.template.ruko" : `string.quoted.${delimiter}.ruko`,
     end: `\\s*((\\2)(?!${quote}+))`,
     captures: {
       1: {name: "storage.type.string.ruko"},
@@ -106,11 +106,11 @@ let toYAML = obj => {
       if (inline) {
         return "[" + obj.map(x => serialize(x, true)).join`, ` + "]";
       } else {
-        return obj.length == 0
-          ? "[]"
-          : obj.every(x => typeof x != "object")
-          ? obj.map(x => `- ${serialize(x, true)}`).join`\n`
-          : obj.map(x => `- ${serialize(x, false).replace(/\n/g, "\n  ")}`).join`\n`;
+        return (
+          obj.length == 0 ? "[]"
+          : obj.every(x => typeof x != "object") ? obj.map(x => `- ${serialize(x, true)}`).join`\n`
+          : obj.map(x => `- ${serialize(x, false).replace(/\n/g, "\n  ")}`).join`\n`
+        );
       }
     } else if (typeof obj == "object" && obj != null) {
       if (inline) {
@@ -120,20 +120,19 @@ let toYAML = obj => {
         let entries = keys(obj).map(key => {
           let isNumericKey = /^\d+$/.test(key);
           let value = serialize(obj[key], isNumericKey);
-          return (isArray(obj[key]) && !isNumericKey) || (/\n/.test(value) && !isNumericKey)
-            ? `${key}:\n${indent(value)}`
+          return (isArray(obj[key]) && !isNumericKey) || (/\n/.test(value) && !isNumericKey) ?
+              `${key}:\n${indent(value)}`
             : `${key}: ${value}`;
         });
         return entries.join`\n`;
       }
     } else if (typeof obj == "string") {
-      return /\n/.test(obj)
-        ? `|\n${indent(obj)}`
-        : singleQuotes(obj)
-        ? `'${obj.replace(/'/g, "''")}'`
-        : doubleQuotes(obj)
-        ? stringify(obj)
-        : obj;
+      return (
+        /\n/.test(obj) ? `|\n${indent(obj)}`
+        : singleQuotes(obj) ? `'${obj.replace(/'/g, "''")}'`
+        : doubleQuotes(obj) ? stringify(obj)
+        : obj
+      );
     } else return String(obj);
   };
 
