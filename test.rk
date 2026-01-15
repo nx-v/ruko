@@ -164,14 +164,10 @@ func [[int]] sortedPowerSet([int] arr) = (
   (return (sort result (|a, b| (
     (let int countA = (reduce a 0 (|c,, i| (+ c 1))))
     (let int countB = (reduce b 0 (|d,, i| (+ d 1))))
-    (if (!= countA countB)
-      (- countA countB)
-    )
+    (if (!= countA countB) (- countA countB))
     (for let int i in (..< 0 (min a.len b.len))) (
-        (if (!= a[i] b[i])
-          (- a[i] b[i])
-        )
-      )
+      (if (!= a[i] b[i]) (- a[i] b[i]))
+    )
     (- a.len b.len)
     ))
   ))
@@ -209,9 +205,12 @@ func [[int]] sortedPowerSet([int] arr) = (
 for let i in sortedPowerSet [1...16]:
   echo i
 
+let x = [[int]] |[int] arr| = sortedPowerSet arr
+
 // LINQ-style queries
 let formatPowerSet = |a: [[int]]|: str =
-  a.iter(iter: from let (subset: [int]) in a where subset.len > 0
+  a.iter(iter: from let [int] subset in a
+    where subset.len > 0
     select '[' ++ [subset map: str x join͏: ','] ++ ']'
   ).join(', ')
 
@@ -226,7 +225,6 @@ shader MazeGenerator {
   out mut<grp 0 id 2> WallsArray wallsArray
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
-    print x
     let i32 size = i32 uniforms.mazeSize
     cellCoords->y * size + cellCoords->x
   }

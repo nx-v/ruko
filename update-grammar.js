@@ -2,12 +2,13 @@ import fs from "fs";
 import yaml from "js-yaml";
 import {optimize} from "oniguruma-parser/optimizer";
 const {fromEntries, entries, keys, values} = Object;
+const {isArray} = Array;
 
 let file = fs.readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
 let parsed = yaml.load(file);
 
 function sortKeys(obj) {
-  if (Array.isArray(obj)) return obj.map(sortKeys);
+  if (isArray(obj)) return obj.map(sortKeys);
   if (obj && typeof obj == "object")
     return fromEntries(
       keys(obj)
@@ -19,7 +20,9 @@ function sortKeys(obj) {
 
 // remove "comment" keys recursively
 parsed = JSON.stringify(parsed, (k, v) => {
-  if (typeof v == "string" && ["begin", "match"].includes(k)) return optimize(v).pattern;
+  if (typeof v == "string")
+    if (["begin", "match"].includes(k) || (k == "end" && !/\\[\dkg]/.test(v)))
+      return optimize(v).pattern;
   if (["comment", "define"].includes(k)) return undefined;
   return v;
 });
