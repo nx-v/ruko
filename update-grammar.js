@@ -20,10 +20,19 @@ function sortKeys(obj) {
 
 // remove "comment" keys recursively
 parsed = JSON.stringify(parsed, (k, v) => {
-  if (typeof v == "string")
-    if (["begin", "match"].includes(k) || (k == "end" && !/\\[\dkg]/.test(v)))
-      return optimize(v).pattern;
-  if (["comment", "define"].includes(k)) return undefined;
+  if (typeof v == "string") {
+    if (["begin", "end", "match", "while"].includes(k))
+      try {
+        return optimize(v).pattern;
+      } catch {
+        return v
+          .split(/(?<!\\)#\s.+\n/g)
+          .join("")
+          .replace(/^\s+|\s+$/g, "")
+          .replace(/(?<!\\)\s+/g, " ");
+      }
+    if (["comment", "define"].includes(k)) return undefined;
+  }
   return v;
 });
 
