@@ -3728,14 +3728,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   math-inline:
@@ -3836,14 +3834,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   italic:
@@ -3870,14 +3866,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   strikethrough:
@@ -3904,14 +3898,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   underline:
@@ -3938,14 +3930,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   redacted:
@@ -3972,14 +3962,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   highlight:
@@ -4006,14 +3994,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   superscript:
@@ -4040,14 +4026,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   subscript:
@@ -4074,14 +4058,12 @@ repository:
       - include: "#span"
       - include: "#escape"
       - include: "#image-inline"
-      - include: "#image-ref"
       - include: "#footnote"
       - include: "#citation"
       - include: "#link-email"
       - include: "#link-inet"
       - include: "#link-inline"
       - include: "#link-ref"
-      - include: "#link-ref-literal"
       - include: "#link-ref-shortcut"
 
   bracket:
@@ -4149,54 +4131,6 @@ repository:
       1: {name: "punctuation.definition.raw.markdown"}
     name: "markup.inline.raw.string.markdown"
 
-  image-inline:
-    comment: Inline image ![alt text](url "optional title")
-    match: |-
-      (?x)
-      (\!\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])
-      # Match the link text.
-      (\() # Opening paren for url
-        (<?)(\S+?)(>?) # The url
-        [ \t]* # Optional whitespace
-        (?:
-            ((\().+?(\))) # Match title in parens...
-          | ((").+?(")) # or in double quotes...
-          | ((').+?(')) # or in single quotes.
-        )? # Title is optional
-        \s* # Optional whitespace
-      (\))
-    name: "meta.image.inline.markdown"
-    captures:
-      1: {name: "punctuation.definition.string.begin.markdown"}
-      2: {name: "string.other.link.description.markdown"}
-      4: {name: "punctuation.definition.string.end.markdown"}
-      5: {name: "punctuation.definition.metadata.markdown"}
-      6: {name: "punctuation.definition.link.markdown"}
-      7: {name: "markup.underline.link.image.markdown"}
-      8: {name: "punctuation.definition.link.markdown"}
-      9: {name: "string.other.link.description.title.markdown"}
-      10: {name: "punctuation.definition.string.markdown"}
-      11: {name: "punctuation.definition.string.markdown"}
-      12: {name: "string.other.link.description.title.markdown"}
-      13: {name: "punctuation.definition.string.markdown"}
-      14: {name: "punctuation.definition.string.markdown"}
-      15: {name: "string.other.link.description.title.markdown"}
-      16: {name: "punctuation.definition.string.markdown"}
-      17: {name: "punctuation.definition.string.markdown"}
-      18: {name: "punctuation.definition.metadata.markdown"}
-
-  image-ref:
-    match: (\!\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(.*?)(\])
-    name: "meta.image.reference.markdown"
-    patterns: [{include: "#string-escapes"}]
-    captures:
-      1: {name: "punctuation.definition.string.begin.markdown"}
-      2: {name: "string.other.link.description.markdown"}
-      4: {name: "punctuation.definition.string.begin.markdown"}
-      5: {name: "punctuation.definition.constant.markdown"}
-      6: {name: "constant.other.reference.link.markdown"}
-      7: {name: "punctuation.definition.constant.markdown"}
-
   link-email:
     match: (<)((?:mailto:)?[a-zA-Z\d.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z\d-]+(?:\.[a-zA-Z\d-]+)*)(>)
     name: "meta.link.email.lt-gt.markdown"
@@ -4215,99 +4149,94 @@ repository:
       2: {name: "markup.underline.link.markdown"}
       3: {name: "punctuation.definition.link.markdown"}
 
+  image-inline:
+    applyEndPatternLast: true
+    begin: (?=\!\[)
+    end: (?=)|$
+    patterns:
+      - begin: (\!\[)
+        end: (\])
+        name: "string.other.link.description.markdown"
+        captures:
+          1: {name: "punctuation.definition.string.begin.markdown"}
+        patterns: [{include: "#string-escapes"}]
+      - begin: (\() # Opening paren for url
+        end: (\))
+        name: "punctuation.definition.metadata.markdown"
+        captures:
+          1: {name: "punctuation.definition.link.markdown"}
+        patterns:
+          - include: "#link-inet"
+          - include: "#link-email"
+          - include: "#strings"
+          - include: "#string-escapes"
+      - begin: (?<=\])(\[)
+        end: (\])
+        name: "constant.other.reference.link.markdown"
+        captures:
+          1: {name: "punctuation.definition.constant.markdown"}
+        patterns: [{include: "#string-escapes"}]
+      - include: "#space"
+
   link-inline:
-    match: |-
-      (?x)
-      (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])
-      # Match the link text.
-      (\() # Opening paren for url
-        (<?)((?<url>(?>[^\s()]+)|\(\g<url>*\))*)(>?) # The url
-        [ \t]* # Optional whitespace
-        (?:
-            ((\().+?(\))) # Match title in parens...
-          | ((").+?(")) # or in double quotes...
-          | ((').+?(')) # or in single quotes.
-        )? # Title is optional
-        \s* # Optional whitespace
-      (\))
+    applyEndPatternLast: true
+    begin: (?=\[)
+    end: (?=)|$
     name: "meta.link.inline.markdown"
-    patterns: [{include: "#string-escapes"}]
-    captures:
-      1: {name: "punctuation.definition.string.begin.markdown"}
-      2: {name: "string.other.link.title.markdown"}
-      4: {name: "punctuation.definition.string.end.markdown"}
-      5: {name: "punctuation.definition.metadata.markdown"}
-      6: {name: "punctuation.definition.link.markdown"}
-      7: {name: "markup.underline.link.markdown"}
-      9: {name: "punctuation.definition.link.markdown"}
-      10: {name: "string.other.link.description.title.markdown"}
-      11: {name: "punctuation.definition.string.begin.markdown"}
-      12: {name: "punctuation.definition.string.end.markdown"}
-      13: {name: "string.other.link.description.title.markdown"}
-      14: {name: "punctuation.definition.string.begin.markdown"}
-      15: {name: "punctuation.definition.string.end.markdown"}
-      16: {name: "string.other.link.description.title.markdown"}
-      17: {name: "punctuation.definition.string.begin.markdown"}
-      18: {name: "punctuation.definition.string.end.markdown"}
-      19: {name: "punctuation.definition.metadata.markdown"}
-
-  link-ref:
-    match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])(\[)([^\]]*+)(\])
-    name: "meta.link.reference.markdown"
-    patterns: [{include: "#string-escapes"}]
-    captures:
-      1: {name: "punctuation.definition.string.begin.markdown"}
-      2: {name: "string.other.link.title.markdown"}
-      4: {name: "punctuation.definition.string.end.markdown"}
-      5: {name: "punctuation.definition.constant.begin.markdown"}
-      6: {name: "constant.other.reference.link.markdown"}
-      7: {name: "punctuation.definition.constant.end.markdown"}
-
-  link-ref-literal:
-    match: (\[)((?<square>[^\[\]\\]|\\.|\[\g<square>*+\])*+)(\])[ ]?(\[)(\])
-    name: "meta.link.reference.literal.markdown"
-    patterns: [{include: "#string-escapes"}]
-    captures:
-      1: {name: "punctuation.definition.string.begin.markdown"}
-      2: {name: "string.other.link.title.markdown"}
-      4: {name: "punctuation.definition.string.end.markdown"}
-      5: {name: "punctuation.definition.constant.begin.markdown"}
-      6: {name: "punctuation.definition.constant.end.markdown"}
+    patterns:
+      - begin: (\[)
+        end: (\])
+        name: "string.other.link.title.markdown"
+        captures:
+          1: {name: "punctuation.definition.link.markdown"}
+        patterns: [{include: "#string-escapes"}]
+      - begin: (\() # Opening paren for url
+        end: (\))
+        name: "punctuation.definition.link.markdown"
+        captures:
+          1: {name: "punctuation.definition.metadata.markdown"}
+        patterns:
+          - include: "#link-inet"
+          - include: "#link-email"
+          - include: "#string-escapes"
+      - begin: (?<=\])(\[)
+        end: (\])
+        name: "constant.other.reference.link.markdown"
+        captures:
+          1: {name: "punctuation.definition.constant.markdown"}
+        patterns: [{include: "#string-escapes"}]
+      - include: "#space"
 
   link-ref-shortcut:
-    match: (\[)(\S+?)(\])
-    patterns: [{include: "#string-escapes"}]
-    name: "meta.link.reference.markdown"
+    begin: (\[)
+    end: (\])
+    name: "string.other.link.title.markdown"
     captures:
       1: {name: "punctuation.definition.string.begin.markdown"}
-      2: {name: "string.other.link.title.markdown"}
-      3: {name: "punctuation.definition.string.end.markdown"}
+    patterns: [{include: "#string-escapes"}]
 
   footnote:
-    match: (\[\^)([^\]\s]+)(\])
-    name: "meta.footnote.markdown"
+    begin: (\[\^)([^\]\s]+)
+    end: (\])
+    name: "constant.other.footnote.markdown"
     captures:
-      1: {name: "punctuation.definition.footnote.begin.markdown"}
-      2: {name: "constant.other.footnote.markdown"}
-      3: {name: "punctuation.definition.footnote.end.markdown"}
+      1: {name: "punctuation.definition.footnote.markdown"}
+    patterns: [{include: "#markdown-content"}]
 
   footnote-definition:
-    begin: ^(\[\^)([^\]\s]+)(\]:)(\s*)
-    end: (?=$|^\s*$)
-    name: "meta.footnote.definition.markdown"
+    begin: ^(\[\^)
+    end: (\]:)(\s*)
+    name: "constant.other.footnote.markdown"
     captures:
-      1: {name: "punctuation.definition.footnote.begin.markdown"}
-      2: {name: "constant.other.footnote.markdown"}
-      3: {name: "punctuation.definition.footnote.end.markdown"}
+      1: {name: "punctuation.definition.footnote.markdown"}
     patterns: [{include: "#markdown-content"}]
 
   citation:
-    match: (\[@)([^\]\s]+)(\])
-    name: "meta.citation.markdown"
+    begin: (\[@)([^\]\s]+)
+    end: (\])
+    name: "constant.other.citation.markdown"
     captures:
-      1: {name: "punctuation.definition.citation.begin.markdown"}
-      2: {name: "constant.other.citation.markdown"}
-      3: {name: "punctuation.definition.citation.end.markdown"}
+      1: {name: "punctuation.definition.citation.markdown"}
 
   escapes-embedded:
     patterns:
