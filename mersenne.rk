@@ -9,15 +9,15 @@
 
 // Translated from https://gist.github.com/yuikns/10017640
 
-use {Io, Fs, Time, Math, Crypto}
+use Sys{Crypto, Time, Io, Fs}, Math
 
 show class MTRand : Io.Serializer {
-  pub: 
-    enum {N = 624}
-    enum {SAVE = N + 1}
+  pub:
+    const N = 624
+    const SAVE = N + 1
 
   prot:
-    enum {M = 397}
+    const M = 397
 
     prop [u32; N] state
     prop &u32 p_next
@@ -125,7 +125,7 @@ show class MTRand : Io.Serializer {
       }
 
       let Time.time t = Time.now().to_unix()
-      let Time.clock c = Time.clock.to_nanosecs()
+      let Time.clock c = Time.clock.to_nanoseconds()
       #seed(#hash(t, c))
     }
 
@@ -194,10 +194,14 @@ show class MTRand : Io.Serializer {
       m ^ (#mix_bits(s0, s1) >> 1) ^ #magic(s1)
 
     proc u32 mix_bits(u32 u, u32 v) =
-      (u & 0x80000000) | (v & 0x7fffffff)
+      #hi_bit(u) | #lo_bits(v)
 
     proc u32 magic(u32 u) =
-      if (u & 1) != 0: 0x9908b0df else 0x0
+      if #lo_bit(u) != 0: 0x9908b0df else 0x0
+
+    proc u32 hi_bit(u32 u) = u & 0x80000000
+    proc u32 lo_bit(u32 u) = u & 0x00000001
+    proc u32 lo_bits(u32 u) = u & 0x7fffffff
 
     // additional generation functions
     proc f64 rand() =
@@ -244,6 +248,38 @@ show class MTRand : Io.Serializer {
       #next_gauss := y * s + mean
       #has_gauss := true
       x * s * std_dev + mean
+    }
+
+    // override
+    proc str serialize() { 
+      mut str s = ''
+      for let i32 i in 0..<N:
+        s ++= (str) #state[i] ++ '\t'
+      s ++= (str) #left
+      s // implicit return
+    }
+
+    static proc deserialize(str s) {
+      let [str] parts = s / '\t' // division = split
+      for let i32 i in 0..<N:
+        #state[i] := (u32) parts[i]
+      #left := (i32) parts[N]
+      #p_next := if #left == 0: &#state.0 else &#state[N - #left]
+    }
+
+    static proc u32 hash(str s) {
+      mut u32 h = 0
+      let [u8] bytes = s.to_bytes()
+      for let i32 i in 0..<bytes.len {
+        h *= u8.max_value + 2
+        h += (u32) bytes[i]
+      }
+      mut u32 h2 = 0
+      for let i32 i in 0..<bytes.len {
+        h2 *= u8.max_value + 2
+        h2 += (u32) bytes[bytes.len - i - 1]
+      }
+      h ^ h2 // implicit return
     }
 
     // operator overloads
@@ -466,6 +502,7 @@ show class MTRand = script cpp {
 
     // First try getting an array from /dev/urandom
     FILE* urandom = fopen("/dev/urandom", "rb");
+
     if (urandom) {
       uint32 bigSeed[N];
       register uint32 *s = bigSeed;
@@ -474,7 +511,7 @@ show class MTRand = script cpp {
       while (success && i--)
         success = fread(s++, sizeof(uint32), 1, urandom);
       fclose(urandom);
-      if (success) { seed(bigSeed, N);  return; }
+      if (success) { seed(bigSeed, N); return; }
     }
 
     // Was not successful, so use time() and clock() instead
@@ -613,4 +650,209 @@ show class MTRand = script cpp {
   }
 
   #endif  // MERSENNETWISTER_H
+}
+
+show class MTRand = script cs {
+  // C# port of Mersenne Twister random number generator
+  // Not thread safe (unless auto-initialization is avoided and each thread has
+  // its own MTRand object)
+
+  using System;
+  using System.IO;
+  using System.Security.Cryptography;
+
+  public class MTRand {
+    // Data
+    public const int N = 624;       // length of state vector
+    public const int SAVE = N + 1;  // length of array for save()
+
+    protected const int M = 397;  // period parameter
+
+    protected uint[] state = new uint[N];   // internal state
+    protected int pNextIndex;     // next value index to get from state
+    protected int left;          // number of values left before reload needed
+
+    // Methods
+    public MTRand(uint oneSeed) { seed(oneSeed); }  // initialize with a simple uint
+    public MTRand(uint[] bigSeed, uint seedLength = N) { seed(bigSeed, seedLength); }  // or array
+    public MTRand() { seed(); }  // auto-initialize with time and ticks
+    public MTRand(MTRand o) { // copy
+      Array.Copy(o.state, state, N);
+      left = o.left;
+      pNextIndex = o.pNextIndex;
+    }
+
+    // Do NOT use for CRYPTOGRAPHY without securely hashing several returned
+    // values together, otherwise the generator state can be learned after
+    // reading 624 consecutive values.
+
+    // Access to 32-bit random numbers
+    public uint randInt() { // integer in [0,2^32-1]
+      if (left == 0) reload();
+      --left;
+
+      uint s1 = state[pNextIndex++];
+      s1 ^= (s1 >> 11);
+      s1 ^= (s1 << 7) & 0x9d2c5680U;
+      s1 ^= (s1 << 15) & 0xefc60000U;
+      return (s1 ^ (s1 >> 18));
+    }
+
+    public uint randInt(uint n) { // integer in [0,n] for n < 2^32
+      uint used = n;
+      used |= used >> 1;
+      used |= used >> 2;
+      used |= used >> 4;
+      used |= used >> 8;
+      used |= used >> 16;
+
+      uint i;
+      do
+        i = randInt() & used;
+      while (i > n);
+      return i;
+    }
+
+    public double rand() { return randInt() * (1.0 / 4294967295.0); } // real number in [0,1]
+    public double rand(double n) { return rand() * n; } // real number in [0,n]
+    public double randExc() { return randInt() * (1.0 / 4294967296.0); } // real number in [0,1)
+    public double randExc(double n) { return randExc() * n; } // real number in [0,n)
+    public double randDblExc() { return (randInt() + 0.5) * (1.0 / 4294967296.0); } // real number in (0,1)
+    public double randDblExc(double n) { return randDblExc() * n; } // real number in (0,n)
+    public double this[] { get { return rand(); } } // same as rand()
+
+    // Access to 53-bit random numbers (capacity of IEEE double precision)
+    public double rand53() { // real number in [0,1)
+      uint a = randInt() >> 5, b = randInt() >> 6;
+      return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
+    }
+
+    // Access to nonuniform random number distributions
+    public double randNorm(double mean = 0.0, double stddev = 1.0) {
+      double x, y, r;
+      do {
+        x = 2.0 * rand() - 1.0;
+        y = 2.0 * rand() - 1.0;
+        r = x * x + y * y;
+      } while (r >= 1.0 || r == 0.0);
+      double s = Math.Sqrt(-2.0 * Math.Log(r) / r);
+      return mean + x * s * stddev;
+    }
+
+    // Re-seeding functions with same behavior as initializers
+    public void seed(uint oneSeed) {
+      initialize(oneSeed);
+      reload();
+    }
+
+    public void seed(uint[] bigSeed, uint seedLength = N) {
+      initialize(19650218U);
+      int i = 1;
+      int j = 0;
+      int k = (N > seedLength ? N : (int)seedLength);
+      for (; k > 0; --k) {
+        state[i] = state[i] ^ ((state[i-1] ^ (state[i-1] >> 30)) * 1664525U);
+        state[i] += (bigSeed[j] & 0xffffffffU) + (uint)j;
+        state[i] &= 0xffffffffU;
+        ++i; ++j;
+        if (i >= N) { state[0] = state[N-1]; i = 1; }
+        if (j >= seedLength) j = 0;
+      }
+      for (k = N - 1; k > 0; --k) {
+        state[i] = state[i] ^ ((state[i-1] ^ (state[i-1] >> 30)) * 1566083941U);
+        state[i] -= (uint)i;
+        state[i] &= 0xffffffffU;
+        ++i;
+        if (i >= N) { state[0] = state[N-1]; i = 1; }
+      }
+      state[0] = 0x80000000U;
+      reload();
+    }
+
+    public void seed() {
+      // Use DateTime and Environment.TickCount for seeding
+      uint h = hash(DateTime.Now.Ticks, Environment.TickCount);
+      seed(h);
+    }
+
+    // Saving and loading generator state
+    public void save(uint[] saveArray) {
+      Array.Copy(state, saveArray, N);
+      saveArray[N] = (uint)left;
+    }
+
+    public void load(uint[] loadArray) {
+      Array.Copy(loadArray, state, N);
+      left = (int)loadArray[N];
+      pNextIndex = N - left;
+    }
+
+    public override string ToString() {
+      string s = "";
+      for (int i = 0; i < N; ++i) s += state[i] + "\t";
+      s += left;
+      return s;
+    }
+
+    public static MTRand Parse(string s) {
+      string[] parts = s.Split('\t');
+      MTRand m = new MTRand();
+      for (int i = 0; i < N; ++i) m.state[i] = uint.Parse(parts[i]);
+      m.left = int.Parse(parts[N]);
+      m.pNextIndex = N - m.left;
+      return m;
+    }
+
+    public MTRand Clone() {
+      return new MTRand(this);
+    }
+
+    protected void initialize(uint seed) {
+      uint[] s = state;
+      int i = 1;
+      s[0] = seed & 0xffffffffU;
+      for (; i < N; ++i) {
+        s[i] = (1812433253U * (s[i-1] ^ (s[i-1] >> 30)) + (uint)i) & 0xffffffffU;
+      }
+    }
+
+    protected void reload() {
+      int i;
+      for (i = N - M; i > 0; --i) {
+        state[N - i] = twist(state[N - i + M], state[N - i], state[N - i + 1]);
+      }
+      for (; i > 1; --i) {
+        state[N - i] = twist(state[N - i + M - N], state[N - i], state[N - i + 1]);
+      }
+      state[N - 1] = twist(state[M - 1], state[N - 1], state[0]);
+
+      left = N;
+      pNextIndex = 0;
+    }
+
+    protected uint hiBit(uint u) { return u & 0x80000000U; }
+    protected uint loBit(uint u) { return u & 0x00000001U; }
+    protected uint loBits(uint u) { return u & 0x7fffffffU; }
+    protected uint mixBits(uint u, uint v) { return hiBit(u) | loBits(v); }
+    protected uint magic(uint u) { return loBit(u) != 0 ? 0x9908b0dfU : 0x0U; }
+    protected uint twist(uint m, uint s0, uint s1) {
+      return m ^ (mixBits(s0, s1) >> 1) ^ magic(s1);
+    }
+
+    protected static uint hash(long t, int c) {
+      uint h1 = 0;
+      byte[] tb = BitConverter.GetBytes(t);
+      for (int i = 0; i < tb.Length; ++i) {
+        h1 *= (byte.MaxValue + 2U);
+        h1 += tb[i];
+      }
+      uint h2 = 0;
+      byte[] cb = BitConverter.GetBytes(c);
+      for (int j = 0; j < cb.Length; ++j) {
+        h2 *= (byte.MaxValue + 2U);
+        h2 += cb[j];
+      }
+      return h1 ^ h2;
+    }
+  }
 }
