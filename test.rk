@@ -66,11 +66,11 @@ func [[int]] sortedPowerSet([int] arr) {
   for int i in 0 ..< 1 << arr.len {
     [int] subset = []
     for int j in 0 ..< arr.len if (i >> j) & 1:
-      subset .= push arr[j]
-    result .= push subset
+      subset.=push arr[j]
+    result.=push subset
   }
 
-  return result .= sort |a, b| {
+  return result.=sort |a, b| {
     int countA = a.reduce 0 (|c,, i| c + 1)
     int countB = b.reduce 0 (|d,, i| d + 1)
     if countA != countB:
@@ -129,6 +129,7 @@ func [[int]] sortedPowerSet([int] arr) =
         a[i] - b[i]
     a.len - b.len
 
+sort result |x|
 // Objective-C & Ruby style
 func [[int]] sortedPowerSet([int] arr) {
   [[int]] result = []
@@ -180,12 +181,12 @@ func [[int]] sortedPowerSet([int] arr) = (
     <mut(type [int]) (subset)=[]/>
     <for let(type int)=j in=(0 ..< arr.len)>
       <if ((i >> j) & 1)>
-        subset .= push arr[j]
+        subset.=push arr[j]
       </if>
     </for>
-    result .= push subset
+    result.=push subset
   </for>
-  result .= sort |a, b| <>
+  result.=sort |a, b| <>
     <let(type int) (countA)=(a.reduce 0, |c,, i| c + 1)/>
     <let(type int) (countB)=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
@@ -205,8 +206,6 @@ func [[int]] sortedPowerSet([int] arr) = (
 for let i in sortedPowerSet [1...16]:
   echo i
 
-let x = [[int]] |[int] arr| = sortedPowerSet arr
-
 // LINQ-style queries
 let formatPowerSet = |a: [[int]]|: str =
   a.iter(iter: from let [int] subset in a
@@ -220,9 +219,9 @@ print $ formatPowerSet sortedPowerSet [1..<10]
 shader MazeGenerator {
   struct Uniforms { prop u32 mazeSize, u32 numWalls }
   struct WallsArray { prop [u32] values }
-  uniform mut<grp 0 id 0> Uniforms uniforms
-  out mut<grp 0 id 1> [u32] walls
-  out mut<grp 0 id 2> WallsArray wallsArray
+  mut<group 0 id 0> Uniforms uniforms
+  out mut<group 0 id 1> [u32] walls
+  out mut<group 0 id 2> WallsArray wallsArray
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
     let i32 size = i32 uniforms.mazeSize

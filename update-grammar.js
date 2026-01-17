@@ -1,8 +1,9 @@
 import fs from "fs";
 import yaml from "js-yaml";
 import {optimize} from "oniguruma-parser/optimizer";
-const {fromEntries, entries, keys, values} = Object;
+const {fromEntries, keys} = Object;
 const {isArray} = Array;
+const {stringify} = JSON;
 
 let file = fs.readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
 let parsed = yaml.load(file);
@@ -19,7 +20,7 @@ function sortKeys(obj) {
 }
 
 // remove "comment" keys recursively
-parsed = JSON.stringify(parsed, (k, v) => {
+parsed = stringify(parsed, (k, v) => {
   if (typeof v == "string") {
     if (["begin", "end", "match", "while"].includes(k))
       try {
