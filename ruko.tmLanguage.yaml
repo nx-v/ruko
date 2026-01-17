@@ -6867,7 +6867,14 @@ repository:
           (?x)\b(?:
             pub|priv|prot
             |intern|extern
-            |local|global
+            |local|global|glocal
+            |open|closed
+            |final|sealed
+            |read|write|readwrite
+            |get|set
+            |mut|immut|shared|unique
+            |static|instance
+            |stat|dyn|inst
           )\b
         name: storage.modifier.specifier.ruko
       - comment: Mutability and ownership
@@ -6892,6 +6899,21 @@ repository:
             |volatile
             |persist
             |temp
+            |trans|transient
+            |live|lived
+            |ephem|ephemeral
+            |auto|automatic
+            |manual
+            |stack|heap
+            |inline|outline
+            |global|local
+            |forever|eternal
+            |scoped?
+            |region|arena
+            |weak|soft
+            |strong
+            |uniform
+            |lowp?|highp?
           )\b
         name: storage.modifier.declaration.ruko
       - comment: Function modifiers
@@ -6902,8 +6924,15 @@ repository:
             |async|sync
             |coro|coroutine
             |inline|noinline
-            |tail
-            |macro
+            |tail|tailcall
+            |ctor|constructor
+            |dtor|destructor
+            |getter|setter
+            |propc|property
+            |event|listener
+            |lambda|closure
+            |overload|callback
+            |macro|template
             |oper|operator
             |vararg|variadic
             |opt|optional
@@ -6934,7 +6963,7 @@ repository:
           (?x)\b(?:
             abstract|abst
             |final
-            |interface|intf
+            |interface|inter
             |concrete
             |primitive
             |composite
@@ -6959,6 +6988,18 @@ repository:
             |requires
             |provides
             |conforms
+            |specializes
+            |derives
+            |inherits
+            |super
+            |base
+            |sub
+            |parent
+            |child
+            |ancestor
+            |descendant
+            |proto
+            |adapter
           )\b
         name: storage.modifier.inheritance.ruko
       - comment: Platform modifiers
@@ -6969,6 +7010,19 @@ repository:
             |target
             |embed
             |cross
+            |cpu|arch
+            |os|platform
+            |win|windows
+            |linux|unix
+            |mac|macos|osx
+            |android
+            |ios|iphone|ipad
+            |web|wasm
+            |webgl|webgpu
+            |gpu|cuda|opencl
+            |simd|vector
+            |rtdl|realtime
+            |dbg|debug
           )\b
         name: storage.modifier.platform.ruko
       - comment: Annotation modifiers
@@ -7645,6 +7699,7 @@ repository:
             |begin|end
           ) \b
         )
+
         (?:
           (?: # type
             (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
@@ -7675,6 +7730,93 @@ repository:
 
   declarations:
     patterns:
+      - applyEndPatternLast: true
+        begin: |-
+          (?x) 
+          \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b
+
+          (
+            (?: # type
+              (?:
+                (?:  < (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >) | # generics
+                \#? \( (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                \#? \[ (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                \#? \{ (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces
+              )+
+            )
+          )
+
+          \s*
+
+          (
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+                # declaration keywords
+                |va[rl]|let|mut|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
+                |(?:re)?try|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|race|join
+                |raise|error|final|copy|move|drop
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              ) \b
+            )
+            (?:
+              (?: # type
+                (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+                (?:
+                  (?:
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  )*
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
+                  (?:  < (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
+                  \#? \( (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                  \#? \[ (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                  \#? \{ (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces
+                )+
+                [!?&*]* # suffix sigils
+              )
+              \s*
+            )+
+          )
+
+          (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+
+          (?=
+              $ | [,;)\]}] # end of binding
+            | \s*(?:[?:]?=|{)(?:\s|$) # type annotation before initialization or block
+            | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|of|to|by
+              ) \b # lookahead for type annotation or keywords
+          )
+        end: (?=)|$
+        beginCaptures:
+          1: {name: "storage.type.variable.ruko"}
+          2:
+            name: "storage.type.ruko"
+            patterns: [{include: "#types"}]
+          3:
+            name: "storage.type.ruko"
+            patterns: [{include: "#types"}]
+          4: {patterns: [{include: "#variables"}]}
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(quote)\b\s*
         end: (?=)|$
@@ -7757,76 +7899,6 @@ repository:
           - match: *entity-name
             name: "entity.name.component.ruko"
             patterns: [{include: "#html-tag-names"}]
-      - applyEndPatternLast: true
-        begin: |-
-          (?x) 
-          \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
-
-          (
-            (?!
-              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-              (?: # keywords
-                # wordlike operators
-                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |(?:re)?try|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
-            )
-            (?:
-              (?: # type
-                (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
-                (?:
-                  (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                  )*
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w* # last part of identifier
-                  (?:  < (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                  \#? \( (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                  \#? \[ (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                  \#? \{ (?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) \} # braces
-                )+
-                [!?&*]* # suffix sigils
-              )
-              \s*
-            )+
-          )
-
-          (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
-
-          (?=
-            \s*(?:[?:]?=|{)(?:\s|$) # type annotation before initialization or block
-            | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-              (?: # keywords
-                # wordlike operators
-                [io]n|of|to|by
-              ) \b # lookahead for type annotation or keywords
-          )
-        end: (?=)|$
-        beginCaptures:
-          1: {name: "storage.type.variable.ruko"}
-          2:
-            name: "storage.type.ruko"
-            patterns: [{include: "#types"}]
-          3: {patterns: [{include: "#variables"}]}
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(decl|ignore)\b\s*
         end: (?=)|$
