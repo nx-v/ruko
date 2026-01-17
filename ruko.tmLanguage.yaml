@@ -382,10 +382,10 @@ repository:
   # Directives
 
   directives:
-    comment: "These are just straight-up copied from C/C++ but with some changes to #define to support regex replacements."
+    comment: "These are just straight-up copied from C/C++ but with % instead of #"
     patterns:
       - applyEndPatternLast: true
-        begin: ^\s*(\%)(if|else|elif|end|ifdef|ifndef)\b
+        begin: ^\s*(%)(if|else|elif|end|ifdef|ifndef)\b
         end: $
         name: "meta.directive.ruko"
         captures:
@@ -393,7 +393,7 @@ repository:
           2: {name: "keyword.control.directive.ruko"}
         patterns: [{include: $self}]
       - applyEndPatternLast: true
-        begin: ^\s*(\%)(define|undef)\b
+        begin: ^\s*(%)(define|undef)\b
         end: $
         name: "meta.directive.ruko"
         captures:
@@ -421,7 +421,7 @@ repository:
           - match: .+
             name: "meta.directive.definition.ruko"
       - applyEndPatternLast: true
-        begin: ^\s*(\%)(include|exclude|import|export|extern|intern)\b
+        begin: ^\s*(%)(include|exclude|import|export|extern|intern)\b
         end: $
         name: "meta.directive.ruko"
         captures:
@@ -429,15 +429,59 @@ repository:
           2: {name: "keyword.control.directive.ruko"}
         patterns: [{include: "#module-content"}]
       - applyEndPatternLast: true
-        begin: ^\s*(\%)(pragma|region|endregion|once)\b
+        begin: ^\s*(%)(pragma|region|endregion|once)\b
         end: $
         name: "meta.directive.ruko"
         captures:
           1: {name: "punctuation.definition.directive.ruko"}
           2: {name: "keyword.control.directive.ruko"}
         patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(error|warning)\b
+        end: $
+        name: "meta.directive.ruko"
+        captures:
+          1: {name: "punctuation.definition.directive.ruko"}
+          2: {name: "keyword.control.directive.ruko"}
+        patterns:
+          - match: .+
+            name: "string.raw.ruko"
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(debug|assert|check)\b
+        end: $
+        name: "meta.directive.ruko"
+        captures:
+          1: {name: "punctuation.definition.directive.ruko"}
+          2: {name: "keyword.control.directive.ruko"}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(eval|expr|exec)\b
+        end: $
+        name: "meta.directive.ruko"
+        captures:
+          1: {name: "punctuation.definition.directive.ruko"}
+          2: {name: "keyword.control.directive.ruko"}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(scope|safe|unsafe|begin|end)\b
+        end: $
+        name: "meta.directive.ruko"
+        captures:
+          1: {name: "punctuation.definition.directive.ruko"}
+          2: {name: "keyword.control.directive.ruko"}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(ignore|decl)\b
+        end: $
+        name: "meta.directive.ruko"
+        captures:
+          1: {name: "punctuation.definition.directive.ruko"}
+          2: {name: "keyword.control.directive.ruko"}
+        patterns:
+          - match: .+
+            name: "string.raw.ruko"
       - comment: null directive
-        match: ^\s*(\%)\s*$
+        match: ^\s*(%)\s*$
         name: "meta.directive.ruko"
         captures:
           1: {name: "punctuation.definition.directive.ruko"}
@@ -4277,10 +4321,10 @@ repository:
 
   file-paths:
     comment: File path literals
-    begin: \s*(\%)(file)\s*(")\s*
+    begin: \s*(%)(file)\s*(")\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
+      2: {name: "support.function.misc.ruko"}
       3: {name: "punctuation.definition.link.ruko"}
     end: \s*(")\s*
     endCaptures:
@@ -4316,10 +4360,10 @@ repository:
 
   timestamps:
     comment: Timestamp literals
-    begin: \s*(\%)(date|time|datetime)\s*(['"])\s*
+    begin: \s*(%)(date|time|datetime|timestamp)\s*(\()\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
+      2: {name: "support.function.misc.ruko"}
       3: {name: "punctuation.definition.constant.ruko"}
     end: \s*(\3)\s*
     endCaptures:
@@ -4344,12 +4388,12 @@ repository:
     begin: \s*(%(path))\s*(\()\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.css"}
-      3: {name: "punctuation.definition.quote.css"}
-    name: "meta.literal.path.ruko"
+      2: {name: "support.function.misc.ruko"}
+      3: {name: "punctuation.definition.quote.ruko"}
+    name: "meta.literal.vector-path.ruko"
     end: \s*(\))\s*
     endCaptures:
-      1: {name: "punctuation.definition.quote.css"}
+      1: {name: "punctuation.definition.quote.ruko"}
     patterns:
       - match: (?i)[mlhvcsqtaz](?=[\s,)])
         name: "keyword.operator.path.ruko"
@@ -4364,10 +4408,10 @@ repository:
 
   urls:
     comment: URL literals
-    begin: \s*(\%)(url)\s*(")\s*
+    begin: \s*(%)(url)\s*(")\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
+      2: {name: "support.function.misc.ruko"}
       3: {name: "punctuation.definition.link.ruko"}
     end: \s*(")\s*
     endCaptures:
@@ -4392,10 +4436,10 @@ repository:
 
   strings-bracketed:
     comment: Array of strings
-    begin: \s*(\%)(quote)\s*(\()\s*
+    begin: \s*(%)(quote)\s*(\()\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
+      2: {name: "support.function.misc.ruko"}
       3: {name: "punctuation.definition.string.ruko"}
     end: \s*(\))\s*
     endCaptures:
@@ -4408,10 +4452,10 @@ repository:
 
   word-arrays:
     comment: Array of strings
-    begin: \s*(\%)(words)\s*(\()\s*
+    begin: \s*(%)(words)\s*(\()\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
+      2: {name: "support.function.misc.ruko"}
       3: {name: "punctuation.definition.sequence.ruko"}
     end: \s*(\))\s*
     endCaptures:
@@ -4426,10 +4470,10 @@ repository:
 
   base64:
     comment: Byte array, base64 encoded
-    begin: \s*(\%)(b(?:ase)?64)\s*(['"])\s*
+    begin: \s*(%)(b(?:ase)?64)\s*(['"])\s*
     beginCaptures:
       1: {name: "punctuation.definition.directive.ruko"}
-      2: {name: "storage.type.directive.ruko"}
+      2: {name: "support.function.misc.ruko"}
       3: {name: "punctuation.definition.constant.ruko"}
     end: \s*(\3)\s*
     endCaptures:
@@ -4445,10 +4489,10 @@ repository:
     patterns:
       - comment: RGBA color values
         name: "meta.literal.color.rgb.ruko"
-        begin: \s*(\%)(rgba?)\s*(\()\s*
+        begin: \s*(%)(rgba?)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
-          2: {name: "storage.type.directive.css"}
+          2: {name: "support.function.misc.css"}
           3: {name: "punctuation.definition.parameters.css"}
         end: \s*(\))\s*
         endCaptures:
@@ -4472,10 +4516,10 @@ repository:
           - include: $self
       - comment: CMYK color values
         name: "meta.literal.color.rgb.ruko"
-        begin: \s*(\%)(rgba?)\s*(\()\s*
+        begin: \s*(%)(rgba?)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
-          2: {name: "storage.type.directive.css"}
+          2: {name: "support.function.misc.css"}
           3: {name: "punctuation.definition.parameters.css"}
         patterns:
           - match: |-
@@ -4502,10 +4546,10 @@ repository:
           1: {name: "punctuation.definition.parameters.css"}
       - comment: HSL/HSV/OKLCH color values
         name: "meta.literal.color.hsl.ruko"
-        begin: \s*(\%)((?:ok)h(?:s[lv]|cl)a?)\s*(\()\s*
+        begin: \s*(%)((?:ok)h(?:s[lv]|cl)a?)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
-          2: {name: "storage.type.directive.css"}
+          2: {name: "support.function.misc.css"}
           3: {name: "punctuation.definition.parameters.css"}
         end: \s*(\))\s*
         endCaptures:
@@ -4532,10 +4576,10 @@ repository:
           - include: $self
       - comment: LAB color values
         name: "meta.literal.color.lab.ruko"
-        begin: \s*(\%)(lab)\s*(\()\s*
+        begin: \s*(%)(lab)\s*(\()\s*
         beginCaptures:
           1: {name: "punctuation.definition.directive.css"}
-          2: {name: "storage.type.directive.css"}
+          2: {name: "support.function.misc.css"}
           3: {name: "punctuation.definition.parameters.css"}
         end: \s*(\))\s*
         endCaptures:
@@ -10729,7 +10773,7 @@ repository:
       - name: "support.type.fx.technique.hlsl"
         match: \b(pass|technique|technique10|technique11)\b
       - name: "support.type.semantic.sm4.hlsl"
-        match: \b(?i:SV_ClipDistance\d*|SV_CullDistance\d*|SV_Coverage|SV_Depth|SV_DepthGreaterEqual\d*|SV_DepthLessEqual\d*|SV_InstanceID|SV_IsFrontFace|SV_Position|SV_RenderTargetArrayIndex|SV_SampleIndex|SV_StencilRef|SV_Target[0-7]?|SV_VertexID|SV_ViewportArrayIndex)\b
+        match: \b(SV_ClipDistance\d*|SV_CullDistance\d*|SV_Coverage|SV_Depth|SV_DepthGreaterEqual\d*|SV_DepthLessEqual\d*|SV_InstanceID|SV_IsFrontFace|SV_Position|SV_RenderTargetArrayIndex|SV_SampleIndex|SV_StencilRef|SV_Target[0-7]?|SV_VertexID|SV_ViewportArrayIndex)\b
       - name: "support.type.semantic.sm5.hlsl"
         match: \b(?i:SV_DispatchThreadID|SV_DomainLocation|SV_GroupID|SV_GroupIndex|SV_GroupThreadID|SV_GSInstanceID|SV_InsideTessFactor|SV_OutputControlPointID|SV_TessFactor)\b
       # Perl
