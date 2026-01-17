@@ -10812,11 +10812,225 @@ repository:
   support-functions-core:
     comment: Core built-in functions from major languages, to improve recognition of cross-language codebases
     patterns:
-      - include: "source.objcpp#c_functions" # C/C++/Objective-C
-      - include: "source.objc#c_functions"
-      - include: "source.php#support" # PHP
       - include: "source.swift#builtin-functions" # Swift
       - include: "source.swift#builtin-global-functions"
+      - include: "source.php#support" # PHP
+      - include: "source.objcpp#c_functions" # C/C++/Objective-C
+      - include: "source.objc#c_functions"
+      - comment: "#include <algorithm>"
+        match: \b((all|any|none)_of|for_each(_n)?|count(_if)?|mismatch|find(_if|_not)?|find_end|find_first_of|adjacent_find|search(_n)?|copy(_if|_n|_backward)?|move(_backward)?|fill(_n)?|transform|generate(_n)?|remove(_if)?|remove_copy(_if)?|replace(_if)?|replace_copy(_if)?|swap(_ranges)?|iter_swap|reverse(_copy)?|rotate(_copy)?|shift_(left|right)|(random_)?shuffle|sample|unique(_copy)?|is_partitioned|partition(_copy)?|stable_partition|partition_point|is_sorted(_until)?|sort(_heap)?|partial_sort(_copy)?|stable_sort|nth_element|(lower|upper)_bound|binary_search|equal_range|merge|inplace_merge|includes|set_(difference|intersection|symmetric_difference|union)|is_heap(_until)?|make_heap|push_heap|pop_heap|max(_element)?|min(_element)?|minmax(_element)?|clamp|max|min|minmax|equal|lexicographical_compare(_three_way)?|(is|next|prev)_permutation)\b
+        name: "support.function.algorithm.cpp"
+      - comment: "#include <complex>"
+        match: \b(real|imag|abs|arg|norm|conj|proj|polar|exp|log(10)?|pow|sqrt|a?(sin|cos|tan)h?)\b
+        name: "support.function.complex.cpp"
+      - comment: "#include <deque>"
+        match: \b(erase(_if)?|c?r?(begin|end)|s?size|empty|data|front|back)\b
+        name: "support.function.deque.cpp"
+      - comment: "#include <exception>"
+        match: \b(unexpected|uncaught_exceptions?|make_exception_ptr|(current|rethrow)_exception|(throw_with|rethrow_if)_nested|([gs]et)_(terminate|unexpected))\b
+        name: "support.function.exception.cpp"
+      - comment: "#include <functional>"
+        match: \b(plus|minus|multiplies|divides|modulus|negate|(not)?equal_to|(greater|less)(_equal)?|logical_(and|or|not)|bit_(and|or|xor|not)|not_fn|identity|(default|boyer_moore(_horspool)?)_searcher|hash|bind(_(front|back))?|c?ref|invoke(_r)?|(pointer_to_)?(unary|binary)_function|bind(er)(1st|2nd)|ptr_fun|(const_)mem_fun1?_ref_t|mem_fun_ref|(unary|binary)_negate|not[12])\b
+        name: "support.function.functional.cpp"
+      - comment: "#include <iomanip>"
+        match: \b((re)?setiosflags|set(bas|fill|precision|w)|(ge|pu)t_(money|time)|quoted)\b
+        name: "support.function.iomanip.cpp"
+      - comment: "#include <ios>"
+        match: \b(iostream_category|make_error_(code|condition)|(no)?(show(base|point|pos)|uppercase|unitbuf)|internal|left|right|dec|hex|oct|fixed|scientific|(hex|default)float)\b
+        name: "support.function.ios.cpp"
+      - comment: "#include <iosfwd>"
+        match: \b(ios_base|basic_io(s|stream)|(i|o)stream)\b
+        name: "support.function.iosfwd.cpp"
+      - comment: "#include <iostream>"
+        match: \b(w?c(in|out|err|log))\b
+        name: "support.variable.iostream.cpp"
+      - comment: "#include <istream>"
+        match: \b(get(line|count)?|ignore|pe(ek|utback)|read(some)?|seek[gp]|sync|tell[gp]|unget)\b
+        name: "support.function.istream.cpp"
+      - comment: "#include <ostream>"
+        match: \b(put|write|seek[p]|tell[p]|flush)\b
+        name: "support.function.ostream.cpp"
+      - comment: "#include <fstream>"
+        match: \b((basic_|w)?(if|of|f)stream|w?filebuf)\b
+        name: "support.class.fstream.cpp"
+      - comment: "#include <sstream>"
+        match: \b((basic_|w)?(i|o)?stringstream|w?stringbuf|str)\b
+        name: "support.class.sstream.cpp"
+      - comment: "#include <iterator>"
+        match: \b(advance|distance|next|prev|iter_(move|swap)|make_(reverse|move)_iterator|(front|back)_inserter|inserter|(i|o)stream(buf)?_iterator|(reverse|move|insert|front_insert|back_insert)_iterator|(input|output|forward|bidirectional|random_access|contiguous)_iterator_tag)\b
+        name: "support.function.iterator.cpp"
+      - comment: "#include <memory>"
+        match: \b(addressof|a(lign|ssume_aligned)|(make|allocate)_shared(_for_overwrite)?|make_unique(_for_overwrite)?|(unique|shared|weak|auto)_ptr|owner_less|enable_shared_from_this|bad_weak_ptr|default_delete|allocator(_traits)?|uninitialized_(copy(_n)?|fill(_n)?|move(_n)?|(default|value)_construct(_n)?)|destroy(_at|_n)?|construct_at|raw_storage_iterator|(get|return)_temporary_buffer|pointer_(traits|safety)|(un)?declare_(reachable|no_pointers)|get_pointer_safety)\b
+        name: "support.function.memory.cpp"
+      - comment: "#include <string>"
+        match: \b(basic_string|(pmr_)?(w|u8|u16|u32)?string|to_w?string|sto(i|l|ll|ul|ull|f|d|ld)|getline|substr|compare|append|insert|erase|replace|r?find(_first_(not_)?of|_last_(not_)?of)?|c_str|data|capacity|re(serve|size)|shrink_to_fit|clear)\b
+        name: "support.function.string.cpp"
+      - comment: "#include <string_view>"
+        match: \b(basic_string_view|(pmr_)?(w|u8|u16|u32)?string_view|remove_(prefix|suffix)|(starts|ends)_with)\b
+        name: "support.function.string_view.cpp"
+      - comment: "#include <vector>"
+        match: \b(vector|assign|at|push_back|pop_back|emplace(_back)?|insert|erase|resize|clear|swap|re(serve|size)|capacity|shrink_to_fit|data|s?size|empty|max_size|(front|back)|c?r?(begin|end))\b
+        name: "support.function.vector.cpp"
+      - comment: "#include <array>"
+        match: \b(array|fill|at|(front|back)|data|s?size|empty|max_size|swap)\b
+        name: "support.function.array.cpp"
+      - comment: "#include <list>"
+        match: \b(list|p(ush|op)_(front|back)|emplace_(front|back)|sort|merge|splice|remove(_if)?|reverse|unique)\b
+        name: "support.function.list.cpp"
+      - comment: "#include <forward_list>"
+        match: \b(forward_list|c?before_begin|(insert|emplace|erase|splice)_after|remove(_if)?|sort|merge|reverse|unique)\b
+        name: "support.function.forward_list.cpp"
+      - comment: "#include <map>"
+        match: \b((pmr_)?multi?map|insert(_or_assign)?|try_emplace|extract|merge|at|count|find|contains|equal_range|(lower|upper)_bound|(key|value)_comp)\b
+        name: "support.function.map.cpp"
+      - comment: "#include <set>"
+        match: \b((pmr_)?multi?set|insert|extract|merge|count|find|contains|equal_range|(lower|upper)_bound|(key|value)_comp)\b
+        name: "support.function.set.cpp"
+      - comment: "#include <unordered_map>"
+        match: \b((pmr_)?unordered_multi?map|(max_)?bucket_(count|size)|bucket|max_load_factor|load_factor|rehash|reserve|hash_function|key_eq)\b
+        name: "support.function.unordered_map.cpp"
+      - comment: "#include <unordered_set>"
+        match: \b((pmr_)?unordered_multi?set|(max_)?bucket_(count|size)|bucket|max_load_factor|load_factor|rehash|reserve|hash_function|key_eq)\b
+        name: "support.function.unordered_set.cpp"
+      - comment: "#include <queue>"
+        match: \b(priority_queue|queue|p(ush|op)|(front|back|top)|emplace)\b
+        name: "support.function.queue.cpp"
+      - comment: "#include <stack>"
+        match: \b(stack|p(ush|op)|top|emplace)\b
+        name: "support.function.stack.cpp"
+      - comment: "#include <bitset>"
+        match: \b(bitset|set|reset|flip|test|a(ll|ny)|none|count|size|to_(string|ulong|ullong))\b
+        name: "support.function.bitset.cpp"
+      - comment: "#include <tuple>"
+        match: \b(tuple|make_tuple|tie|forward_as_tuple|tuple_cat|get|tuple_(size|element)|ignore|apply|make_from_tuple)\b
+        name: "support.function.tuple.cpp"
+      - comment: "#include <utility>"
+        match: \b(pair|make_pair|piecewise_construct(_t)?|in_place(_[ti]|_(type|index)(_t)?)?|forward|move(_if_noexcept)?|swap|exchange|declval|as_const|to_underlying|cmp_(not_)?(equal|less|greater)(_equal)?|in_range|unreachable)\b
+        name: "support.function.utility.cpp"
+      - comment: "#include <optional>"
+        match: \b(optional|nullopt(_t)?|bad_optional_access|make_optional|has_value|value(_or)?|reset|emplace)\b
+        name: "support.function.optional.cpp"
+      - comment: "#include <variant>"
+        match: \b(variant(_size|_alternative|_npos)?|visit|holds_alternative|get(_if)?|monostate|bad_variant_access)\b
+        name: "support.function.variant.cpp"
+      - comment: "#include <any>"
+        match: \b(any(_cast)?|make_any|bad_any_cast|has_value|type|reset|emplace)\b
+        name: "support.function.any.cpp"
+      - comment: "#include <span>"
+        match: \b(span|dynamic_extent|as_(writable_)?bytes|subspan|(first|last))\b
+        name: "support.function.span.cpp"
+      - comment: "#include <numeric>"
+        match: \b(iota|accumulate|reduce|inner_product|adjacent_difference|partial_sum|transform_(reduce|(in|ex)clusive_scan)|(in|ex)clusive_scan|gcd|lcm|midpoint|lerp)\b
+        name: "support.function.numeric.cpp"
+      - comment: "#include <random>"
+        match: \b(random_device|seed_seq|default_random_engine|minstd_rand0?|mt19937(_64)?|ranlux(24|48)|knuth_b|uniform_(int|real)_distribution|(bernoulli|binomial|geometric|negative_binomial|poisson|exponential|gamma|weibull|extreme_value|normal|lognormal|chi_squared|cauchy|fisher_f|student_t|discrete)_distribution|piecewise_(constant|linear)_distribution|generate_canonical)\b
+        name: "support.function.random.cpp"
+      - comment: "#include <ratio>"
+        match: \b(ratio(_add|_subtract|_multiply|_divide|_(not_)?equal|_(less|greater)(_equal)?)?|(yocto|zepto|atto|femto|pico|nano|micro|milli|centi|deci|deca|hecto|kilo|mega|giga|tera|peta|exa|zetta|yotta))\b
+        name: "support.type.ratio.cpp"
+      - comment: "#include <chrono>"
+        match: \b(duration(_values|_cast)?|time_point(_cast)?|(system|steady|high_resolution|utc|tai|gps|file)_clock|treat_as_floating_point|floor|ceil|round|abs|(hours|minutes|seconds|milli|micro|nano)seconds|days|weeks|months|years|hh_mm_ss|is_(am|pm)|make(12|24)|last_spec|day|month|year|weekday|month_day|year_month(_day(_last)?|_weekday(_last)?)?|weekday_(indexed|last)|month_(day_last|weekday(_last)?)|zoned_time|time_zone|tzdb|current_zone|locate_zone|get_tzdb|reload_tzdb|remote_version)\b
+        name: "support.function.chrono.cpp"
+      - comment: "#include <limits>"
+        match: \b(numeric_limits|min|max|lowest|epsilon|round_error|infinity|(quiet|signaling)_NaN|denorm_min|is_(specialized|signed|integer|exact|iec559|bounded|modulo)|has_(infinity|(quiet|signaling)_NaN|denorm(_loss)?)|round_style|digits(10)?|max_digits10|radix|(min|max)_exponent(10)?|traps|tinyness_before)\b
+        name: "support.function.limits.cpp"
+      - comment: "#include <type_traits>"
+        match: \b(is_(void|null_pointer|integral|floating_point|array|enum|union|class|function|pointer|(lvalue|rvalue)_reference|member_(object|function)_pointer|fundamental|arithmetic|scalar|object|compound|reference|member_pointer|const|volatile|trivial(ly_copyable)?|standard_layout|empty|polymorphic|abstract|final|aggregate|(un)?signed|(un)?bounded_array|scoped_enum|(trivially_|nothrow_)?((default|copy|move)_)?constructible(_from)?|(trivially_|nothrow_)?(copy|move)?assignable(_from)?|(trivially_|nothrow_)?destructible|(nothrow_)?swappable(_with)?|(nothrow_)?convertible(_to)?|(nothrow_)?invocable(_r)?|same|base_of)|has_(virtual_destructor|(quiet|signaling)_NaN|denorm)|alignment_of|rank|extent|(remove|add)_(cv|const|volatile|reference|pointer|extent|all_extents|cvref)|(add|remove)_(lvalue|rvalue)_reference|make_(signed|unsigned)|aligned_(storage|union)|decay|enable_if|conditional|common_(type|reference(_with)?)|underlying_type|invoke_result|void_t|type_identity|unwrap_re(ference|f_decay)|(con|dis)junction|negation|integral_constant|bool_constant|(true|false)_type)\b
+        name: "support.type.type_traits.cpp"
+      - comment: "#include <concepts>"
+        match: \b(same_as|derived_from|convertible_to|common_reference_with|common_with|(signed|unsigned)?_integral|floating_point|assignable_from|swappable(_with)?|destructible|constructible_from|default_initializable|(move|copy)_constructible|equality_comparable(_with)?|totally_ordered(_with)?|movable|copyable|semiregular|regular|regular_invocable|invocable|predicate|relation|equivalence_relation|strict_weak_order)\b
+        name: "support.type.concepts.cpp"
+      - comment: "#include <ranges>"
+        match: \b(ranges|c?r?(begin|end)|s?size|empty|c?data|range|borrowed_range|sized_range|view|(input|output|forward|bidirectional|random_access|contiguous|common|viewable)_range|view_interface|subrange|dangling|borrowed_(iterator_t|subrange_t)|all|(ref|owning|filter|transform|take(_while)?|drop(_while)?|join|lazy_split|split|counted|common|reverse|elements|keys|values|iota|istream)_view)\b
+        name: "support.function.ranges.cpp"
+      - comment: "#include <regex>"
+        match: \b(basic_regex|w?regex|(c|wc|s|ws)sub_match|match_results|(c|wc|s|ws)match|regex_(match|search|replace)|(c|wc|s|ws)regex(_token)?_iterator|regex_(error|traits|constants))\b
+        name: "support.function.regex.cpp"
+      - comment: "#include <atomic>"
+        match: \b(atomic(_flag|_ref)?|memory_order(_relaxed|_consume|_acquire|_release|_acq_rel|_seq_cst)?|kill_dependency|atomic_(thread|signal)_fence|atomic_(is_lock_free|(store|load|exchange)(_explicit)?|compare_exchange_(weak|strong)(_explicit)?|fetch_(add|sub|and|or|xor)(_explicit)?|(wait|notify_(one|all))(_explicit)?))\b
+        name: "support.function.atomic.cpp"
+      - comment: "#include <mutex>"
+        match: \b((recursive_)?(timed_)?mutex|(shared_)?(timed_)?mutex|(lock|scoped_lock|unique_lock|shared_lock)_guard|(defer|try_to|adopt)_lock(_t)?|once_flag|call_once|try_lock)\b
+        name: "support.function.mutex.cpp"
+      - comment: "#include <shared_mutex>"
+        match: \b(shared_(timed_)?mutex|shared_lock)\b
+        name: "support.function.shared_mutex.cpp"
+      - comment: "#include <condition_variable>"
+        match: \b(condition_variable(_any)?|notify_(one|all)|wait(_for|_until)?|cv_status)\b
+        name: "support.function.condition_variable.cpp"
+      - comment: "#include <thread>"
+        match: \b(j?thread|get_id|joinable|join|detach|swap|native_handle|hardware_concurrency|sleep_(for|until)|yield)\b
+        name: "support.function.thread.cpp"
+      - comment: "#include <future>"
+        match: \b(async|(shared_)?future|promise|packaged_task|future_(status|error|errc)|launch(_async|_deferred)?)\b
+        name: "support.function.future.cpp"
+      - comment: "#include <latch>"
+        match: \b(latch|count_down|try_wait|wait|arrive_and_wait)\b
+        name: "support.function.latch.cpp"
+      - comment: "#include <barrier>"
+        match: \b(barrier|arrive(_and_(wait|drop))?)\b
+        name: "support.function.barrier.cpp"
+      - comment: "#include <semaphore>"
+        match: \b((counting|binary)_semaphore|release|try_acquire(_for|_until)?|acquire)\b
+        name: "support.function.semaphore.cpp"
+      - comment: "#include <stop_token>"
+        match: \b(stop_(token|source|callback)|nostopstate(_t)?|stop_(requested|possible)|request_stop|get_stop_(token|source))\b
+        name: "support.function.stop_token.cpp"
+      - comment: "#include <filesystem>"
+        match: \b(path|filesystem_error|directory_(entry|iterator|options)|recursive_directory_iterator|file_(status|type|time_type|size)|space_info|perms|perm_options|copy_options|(weakly_)?canonical|absolute|relative|proximate|copy(_file|_symlink)?|create_(directory|directories|hard_link|symlink|directory_symlink)|current_path|exists|equivalent|hard_link_count|last_write_time|permissions|read_symlink|remove(_all)?|rename|resize_file|space|symlink_status|status(_known)?|temp_directory_path|is_(block|character)_file|is_(directory|empty|fifo|other|regular_file|socket|symlink))\b
+        name: "support.function.filesystem.cpp"
+      - comment: "#include <format>"
+        match: \b(v?format(_to(_n)?)?|formatted_size|make_w?format_args|w?format_(string|args|context|parse_context|error)|formatter|basic_format_(arg|args|context|parse_context|string))\b
+        name: "support.function.format.cpp"
+      - comment: "#include <bit>"
+        match: \b(bit_(cast|ceil|floor|width)|byteswap|has_single_bit|ro(tl|tr)|count[lr]_(zero|one)|popcount|endian)\b
+        name: "support.function.bit.cpp"
+      - comment: "#include <compare>"
+        match: \b((partial|weak|strong)_ordering|common_comparison_category|compare_three_way(_result)?|three_way_comparable(_with)?|(strong|weak|partial)_order|compare_(strong|weak|partial)_order_fallback|is_(eq|neq|lt|lteq|gt|gteq))\b
+        name: "support.function.compare.cpp"
+      - comment: "#include <numbers>"
+        match: \b((e|log2e|log10e|pi|inv_pi|inv_sqrtpi|ln2|ln10|sqrt2|sqrt3|inv_sqrt3|egamma|phi)(_v)?)\b
+        name: "support.constant.numbers.cpp"
+      - comment: "#include <coroutine>"
+        match: \b(coroutine_(handle|traits)|suspend_(never|always)|noop_coroutine(_promise|_handle)?)\b
+        name: "support.type.coroutine.cpp"
+      - comment: "#include <source_location>"
+        match: \b(source_location|current|line|column|file_name|function_name)\b
+        name: "support.function.source_location.cpp"
+      - comment: "#include <stacktrace>"
+        match: \b((basic_)?stacktrace(_entry)?|to_string|description|source_(file|line))\b
+        name: "support.function.stacktrace.cpp"
+      - comment: "#include <stdexcept>"
+        match: \b((logic|runtime)_error|invalid_argument|domain_error|length_error|out_of_range|range_error|(over|under)flow_error)\b
+        name: "support.class.stdexcept.cpp"
+      - comment: "#include <system_error>"
+        match: \b(error_(category|code|condition)|system_error|is_error_(code|condition)_enum|errc|(generic|system)_category|make_error_(code|condition))\b
+        name: "support.function.system_error.cpp"
+      - comment: "#include <new>"
+        match: \b(bad_(alloc|array_new_length)|nothrow(_t)?|new_handler|[gs]et_new_handler|launder|hardware_(destructive|constructive)_interference_size)\b
+        name: "support.function.new.cpp"
+      - comment: "#include <typeinfo>"
+        match: \b(type_info|bad_(cast|typeid)|name|before|hash_code)\b
+        name: "support.function.typeinfo.cpp"
+      - comment: "#include <typeindex>"
+        match: \b(type_index|hash_code|name)\b
+        name: "support.function.typeindex.cpp"
+      - comment: "#include <valarray>"
+        match: \b(valarray|g?slice(_array)?|mask_array|indirect_array|apply|cshift|shift)\b
+        name: "support.function.valarray.cpp"
+      - comment: "#include <locale>"
+        match: \b(locale|use_facet|has_facet|is(space|blank|cntrl|upper|lower|alpha|digit|punct|xdigit|alnum|print|graph)|to(upper|lower)|codecvt(_byname)?|ctype(_byname)?|collate(_byname)?|num_(get|put)|numpunct(_byname)?|money_(get|put)|moneypunct(_byname)?|time_(get(_byname)?|put(_byname)?)|messages(_byname)?)\b
+        name: "support.function.locale.cpp"
+      - comment: "#include <initializer_list>"
+        match: \b(initializer_list)\b
+        name: "support.type.initializer_list.cpp"
+      - comment: "#include <execution>"
+        match: \b((sequenced|parallel(_unsequenced)?|unsequenced)_policy|seq|par(_unseq)?|unseq|is_execution_policy)\b
+        name: "support.type.execution.cpp"
+      - comment: "#include <version> and <expected>"
+        match: \b((un)?expected|bad_expected_access|unexpect(_t)?)\b
+        name: "support.function.expected.cpp"
+
       - match: \b(ARGV|DATA|ENV|SIG|STDERR|STDIN|STDOUT|atan2|bind|binmode|bless|caller|chdir|chmod|chomp|chop|chown|chr|chroot|close|closedir|cmp|connect|cos|crypt|dbmclose|dbmopen|defined|delete|dump|each|endgrent|endhostent|endnetent|endprotoent|endpwent|endservent|eof|eq|eval|exec|exists|exp|fcntl|fileno|flock|fork|formline|ge|getc|getgrent|getgrgid|getgrnam|gethostbyaddr|gethostbyname|gethostent|getlogin|getnetbyaddr|getnetbyname|getnetent|getpeername|getpgrp|getppid|getpriority|getprotobyname|getprotobynumber|getprotoent|getpwent|getpwnam|getpwuid|getservbyname|getservbyport|getservent|getsockname|getsockopt|glob|gmtime|grep|gt|hex|import|index|int|ioctl|join|keys|kill|lc|lcfirst|le|length|link|listen|local|localtime|log|lstat|lt|m|map|mkdir|msgctl|msgget|msgrcv|msgsnd|ne|no|oct|open|opendir|ord|pack|pipe|pop|pos|print|printf|push|quotemeta|rand|read|readdir|readlink|recv|ref|rename|reset|reverse|rewinddir|rindex|rmdir|s|say|scalar|seek|seekdir|semctl|semget|semop|send|setgrent|sethostent|setnetent|setpgrp|setpriority|setprotoent|setpwent|setservent|setsockopt|shift|shmctl|shmget|shmread|shmwrite|shutdown|sin|sleep|socket|socketpair|sort|splice|split|sprintf|sqrt|srand|stat|study|substr|symlink|syscall|sysopen|sysread|system|syswrite|tell|telldir|tie|tied|time|times|tr|truncate|uc|ucfirst|umask|undef|unlink|unpack|unshift|untie|utime|values|vec|waitpid|wantarray|warn|write|y)\b # Perl
         name: "support.function.perl"
       - match: \b(eager|hyper|substr|index|rindex|grep|map|sort|join|lines|hints|chmod|split|reduce|min|max|reverse|truncate|zip|cat|roundrobin|classify|first|sum|keys|values|pairs|defined|delete|exists|elems|end|kv|any|all|one|wrap|shape|key|value|name|pop|push|shift|splice|unshift|floor|ceiling|abs|exp|log|log10|rand|sign|sqrt|sin|cos|tan|round|strand|roots|cis|unpolar|polar|atan2|pick|chop|p5chop|chomp|p5chomp|lc|lcfirst|uc|ucfirst|capitalize|normalize|pack|unpack|quotemeta|comb|samecase|sameaccent|chars|nfd|nfc|nfkd|nfkc|printf|sprintf|caller|evalfile|run|runinstead|nothing|want|bless|chr|ord|gmtime|time|eof|localtime|gethost|getpw|chroot|getlogin|getpeername|kill|fork|wait|perl|graphs|codes|bytes|clone|print|open|read|write|readline|say|seek|close|opendir|readdir|slurp|spurt|shell|run|pos|fmt|vec|link|unlink|symlink|uniq|pair|asin|atan|sec|cosec|cotan|asec|acosec|acotan|sinh|cosh|tanh|asinh|done|acos|acosh|atanh|sech|cosech|cotanh|sech|acosech|acotanh|asech|ok|nok|plan_ok|dies_ok|lives_ok|skip|todo|pass|flunk|force_todo|use_ok|isa_ok|diag|is_deeply|isnt|like|skip_rest|unlike|cmp_ok|eval_dies_ok|nok_error|eval_lives_ok|approx|is_approx|throws_ok|version_lt|plan|EVAL|succ|pred|times|nonce|once|signature|new|connect|operator|undef|undefine|sleep|from|to|infix|postfix|prefix|circumfix|postcircumfix|minmax|lazy|count|unwrap|getc|pi|e|context|void|quasi|body|each|contains|rewinddir|subst|can|isa|flush|arity|assuming|rewind|callwith|callsame|nextwith|nextsame|attr|eval_elsewhere|none|srand|trim|trim_start|trim_end|lastcall|WHAT|WHERE|HOW|WHICH|VAR|WHO|WHENCE|ACCEPTS|REJECTS|not|true|iterator|by|re|im|invert|flip|gist|flat|tree|is-prime|throws_like|trans)\b # Raku
