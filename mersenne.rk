@@ -251,7 +251,7 @@ show class MTRand : Io.Serializer {
     }
 
     // override
-    proc str serialize() { 
+    proc str serialize() {
       mut str s = ''
       for let i32 i in 0..<N:
         s ++= (str) #state[i] ++ '\t'
@@ -396,7 +396,7 @@ show class MTRand = script cpp {
     uint32 hiBit(const uint32 u) const { return u & 0x80000000UL; }
     uint32 loBit(const uint32 u) const { return u & 0x00000001UL; }
     uint32 loBits(const uint32 u) const { return u & 0x7fffffffUL; }
-    uint32 mixBits(const uint32 u, const uint32 v) const { 
+    uint32 mixBits(const uint32 u, const uint32 v) const {
       return hiBit(u) | loBits(v); }
     uint32 magic(const uint32 u) const {
       return loBit(u) ? 0x9908b0dfUL : 0x0UL; }
@@ -518,14 +518,14 @@ show class MTRand = script cpp {
     seed(hash(time(NULL), clock()));
   }
 
-  inline MTRand::MTRand(const uint32 oneSeed) { seed(oneSeed); }
+  inline void MTRand::MTRand(const uint32 oneSeed) { seed(oneSeed); }
 
-  inline MTRand::MTRand(uint32 *const bigSeed, uint32 const seedLength) {
+  inline void MTRand::MTRand(uint32 *const bigSeed, uint32 const seedLength) {
     seed(bigSeed,seedLength); }
 
-  inline MTRand::MTRand() { seed(); }
+  inline void MTRand::MTRand() { seed(); }
 
-  inline MTRand::MTRand(const MTRand& o) {
+  inline void MTRand::MTRand(const MTRand& o) {
     register const uint32 *t = o.state;
     register uint32 *s = state;
     register int i = N;
