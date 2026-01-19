@@ -22,19 +22,17 @@ function sortKeys(obj) {
 // remove "comment" keys recursively
 parsed = stringify(parsed, (k, v) => {
   if (typeof v == "string") {
-    if (["begin", "end", "match", "while"].includes(k))
+    if (["begin", "end", "match", "while"].includes(k.trim()))
       try {
         return optimize(v).pattern;
       } catch {
-        return v
-          .split(/(?<!\\)#\s.+\n/g)
-          .join("")
+        return v.split(/(?<!\\)#\s.+\n/g).join``
           .replace(/^\s+|\s+$/g, "")
           .replace(/(?<!\\)\s+/g, " ");
       }
-    if (["comment", "define"].includes(k)) return undefined;
+    if (["comment", "define"].includes(k.trim())) return;
   }
-  return v;
+  return sortKeys(v);
 });
 
 fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", parsed);
