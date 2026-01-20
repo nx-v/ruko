@@ -32,12 +32,12 @@ proc main {
 // variable declaration with and without type annotation
 let mut i32 a = 20
 pub let i32 a = 20
-int[][][][] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]]
+let int[][][][] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]]
 let &mut int z = &mut a
 &Type a = 10
 (int | 'hello world') b = "hello world"
-int[] result = []
-pub func int x(mut int[] arr)
+let int[] result = []
+pub func int x(mut int x) =
   arr.reduce 0 (|int sum, value| sum + value)
 let x = 10
 let mut str name = "Ruko"
@@ -68,21 +68,21 @@ style {
 
 // imperative style
 func int[][] sortedPowerSet(int[] arr) {
-  int[][] result = []
+  mut int[][] result = []
 
-  for int i in 0 ..< 1 << arr.len {
-    int[] subset = []
-    for int j in 0 ..< arr.len if (i >> j) & 1:
+  for let int i in 0 ..< 1 << arr.len {
+    mut int[] subset = []
+    for let int j in 0 ..< arr.len if (i >> j) & 1:
       subset.=push arr[j]
     result.=push subset
   }
 
   return result.=sort |a, b| {
-    int countA = a.reduce 0 (|c,, i| c + 1)
-    int countB = b.reduce 0 (|d,, i| d + 1)
+    let int countA = a.reduce 0 (|c,, i| c + 1)
+    let int countB = b.reduce 0 (|d,, i| d + 1)
     if countA != countB:
       countA - countB
-    for int i in 0 ..< min a.len b.len if a[i] != b[i]:
+    for let int i in 0 ..< min a.len b.len if a[i] != b[i]:
       a[i] - b[i]
     a.len - b.len
   }
@@ -117,41 +117,41 @@ func int[][] sortedPowerSet(int[] arr) = (
 
 // Haskell/ML/Python style
 func int[][] sortedPowerSet(int[] arr) =
-  let result = []: int[][]
+  mut int[][] result = []: 
 
-  for let i in 0 ..< 1 << arr.len
-    let subset = []: int[]
-    for let j in 0 ..< arr.len
+  for let int i in 0 ..< 1 << arr.len
+    mut int[] subset = []
+    for let int j in 0 ..< arr.len
       if (i >> j) & 1
         subset = push subset arr[j]
     result = push result subset
 
   sort result |a, b|
-    let countA = reduce a 0 (|c,, i| c + 1)
-    let countB = reduce b 0 (|d,, i| d + 1)
+    let int countA = reduce a 0 (|c,, i| c + 1)
+    let int countB = reduce b 0 (|d,, i| d + 1)
     if countA != countB
       countA - countB
-    for let i in 0 ..< min a.len b.len
+    for let int i in 0 ..< min a.len b.len
       if a[i] != b[i]
         a[i] - b[i]
     a.len - b.len
 
 // Objective-C & Ruby style
 func int[][] sortedPowerSet(int[] arr) {
-  int[][] result = []
+  mut int[][] result = []
 
   [0 ..< 1 << arr.len each: |i| {
-    int[] subset = []
+    mut int[] subset = []
     [0 ..< arr.len each: |j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset]
   }]
 
   return [result =sort: |a, b| {
-    int[] countA = [a reduce: 0, |c,, i| c + 1]
-    int[] countB = [b reduce: 0, |d,, i| d + 1]
+    let int[] countA = [a reduce: 0, |c,, i| c + 1]
+    let int[] countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB: return countA - countB
-    for int i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
+    for let int i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
       return a[i] - b[i]
     a.len - b.len
   }]
@@ -325,7 +325,7 @@ proc x(
   *(*(β?)) q = null
   *(*(γ?)) r  = null
 
-  for int i = 0, i < a::size + 17, i += 1 {
+  for let int i = 0, i < a::size + 17, i += 1 {
     if y? && !p?:
       p := &y as *α
     if p? && !q? {
@@ -335,7 +335,7 @@ proc x(
   }
 
   if z? && z != false:
-    for int j = 0, j < 20, j += 1:
+    for let int j = 0, j < 20, j += 1:
       *(*z)[j] := ((*(*z)[j] ?? 0) + j) as γ
 
   func l = |θ: (*[*i32])|: str {
@@ -617,7 +617,7 @@ let combinedStr = #`"""
 
 let templateString = @"""
   This is a template string, that is, a function returning a string.
-  Arguments are provided for interpolation, with the syntax @varName
+  Arguments are provided for let interpolation, with the syntax @varName
   or @{mut varName = expression}.
   The value of x doubled is: @{x = x * 2}
 """
