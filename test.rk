@@ -32,11 +32,12 @@ proc main {
 // variable declaration with and without type annotation
 let mut i32 a = 20
 pub let i32 a = 20
-[[[int]]] y = [[[1]]]
+int[][][][] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]]
+let &mut int z = &mut a
 &Type a = 10
 (int | 'hello world') b = "hello world"
-[int] result = []
-pub func int x(mut [int] arr)
+int[] result = []
+pub func int x(mut int[] arr)
   arr.reduce 0 (|int sum, value| sum + value)
 let x = 10
 let mut str name = "Ruko"
@@ -66,11 +67,11 @@ style {
 }
 
 // imperative style
-func [[int]] sortedPowerSet([int] arr) {
-  [[int]] result = []
+func int[][] sortedPowerSet(int[] arr) {
+  int[][] result = []
 
   for int i in 0 ..< 1 << arr.len {
-    [int] subset = []
+    int[] subset = []
     for int j in 0 ..< arr.len if (i >> j) & 1:
       subset.=push arr[j]
     result.=push subset
@@ -95,7 +96,7 @@ func sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
 
 // LINQ style
-func [[int]] sortedPowerSet([int] arr) = (
+func int[][] sortedPowerSet(int[] arr) = (
   from let i in 0 ..< (1 << arr.len)
   select (
     from let j in 0 ..< arr.len
@@ -115,11 +116,11 @@ func [[int]] sortedPowerSet([int] arr) = (
 )
 
 // Haskell/ML/Python style
-func [[int]] sortedPowerSet([int] arr) =
-  let result = []: [[int]]
+func int[][] sortedPowerSet(int[] arr) =
+  let result = []: int[][]
 
   for let i in 0 ..< 1 << arr.len
-    let subset = []: [int]
+    let subset = []: int[]
     for let j in 0 ..< arr.len
       if (i >> j) & 1
         subset = push subset arr[j]
@@ -136,19 +137,19 @@ func [[int]] sortedPowerSet([int] arr) =
     a.len - b.len
 
 // Objective-C & Ruby style
-func [[int]] sortedPowerSet([int] arr) {
-  [[int]] result = []
+func int[][] sortedPowerSet(int[] arr) {
+  int[][] result = []
 
   [0 ..< 1 << arr.len each: |i| {
-    [int] subset = []
+    int[] subset = []
     [0 ..< arr.len each: |j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset]
   }]
 
   return [result =sort: |a, b| {
-    [int] countA = [a reduce: 0, |c,, i| c + 1]
-    [int] countB = [b reduce: 0, |d,, i| d + 1]
+    int[] countA = [a reduce: 0, |c,, i| c + 1]
+    int[] countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB: return countA - countB
     for int i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
       return a[i] - b[i]
@@ -157,10 +158,10 @@ func [[int]] sortedPowerSet([int] arr) {
 }
 
 // Clojure style
-func [[int]] sortedPowerSet([int] arr) = (
-  (mut [[int]] result = [])
+func int[][] sortedPowerSet(int[] arr) = (
+  (mut int[][] result = [])
   (for let int i in (..< 0 (<< 1 arr.len))) (
-    (mut [int] subset = [])
+    (mut int[] subset = [])
     (for let int j in (..< 0 arr.len)) (
       (if (& 1 (>> i j)) (push subset arr[j]))
     )
@@ -180,10 +181,10 @@ func [[int]] sortedPowerSet([int] arr) = (
 )
 
 // JSX style
-<decl(func sortedPowerSet(arr: int): [[int]])=(
-  <mut(type [[int]]) (result)=[]/>
+<decl(func sortedPowerSet(arr: int): int[][])=(
+  <mut(type int[][]) (result)=[]/>
   <for let(type int)=i in=(0 ..< 1 << arr.len)>
-    <mut(type [int]) (subset)=[]/>
+    <mut(type int[]) (subset)=[]/>
     <for let(type int)=j in=(0 ..< arr.len)>
       <if ((i >> j) & 1)>
         subset.=push arr[j]
@@ -212,8 +213,8 @@ for let i in sortedPowerSet [1...16]:
   echo i
 
 // LINQ-style queries
-let formatPowerSet = |a: [[int]]|: str =
-  a.iter(iter: from let [int] subset in a
+let formatPowerSet = |a: int[][]|: str =
+  a.iter(iter: from let int[] subset in a
     where subset.len > 0
     select '[' ++ [subset map: str x `join: ','] ++ ']'
   ).join(', ')

@@ -8,16 +8,15 @@ const {stringify} = JSON;
 let file = fs.readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
 let parsed = yaml.load(file);
 
-function sortKeys(obj) {
-  if (isArray(obj)) return obj.map(sortKeys);
-  if (obj && typeof obj == "object")
-    return fromEntries(
+const sortKeys = obj =>
+  isArray(obj) ? obj.map(sortKeys)
+  : obj && typeof obj == "object" ?
+    fromEntries(
       keys(obj)
         .sort()
         .map(k => [k, sortKeys(obj[k])]),
-    );
-  return obj;
-}
+    )
+  : obj;
 
 // remove "comment" keys recursively
 parsed = stringify(parsed, (k, v) => {
@@ -34,6 +33,8 @@ parsed = stringify(parsed, (k, v) => {
   }
   return sortKeys(v);
 });
+
+// parsed = JSON.stringify(parsed, null, 2);
 
 fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", parsed);
 fs.writeFileSync(

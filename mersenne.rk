@@ -13,17 +13,17 @@ use Sys{Crypto, Time, Io, Fs}, Math
 
 show class MTRand : Io.Serializer {
   pub:
-    const N = 624
-    const SAVE = N + 1
+    prop const N = 624,
+      const SAVE = N + 1
 
   prot:
-    const M = 397
+    prop const M = 397
 
-    prop [u32; N] state
-    prop &u32 p_next
-    prop i32 left
-    prop bool has_gauss = false
-    prop f64 next_gauss = 0.0
+    prop u32[N] state,
+      &u32 p_next,
+      i32 left,
+      bool has_gauss = false,
+      f64 next_gauss = 0.0
 
     prop stat u32 differ = 0
 
@@ -113,7 +113,7 @@ show class MTRand : Io.Serializer {
       let ur = Crypto.open_urandom()
 
       if ?ur {
-        mut [u32; N] big
+        mut u32[N] big
         mut ok = true
          for let i32 i in 0..<N {
           let bytes = ur.get.read_bytes(4)
@@ -237,7 +237,7 @@ show class MTRand : Io.Serializer {
         return #next_gauss * std_dev + mean
       }
 
-      mut f64 x, y, r
+      mut f64 x, y, r, z, a
       loop {
         x := 2.0 * #rand() - 1.0
         y := 2.0 * #rand() - 1.0
