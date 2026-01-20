@@ -20,6 +20,7 @@ const sortKeys = obj =>
 
 // remove "comment" keys recursively
 parsed = stringify(parsed, (k, v) => {
+  for (let key of ["comment", "define"]) delete v?.[key];
   if (typeof v == "string") {
     if (["begin", "end", "match", "while"].includes(k.trim()))
       try {
@@ -28,7 +29,6 @@ parsed = stringify(parsed, (k, v) => {
         console.error(`Invalid regex in key "${k}": ${v}`);
         return v;
       }
-    if (["comment", "define"].includes(k.trim())) return;
   }
   return sortKeys(v);
 });

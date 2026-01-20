@@ -6000,7 +6000,6 @@ repository:
               | (?:^ | [^|]) \| # open pipe
               | [#<]?[({\[] # open bracket
               | [,;] # separator
-              | [(|]\.\s # uncurried function
             ) \s*
           ) \s*
 
@@ -6071,7 +6070,6 @@ repository:
           | (?:^ | [^|]) \| # open pipe
           | [#<]?[({\[] # open bracket
           | [,;] # separator
-          | [(|]\.\s # uncurried function
         ) \s*
       ) \s*
 
@@ -8266,11 +8264,11 @@ repository:
       - include: "#line-continuation-comma"
       - include: "#comma"
       - include: "#line-continuation"
-      - begin: \s+([?:]?=)(\s+|$)
+      - begin: (?<=^|[\s({\[])([?:]?=)(?=$|[)}\]\s])|(?<=['")}\]\w]|\\.)([?:]?=)(?=(?:['"`\w]|[#<]?[(\[{]))
         end: (?=[,;)\]}]|$)
-        name: meta.assignment.ruko
         captures:
           1: {name: keyword.operator.assignment.ruko}
+          2: {name: keyword.operator.assignment.ruko}
         patterns: [include: $self]
       - begin: (\()\s*
         end: \s*(\))
@@ -9213,7 +9211,7 @@ repository:
       - include: "#illegal"
 
   default-value:
-    begin: (?<=^|[\s({\[])(\=)(?=$|[)}\]\s])|(?<=['")}\]\w]|\\.)(\=)(?=(?:['"`\w]|[#<]?[(\[{]))
+    begin: (?<=^|[\s({\[])([?:]?=)(?=$|[)}\]\s])|(?<=['")}\]\w]|\\.)([?:]?=)(?=(?:['"`\w]|[#<]?[(\[{]))
     captures:
       1: {name: keyword.operator.assignment.ruko}
       2: {name: keyword.operator.assignment.ruko}
