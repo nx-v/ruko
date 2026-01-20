@@ -25,9 +25,8 @@ parsed = stringify(parsed, (k, v) => {
       try {
         return optimize(v).pattern;
       } catch {
-        return v.split(/(?<!\\)#\s.+\n/g).join``
-          .replace(/^\s+|\s+$/g, "")
-          .replace(/(?<!\\)\s+/g, " ");
+        console.error(`Invalid regex in key "${k}": ${v}`);
+        return v;
       }
     if (["comment", "define"].includes(k.trim())) return;
   }
