@@ -10613,20 +10613,29 @@ repository:
           record: named fields (like struct)
           union: value that can be one of several types
           option: value that may be present or absent (like nullable)
+          result: value that represents success or failure
+          void: no value
+          size: platform-dependent size type
+          ptr: raw memory pointer
+          ref: managed reference type
           func: function type
           chan: channel for concurrent communication
         match: |-
           (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
-            [aA]rray|[lL]ist|[mM]ap|[sS]et|[tT]uple|[rR]ecord|[uU]nion|[oO]ption|[fF]unc|[cC]han
+            [aA]rray|[lL]ist|[mM]ap|[sS]et|[tT]uple|[rR]ecord|[uU]nion|[oO]ption|[rR]esult|[vV]oid|[sS]ize|[pP]tr|[rR]ef|[fF]unc|[cC]han
           )\b
         name: support.type.builtin.composite.ruko
-      - match: \b([A-Za-z\d_]+_t)\b
+      - comment: Error handling types
+        match: \b(\p{Lu}[\w&&\P{Lu}]*)+(Error|Exception|Fault|Failure|Abort|Panic|Crash|Trap)\b
+        name: support.class.error.ruko
+      - comment: POSIX reserved type names commonly used in C standard library and system programming
+        match: \b([\p{Pc}\p{L}\p{Nl}])+\s*_t\b|\b(\p{Lu}[\w&&\P{Lu}]*)+T\b
         name: support.type.posix-reserved.ruko
-      - match: \b(void|size_t|ptrdiff_t|intptr_t|uintptr_t|wchar_t|char16_t|char32_t|float_t|double_t)\b
+      - match: \b(void|float|double|decimal|s?byte|u?short|u?int|u?long|u?cent|[wd]?char|bool|string|struct|enum|union|register|cbuffer|class|interface|namespace|struct|tbuffer|mixed|any)\b
         name: support.type.builtin.language.ruko
-      - match: \b(NS|UI|CG|MK|SK|CA|CI|CK|AV|CF|MD|AB|PC|SC|SK|SKM|WK)([A-Z][A-Za-z\d_]*)\b
+      - match: \b(NS|UI|CG|MK|SK|CA|CI|CK|AV|CF|MD|AB|PC|SC|SK|SKM|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
         name: support.class.cocoa-framework.ruko
-      - match: \b(AV|CM|GK|SK|SC|CI|CA|CK|MD|NS|UI|WK)([A-Z][A-Za-z\d_]*)\b
+      - match: \b(AV|CM|GK|SK|SC|CI|CA|CK|MD|NS|UI|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
         name: support.class.apple-framework.ruko
       - comment: Include built-in classes from other languages to improve recognition
         include: "#support-classes"
