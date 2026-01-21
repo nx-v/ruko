@@ -18,9 +18,6 @@ const sortKeys = obj =>
     )
   : obj;
 
-const chunk = (arr, size) =>
-  arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
-
 // remove "comment" keys recursively
 parsed = stringify(parsed, (k, v) => {
   if (/^support-/.test(k))
@@ -45,6 +42,7 @@ parsed = stringify(parsed, (k, v) => {
           return v;
         }
   }
+
   return sortKeys(v);
 });
 
