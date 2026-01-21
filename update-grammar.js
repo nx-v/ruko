@@ -20,16 +20,6 @@ const sortKeys = obj =>
 
 // remove "comment" keys recursively
 parsed = stringify(parsed, (k, v) => {
-  if (/^support-/.test(k))
-    return {
-      ...v,
-      patterns: v.patterns.map(p => {
-        if (!p.match) return p;
-        let match = p.match.split(/\(\b/g).join("(?:");
-        return {...p, match};
-      }),
-    };
-
   switch (typeof v) {
     case "object":
       for (const k of ["comment", "define"]) if (k in v) delete v[k];
