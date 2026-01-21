@@ -18,17 +18,32 @@ const sortKeys = obj =>
     )
   : obj;
 
+const chunk = (arr, size) =>
+  arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
+
 // remove "comment" keys recursively
 parsed = stringify(parsed, (k, v) => {
-  for (let key of ["comment", "define"]) delete v?.[key];
-  if (typeof v == "string") {
-    if (["begin", "end", "match", "while"].includes(k.trim()))
-      try {
-        return optimize(v).pattern;
-      } catch {
-        console.error(`Invalid regex in key "${k}": ${v}`);
-        return v;
-      }
+  if (/^support-/.test(k))
+    return {
+      ...v,
+      patterns: v.patterns.map(p => {
+        if (!p.match) return p;
+        let match = p.match.split(/\(\b/g).join("(?:");
+        return {...p, match};
+      }),
+    };
+
+  switch (typeof v) {
+    case "object":
+      for (const k of ["comment", "define"]) if (k in v) delete v[k];
+      break;
+    case "string":
+      if (["begin", "end", "match", "while"].includes(k.trim()))
+        try {
+          return optimize(v).pattern;
+        } catch {
+          return v;
+        }
   }
   return sortKeys(v);
 });
