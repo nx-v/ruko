@@ -7617,6 +7617,8 @@ repository:
       - applyEndPatternLast: true
         begin: |-
           (?x)
+          (?<!\#?[(\[{]) # prevent matching immediately after opening brackets
+
           \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b
 
           (
@@ -7631,6 +7633,34 @@ repository:
           )?
 
           \s*
+
+          (?!
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
 
           (?=
             (
@@ -7674,87 +7704,6 @@ repository:
               - include: "#types"
         name: meta.variable.declaration.ruko
         patterns:
-          - match: |-
-              (?x) \s*
-
-              (
-                (?:
-                  (?: # type
-                    (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
-                    (?:
-                      (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                      )*
-                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
-                      (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                      (?:
-                        (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                        )*
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                      )? # last part of identifier
-                      \#? (?:
-                        \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                        \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                        { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-                      )+ # allow chaining
-                    )+
-                    [!?&*]* # suffix sigils
-                  )
-                  \s*
-                )+
-              )?
-
-              (?!
-                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                (?: # keywords
-                  # wordlike operators
-                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |raise|error|final|copy|move|drop
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                ) \b
-              )
-
-              (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
-              \s*
-
-              (?=
-                  $ | [,;] # end of declaration
-                | :\s # type annotation after identifier
-                | \s(?:[?:]?=|{)(?:\s|$) # type annotation before initialization or block
-                | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                  (?: # keywords
-                    # wordlike operators
-                    [io]n|of|to|by
-                  ) \b
-              )
-            captures:
-              1:
-                name: storage.type.ruko
-                patterns:
-                  - include: "#declarations"
-                  - include: "#types"
-              2: {name: variable.other.assignment.ruko}
           - match: |-
               (?x) \s*
 
@@ -7924,6 +7873,87 @@ repository:
                     )+
                   ))
                 )
+              )
+            captures:
+              1:
+                name: storage.type.ruko
+                patterns:
+                  - include: "#declarations"
+                  - include: "#types"
+              2: {name: entity.name.ruko}
+          - match: |-
+              (?x) \s*
+
+              (
+                (?:
+                  (?: # type
+                    (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+                    (?:
+                      (?:
+                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      )*
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
+                      (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
+                      (?:
+                        (?:
+                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                        )*
+                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
+                      )? # last part of identifier
+                      \#? (?:
+                        \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                        \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                        { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
+                      )+ # allow chaining
+                    )+
+                    [!?&*]* # suffix sigils
+                  )
+                  \s*
+                )+
+              )?
+
+              (?!
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                (?: # keywords
+                  # wordlike operators
+                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+                  # declaration keywords
+                  |va[rl]|let|mut|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                  |module|schema|struct|record|object|union|macro|space
+                  |query|quote|style|script|shader|compo|temp|oper|realm
+
+                  # control flow keywords
+                  |if|elif|else|[tw]hen|guard|with
+                  |for|while|loop|break|skip|redo
+                  |try|retry|switch|[cm]atch|case|def|throw
+                  |return|yield|await|goto|pass|defer|race|join
+                  |raise|error|final|copy|move|drop
+                  |[gd]o|from|where|use|show|hide
+
+                  # miscellaneous keywords
+                  |debug|assert|check|decl|ignore
+                  |use|echo|eval|exec|scope|safe|unsafe
+                  |begin|end
+                ) \b
+              )
+
+              (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+              \s*
+
+              (?=
+                  $ | [,;] # end of declaration
+                | :\s # type annotation after identifier
+                | \s(?:[?:]?=|{)(?:\s|$) # type annotation before initialization or block
+                | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                  (?: # keywords
+                    # wordlike operators
+                    [io]n|of|to|by
+                  ) \b
               )
             captures:
               1:
