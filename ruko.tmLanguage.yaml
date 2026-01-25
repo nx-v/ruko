@@ -334,6 +334,7 @@ repository:
       - include: "#directives"
       - include: "#function-clause"
       - include: "#declarations"
+      - include: "#variable-declarations"
       - include: "#clauses"
       - include: "#labels"
       - include: "#function-clause"
@@ -597,9 +598,11 @@ repository:
     name: meta.type.ruko
     begin: (?<=(?:[)}\]\w'"`][!?]?|\\.)>*\|?|^\|?)(:)(?=$|\s+<*(?:[*&%@^!~?\\\-+<]|\.\.)*(?:['"`\w\s]|[#<]?[(\[{]))
     end: (?=)|$
-    beginCaptures:
+    captures:
       1: {name: punctuation.definition.annotation.ruko}
-    patterns: [include: "#declarations", include: "#types"]
+    patterns:
+      - include: "#declarations"
+      - include: "#types"
 
   type-brackets:
     patterns:
@@ -635,8 +638,7 @@ repository:
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
-          1:
-            name: punctuation.definition.binding-pattern.object.ruko
+          1: {name: punctuation.definition.binding-pattern.object.ruko}
         patterns:
           - include: "#object-keys"
           - include: "#punctuation"
@@ -954,8 +956,6 @@ repository:
           2: {name: keyword.operator.expression.logical.ruko}
       - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(by)\b\s*
         name: keyword.operator.expression.satisfies.ruko # note, "satisfies" is "by"
-      - match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(len|size|cap|count)\b\s*
-        name: keyword.operator.expression.sizeof.ruko
 
   type-operators:
     patterns:
@@ -2823,32 +2823,32 @@ repository:
           5: {name: keyword.operator.modifier.eager.ruko}
           6: {name: keyword.operator.modifier.greedy.ruko}
       - begin: (\\k<)
-        end: \s*(>)
-        name: constant.other.back-reference.ruko
+        end: (>)
+        contentName: constant.other.back-reference.ruko
         captures:
           1: {name: keyword.other.back-reference.ruko}
         patterns: *regex-back-references
       - begin: (\\g<)
-        end: \s*(>)
-        name: constant.other.subroutine.ruko
+        end: (>)
+        contentName: constant.other.subroutine.ruko
         captures:
           1: {name: keyword.other.subroutine.ruko}
         patterns: *regex-back-references
       - begin: (\\k(?:'+|"+))
-        end: \s*(\2)
-        name: constant.other.back-reference.ruko
+        end: (\2)
+        contentName: constant.other.back-reference.ruko
         captures:
           1: {name: keyword.other.back-reference.ruko}
         patterns: *regex-back-references
       - begin: (\\g(?:'+|"+))
-        end: \s*(\2)
-        name: constant.other.subroutine.ruko
+        end: (\2)
+        contentName: constant.other.subroutine.ruko
         captures:
           1: {name: keyword.other.subroutine.ruko}
         patterns: *regex-back-references
       - begin: ({)
-        end: \s*(})
-        name: meta.fuzzy.ruko
+        end: (})
+        contentName: meta.fuzzy.ruko
         captures:
           1: {name: punctuation.definition.fuzzy.ruko}
         patterns:
@@ -2877,21 +2877,19 @@ repository:
         name: constant.other.character-class.negated.ruko
       - &regexp-quote-lower
         begin: (\\q{)
-        end: \s*(})
-        name: string.quoted.regexp.ruko
+        end: (})
+        contentName: string.quoted.regexp.ruko
         captures:
-          1: {name: punctuation.definition.quote.begin.ruko}
-          2: {name: punctuation.definition.quote.end.ruko}
+          1: {name: punctuation.definition.quote.ruko}
         patterns:
           - match: \|
             name: keyword.operator.or.ruko
       - &regexp-quote-upper
         begin: (\\Q)
-        end: \s*(\\E)
-        name: string.quoted.regexp.ruko
+        end: (\\E)
+        contentName: string.quoted.regexp.ruko
         captures:
-          1: {name: punctuation.definition.quote.begin.ruko}
-          2: {name: punctuation.definition.quote.end.ruko}
+          1: {name: punctuation.definition.quote.ruko}
         patterns:
           - match: \|
             name: keyword.operator.or.ruko
@@ -2906,8 +2904,8 @@ repository:
     patterns:
       - comment: Backtracking control verb
         begin: (\(\*(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)?(:)?)
-        end: \s*(\))
-        name: meta.group.backtrack.ruko
+        end: (\))
+        contentName: meta.group.backtrack.ruko
         captures:
           1: {name: punctuation.section.expression.ruko}
           2: {name: keyword.control.ruko}
@@ -2916,69 +2914,67 @@ repository:
       - include: "#regexp-comment"
       - comment: Lookahead assertion
         begin: (\(\?=)
-        end: \s*(\))
-        name: meta.group.look-ahead.ruko
+        end: (\))
+        contentName: meta.group.look-ahead.ruko
         captures:
           1: {name: punctuation.definition.group.look-ahead.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Lookbehind assertion
         begin: (\(\?<=)
-        end: \s*(\))
-        name: meta.group.look-behind.ruko
+        end: (\))
+        contentName: meta.group.look-behind.ruko
         captures:
           1: {name: punctuation.definition.group.look-behind.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Negative lookahead assertion
         begin: (\(\?!)
-        end: \s*(\))
-        name: meta.group.negative-look-ahead.ruko
+        end: (\))
+        contentName: meta.group.negative-look-ahead.ruko
         captures:
           1: {name: punctuation.definition.group.negative-look-ahead.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Negative lookbehind assertion
         begin: (\(\?<!)
-        end: \s*(\))
-        name: meta.group.negative-look-behind.ruko
+        end: (\))
+        contentName: meta.group.negative-look-behind.ruko
         captures:
           1: {name: punctuation.definition.group.negative-look-behind.ruko}
         patterns: [include: "#regexp-patterns"]
-      - comment: Match directive Oniguruma supports only 20 levels of recursion
-        begin: (?x)(\(\?)(?=%)
+      - comment: Directive group
+        begin: (\(\?)(?=%)
         captures:
           1: {name: punctuation.definition.group.directive.ruko}
-        end: \s*(\))
-        name: meta.group.directive.ruko
+        end: (\))
+        contentName: meta.group.directive.ruko
         patterns:
           - include: "#format-syntax"
           - include: "#regexp-patterns"
       - comment: Longest match
         begin: (\(\?/=?)
-        end: \s*(\))
-        name: meta.group.longest.ruko
+        end: (\))
+        contentName: meta.group.longest.ruko
         captures:
           1: {name: punctuation.definition.group.longest.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Back-reference groups
-        begin: \((\?&(?:([+-]?\d+)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)))(:)?
-        end: \s*\)
-        name: meta.group.back-reference.ruko
+        begin: (\(\?&(?:([+-]?\d+)|(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b))(:)?)
+        end: (\))
+        contentName: meta.group.back-reference.ruko
         captures:
-          0: {name: punctuation.definition.group.back-reference.ruko}
           1: {name: punctuation.definition.group.back-reference.ruko}
           2: {name: constant.numeric.index.ruko}
           3: {patterns: [include: "#variables"]}
           4: {name: punctuation.separator.colon.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Back-reference groups
-        begin: \((\?&)
-        end: \s*\)
-        name: meta.group.back-reference.ruko
+        begin: (\(\?&)
+        end: (\))
+        contentName: meta.group.back-reference.ruko
         captures:
-          0: {name: punctuation.definition.group.back-reference.ruko}
           1: {name: punctuation.definition.group.back-reference.ruko}
         patterns:
           - begin: (?<=\(\?&)('''+|"""+|['"])
-            end: \s*(\1)
+            end: (\1)
             name: entity.name.group.ruko
             captures:
               1: {name: punctuation.definition.group.back-reference.ruko}
@@ -2987,7 +2983,7 @@ repository:
       - comment: Flag modifier group
         begin: (\(\?\^?(?:([+-]?\d+?)|((?:[+-]\p{Lu}+)+|\p{Lu}+(?:[+-]\p{Lu}+)*)|((?:[+-]\p{Ll}+)+|\p{Ll}+(?:[+-]\p{Ll}+)*)))\s*(:)?
         end: \s*(\))
-        name: meta.group.flag.ruko
+        contentName: meta.group.flag.ruko
         captures:
           0: {name: punctuation.definition.group.flag.ruko}
           1: {name: punctuation.definition.group.flag.ruko}
@@ -2998,8 +2994,8 @@ repository:
         patterns: [include: "#regexp-patterns"]
       - comment: Call-outs
         begin: (\(\?)(?={)
-        end: \s*(\))
-        name: meta.group.call-out.ruko
+        end: (\))
+        contentName: meta.group.call-out.ruko
         captures:
           1: {name: punctuation.definition.group.call-out.ruko}
         patterns:
@@ -3016,29 +3012,29 @@ repository:
           - include: "#regexp-patterns"
       - comment: Atomic groups
         begin: (\(\?>)
-        end: \s*(\))
-        name: meta.group.atomic.ruko
+        end: (\))
+        contentName: meta.group.atomic.ruko
         captures:
           1: {name: punctuation.definition.group.atomic.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Non-capturing groups
         begin: (\(\?:)
-        end: \s*(\))
-        name: meta.group.non-capturing.ruko
+        end: (\))
+        contentName: meta.group.non-capturing.ruko
         captures:
           1: {name: punctuation.definition.group.non-capturing.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Branch groups
         begin: (\(\?)(?=[(|])
-        end: \s*(\))
-        name: meta.group.branch.ruko
+        end: (\))
+        contentName: meta.group.branch.ruko
         captures:
           1: {name: punctuation.definition.group.branch.ruko}
         patterns: [include: "#regexp-patterns"]
       - comment: Absent groups
         begin: (\(\?~(\|))
-        end: \s*(\))
-        name: meta.group.absent.ruko
+        end: (\))
+        contentName: meta.group.absent.ruko
         captures:
           1: {name: punctuation.definition.group.absent.ruko}
           2: {name: punctuation.definition.group.absent.stopper.ruko}
@@ -3048,27 +3044,27 @@ repository:
           - include: "#regexp-patterns"
       - comment: Extended character classes (negated)
         begin: (\(\?\[\^)
-        end: \s*(\]\))
-        name: meta.group.extended-character-class.negated.ruko
+        end: (\]\))
+        contentName: meta.group.extended-character-class.negated.ruko
         captures:
           1: {name: punctuation.definition.character-class.negated.ruko}
         patterns: [include: "#regexp-character-group"]
       - comment: Extended character classes (non-negated)
         begin: (\(\?\[)
-        end: \s*(\]\))
-        name: meta.group.extended-character-class.ruko
+        end: (\]\))
+        contentName: meta.group.extended-character-class.ruko
         captures:
           1: {name: punctuation.definition.character-class.ruko}
         patterns: [include: "#regexp-character-group"]
       - comment: Named groups (angle brackets)
         begin: \(\?(?=<(?![!=]))
-        end: \s*(\))
-        name: meta.group.named.ruko
+        end: (\))
+        contentName: meta.group.named.ruko
         captures:
           0: {name: punctuation.definition.group.named.ruko}
         patterns:
           - begin: (?<=\(\?)(<)
-            end: \s*(>)
+            end: (>)
             name: entity.name.group.ruko
             captures:
               1: {name: punctuation.definition.group.named.ruko}
@@ -3076,13 +3072,13 @@ repository:
           - include: "#regexp-patterns"
       - comment: Named groups (single or double-quotes)
         begin: \(\?(?=['"])
-        end: \s*(\))
-        name: meta.group.named.ruko
+        end: (\))
+        contentName: meta.group.named.ruko
         captures:
           0: {name: punctuation.definition.group.named.ruko}
         patterns:
           - begin: (?<=\(\?)('''+|"""+|['"])
-            end: \s*(\1)
+            end: (\1)
             name: entity.name.group.ruko
             captures:
               1: {name: punctuation.definition.group.named.ruko}
@@ -3090,8 +3086,8 @@ repository:
           - include: "#regexp-patterns"
       - comment: Unnamed groups
         begin: (\()
-        end: (\s*\))
-        name: meta.group.ruko
+        end: (\))
+        contentName: meta.group.ruko
         captures:
           1: {name: punctuation.definition.group.ruko}
         patterns: [include: "#regexp-patterns"]
@@ -3124,20 +3120,33 @@ repository:
           1: {name: constant.character.escape.newline.ruko}
       - include: "#named-escapes"
       - include: "#unicode-escapes"
-      - begin: (?i)\\p{
-        end: \s*}
-        name: constant.other.character-class.unicode.ruko
+      - begin: (\\p{)
+        end: (})
+        contentName: constant.other.character-class.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
         patterns: [include: "#attribute-selectors"]
+      - begin: (\\P{)
+        end: (})
+        contentName: constant.other.character-class.negated.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.negated.ruko}
+        patterns: [include: "#attribute-selectors"]
+      - match: (\\p)(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
+        name: constant.other.character-class.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
+          2: {name: constant.other.character-class.ruko}
+      - match: (\\P)(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
+        name: constant.other.character-class.negated.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.negated.ruko}
+          2: {name: constant.other.character-class.negated.ruko}
       - *regexp-quote-lower
       - *regexp-quote-upper
       - comment: \c for U+00-1F, \C for U+80-FF control characters
         match: \\[cC][@-_]
         name: constant.character.control.ruko
-      - match: (\\[pP])(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
-        name: constant.other.character-class.unicode.ruko
-        captures:
-          0: {name: constant.other.character-class.ruko}
-          1: {name: constant.other.character-class.unicode.ruko}
       - match: \\[ci]({(?:[^\\{}]|\\.)+})?
         name: constant.other.character-class.xml.ruko
         captures:
@@ -3243,14 +3252,14 @@ repository:
   regexp-character-set:
     patterns:
       - begin: (\[:)
-        end: \s*(:\])
-        name: constant.other.character-set.posix.ruko
+        end: (:\])
+        contentName: constant.other.character-class.posix.ruko
         captures:
           1: {name: punctuation.definition.character-class.posix.ruko}
         patterns: [include: "#attribute-selectors"]
       - begin: (\[\^)
-        end: \s*(\])
-        name: constant.other.character-set.negated.ruko
+        end: (\])
+        contentName: constant.other.character-class.negated.ruko
         captures:
           1: {name: punctuation.definition.character-class.negated.ruko}
         patterns:
@@ -3259,8 +3268,8 @@ repository:
           - include: "#regexp-character-class"
           - include: "#regexp-character-set"
       - begin: (\[)
-        end: \s*(\])
-        name: constant.other.character-set.ruko
+        end: (\])
+        contentName: constant.other.character-class.ruko
         captures:
           1: {name: punctuation.definition.character-class.ruko}
         patterns:
@@ -5814,8 +5823,8 @@ repository:
         \s*
         (?:\s (?:
             (?:\?[:>]?=?) | # 1: optional access/unwrap
-            (?:![:>]?=?) | # 2: assert/unwrap operator
-            (?:[:>]?=?) # 3: access operator
+            (?:![:>]?=?) | # 2: assert/unwrap
+            (?:[:>]?=?) # 3: regular accessor
           ) \s*
         )
         # ignore all keywords
@@ -5947,8 +5956,8 @@ repository:
               (?x)
               (?:
                 (\?[:>]?=?) | # 1: optional access/unwrap
-                (![:>]?=?) | # 2: assert/unwrap operator
-                ([:>]?=?) # 3: access operator
+                (![:>]?=?) | # 2: assert/unwrap
+                ([:>]?=?) # 3: regular accessor
               )
             captures:
               1: {name: keyword.operator.optional.ruko}
@@ -6063,6 +6072,90 @@ repository:
           2: {patterns: [include: "#type-parameter-operators"]}
           3:
             name: variable.parameter.ruko
+            patterns: [include: "#constants"]
+          4: {patterns: [include: "#type-parameter-operators"]}
+
+  binding-parameters:
+    patterns:
+      - applyEndPatternLast: true
+        begin: (?<=(?:(?:[)}\]\w'"`]|\\.)[!?]?>*))(:)(?=$|<*(?:['"`\w\s]|[#<]?[(\[{]))
+        end: (?=)|$
+        beginCaptures:
+          1: {name: punctuation.definition.annotation.ruko}
+        name: meta.type.ruko
+        patterns:
+          - include: "#as-keyword"
+          - include: "#declarations"
+          - include: "#types"
+      - match: |-
+          (?x)
+          (?<=
+            (?:
+              ^ # start of line
+              | (?:^ | [^|]) \| # open pipe
+              | [#<]?[({\[] # open bracket
+              | [,;] # separator
+            ) \s*
+          ) \s*
+
+          (
+            (?:
+              (?: # type
+                (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+                (?:
+                  (?:
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  )*
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
+                  (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
+                  (?:
+                    (?:
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                    )*
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
+                  )? # last part of identifier
+                  \#? (?:
+                    \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                    \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                    { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
+                  )+ # allow chaining
+                )+
+                [!?&*]* # suffix sigils
+              )
+              \s*
+            )+
+          )?
+
+          (?:
+            \s*
+            ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
+            (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+            ([!?&*]*) # optional sigils
+            \s*
+          )
+
+          (?=
+            $ | \s* (?: # end of line
+              | \s\bas\b # as keyword (aliasing)
+              | [)}\]] # close bracket or pipe
+              | \|:? (?:$|['"`<\w\s)\]}]|[#<]?[(\[{]|\\.) # pipe
+              | [,;] # separator
+              | (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword (aliasing)
+              | \s (?::|[?:]?=) \s+ (?:[*&%@^!~?\\\-+]*) (?:['"`\w]|[#<]?[(\[{]) # type specifier and assignment
+            )
+          )
+        name: meta.binding-pattern.ruko
+        captures:
+          1:
+            name: storage.type.ruko
+            patterns:
+              - include: "#declarations"
+              - include: "#types"
+          2: {patterns: [include: "#type-parameter-operators"]}
+          3:
+            name: variable.other.assignment.ruko
             patterns: [include: "#constants"]
           4: {patterns: [include: "#type-parameter-operators"]}
 
@@ -6192,7 +6285,7 @@ repository:
 
   operators:
     patterns:
-      - include: "#type-cast-operators"
+      - include: "#type-cast-operator"
       - include: "#named-infix-operators"
       - include: "#special-operators"
       - include: "#infix-operators"
@@ -6215,7 +6308,7 @@ repository:
         captures:
           1: {name: keyword.generator.asterisk.ruko}
 
-  type-cast-operators:
+  type-cast-operator:
     comment: (named) type-cast operators (int) x
     name: keyword.operator.type-cast.ruko
     match: |-
@@ -6282,7 +6375,6 @@ repository:
         \s*
       )
 
-      \s*
       (
         (?: # postfix brackets
             < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) > | # generics
@@ -6293,7 +6385,6 @@ repository:
           )+ # allow chaining
         )
       )
-      \s*
 
       (?!
         \#?[(\[{] \s+ (?: $ | [,;] | /[/*] \s+ ) # not followed by opening bracket
@@ -6302,6 +6393,16 @@ repository:
         [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
         : (?: \s* (?: [,;'"`)}\]\w\s] | [#<]?[(\[{]|\\.) | $) # postfix colon or delimiter
       )
+      (?! # function name
+        \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
+      )
+      (?! # selector call
+        \s+ [?!]?[:>]?=? # selector accessor
+        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # selector name
+        : (?:\s*(?:[,;'"`)}\]\w\s]|[#<]?[(\[{]|\\.)|$) # postfix colon or delimiter
+      )
       (?! # infix operator
         \s+
         [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
@@ -6309,11 +6410,6 @@ repository:
           [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
         )?
         (?=\s|$)
-      )
-      (?! # function name
-        \s+ \\ # infix function operator
-            [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-            (?: ['"`\w] | [#<]?[(\[{]) # literal or opening bracket
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? [#<]?[({] # C-style function call
@@ -7539,7 +7635,7 @@ repository:
         patterns: [include: "#declarations", include: "#types"]
       2: {name: variable.other.assignment.ruko}
 
-  typed-declaration:
+  typed-declarations:
     comment: Prefix (C-style) type annotation in declarations.
     # Fixed: highlight type prefixes before identifiers inside declaration clauses
     match: |-
@@ -7612,27 +7708,101 @@ repository:
           - include: "#declarations"
           - include: "#types"
 
-  declarations:
+  variable-declarations:
+    comment: Variable declaration with optional postfix type annotation.
+    applyEndPatternLast: true
+    begin: |-
+      (?x)
+      (?<!\#?[(\[{]) # prevent matching immediately after opening brackets
+
+      \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b
+
+      (
+        (?: # postfix brackets
+            < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) > | # generics
+          \#? (?:
+            \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+            \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+            { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
+          )+ # allow chaining
+        )+
+      )?
+
+      \s*
+
+      (?=
+        \#?[(\[{] # opening brackets
+        | (
+          (?:
+            (?!
+              (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+                # declaration keywords
+                |va[rl]|let|mut|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
+                |try|retry|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|race|join
+                |raise|error|final|copy|move|drop
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              ) \b
+            )
+            (?: # type
+              (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+              (?:
+                (?:
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                )*
+                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
+                (?: < (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
+                (?:
+                  (?:
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  )*
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
+                )? # last part of identifier
+                \#? (?:
+                  \( (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                  \[ (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                  { (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
+                )+ # allow chaining
+              )+
+              [!?&*]* # suffix sigils
+            )
+            \s*
+          )+
+        )?
+
+        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+      )
+    end: (?=)|$
+    beginCaptures:
+      1: {name: storage.type.variable.ruko}
+      2:
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+    name: meta.variable.declaration.ruko
     patterns:
-      - applyEndPatternLast: true
-        begin: |-
-          (?x)
-          (?<!\#?[(\[{]) # prevent matching immediately after opening brackets
-
-          \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b
-
-          (
-            (?: # postfix brackets
-                < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) > | # generics
-              \#? (?:
-                \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-              )+ # allow chaining
-            )+
-          )?
-
-          \s*
+      - &variable-declaration
+        match: |-
+          (?x) \s*
 
           (?!
             (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
@@ -7662,310 +7832,95 @@ repository:
             ) \b
           )
 
-          (?=
-            (
-              (?:
-                (?: # type
-                  (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+          (
+            (?:
+              (?!
+                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+                (?: # keywords
+                  # wordlike operators
+                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+                  # declaration keywords
+                  |va[rl]|let|mut|const
+                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                  |module|schema|struct|record|object|union|macro|space
+                  |query|quote|style|script|shader|compo|temp|oper|realm
+
+                  # control flow keywords
+                  |if|elif|else|[tw]hen|guard|with
+                  |for|while|loop|break|skip|redo
+                  |try|retry|switch|[cm]atch|case|def|throw
+                  |return|yield|await|goto|pass|defer|race|join
+                  |raise|error|final|copy|move|drop
+                  |[gd]o|from|where|use|show|hide
+
+                  # miscellaneous keywords
+                  |debug|assert|check|decl|ignore
+                  |use|echo|eval|exec|scope|safe|unsafe
+                  |begin|end
+                ) \b
+              )
+              (?: # type
+                (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
+                (?:
+                  (?:
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  )*
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
+                  (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
                   (?:
                     (?:
-                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
-                    (?: < (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                    (?:
-                      (?:
-                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                      )*
-                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                    )? # last part of identifier
-                    \#? (?:
-                      \( (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                      \[ (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                      { (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-                    )+ # allow chaining
-                  )+
-                  [!?&*]* # suffix sigils
-                )
-                \s*
-              )+
-            )?
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
+                  )? # last part of identifier
+                  \#? (?:
+                    \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
+                    \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
+                    { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
+                  )+ # allow chaining
+                )+
+                [!?&*]* # suffix sigils
+              )
+              \s*
+            )+
+          )?
 
-            (?:`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+          \s*
+          (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+          \s*
+
+          (?=
+              $ | [,;] # end of declaration
+            | :\s # type annotation after identifier
+            | [)\]}] # closing brackets
+            | \s(?:[?:]?=|{)(?:\s|$) # type annotation before initialization or block
+            | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|of|to|by
+              ) \b
           )
-        end: (?=)|$
-        beginCaptures:
-          1: {name: storage.type.variable.ruko}
-          2:
+        captures:
+          1:
+            name: storage.type.ruko
             patterns:
               - include: "#declarations"
               - include: "#types"
-        name: meta.variable.declaration.ruko
-        patterns:
-          - match: |-
-              (?x) \s*
+          2: {name: variable.other.assignment.ruko}
+      - include: "#type-signature"
+      - include: "#default-value"
+      - include: "#line-continuation-comma"
+      - include: "#binding-pattern-object"
+      - include: "#binding-pattern-tuple"
+      - include: "#binding-pattern-array"
+      - include: "#comma"
 
-              (
-                (?:
-                  (?: # type
-                    (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
-                    (?:
-                      (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                      )*
-                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
-                      (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                      (?:
-                        (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                        )*
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                      )? # last part of identifier
-                      \#? (?:
-                        \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                        \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                        { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-                      )+ # allow chaining
-                    )+
-                    [!?&*]* # suffix sigils
-                  )
-                  \s*
-                )+
-              )?
-
-              (?!
-                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                (?: # keywords
-                  # wordlike operators
-                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |raise|error|final|copy|move|drop
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                ) \b
-              )
-
-              (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)\s*
-
-              (?= \s(?:[?:]?=)\s+ # assignment operator
-                (?:
-                  (?: # declaration
-                    (?:
-                      (?:
-                      \s*
-                        (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                      )
-                      \s*
-                    )* \s*
-                    \b
-                    (?: # declaration keywords
-                      func|pro[pc]|type|class|actor|trait|enum|in?ter
-                      |module|schema|struct|record|object|union|macro|space
-                      |query|quote|style|script|shader|compo|temp|oper|realm
-                    )
-                    \b
-                  ) | ( # lambda declaration
-                    (?!
-                      (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                      (?: # keywords
-                        # wordlike operators
-                        [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                        |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
-
-                        # declaration keywords
-                        |va[rl]|let|mut|const
-                        |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                        |module|schema|struct|record|object|union|macro|space
-                        |query|quote|style|script|shader|compo|temp|oper|realm
-
-                        # control flow keywords
-                        |if|elif|else|[tw]hen|guard|with
-                        |for|while|loop|break|skip|redo
-                        |try|retry|switch|[cm]atch|case|def|throw
-                        |return|yield|await|goto|pass|defer|race|join
-                        |raise|error|final|copy|move|drop
-                        |[gd]o|from|where|use|show|hide
-
-                        # miscellaneous keywords
-                        |debug|assert|check|decl|ignore
-                        |use|echo|eval|exec|scope|safe|unsafe
-                        |begin|end
-                      ) \b
-                    )
-                    (?:
-                      (?: # type
-                        (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
-                        (?:
-                          (?:
-                            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                          )*
-                          `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
-                          (?: < (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                          (?:
-                            (?:
-                            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                            )*
-                            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                          )? # last part of identifier
-                          \#? (?:
-                            \( (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                            \[ (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                            { (?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-                          )+ # allow chaining
-                        )+
-                        [!?&*]* # suffix sigils
-                      )
-                      \s*
-                    )+
-                  )
-
-                  \s* \| (?=(
-                    (?: [,;] \s* )* # optional separators
-                    (?:
-                      (?: # type
-                        (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
-                        (?:
-                          (?:
-                            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                          )*
-                          `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
-                          (?: < (?>(?:\g'4'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                          (?:
-                            (?:
-                            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                            )*
-                            `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                          )? # last part of identifier
-                          \#? (?:
-                            \( (?>(?:\g'4'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                            \[ (?>(?:\g'4'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                            { (?>(?:\g'4'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-                          )+ # allow chaining
-                        )+
-                        [!?&*]* # suffix sigils
-                      )
-                      \s*
-                    )+
-                  ))
-                )
-              )
-            captures:
-              1:
-                name: storage.type.ruko
-                patterns:
-                  - include: "#declarations"
-                  - include: "#types"
-              2: {name: entity.name.ruko}
-          - match: |-
-              (?x) \s*
-
-              (
-                (?:
-                  (?: # type
-                    (?:[*&%@^!~?\\\-+]|\.\.)* # prefix sigils
-                    (?:
-                      (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                      )*
-                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # last part of identifier
-                      (?: < (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*) >)? | # generics
-                      (?:
-                        (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
-                        )*
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
-                      )? # last part of identifier
-                      \#? (?:
-                        \( (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*) \) | # parentheses
-                        \[ (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*) \] | # brackets
-                        { (?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*) } # braces
-                      )+ # allow chaining
-                    )+
-                    [!?&*]* # suffix sigils
-                  )
-                  \s*
-                )+
-              )?
-
-              (?!
-                (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                (?: # keywords
-                  # wordlike operators
-                  [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
-                  |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |raise|error|final|copy|move|drop
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                ) \b
-              )
-
-              (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
-              \s*
-
-              (?=
-                  $ | [,;] # end of declaration
-                | :\s # type annotation after identifier
-                | \s(?:[?:]?=|{)(?:\s|$) # type annotation before initialization or block
-                | \s(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
-                  (?: # keywords
-                    # wordlike operators
-                    [io]n|of|to|by
-                  ) \b
-              )
-            captures:
-              1:
-                name: storage.type.ruko
-                patterns:
-                  - include: "#declarations"
-                  - include: "#types"
-              2: {name: variable.other.assignment.ruko}
-          - include: "#type-signature"
-          - include: "#default-value"
-          - include: "#line-continuation-comma"
-          - include: "#comma"
+  declarations:
+    patterns:
       - applyEndPatternLast: true
         begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(quote)\b\s*
         end: (?=)|$
@@ -8270,7 +8225,7 @@ repository:
   declaration-clause:
     name: meta.declaration.ruko
     patterns:
-      - include: "#typed-declaration"
+      - include: "#typed-declarations"
       - include: "#line-continuation"
       - match: (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)(?=::|->|\.|\\)
         name: entity.name.namespace.ruko
@@ -8292,7 +8247,7 @@ repository:
           1: {name: keyword.operator.assignment.ruko}
           2: {name: keyword.operator.assignment.ruko}
         patterns: [include: $self]
-      - begin: (\()\s*
+      - begin: (\#?\()\s*
         end: \s*(\))
         captures:
           1: {name: punctuation.definition.parameters.ruko}
@@ -9262,9 +9217,9 @@ repository:
       - match: (?<=(?:^|[,;]|[#<]?[(\[{])\s*)(`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b)\s*(?=[,;)\]}:]|$)
         captures:
           1: {name: constant.other.object.key.ruko}
-      - include: "#space"
       - include: "#comments"
       - include: "#line-continuation"
+      - include: "#space"
       - include: $self
 
   object-values:
@@ -9282,53 +9237,99 @@ repository:
         name: variable.parameter.ruko
 
   as-keyword:
-    match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
-    name: keyword.operator.expression.as.ruko
+    applyEndPatternLast: true
+    begin: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+    end: (?=)|$
+    captures:
+      1: {name: keyword.operator.expression.as.ruko}
+    patterns:
+      - match: |-
+          (?x)
 
-  given-using-keyword:
-    match: \s*(?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b(given|using)\b\s*
-    name: keyword.operator.expression.$1.ruko
+          (?!
+            (?<!(?:(?<!\.)\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|off?|[ai]s|(?:[iou]n)?to|by|has|can|del
+              |ref|void|n?and|x?n?or|n?imply|not|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+
+          (?:
+            \s*
+            ((?:[*&%@^!~?\\\-+]|\.\.)*) # any sigils
+            (`?\b[\p{Pc}\p{L}\p{Nl}]\w*\b) # identifier
+            ([!?&*]*) # optional sigils
+            \s*
+          )
+        captures:
+          1: {patterns: [include: "#type-parameter-operators"]}
+          2:
+            name: variable.other.assignment.ruko
+            patterns: [include: "#constants"]
+          3: {patterns: [include: "#type-parameter-operators"]}
 
   binding-pattern-object:
-    begin: ([#<]?{)\s*
+    begin: (\#?{)\s*
     end: \s*(})
     name: meta.brace.curly.ruko
     captures:
       1: {name: punctuation.definition.binding-pattern.object.ruko}
     patterns:
-      - include: "#object-argument"
+      - include: "#binding-parameters"
       - include: "#object-labels"
-      - include: "#object-keys"
+      - include: "#as-keyword"
+      - include: "#type-signature"
       - match: "[,;]"
         name: punctuation.separator.mapping.ruko
       - include: "#binding-pattern"
-      - include: "#illegal"
 
   binding-pattern-tuple:
-    begin: ([#<]?\()\s*
+    begin: (\#?\()\s*
     end: \s*(\))
-    name: meta.brace.curly.ruko
+    name: meta.brace.round.ruko
     captures:
       1: {name: punctuation.definition.binding-pattern.tuple.ruko}
     patterns:
-      - include: "#object-labels"
+      - include: "#binding-parameters"
+      - include: "#as-keyword"
+      - include: "#type-signature"
       - match: "[,;]"
         name: punctuation.separator.arguments.ruko
       - include: "#binding-pattern"
-      - include: "#illegal"
 
   binding-pattern-array:
-    begin: ([#<]?\[)\s*
+    begin: (\#?\[)\s*
     end: \s*(])
-    name: meta.brace.curly.ruko
+    name: meta.brace.square.ruko
     captures:
       1: {name: punctuation.definition.binding-pattern.array.ruko}
     patterns:
-      - include: "#object-labels"
+      - include: "#binding-parameters"
+      - include: "#as-keyword"
+      - include: "#type-signature"
       - match: "[,;]"
         name: punctuation.separator.sequence.ruko
       - include: "#binding-pattern"
-      - include: "#illegal"
 
   default-value:
     begin: (?<=^|[\s({\[])([?:]?=)(?=$|[)}\]\s])|(?<=['")}\]\w]|\\.)([?:]?=)(?=(?:['"`\w]|[#<]?[(\[{]))
@@ -9343,7 +9344,6 @@ repository:
       - include: "#declaration-parameters"
       - include: "#default-value"
       - include: "#as-keyword"
-      - include: "#given-using-keyword"
       - include: "#binding-pattern-object"
       - include: "#binding-pattern-tuple"
       - include: "#binding-pattern-array"
@@ -9443,8 +9443,8 @@ repository:
       (?<=\b|>)
       (?:
         ( \?[.:>]=? ) | # 1: optional access/unwrap
-        ( ![.:>]=? ) | # 2: assert/unwrap operator
-        ( (?:::|->|\.)=? ) # 3: standard accessor
+        ( ![.:>]=? ) | # 2: assert/unwrap
+        ( (?:::|->|\.)=? ) # 3: regular accessor
       )
       (?=\b|<)
     captures:

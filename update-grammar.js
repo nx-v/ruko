@@ -19,25 +19,21 @@ const sortKeys = obj =>
   : obj;
 
 // remove "comment" keys recursively
-parsed = stringify(
-  parsed,
-  (k, v) => {
-    switch (typeof v) {
-      case "object":
-        for (const k of ["comment", "define"]) if (k in v) delete v[k];
-        break;
-      case "string":
-        if (["begin", "end", "match", "while"].includes(k.trim()))
-          try {
-            return optimize(v).pattern;
-          } catch {
-            return v;
-          }
-    }
-
-    return sortKeys(v);
-  },
-);
+parsed = stringify(parsed, (k, v) => {
+  switch (typeof v) {
+    case "object":
+      for (const k of ["comment", "define"]) if (k in v) delete v[k];
+      break;
+    case "string":
+      if (["begin", "end", "match", "while"].includes(k.trim()))
+        try {
+          return optimize(v).pattern;
+        } catch {
+          return v;
+        }
+  }
+  return sortKeys(v);
+});
 
 // parsed = JSON.stringify(parsed, null, 2);
 
