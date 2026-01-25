@@ -30,6 +30,7 @@ proc main {
 }
 
 // variable declaration with and without type annotation
+let mut a: i32 = 10
 let mut i32 a = 20
 pub let i32 a = 20
 let int[][][][] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]]
@@ -88,6 +89,10 @@ func int[][] sortedPowerSet(int[] arr) {
   }
 }
 
+((for let x, y in sortedPowerSet [1, 2, 3, 4]:
+  echo x
+))
+
 // infix functional style
 func sortedPowerSet = |arr| 0 ..< 1 << arr.len
   \sort\ |a, b| (-) ([a, b] \map\
@@ -114,6 +119,7 @@ func int[][] sortedPowerSet(int[] arr) = (
     select a[i] - b[i]
   ) then by a.len - b.len
 )
+
 // Haskell/ML/Python style
 func int[][] sortedPowerSet(int[] arr) =
   mut int[][] result = []
@@ -156,28 +162,28 @@ func int[][] sortedPowerSet(int[] arr) {
   }]
 }
 
-// Clojure style
-func int[][] sortedPowerSet(int[] arr) = (
-  (mut int[][] result = [])
-  (for let int i in (..< 0 (<< 1 arr.len))) (
-    (mut int[] subset = [])
-    (for let int j in (..< 0 arr.len)) (
-      (if (& 1 (>> i j)) (push subset arr[j]))
-    )
-    (push result subset)
-  )
+// Lisp/Clojure/Scheme style (operators and calls only)
+func int[][] sortedPowerSet(int[] arr) {
+  let mut int[][] result = []
+  for let int i in (..< 0 (<< 1 arr.len)) {
+    let mut int[] subset = []
+    for let int j in (..< 0 arr.len):
+      if (& (>> i j) 1):
+        subset = (push subset arr[j])
+    result = (push result subset)
+  }
 
-  (return (sort result (|a, b| (
-    (let int countA = (reduce a 0 (|c,, i| (+ c 1))))
-    (let int countB = (reduce b 0 (|d,, i| (+ d 1))))
-    (if (!= countA countB) (- countA countB))
-    (for let int i in (..< 0 (min a.len b.len))) (
-      (if (!= a[i] b[i]) (- a[i] b[i]))
-    )
+  return (sort result (|a, b| {
+    let int countA = (reduce a 0 (|c,, i| (+ c 1)))
+    let int countB = (reduce b 0 (|d,, i| (+ d 1)))
+    if (!= countA countB):
+      (- countA countB)
+    for let int i in (..< 0 (min a.len b.len)):
+      if (!= a[i] b[i]):
+        (- a[i] b[i])
     (- a.len b.len)
-    ))
-  ))
-)
+  }))
+}
 
 // JSX style
 <decl(func sortedPowerSet(arr: int): int[][])=(
@@ -285,7 +291,7 @@ shader MazeGenerator {
 
 // generating a random string
 func randomString = |repeat, seed = 3**32|: str =
-  [/[\da-z]/i random: seed, repeat toIter: join: '']
+  [/[\da-z]/i random: seed, repeat toIter: `join: '']
 print randomString
 
 // function call with different argument types
@@ -392,13 +398,27 @@ scope `for for let `in in [`mut alloc: init: release:]:
   </if>
 </for>
 
+// The user hasn't been constructed yet, so we need
+// to use 'as' here
+let userToBeBuilt = {} as User
+
+let defaultUser = {
+  id: "123"
+  name: "Matt"
+} by User
+
+// Assigning to a dynamic key
+(const["name", "id"]).forEach(proc(key: str) {
+  userToBeBuilt[key] = "default"
+})
+
 // Style DSL example
 style `style {
   x: 100px
   y: 100px
   background: :blue
   color: %#ff5733
-  path: %path(M 50 50 L 150 50 L 100 150 Z)
+  path: %draw(M 50 50 L 150 50 L 100 150 Z)
   customKey: addedValue
   dynamic[key]-sub[key]: dynamicValue
 
@@ -671,7 +691,8 @@ let chords = [chord '<Bbm9 Fm9>/4' dict: 'ireal']
   [n '<0!3 1*2>' `mut: chords mode: 'root:g2' voicing: s: 'gm_acoustic_bass']
   [chords n: '[0 <4 3 <2 5>>*2](<3 5>,8)' anchor: 'D5' voicing: segment: 4
     clip: rand.range 0.4 0.8 room: 0.75 shape: 0.3 delay: 0.25
-    fm: [sine.range 3 8 slow: 8] lpf: [sine.range 500 1000 slow: 8]
+    fm: [sine.range 3 8 slow: 8] 
+    lpf: [sine.range 500 1000 slow: 8]
     lpq: 5 rarely: ply '2' chunk: 4 fast: 2 gain: [perlin.range 0.6 0.9]
     mask: '<0 1 1 0>/16'
   ])
