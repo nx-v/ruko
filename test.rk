@@ -22,10 +22,10 @@ proc main {
   }
 
   [FS writeFile: :utf-8, new Log{
-    path: 'C://users/NexoV/memories/2025',
+    path: 'C://users/NexoV/memories/2025'
     message: 'before there was code, there was\n' *
-      Figlet.toAscii (str prophecy),
-    title: 'nu-Eden: Sundered Skies',
+      Figlet.toAscii (str prophecy)
+    title: 'nu-Eden: Sundered Skies'
   }]
 }
 
@@ -57,7 +57,7 @@ style {
   background: %322
   color: %rgb(255, 255, 255)
   fill: %url"https://example.com/resource.txt"
-  content: %quote(\((({Hello, World!})\)))
+  content: %quote(\(({Hello, World!})\))
   fontFamily: ['Courier New', :monospace]
   margin: 20px
   padding: 10px
@@ -73,17 +73,19 @@ func int[][] sortedPowerSet(int[] arr) {
 
   for let int i in 0 ..< 1 << arr.len {
     mut int[] subset = []
-    for let int j in 0 ..< arr.len if (i >> j) & 1:
-      subset.=push arr[j]
+    for let int j in 0 ..< arr.len:
+      if (i >> j) & 1:
+        subset.=push arr[j]
     result.=push subset
   }
 
-  return result.=sort |a, b| {
+  return result.=sort |int a, int b| {
     let int countA = a.reduce 0 (|c,, i| c + 1)
     let int countB = b.reduce 0 (|d,, i| d + 1)
     if countA != countB:
       countA - countB
-    for let int i in 0 ..< min a.len b.len if a[i] != b[i]:
+    for let int i in 0 ..< min a.len b.len:
+      if a[i] != b[i]:
       a[i] - b[i]
     a.len - b.len
   }
@@ -91,10 +93,10 @@ func int[][] sortedPowerSet(int[] arr) {
 
 // infix functional style
 func sortedPowerSet = |arr| 0 ..< 1 << arr.len
-  \sort\ |a, b| (-) ([a, b] \map\
-      |k| (arr \reduce\ 0, |c,, i| c + ((k >> i) & 1))
-    ) || arr \reduce\ 0, |d,, i| d || ((b >> i) & 1) - ((a >> i) & 1)
-  \map\ |e| (arr \filter\ |, i| (e >> i) & 1)
+  \sort\ |int a, int b| (-) ([a, b] \map\
+      |int k| (arr \reduce\ 0, |int c,, int i| c + ((k >> i) & 1))
+    ) || arr \reduce\ 0, |int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
+  \map\ |int e| (arr \filter\ |, int i| (e >> i) & 1)
 
 // LINQ style
 func int[][] sortedPowerSet(int[] arr) = (
@@ -127,7 +129,7 @@ func int[][] sortedPowerSet(int[] arr) =
         subset = push subset arr[j]
     result = push result subset
 
-  return sort result |a, b| =
+  return sort result |int a, int b| =
     let int countA = reduce a 0 (|c,, i| c + 1)
     let int countB = reduce b 0 (|d,, i| d + 1)
     if countA != countB:
@@ -141,19 +143,20 @@ func int[][] sortedPowerSet(int[] arr) =
 func int[][] sortedPowerSet(int[] arr) {
   mut int[][] result = []
 
-  [0 ..< 1 << arr.len each: |i| {
+  [0 ..< 1 << arr.len each: |int i| {
     mut int[] subset = []
-    [0 ..< arr.len each: |j|
+    [0 ..< arr.len each: |int j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset]
   }]
 
-  return [result =sort: |a, b| {
+  return [result =sort: |int a, int b| {
     let int[] countA = [a reduce: 0, |c,, i| c + 1]
     let int[] countB = [b reduce: 0, |d,, i| d + 1]
     if countA != countB: return countA - countB
-    for let int i in 0 ..< min(a.len, b.len) if a[i] != b[i]:
-      return a[i] - b[i]
+    for let int i in 0 ..< min(a.len, b.len):
+      if a[i] != b[i]:
+        return a[i] - b[i]
     a.len - b.len
   }]
 }
@@ -161,6 +164,7 @@ func int[][] sortedPowerSet(int[] arr) {
 // Lisp/Clojure/Scheme style (operators and calls only)
 func int[][] sortedPowerSet(int[] arr) {
   let mut int[][] result = []
+
   for let int i in (..< 0 (<< 1 arr.len)) {
     let mut int[] subset = []
     for let int j in (..< 0 arr.len):
@@ -193,7 +197,7 @@ func int[][] sortedPowerSet(int[] arr) {
     </for>
     result.=push subset
   </for>
-  result.=sort |a, b| <>
+  return result.=sort |a, b| <>
     <let(type int) (countA)=(a.reduce 0, |c,, i| c + 1)/>
     <let(type int) (countB)=(b.reduce 0, |d,, i| d + 1)/>
     <if (countA != countB)>
@@ -206,7 +210,6 @@ func int[][] sortedPowerSet(int[] arr) {
     </for>
     <return (a.len - b.len)/>
   </>
-  <return (result)/>
 )/>
 
 // using the various sortedPowerSet implementations
@@ -343,8 +346,8 @@ proc x(
   λ(&q as *[*i32])
 }
 
-print x
-
+print x()
+  
 // simple linked list node
 struct Node {
   let i32 value
