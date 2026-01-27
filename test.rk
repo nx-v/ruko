@@ -4,202 +4,201 @@ proc main {
     Dom.{Canvas, Audio, FS, Log},
     Artists.NexoVolta,
     Galaxies.MilkyWay:Galaxy,
-    Components.Post
+    Components.Post;
 
-  let stars = Galaxy.getVisibleStars()
+  let stars = Galaxy.getVisibleStars();
   if const prophecy = 3 ** (3 * 2) &&
   stars has "Alained" &&
   "Nexo" in stars \map\ .name {
     [Dom.Canvas clear:
                 setBackground: 'black'
-                draw: prophecy.toSVG()]
+                draw: prophecy.toSVG()];
     [Audio.Track play: './VirtualRiot-Reconnect.mp3'
                  volume: 0.8
-                 `loop: true]
+                 `loop: true];
     Post.emit(
       dev: <NexoVolta handle=@nexovolta/>
-    )
+    );
   }
 
   [FS writeFile: :utf-8, new Log{
-    path: 'C://users/NexoV/memories/2025'
+    path: 'C://users/NexoV/memories/2025',
     message: 'before there was code, there was\n' *
-      Figlet.toAscii (str prophecy)
-    title: 'nu-Eden: Sundered Skies'
-  }]
+      Figlet.toAscii (str prophecy),
+    title: 'nu-Eden: Sundered Skies',
+  }];
 }
 
 // variable declaration with and without type annotation
-let mut a: i32 = 10
-let mut i32 x = 20
-pub let i32 a = 20
-let int[][][][] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]]
-let &mut int z = &mut a
-&Type a = 10
-(int | 'hello world') b = "hello world"
-let int[] result = []
+let mut a: i32 = 10;
+let mut i32 x = 20;
+pub let i32 a = 20;
+let int[][][][] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]];
+let &mut int z = &mut a;
+&Type a = 10;
+(int | 'hello world') b = "hello world";
+let int[] result = [];
 pub func int x(const int x) =
-  arr.reduce 0 (|int sum, value| sum + value)
-let x = 10
-let mut str name = "Ruko"
-let f32 pi = 3.14159
-let f64 x = 2.718281828459045
-let f128 z = 1.618033988749895
-let bool isActive = true
-let char initial = 'R'
-let [int | str] c = 42
-[(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((int | str)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))] c = [1, "two", 3, "four"]
+  arr.reduce 0 (|int sum, value| sum + value);
+let x = 10;
+let mut str name = "Ruko";
+let f32 pi = 3.14159;
+let f64 x = 2.718281828459045;
+let f128 z = 1.618033988749895;
+let bool isActive = true;
+let char initial = 'R';
+let [int | str] c = 42;
+[(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((int | str)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))][] c = [1, "two", 3, "four"]; 
 
 // style DSL example
-style {
-  width: 200px
-  draw: %draw(M 100 100 L 300 100 L 200 300 Z)
-  background: %322
-  color: %rgb(255, 255, 255)
-  fill: %url"https://example.com/resource.txt"
-  content: %quote(\(({Hello, World!})\))
-  fontFamily: ['Courier New', :monospace]
-  margin: 20px
-  padding: 10px
-  border: 2px :solid %#ff5733
-  fontSize: 14px
-  animation: blink(1s, :infinite, :easeInOut, :alternate)
-  timestamp: %time'2024-06-01T12:00:00Z'
+style `style {
+  width: 200px;
+  draw: %draw(M 100 100 L 300 100 L 200 300 Z);
+  background: %322;
+  color: %rgb(255, 255, 255);
+  fill: %url"https://example.com/resource.txt";
+  content: %quote(\(({Hello, World!})\));
+  fontFamily: ['Courier New', :monospace];
+  margin: 20px;
+  padding: 10px;
+  border: 2px :solid %#ff5733;
+  fontSize: 14px;
+  animation: blink(1s, :infinite, :easeInOut, :alternate);
+  timestamp: %time'2024-06-01T12:00:00Z';
 }
 
 // imperative style
 func int[][] sortedPowerSet(int[] arr) {
-  mut int[][] result = []
+  mut int[][] result = [];
 
   for let int i in 0 ..< 1 << arr.len {
-    mut int[] subset = []
+    mut int[] subset = [];
     for let int j in 0 ..< arr.len:
       if (i >> j) & 1:
-        subset.=push arr[j]
-    result.=push subset
+        subset.=push arr[j];
+    result.=push subset;
   }
 
   return result.=sort |int a, int b| {
-    let int countA = a.reduce 0 (|c,, i| c + 1)
-    let int countB = b.reduce 0 (|d,, i| d + 1)
+    let int countA = a.reduce 0 (|int c,, int i| c + 1);
+    let int countB = b.reduce 0 (|int d,, int i| d + 1);
     if countA != countB:
-      countA - countB
+      countA - countB;
     for let int i in 0 ..< min a.len b.len:
       if a[i] != b[i]:
-      a[i] - b[i]
-    a.len - b.len
+        a[i] - b[i];
+    a.len - b.len;
   }
 }
 
 // infix functional style
-func sortedPowerSet = |arr| 0 ..< 1 << arr.len
+func int[][] sortedPowerSet = |int[] arr| 0 ..< 1 << arr.len
   \sort\ |int a, int b| (-) ([a, b] \map\
       |int k| (arr \reduce\ 0, |int c,, int i| c + ((k >> i) & 1))
     ) || arr \reduce\ 0, |int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
-  \map\ |int e| (arr \filter\ |, int i| (e >> i) & 1)
+  \map\ |int e| (arr \filter\ |, int i| (e >> i) & 1);
 
 // LINQ style
-func int[][] sortedPowerSet(int[] arr) = (
-  from let i in 0 ..< (1 << arr.len)
+func int[][] sortedPowerSet(int[] arr) =
+  from let int i in 0 ..< (1 << arr.len)
   select (
-    from let j in 0 ..< arr.len
+    from let int j in 0 ..< arr.len
     where (i >> j) & 1
     select arr[j]
-  ) as let subset
+  ) as let int[] subset
   sort by subset.len
   then by (
-    from let a, b
+    from let int a, int b
     where a.len != b.len
     select a.len - b.len
   ) then by (
-    from let i in 0 ..< min(a.len, b.len)
+    from let int i in 0 ..< min a.len b.len
     where a[i] != b[i]
     select a[i] - b[i]
-  ) then by a.len - b.len
-)
+  ) then by a.len - b.len;
 
 // Haskell/ML/Python style
 func int[][] sortedPowerSet(int[] arr) =
-  mut int[][] result = []
+  mut int[][] result = [];
 
   for let int i in 0 ..< 1 << arr.len:
     mut int[] subset = []
     for let int j in 0 ..< arr.len:
       if (i >> j) & 1:
-        subset = push subset arr[j]
-    result = push result subset
+        subset = push subset arr[j];
+    result = push result subset;
 
   return sort result |int a, int b| =
-    let int countA = reduce a 0 (|c,, i| c + 1)
-    let int countB = reduce b 0 (|d,, i| d + 1)
+    let int countA = reduce a 0 (|int c,, int i| c + 1);
+    let int countB = reduce b 0 (|int d,, int i| d + 1);
     if countA != countB:
-      countA - countB
+      countA - countB;
     for let int i in 0 ..< min a.len b.len:
       if a[i] != b[i]:
-        a[i] - b[i]
-    a.len - b.len
+        a[i] - b[i];
+    a.len - b.len;
 
 // Objective-C & Ruby style
 func int[][] sortedPowerSet(int[] arr) {
-  mut int[][] result = []
+  mut int[][] result = [];
 
   [0 ..< 1 << arr.len each: |int i| {
-    mut int[] subset = []
+    mut int[] subset = [];
     [0 ..< arr.len each: |int j|
       if (i >> j) & 1: [subset =push: arr[j]]]
-    [result =push: subset]
+    [result =push: subset];
   }]
 
   return [result =sort: |int a, int b| {
-    let int[] countA = [a reduce: 0, |c,, i| c + 1]
-    let int[] countB = [b reduce: 0, |d,, i| d + 1]
-    if countA != countB: return countA - countB
+    let int countA = [a reduce: 0, |int c,, int i| c + 1];
+    let int countB = [b reduce: 0, |int d,, int i| d + 1];
+    if countA != countB: return countA - countB;
     for let int i in 0 ..< min(a.len, b.len):
       if a[i] != b[i]:
-        return a[i] - b[i]
-    a.len - b.len
-  }]
+        return a[i] - b[i];
+    a.len - b.len;
+  }];
 }
 
 // Lisp/Clojure/Scheme style (operators and calls only)
 func int[][] sortedPowerSet(int[] arr) {
-  let mut int[][] result = []
+  mut int[][] result = [];
 
   for let int i in (..< 0 (<< 1 arr.len)) {
-    let mut int[] subset = []
+    mut int[] subset = [];
     for let int j in (..< 0 arr.len):
       if (& (>> i j) 1):
-        subset = (push subset arr[j])
-    result = (push result subset)
+        subset = (push subset arr[j]);
+    result = (push result subset);
   }
 
-  return (sort result (|a, b| {
-    let int countA = (reduce a 0 (|c,, i| (+ c 1)))
-    let int countB = (reduce b 0 (|d,, i| (+ d 1)))
+  return (sort result (|int a, int b| {
+    let int countA = (reduce a 0 (|int c,, int i| (+ c 1)));
+    let int countB = (reduce b 0 (|int d,, int i| (+ d 1)));
     if (!= countA countB):
-      (- countA countB)
+      (- countA countB);
     for let int i in (..< 0 (min a.len b.len)):
       if (!= a[i] b[i]):
-        (- a[i] b[i])
-    (- a.len b.len)
-  }))
+        (- a[i] b[i]);
+    (- a.len b.len);
+  }));
 }
 
 // JSX style
-<decl(func sortedPowerSet(arr: int): int[][])=(
+<decl(func int[][] sortedPowerSet(int[] arr))=(
   <mut(type int[][]) (result)=[]/>
   <for let(type int)=i in=(0 ..< 1 << arr.len)>
     <mut(type int[]) (subset)=[]/>
     <for let(type int)=j in=(0 ..< arr.len)>
       <if ((i >> j) & 1)>
-        subset.=push arr[j]
+        subset.=push arr[j];
       </if>
     </for>
-    result.=push subset
+    result.=push subset;
   </for>
-  return result.=sort |a, b| <>
-    <let(type int) (countA)=(a.reduce 0, |c,, i| c + 1)/>
-    <let(type int) (countB)=(b.reduce 0, |d,, i| d + 1)/>
+  <return (result.=sort |int a, int b| <>
+    <let(type int) (countA)=(a.reduce 0, |int c,, int i| c + 1)/>
+    <let(type int) (countB)=(b.reduce 0, |int d,, int i| d + 1)/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -209,103 +208,103 @@ func int[][] sortedPowerSet(int[] arr) {
       </if>
     </for>
     <return (a.len - b.len)/>
-  </>
-)/>
+  </>)/>
+)/>;
 
 // using the various sortedPowerSet implementations
 for let i in sortedPowerSet [1...16]:
-  echo i
+  echo i; 
 
 // LINQ-style queries
 func str formatPowerSet = |int[][] a| =
   a.iter(iter: from let int[] subset in a
     where subset.len > 0
     select '[' ++ [subset map: str x `join: ','] ++ ']'
-  ).join(', ')
+  ).join(', ');
 
-print $ formatPowerSet sortedPowerSet [1..<10]
+print $ formatPowerSet sortedPowerSet [1..<10];
 
 // shader language subset example (WGSL-like)
 shader MazeGenerator {
-  struct Uniforms {prop u32 mazeSize, u32 numWalls}
-  struct WallsArray {prop [u32] values}
-  pub mut<group 0 id 0> Uniforms uniforms
-  out mut<group 0 id 1> [u32] walls
-  out mut<group 0 id 2> WallsArray wallsArray
+  struct Uniforms {prop u32 mazeSize, u32 numWalls};
+  struct WallsArray {prop u32[] values};
+  pub mut<group 0 id 0> Uniforms uniforms;
+  out mut<group 0 id 1> u32[] walls;
+  out mut<group 0 id 2> WallsArray wallsArray;
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
-    let i32 size = i32 uniforms.mazeSize
-    cellCoords->y * size + cellCoords->x
+    let i32 size = i32 uniforms.mazeSize;
+    cellCoords->y * size + cellCoords->x;
   }
 
   func f32 coinFlip(Vec2<f32> p) {
-    mut Vec3<f32> p3 = fract $ Vec3 p->xyx * 0.1031
-    p3 += dot p3 (p3->yzx + 33.33)
-    step 0.5 (fract (p3->x + p3->y) * p3->z)
+    mut Vec3<f32> p3 = fract $ Vec3 p->xyx * 0.1031;
+    p3 += dot p3 (p3->yzx + 33.33);
+    step 0.5 (fract (p3->x + p3->y) * p3->z);
   }
 
   // Carve walls for a given cell at random
   proc randomCarveCellWalls(Vec2<i32> cellCoords) {
-    let i32 cellIndex = getCellIndex cellCoords
+    let i32 cellIndex = getCellIndex cellCoords;
 
-    let size = i32 uniforms.mazeSize
-    let numWalls = i32 uniforms.numWalls
+    let size = i32 uniforms.mazeSize;
+    let numWalls = i32 uniforms.numWalls;
 
-    const tWallType = 0 // top
-    const rWallType = 1 // right
-    const bWallType = 0 // bottom
-    const lWallType = 1 // left
+    const tWallType = 0; // top
+    const rWallType = 1; // right
+    const bWallType = 0; // bottom
+    const lWallType = 1; // left
 
     // isOnEdge -> Vec2 isMostLeftEdge isMostBottomEdge
-    mut Vec2<bool> isOnEdge = cellCoords == Vec2 0
+    mut Vec2<bool> isOnEdge = cellCoords == Vec2 0;
 
     // main body: bottom and left edges
-    let f32 bottomNotLeft = coinFlip $ Vec2<f32> cellCoords
-    let i32 bWallIndex = cellIndex * 2 + bWallType
-    let i32 lWallIndex = cellIndex * 2 + lWallType
-    let f32 carveBottom = mix bottomNotLeft 1.0 (f32 isOnEdge->x)
-    let f32 carveLeft = mix (1.0 - bottomNotLeft) 1.0 (f32 isOnEdge->y)
-    wallsArray.values[bWallIndex] = u32 bottomNotLeft
-    wallsArray.values[lWallIndex] = u32 $ 1.0 - bottomNotLeft
+    let f32 bottomNotLeft = coinFlip $ Vec2<f32> cellCoords;
+    let i32 bWallIndex = cellIndex * 2 + bWallType;
+    let i32 lWallIndex = cellIndex * 2 + lWallType;
+    let f32 carveBottom = mix bottomNotLeft 1.0 (f32 isOnEdge->x);
+    let f32 carveLeft = mix (1.0 - bottomNotLeft) 1.0 (f32 isOnEdge->y);
+    wallsArray.values[bWallIndex] = u32 bottomNotLeft;
+    wallsArray.values[lWallIndex] = u32 $ 1.0 - bottomNotLeft;
   }
 
   compute proc<thread 8 8> main(Vec3<u32> @id) {
-    randomCarveCellWalls $ Vec2<i32> @id->xy
+    randomCarveCellWalls $ Vec2<i32> @id->xy;
   }
 }
 
 // regex examples
-/[\d\D]/
-/\p{L}+/
-/\p{Script=Latin}+/
-/\p{sc=Han}+/
-/\p{blk=UCAS_Ext_A}+/
-/\p{name~=/(SMILING|GRINNING) FACE/}/g
-/\p{InGreek}+/i
-/\p{Script=Hiragana}+/m
-/\p{Emoji_Presentation}+/gi
-/(?[\p{Thai}|\p{Lao}])/
-/(?[\p{Digit}&(\p{Thai}|\p{Lao})])/
-/(?[^\P{L}\p{M}])+/
+/[\d\D]/;
+/\p{L}+/;
+/\p{Script=Latin}+/;
+/\p{sc=Han}+/;
+/\p{blk=UCAS_Ext_A}+/;
+/\p{name~=/(SMILING|GRINNING) FACE/}/g;
+/\p{InGreek}+/i;
+/\p{Script=Hiragana}+/m;
+/\p{Emoji_Presentation}+/gi;
+/(?[\p{Thai}|\p{Lao}])/;
+/(?[\p{Digit}&(\p{Thai}|\p{Lao})])/;
+/(?[^\P{L}\p{M}])+/;
 
 // generating a random string
 func randomString = str |repeat, seed = 3**32| =
-  [/[\da-z]/i random: seed, repeat toIter: `join: '']
-print randomString
+  [/[\da-z]/i random: seed, repeat toIter: `join: ''];
+print randomString; 
 
 // function call with different argument types
-funcName(arg1: 10, &mut arg2: 2, stat MyType{k: v} arg3: "hello")
-v = #{a: pub int |*a| a + 1}
+funcName(arg1: 10, &mut arg2: 2, stat MyType{k: v} arg3: "hello");
+let v = #{a: pub int |*a| a + 1};
 
 // chaining with custom operators
 // Haskell-style
 `iter 4 $ every 3 (||+ n "10 20") $ (n "0 1 3") # s "triangle" # crush 4
 // JavaScript-style
-`iter(4, every(3, add.squeeze("10 20"), n("0 1 3").s("triangle").crush(4)))
+`iter(4, every(3, add.squeeze("10 20"), n("0 1 3").s("triangle").crush(4))); 
 n("0 1 3").every(3, add.squeeze("10 20")).iter(4).s("triangle").crush(4)
 
 // arbitrary base digits
-16b0123456789۵۸۷۲٤۶
+let customBase = 16b0123456789۵۸۷۲٤۶;
 
 // cursed C++ pointer manipulation example
 proc x(
@@ -321,66 +320,66 @@ proc x(
   (*&mut (α | β)?) y?,
   &mut (*(*(γ?)?)? where !(α & β)?) z?,
 ) = unsafe {
-  *α? p = null
-  *(*(β?)) q = null
-  *(*(γ?)) r = null
+  mut *α? p = null;
+  mut *(*(β?)) q = null;
+  mut *(*(γ?)) r = null;
 
   for let int i = 0, i < a::size + 17, i += 1 {
     if y? && !p?:
-      p := &y as *α
+      p := &y as *α;
     if p? && !q? {
-      q := &*(p as *(*β))
-      q[i % 20] := (i * i << (i & 3)) ^ 0xfeedface
+      q := &*(p as *(*β));
+      q[i % 20] := (i * i << (i & 3)) ^ 0xfeedface;
     }
   }
 
   if z? && z != false:
     for let int j = 0, j < 20, j += 1:
-      *(*z)[j] := ((*(*z)[j] ?? 0) + j) as γ
+      *(*z)[j] := ((*(*z)[j] ?? 0) + j) as γ;
 
   func str l = |*[*i32] θ| {
-    θ[0][0] := θ[0][0] ^ 1337
-    <div style={color: :green}> \* Pointer value: #{*θ[0][0]} *\ </>
+    θ[0][0] := θ[0][0] ^ 1337;
+    <div style={color: :green}> \* Pointer value: #{*θ[0][0]} *\ </>;
   }
 
-  λ(&q as *[*i32])
+  λ(&q as *[*i32]);
 }
 
-print x()
-  
+print x();
+
 // simple linked list node
 struct Node {
-  let i32 value
-  let *Node next
+  let i32 value;
+  let *Node next;
 
   func *Node Node(i32 value) {
-    let node = unsafe {malloc Node}
-    node.value = value
-    node.next = null
-    return node
+    let node = unsafe {malloc Node};
+    node.value = value;
+    node.next = null;
+    return node;
   }
 }
 
-mut *Node head = Node 1
-head.next = Node 2
-head.next.next = Node 3
-head.next.next.next = null
-mut *Node current = head
+mut *Node head = Node 1;
+head.next = Node 2;
+head.next.next = Node 3;
+head.next.next.next = null;
+mut *Node current = head;
 while current != null {
-  print current.value
-  current = current.next
-}
+  print current.value;
+  current = current.next;
+} 
 
 // stropping keywords with invisible characters
-`const `let mut `mut: `in i32 = 10
+`const `let mut `mut: `in i32 = 10;
 scope `for for let `in in [`mut alloc: init: release:]:
-  print `in
+  print `in;
 
 // jsx with inline styles and dynamic class names
 <div>
   for item in items:
-    <span .item-[item.id]=item.id>(item.name)</span>
-</div>
+    <span .item-[item.id]=item.id>(item.name)</span>;
+</div>;
 
 // JSX control structures
 <for let=i in=(0...10)>
@@ -391,64 +390,64 @@ scope `for for let `in in [`mut alloc: init: release:]:
   <else/>
     <span>#"Other: #i"</span>
   </if>
-</for>
+</for>;
 
 // The user hasn't been constructed yet, so we need
 // to use 'as' here
-let userToBeBuilt = {} as User
+let userToBeBuilt = {} as User;
 
 let defaultUser = {
-  id: "123"
-  name: "Matt"
-} by User
+  id: "123",
+  name: "Matt",
+} by User;
 
 // Assigning to a dynamic key
 (const["name", "id"]).forEach(proc(key: str) {
   userToBeBuilt[key] = "default"
-})
+});
 
 // Style DSL example
 style `style {
-  x: 100px
-  y: 100px
-  background: :blue
-  color: %#ff5733
-  path: %draw(M 50 50 L 150 50 L 100 150 Z)
-  customKey: addedValue
-  dynamic[key]-sub[key]: dynamicValue
+  x: 100px;
+  y: 100px;
+  background: :blue;
+  color: %#ff5733;
+  path: %draw(M 50 50 L 150 50 L 100 150 Z);
+  customKey: addedValue;
+  dynamic[key]-sub[key]: dynamicValue;
 
   @media(max-width: 600px) {
-    background: :red
+    background: :red;
   }
 
   @keyframes slidein {
-    `from(transform: translateX 0%)
-    `to(transform: translateX 100%)
+    `from(transform: translateX 0%);
+    `to(transform: translateX 100%);
   }
 
   @fontFace {
-    fontFamily: 'MyFont'
-    src: %file"../fonts/myfont.woff2".format(:woff2)
-    fontWeight: :normal
-    fontStyle: :normal
+    fontFamily: 'MyFont';
+    src: %file"../fonts/myfont.woff2".format(:woff2);
+    fontWeight: :normal;
+    fontStyle: :normal;
   }
 
-  ^hover {color: :green}
+  ^hover {color: :green;}
 
-  &active {color: :yellow}
+  &active {color: :yellow;}
 
   /* Nested selectors */
   .container {
-    display: :flex
-    flexDirection: :column
+    display: :flex;
+    flexDirection: :column;
 
     .item {
-      margin: 10px
-      padding: 5px
+      margin: 10px;
+      padding: 5px;
     }
   }
 
-  animation: slideIn 3s :easeInOut :infinite :alternate
+  animation: slideIn 3s :easeInOut :infinite :alternate;
 }
 
 // Markdown literals (with embedded code)
@@ -494,7 +493,7 @@ style `style {
         \\ Loop iteration number: #a
     </div>
   )/>
-</div>
+</div>;
 
 // SQL query example
 from users
@@ -610,31 +609,31 @@ script js {
 
 // string literals with interpolation and raw strings.
 // unlike in other languages, function and method calls can be used inside interpolations.
-let x = 42
+let x = 42;
 
 let multilineString = #"""
   This is a multiline string.
   It can span multiple lines.
   The value of x is: #x.toStr().concat('!').format(toHex: true)
-"""
+""";
 
 let rawString = `"""
   This is a raw string.
   It does not process escape sequences like \n or \t.
   You can include quotes " and backslashes \ without escaping.
-"""
+""";
 
 let combinedStr = #`"""
   Here is a raw string combined with interpolation.
   The value of x is: #x
-"""
+""";
 
 let templateString = @"""
   This is a template string, that is, a function returning a string.
   Arguments are provided for let interpolation, with the syntax @varName
   or @{mut varName = expression}.
   The value of x doubled is: @{x = x * 2}
-"""
+""";
 
 // regex with inline comments and whitespace
 /
@@ -659,9 +658,9 @@ let templateString = @"""
   &#o1405000;
   &#z468a0;
   &#x1F600;
-  &#invalid;')
+  &#invalid;'); 
 
-print "Regex matched valid numeral entities!"
+print "Regex matched valid numeral entities!";
 
 // "coastline" @by eddyflux
 // @version 1.0
@@ -669,35 +668,35 @@ print "Regex matched valid numeral entities!"
 // Snippet from Strudel Language Examples
 
 // Haskell + Objective-C style
-samples 'github:eddyflux/crate'
-setcps 0.75
-let chords = [chord '<Bbm9 Fm9>/4' dict: 'ireal']
+samples 'github:eddyflux/crate';
+setcps 0.75;
+let chords = [chord '<Bbm9 Fm9>/4' dict: 'ireal'];
 [stack (
   [stack (
       // DRUMS
-      [s 'bd' `struct: '<[x*<1 2> [~@3 x]] x>']
-      [s '~ [rim, sd:<2 3>]' room: '<0 0.2>']
-      [n '[0 <1 3>]*<2!3 4>' s: 'hh']
-      [s 'rd:<1!3 2>*2' mask: '<0 0 1 1>/16' gain: 0.5]
-    ) bank: 'crate' mask: '<[0 1] 1 1 1>/16' early: 0.5]
+      [s 'bd' `struct: '<[x*<1 2> [~@3 x]] x>'],
+      [s '~ [rim, sd:<2 3>]' room: '<0 0.2>'],
+      [n '[0 <1 3>]*<2!3 4>' s: 'hh'],
+      [s 'rd:<1!3 2>*2' mask: '<0 0 1 1>/16' gain: 0.5],
+    ) bank: 'crate' mask: '<[0 1] 1 1 1>/16' early: 0.5],
   // CHORDS
-  [chords offset: -1 voicing: s: 'gm_epiano1:1' phaser: 4 room: 0.5]
+  [chords offset: -1 voicing: s: 'gm_epiano1:1' phaser: 4 room: 0.5],
   // MELODY
-  [n '<0!3 1*2>' `mut: chords mode: 'root:g2' voicing: s: 'gm_acoustic_bass']
+  [n '<0!3 1*2>' `mut: chords mode: 'root:g2' voicing: s: 'gm_acoustic_bass'],
   [chords n: '[0 <4 3 <2 5>>*2](<3 5>,8)' anchor: 'D5' voicing: segment: 4
     clip: rand.range 0.4 0.8 room: 0.75 shape: 0.3 delay: 0.25
     fm: [sine.range 3 8 slow: 8] lpf: [sine.range 500 1000 slow: 8]
     lpq: 5 rarely: ply '2' chunk: 4 fast: 2 gain: [perlin.range 0.6 0.9]
     mask: '<0 1 1 0>/16'
-  ])
+  ]),
   late: '[0 0.01]*4' late: '[0 0.01]*2' size: 4 delay: 0.125 size: 2 mix: 0.3
   run: 64
-]
+];
 
 // JavaScript-style
-samples('github:eddyflux/crate')
-setcps(0.75)
-let chords = chord('<Bbm9 Fm9>/4').dict('ireal')
+samples('github:eddyflux/crate');
+setcps(0.75);
+let chords = chord('<Bbm9 Fm9>/4').dict('ireal');
 stack(
   stack(
     // DRUMS
@@ -715,4 +714,4 @@ stack(
     .fm(sine.range(3, 8).slow(8)).lpf(sine.range(500, 1000).slow(8)).lpq(5)
     .rarely().ply('2').chunk(4).fast(2).gain(perlin.range(0.6, 0.9))
     .mask('<0 1 1 0>/16')
-)
+);
