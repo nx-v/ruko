@@ -104,18 +104,17 @@ func int[][] sortedPowerSet(int[] arr) =
   select (
     from let int j in 0 ..< arr.len
     where (i >> j) & 1
-    select arr[j]
-  ) as let int[] subset
+    select arr[j] ) as let int[] subset
   sort by subset.len
   then by (
     from let int a, int b
     where a.len != b.len
-    select a.len - b.len
-  ) then by (
+    select a.len - b.len )
+  then by (
     from let int i in 0 ..< min a.len b.len
     where a[i] != b[i]
-    select a[i] - b[i]
-  ) then by a.len - b.len;
+    select a[i] - b[i] )
+  then by a.len - b.len;
 
 // Haskell/ML/Python style
 func int[][] sortedPowerSet(int[] arr) =
@@ -196,9 +195,9 @@ func int[][] sortedPowerSet(int[] arr) {
     </for>
     result.=push subset;
   </for>
-  <return (result.=sort |int a, int b| <>
-    <let(type int) (countA)=(a.reduce 0, |int c,, int i| c + 1)/>
-    <let(type int) (countB)=(b.reduce 0, |int d,, int i| d + 1)/>
+  <return (result.=sort(|int a, int b| <>
+    <let(type int) (countA)=(a.reduce 0 (|int c,, int i| c + 1))/>
+    <let(type int) (countB)=(b.reduce 0 (|int d,, int i| d + 1))/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -208,7 +207,7 @@ func int[][] sortedPowerSet(int[] arr) {
       </if>
     </for>
     <return (a.len - b.len)/>
-  </>)/>
+  </>))/>
 )/>;
 
 // using the various sortedPowerSet implementations

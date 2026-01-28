@@ -542,7 +542,7 @@ repository:
 
       (?:
         (?<=
-          (?: ['"`)\]}\w] | \\.) \s* # literal, bracket or space
+          ['"`)\]}\w] \s* # literal, bracket or space
           (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
         )
         \b # methods
@@ -554,7 +554,7 @@ repository:
         )
         |
         (?<!
-          (?: [,;'"`)\]}\w] | \\. ) # literal, bracket or space
+          [,;'"`)\]}\w] # literal, bracket or space
           (?: [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # operators
         )
         (?: # objects
@@ -596,7 +596,7 @@ repository:
   type-signature:
     applyEndPatternLast: true
     name: meta.type.ruko
-    begin: (?<=(?:[)\]}\w'"`][!?]?|\\.)>*\|?|^\|?)(:)(?=$|\s+<*(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w\s]|[#<]?[(\[{]))
+    begin: (?<=[)\]}\w'"`][!?]?>*\|?|^\|?)(:)(?=$|\s+<*(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w\s]|[#<]?[(\[{]))
     end: (?=)|$
     captures:
       1: {name: punctuation.definition.annotation.ruko}
@@ -5220,7 +5220,7 @@ repository:
       (?x)
       (?:
         (?<=
-          (?:^ | [,;'"`)\]}\w\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
+          (?:^ | [,;'"`)\]}\w\s] | [#<]?[(\[{]) # literal, bracket or space
           (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
         )
         \b # methods
@@ -5233,7 +5233,7 @@ repository:
         \b
         (?=
             [!~*]? [#<]?[({] # opening macro, destructor, generator or function call
-          | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
+          | (?:[?!]?\.|[?!:]:|[?!-]>) < # generics
         )
         |
         (?<= ^ # beginning of line
@@ -5251,7 +5251,7 @@ repository:
         \b
           (?=
               [!~*]? [#<]?[({] # opening macro, destructor, generator or function call
-            | (?: [?!]?\. | [?!:]: | [?!-]> ) < # generics
+            | (?:[?!]?\.|[?!:]:|[?!-]>) < # generics
           )
       )
     captures: &built-in-names
@@ -5667,7 +5667,7 @@ repository:
           (?x)
           (?:
             (?<=
-              (?:^ | [,;'"`)\]}\w\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
+              (?:^ | [,;'"`)\]}\w\s] | [#<]?[(\[{]) # literal, bracket or space
               (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
             )
             \b # methods
@@ -5681,11 +5681,11 @@ repository:
             (?=
                 $ # end of line
               | (?: <\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
-                (?:[,;'"`)\]}\w\s] | [#<]?[(\[{] | \\.)
+                (?:[,;'"`)\]}\w\s] | [#<]?[(\[{])
             )
             |
             (?<=
-              (?: ^ | [,;'"`)\]}\w\s] | [#<]?[(\[{] | \\.) # literal, bracket or space
+              (?:^ | [,;'"`)\]}\w\s] | [#<]?[(\[{]) # literal, bracket or space
               [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # operators
             )
               (?: # variables
@@ -5698,7 +5698,7 @@ repository:
               (?=
                   $ # end of line
                 | (?: <\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
-                  (?:[,;'"`)\]}\w\s] | [#<]?[(\[{] | \\.)
+                  (?:[,;'"`)\]}\w\s] | [#<]?[(\[{])
               )
           )
         captures: *built-in-names
@@ -6032,12 +6032,12 @@ repository:
                   (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                     \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -6143,12 +6143,12 @@ repository:
                   (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                     \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -6212,12 +6212,12 @@ repository:
               (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
               (?:
                 (?:
-                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                 )*
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
               )? # last part of identifier
-              \#? (?:
+              \#?(?:
                 \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                 \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                 {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -6259,7 +6259,7 @@ repository:
       (?x)
       (?:
         (?<=
-          (?: ['"`)\]}\w] | \\.) \s* # literal, bracket or space
+          ['"`)\]}\w] \s* # literal, bracket or space
           (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or qualified name separator
         )
         \b # methods
@@ -6271,7 +6271,7 @@ repository:
         )
         |
         (?<!
-          (?: [,;'"`)\]}\w] | \\. ) # literal, bracket or space
+          [,;'"`)\]}\w] # literal, bracket or space
           (?: [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # operators
         )
         (?: # objects
@@ -6406,7 +6406,7 @@ repository:
       (
         (?: # postfix brackets
             <(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)> | # generics
-          \#? (?:
+          \#?(?:
             \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
             \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
             {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -7645,12 +7645,12 @@ repository:
               (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
               (?:
                 (?:
-                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                 )*
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
               )? # last part of identifier
-              \#? (?:
+              \#?(?:
                 \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                 \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                 {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -7727,12 +7727,12 @@ repository:
               (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
               (?:
                 (?:
-                `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                 )*
                 `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
               )? # last part of identifier
-              \#? (?:
+              \#?(?:
                 \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                 \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                 {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -7766,7 +7766,7 @@ repository:
       (
         (?: # postfix brackets
             <(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)> | # generics
-          \#? (?:
+          \#?(?:
             \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
             \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
             {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -7804,12 +7804,12 @@ repository:
                 (?:<(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                 (?:
                   (?:
-                  `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                   )*
                   `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                 )? # last part of identifier
-                \#? (?:
+                \#?(?:
                   \((?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                   \[(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                   {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -7903,12 +7903,12 @@ repository:
                   (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                     \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -8475,12 +8475,12 @@ repository:
                   (?:<(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                     \[(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                     {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -8507,12 +8507,12 @@ repository:
                   (?:<(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                     \[(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                     {(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -8618,12 +8618,12 @@ repository:
                   (?:<(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'4'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                     \[(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                     {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -8650,12 +8650,12 @@ repository:
                   (?:<(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                     \[(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                     {(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -8734,12 +8734,12 @@ repository:
                   (?:<(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                     \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets 
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly braces
@@ -8766,12 +8766,12 @@ repository:
                   (?:<(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                     \[(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                     {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -8825,12 +8825,12 @@ repository:
                   (?:<(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                   (?:
                     (?:
-                    `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                      `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                     )*
                     `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                   )? # last part of identifier
-                  \#? (?:
+                  \#?(?:
                     \((?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                     \[(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                     {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -9198,12 +9198,12 @@ repository:
                       (?:<(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                       (?:
                         (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                          `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                         )*
                         `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                       )? # last part of identifier
-                      \#? (?:
+                      \#?(?:
                         \((?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                         \[(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                         {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
@@ -9229,12 +9229,12 @@ repository:
                       (?:<(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^<>]+))*)>)? | # generics
                       (?:
                         (?:
-                        `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
+                          `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b # identifier
+                          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # qualified name separator
                         )*
                         `?\b[\p{Pc}\p{L}\p{Nl}]\w*\b
                       )? # last part of identifier
-                      \#? (?:
+                      \#?(?:
                         \((?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
                         \[(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
                         {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
