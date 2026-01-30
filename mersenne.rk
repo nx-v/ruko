@@ -11,7 +11,7 @@
 
 use Sys::{Crypto, Time, Io, Fs}, Math;
 
-show class MTRand: ext Io.Serializer {
+show class MTRand : Io.Serializer {
   pub:
     prop const N = 624,
       const SAVE = N + 1;
@@ -270,14 +270,14 @@ show class MTRand: ext Io.Serializer {
     // operator overloads
     oper()(): f64 = #rand()
 
-    right oper prec 4 (&Io.OutputStream o_stream) <- (&MTRand mt_rand): &Io.OutputStream {
+    right oper prec 4 &Io.OutputStream o_stream <- &MTRand mt_rand: &Io.OutputStream {
       for let i32 i in 0 ..< N:
         o_stream->write_str((str) mt_rand->state->[i] + '\t');
       o_stream->write_str((str) mt_rand->left);
       return o_stream;
     }
 
-    left oper prec 4 (&Io.InputStream i_stream) -> (&MTRand mt_rand): &Io.InputStream {
+    left oper prec 4 &Io.InputStream i_stream -> &MTRand mt_rand: &Io.InputStream {
       for let i32 i in 0 ..< N {
         let str line = i_stream->read_line();
         mt_rand->state->[i] := (u32) line;
@@ -298,7 +298,7 @@ show class MTRand: ext Io.Serializer {
     }
 }
 
-MTRand rand = new MTRand;
+mut MTRand rand = new MTRand;
 rand.seed();
 
 rand -> Fs::open('mtstate.txt', fm_write).get.close();
