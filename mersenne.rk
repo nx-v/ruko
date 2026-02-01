@@ -34,7 +34,7 @@ show class MTRand : Io.Serializer {
       #seed(big_seed, seed_length);
     proc MTRand() = #seed();
     proc MTRand(&MTRand o) {
-      for let i32 i in 0 ..< N: 
+      for let i32 i in 0 ..< N:
         #state->[i] := o->state->[i];
       #left := o->left;
       #p_next := if #left == 0: &#state->0 else &#state->[N - #left];
@@ -63,7 +63,7 @@ show class MTRand : Io.Serializer {
       for let i32 i in 0..5:
         used |= used >> (1 << i);
 
-      mut u32 i
+      mut u32 i;
       loop i := #rand_int() & used while i >= n;
 
       return i;
@@ -209,7 +209,7 @@ show class MTRand : Io.Serializer {
     proc f64 rand_53() {
       let u32 a = #rand_int() >> 5; // 27 bits
       let u32 b = #rand_int() >> 6; // 26 bits
-      return ((f64) a * 0x4000000.0 + (f64) b) * (1.0 / 0x20000000000000.0); 
+      return ((f64) a * 0x4000000.0 + (f64) b) * (1.0 / 0x20000000000000.0);
     }
 
     proc u32 genrand_int_31() = #rand_int() >> 1;
@@ -267,8 +267,8 @@ show class MTRand : Io.Serializer {
       return h ^ h2;
     }
 
-    // operator overloads
-    oper()(): f64 = #rand()
+    // operator definitions
+    oper ()(): f64 = #rand()
 
     right oper prec 4 &Io.OutputStream o_stream <- &MTRand mt_rand: &Io.OutputStream {
       for let i32 i in 0 ..< N:
@@ -289,7 +289,7 @@ show class MTRand : Io.Serializer {
       return i_stream;
     }
 
-    right oper prec 1 =(&MTRand o): &MTRand {
+    right oper prec 4 =(&MTRand o): &MTRand {
       if *self == o: return *self;
       for let i32 i in 0 ..< N: #state->[i] := o->state->[i];
       #left := o->left;
@@ -303,6 +303,11 @@ rand.seed();
 
 rand -> Fs::open('mtstate.txt', fm_write).get.close();
 rand <- Fs::open('mtstate.txt', fm_read).get.close();
+
+for let i32 i in 0 ..< 10:
+  Sys::Io::stdout->write_str('Random number ' +
+    (str) (i + 1) + ': ' +
+    (str) rand.rand_int() + '\n');
 
 /* Mersenne Twister random number generator
    Original C++ code by Shawn Cokus and Makoto Matsumoto */

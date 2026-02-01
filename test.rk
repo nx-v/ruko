@@ -500,9 +500,9 @@ left join posts on users.id = posts.user_id
 where users.active = 1
 group by users.id, users.name
 having post_count > 10
-order by post_count, desc
+order desc by post_count
 limit 50
-select users.id, users.name, count(posts.id) as post_count;
+select users.id, users.name, count posts.id as post_count;
 
 script sql {
   select users.id, users.name, count(posts.id) as post_count
@@ -714,3 +714,33 @@ stack(
     .rarely().ply('2').chunk(4).fast(2).gain(perlin.range(0.6, 0.9))
     .mask('<0 1 1 0>/16')
 );
+
+// Footgun "Hello, World!" example using Ruko as a base
+public static threadSafe comptime heapAllocated stackFrameSize256 executionDeterministic sideEffectFree memorySafe boundsChecked exceptionSafe overflowChecked divisionSafe concurrentSafe func Main(
+  Footgun::StandardLibrary::Collections::Generic::ImmutableList<Footgun::StandardLibrary::Text::Unicode::UTF8::String> @InputArguments
+): Footgun::StandardLibrary::Primitives::Void::Unit where
+  requires InputArguments is not Footgun::StandardLibrary::Null::NullType::NullValue
+  requires InputArguments.length <= 1024
+  ensures Footgun::StandardLibrary::MemorySafety::MemorySafeExecution
+  ensures Footgun::StandardLibrary::ExecutionDeterminism::DeterministicExecution
+  ensures Footgun::StandardLibrary::ExceptionSafety::ExceptionSafeExecution
+  ensures Footgun::StandardLibrary::OverflowSafety::OverflowSafeExecution
+  ensures Footgun::StandardLibrary::DivisionSafety::DivisionSafeExecution
+  ensures Footgun::StandardLibrary::ConcurrencySafety::ConcurrentSafeExecution
+  ensures Footgun::StandardLibrary::SideEffectSafety::SideEffectFreeExecution
+  ensures Footgun::StandardLibrary::BoundsSafety::BoundsCheckedExecution
+  ensures Footgun::StandardLibrary::HeapAllocation::HeapAllocatedExecution
+{
+  immutable stackAllocated let Footgun::StandardLibrary::Text::UTF8String *WelcomeMessage = "Hello, Footgun World!";
+  [Footgun::StandardLibrary::Console 
+    WriteToStdout: Footgun::StandardLibrary::Text::UTF8StringEncodingOptions{
+      StringToWrite: WelcomeMessage,
+      EncodingOptions: Footgun::StandardLibrary::Text::UTF8::TextEncodingOptions::UTF8WithBOM,
+    }
+    UsingFlushPolicy: Footgun::StandardLibrary::ConsoleFlushPolicy::Immediate
+    WithThreadSafety: Footgun::StandardLibrary::ConsoleThreadSafetyPolicy::ThreadSafe
+    WithColorPolicy: Footgun::StandardLibrary::ConsoleColorPolicy::Default
+    WithOutputDestination: Footgun::StandardLibrary::ConsoleOutputDestination::StandardOutput
+  ];
+  return Footgun::StandardLibrary::Primitives::Void::Unit::DefaultValue;
+};
