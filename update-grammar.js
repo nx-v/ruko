@@ -13,7 +13,7 @@ const sortKeys = obj =>
   : obj && typeof obj == "object" ?
     fromEntries(
       keys(obj)
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .map(k => [k, sortKeys(obj[k])]),
     )
   : obj;
