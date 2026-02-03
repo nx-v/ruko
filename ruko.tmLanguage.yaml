@@ -35,7 +35,7 @@ patterns: [include: "#core"]
 #   - [x] Highlighted text ==highlight==
 #   - [x] Redacted text ||redacted||
 #   - [x] Block-quotes
-#   - [x] Inline math $$math$$ via Typst/LaTeX hybrid syntax
+#   - [x] Inline math $math$ via Typst/LaTeX hybrid syntax
 #   - [x] Citations
 #   - [x] Footnotes
 #   - [x] Spans !!.custom.classes span!!
@@ -3045,11 +3045,11 @@ repository:
           1: {name: punctuation.definition.character-class.ruko}
         patterns: [include: "#regexp-character-group"]
       - comment: Named groups (angle brackets)
-        begin: \(\?(?=<(?![!=]))
+        begin: (\(\?(?=<(?![!=])))
         end: (\))
         contentName: meta.group.named.ruko
         captures:
-          0: {name: punctuation.definition.group.named.ruko}
+          1: {name: punctuation.definition.group.named.ruko}
         patterns:
           - begin: (?<=\(\?)(<)
             end: (>)
@@ -3059,11 +3059,11 @@ repository:
             patterns: *regex-back-references
           - include: "#regexp-patterns"
       - comment: Named groups (single or double-quotes)
-        begin: \(\?(?=['"])
+        begin: (\(\?(?=['"]))
         end: (\))
         contentName: meta.group.named.ruko
         captures:
-          0: {name: punctuation.definition.group.named.ruko}
+          1: {name: punctuation.definition.group.named.ruko}
         patterns:
           - begin: (?<=\(\?)('''+|"""+|['"])
             end: (\1)
@@ -4689,7 +4689,10 @@ repository:
         patterns: [include: "source.c"]
       - begin: \b((?i:cpp))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.cpp"]
+        patterns:
+          - include: "source.cpp.embedded.macro"
+          - include: "source.cpp.embedded.latex"
+          - include: "source.cpp"
       - begin: \b((?i:cs))\b\s*({)\s*
         <<: *script-blocks
         patterns: [include: "source.cs"]
@@ -4738,9 +4741,15 @@ repository:
       - begin: \b((?i:html))\b\s*({)\s*
         <<: *script-blocks
         patterns: [include: "text.html.basic"]
-      - begin: \b((?i:scss))\b\s*({)\s*
+      - begin: \b((?i:xml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "text.xml"]
+      - begin: \b((?i:css))\b\s*({)\s
         <<: *script-blocks
         patterns: [include: "source.css"]
+      - begin: \b((?i:scss))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.scss"]
       - begin: \b((?i:less))\b\s*({)\s*
         <<: *script-blocks
         patterns: [include: "source.less"]
@@ -4774,7 +4783,7 @@ repository:
       - begin: \b((?i:cljs?))\b\s*({)\s*
         <<: *script-blocks
         patterns: [include: "source.clojure"]
-      - begin: \b((?i:makefile|make))\b\s*({)\s*
+      - begin: \b((?i:make(?:file)?))\b\s*({)\s*
         <<: *script-blocks
         patterns: [include: "source.makefile"]
       - begin: \b((?i:hs))\b\s*({)\s*
@@ -4795,12 +4804,43 @@ repository:
       - begin: \b((?i:sol))\b\s*({)\s*
         <<: *script-blocks
         patterns: [include: "source.solidity"]
+      - begin: \b((?i:groovy))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.groovy"]
+      - begin: \b((?i:vb))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.vbnet"]
+      - begin: \b((?i:jl))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.julia"]
+      - begin: \b((?i:elm))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.elm"]
+      - begin: \b((?i:exs?))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.elixir"]
+      - begin: \b((?i:sh))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.shell"]
+      - begin: \b((?i:ps1?))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.powershell"]
+      - begin: \b((?i:yaml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.yaml"]
+      - begin: \b((?i:toml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [include: "source.toml"]
 
   operator-declarations:
     comment:
       "Operator declarations. Format: <prec> <associativity> <fixity> <operator> (: <return type>).
       Return types must be postfix since there may not be brackets in operator declarations."
     patterns:
+      - include: "#type-cast-operators"
+      - include: "#comments"
+      - include: "#numbers"
+      - include: "#strings"
       - applyEndPatternLast: true
         begin: (?<=(?:(?:[)\]}\w'"`]|\\.)[!?]?>*))(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
         end: $|
@@ -4808,12 +4848,6 @@ repository:
           1: {name: punctuation.definition.annotation.ruko}
         name: meta.type.ruko
         patterns: [include: "#types"]
-      - include: "#comments"
-      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(prec)\b\s*(?:(\d+)|(`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
-        captures:
-          1: {name: storage.modifier.precedence.ruko}
-          2: {name: constant.numeric.integer.ruko}
-          3: {name: constant.language.ruko}
       - match: |-
           (?x)
 
@@ -4893,16 +4927,18 @@ repository:
             patterns:
               - include: "#type-operators"
               - include: "#operators"
-          3: {name: variable.parameter.operator.ruko}
+          3:
+            name: variable.parameter.ruko
+            patterns: [include: "#constants"]
           4:
             patterns:
               - include: "#type-operators"
               - include: "#operators"
-      - include: "#comma"
-      - include: "#line-continuation-comma"
-      - include: "#suffix-operators"
-      - include: "#prefix-operators"
+      - include: "#line-continuation"
       - include: "#infix-operators"
+      - include: "#interfix-operators"
+      - include: "#prefix-operators"
+      - include: "#suffix-operators"
 
   style-block:
     begin: \s*({)\s*
@@ -5920,10 +5956,10 @@ repository:
       (?! # function name
         \s*
         (?:\s (?:
-            (?:\?[:>]?=?) | # 1: optional access/unwrap
-            (?:![:>]?=?) | # 2: assert/unwrap
-            (?:[:>]?=?) # 3: regular accessor
-          ) \s*
+            (?: \?[:>]?=? ) | # 1: optional access/unwrap
+            (?: ![:>]?=? ) | # 2: assert/unwrap
+            (?: (?:::|->)?=? ) # 3: regular accessor
+          )
         )
         # ignore all keywords
         (?!
@@ -6034,14 +6070,13 @@ repository:
             ^ # start of line
           | [\w'"`)\]}] # literals and closing brackets
           | \\. # escape sequences
-          | [?!:]:`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b:? # static members
-          | [?!-]>`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b:? # dynamic members
-          | [?!]?`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b:? # accessed members
+          | (?:[?!]|[?!:]:|[?!-]>)?=?
+            `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b:? # static members
         )
         \s*
       )
 
-      ([?!]?[:>]?=?) # selector accessor
+      ((?:[?!]|[?!:]:|[?!-]>)?=?) # selector accessor
       (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # selector name
       (?=:(?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$))
     end: $|
@@ -6049,15 +6084,13 @@ repository:
     beginCaptures:
       1:
         patterns:
-          - &message-accessor-operators
-            match: |-
-              (?x)
-              (?:
-                (\?[:>]?=?) | # 1: optional access/unwrap
-                (![:>]?=?) | # 2: assert/unwrap
-                ([:>]?=?) # 3: regular accessor
+          - match: |-
+              (?x) (?:
+                (?: \?[:>]?=? ) | # 1: optional access/unwrap
+                (?: ![:>]?=? ) | # 2: assert/unwrap
+                (?: (?:::|->)?=? ) # 3: regular accessor
               )
-            captures:
+            captures: &accessor-operators-captures
               1: {name: keyword.operator.optional.ruko}
               2: {name: keyword.operator.unwrap.ruko}
               3: {name: keyword.operator.accessor.ruko}
@@ -6522,7 +6555,7 @@ repository:
           (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
       )
       (?! # selector call
-        \s+ [?!]?[:>]?=? # selector accessor
+        \s+ (?:[?!]|[?!:]:|[?!-]>)?=? # selector accessor
         `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # selector name
         : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
       )
@@ -9643,10 +9676,7 @@ repository:
         ( (?:::|->|\.)=? ) # 3: regular accessor
       )
       (?=\b|<)
-    captures:
-      1: {name: keyword.operator.optional.ruko}
-      2: {name: keyword.operator.unwrap.ruko}
-      3: {name: keyword.operator.accessor.ruko}
+    captures: *accessor-operators-captures
 
   angle-brackets: *generics
 

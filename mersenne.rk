@@ -268,16 +268,16 @@ show class MTRand : Io.Serializer {
     }
 
     // operator definitions
-    oper ()(): f64 = #rand()
+    suffix oper (f64) self() = #rand()
 
-    right oper prec 4 &Io.OutputStream o_stream <- &MTRand mt_rand: &Io.OutputStream {
+    right oper 4 (&Io.OutputStream) (&Io.OutputStream)o_stream <- (&MTRand)mt_rand {
       for let i32 i in 0 ..< N:
         o_stream->write_str((str) mt_rand->state->[i] + '\t');
       o_stream->write_str((str) mt_rand->left);
       return o_stream;
     }
 
-    left oper prec 4 &Io.InputStream i_stream -> &MTRand mt_rand: &Io.InputStream {
+    left oper 4 (&Io.InputStream) (&Io.InputStream)i_stream -> (&MTRand)mt_rand {
       for let i32 i in 0 ..< N {
         let str line = i_stream->read_line();
         mt_rand->state->[i] := (u32) line;
@@ -289,7 +289,7 @@ show class MTRand : Io.Serializer {
       return i_stream;
     }
 
-    right oper prec 4 =(&MTRand o): &MTRand {
+    right oper 4 (&MTRand)self = (&MTRand)o {
       if *self == o: return *self;
       for let i32 i in 0 ..< N: #state->[i] := o->state->[i];
       #left := o->left;
