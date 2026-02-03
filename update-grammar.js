@@ -1,6 +1,8 @@
 import fs from "fs";
 import yaml from "js-yaml";
+import prettier from "prettier";
 import {optimize} from "oniguruma-parser/optimizer";
+
 const {fromEntries, keys} = Object;
 const {isArray} = Array;
 const {stringify} = JSON;
@@ -36,8 +38,9 @@ parsed = stringify(
     }
     return sortKeys(v);
   },
-  4,
 );
+
+parsed = await prettier.format(parsed, {parser: "json", tabWidth: 4});
 
 // parsed = JSON.stringify(parsed, null, 2);
 

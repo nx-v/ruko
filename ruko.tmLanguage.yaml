@@ -1,9 +1,9 @@
 name: Ruko
 scopeName: source.spwn # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
-patterns: [include: "#core"]
+patterns: [{include: "#core"}]
 
-# Last updated: February 2, 2026
+# Last updated: February 3, 2026
 #
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
@@ -375,7 +375,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - applyEndPatternLast: true
         begin: ^\s*(%)(define|undef)\b
         end: $
@@ -411,7 +411,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
-        patterns: [include: "#module-content"]
+        patterns: [{include: "#module-content"}]
       - applyEndPatternLast: true
         begin: ^\s*(%)(pragma|region|endregion|once)\b
         end: $
@@ -419,7 +419,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - applyEndPatternLast: true
         begin: ^\s*(%)(error|warning)\b
         end: $
@@ -437,7 +437,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - applyEndPatternLast: true
         begin: ^\s*(%)(eval|expr|exec)\b
         end: $
@@ -445,7 +445,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - applyEndPatternLast: true
         begin: ^\s*(%)(scope|safe|unsafe|begin|end)\b
         end: $
@@ -453,7 +453,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - applyEndPatternLast: true
         begin: ^\s*(%)(ignore|decl)\b
         end: $
@@ -470,7 +470,7 @@ repository:
         captures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: text.whitespace.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
 
   # Types
 
@@ -1335,27 +1335,27 @@ repository:
         name: constant.numeric.duodecimal.ruko
         begin: |-
           (?ix)\b(0z) # prefix
-            ([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?) # duodecimal digits
+            ([\dab](?:[\dab_]*[\dab])?) # duodecimal digits
         end: $|
         captures:
           1: {name: storage.type.numeric.ruko}
           2: {name: constant.numeric.duodecimal.digits.ruko}
         patterns:
-          - match: (\.)([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?)
+          - match: (\.)([\dab](?:[\dab_]*[\dab])?)
             name: constant.numeric.duodecimal.fraction.ruko
             captures:
               1: {name: punctuation.separator.decimal.ruko}
           - match: |-
               (?ix)(\\?e) # exponent delimiter
               ([+-])? # sign
-              ([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?) # exponent
+              ([\dab](?:[\dab_]*[\dab])?) # exponent
             captures:
               1: {name: keyword.operator.expression.exponent.ruko}
               2: {name: keyword.operator.sign.exponent.ruko}
               3: {name: constant.numeric.duodecimal.exponent.ruko}
           - match: |-
               (?ix)(/) # rational delimiter
-              ([\d↊↋ab](?:[\d↊↋ab_]*[\d↊↋ab])?) # denominator
+              ([\dab](?:[\dab_]*[\dab])?) # denominator
             captures:
               1: {name: punctuation.separator.rational.ruko}
               2: {name: constant.numeric.duodecimal.denominator.ruko}
@@ -1463,7 +1463,7 @@ repository:
         name: constant.language.symbol-type.ruko
         captures:
           1: {name: punctuation.definition.symbol.ruko}
-        patterns: [include: "#strings"]
+        patterns: [{include: "#strings"}]
       - match: (?<=^|['"`()\[\]{}\s]|[)\]}\w\s'"`]\s*[:=])(:)(`?\b[\p{Pd}\w]+\b)
         name: constant.other.symbol.ruko
         captures:
@@ -1472,7 +1472,7 @@ repository:
             name: constant.other.symbol.ruko
             patterns:
               - match: (?<=:)\d\w*
-                patterns: [include: "#numbers"]
+                patterns: [{include: "#numbers"}]
               - include: "#constants"
               - include: "#css-property-values"
               - include: "#unicode-property-values"
@@ -2208,14 +2208,14 @@ repository:
         name: keyword.function.ruko
         begin: \\&(?:(`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b([:.]`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b)*))?\b(?=[(\[{])
         beginCaptures:
-          1: {patterns: [include: "#function-namespace"]}
+          1: {patterns: [{include: "#function-namespace"}]}
         end: $|
-        patterns: [include: "#named-escape-brackets"]
+        patterns: [{include: "#named-escape-brackets"}]
       - match: (\\&)(`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b([:.]`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b)*)\b([,;]|(?=\W))
         name: constant.character.escape.ruko
         captures:
           1: {name: punctuation.terminator.entity.ruko}
-          2: {patterns: [include: "#character-namespace"]}
+          2: {patterns: [{include: "#character-namespace"}]}
           3: {name: punctuation.terminator.entity.ruko}
 
   named-escape-brackets:
@@ -2224,17 +2224,17 @@ repository:
         end: \s*(\))
         captures:
           1: {name: punctuation.definition.group.ruko}
-        patterns: [include: "#named-escape-content"]
+        patterns: [{include: "#named-escape-content"}]
       - begin: (\[)\s*
         end: \s*(\])
         captures:
           1: {name: punctuation.definition.sequence.ruko}
-        patterns: [include: "#named-escape-content"]
+        patterns: [{include: "#named-escape-content"}]
       - begin: ({)\s*
         end: \s*(})
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [include: "#named-escape-content"]
+        patterns: [{include: "#named-escape-content"}]
 
   named-escape-content:
     name: string.unquoted.plain.ruko
@@ -2243,13 +2243,13 @@ repository:
         name: constant.other.function.ruko
         begin: (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b([:.]`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b)*)\b(?=[(\[{])
         beginCaptures:
-          1: {patterns: [include: "#function-namespace"]}
+          1: {patterns: [{include: "#function-namespace"}]}
         end: $|
-        patterns: [include: "#named-escape-brackets"]
+        patterns: [{include: "#named-escape-brackets"}]
       - match: (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b([:.]`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b)*)\b
         name: constant.character.escape.ruko
         captures:
-          1: {patterns: [include: "#character-namespace"]}
+          1: {patterns: [{include: "#character-namespace"}]}
       - match: \b[:.](?=`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b|[(\[{]|$)
         name: punctuation.separator.namespace.ruko
       - include: "#literals"
@@ -2324,9 +2324,6 @@ repository:
           2: {name: constant.character.escape.trailing.ruko}
           3: {name: constant.character.escape.trailing.ruko}
           4: {name: constant.character.escape.trailing.ruko}
-      - comment: Unicode raw codepoint escape sequences
-        match: \\x0*\h{1,6}
-        name: constant.character.escape.hexadecimal.ruko
       - comment: Hexadecimal escape sequences
         match: \\u0*\h{1,4}
         name: constant.character.escape.unicode.ruko
@@ -2334,26 +2331,29 @@ repository:
         match: \\U0*\h{1,8}
         name: constant.character.escape.utf32.ruko
       - comment: Binary escape sequences
-        match: \\b0*[01]{1,21}
+        match: \\b0*(?:[01]|1[01]{1,19}|10000[01]{16})
         name: constant.character.escape.binary.ruko
       - comment: Ternary escape sequences
-        match: \\t0*[012]{1,13}
+        match: \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01])
         name: constant.character.escape.ternary.ruko
       - comment: Quaternary escape sequences
-        match: \\q0*[0-3]{1,11}
+        match: \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8})
         name: constant.character.escape.quaternary.ruko
       - comment: Senary escape sequences
-        match: \\s0*[0-5]{1,8}
+        match: \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01])
         name: constant.character.escape.senary.ruko
       - comment: Octal escape sequences
-        match: \\o0*[0-7]{1,7}
+        match: \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5})
         name: constant.character.escape.octal.ruko
-      - comment: Duodecimal escape sequences (4588A7)
-        match: \\z0*(?i:[\d↊↋ab]{1,6})
-        name: constant.character.escape.duodecimal.ruko
       - comment: Decimal escape sequences
-        match: \\0*\d{1,7}
+        match: \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])
         name: constant.character.escape.decimal.ruko
+      - comment: Duodecimal escape sequences
+        match: \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7])
+        name: constant.character.escape.duodecimal.ruko
+      - comment: Hexadecimal escape sequences
+        match: \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4})
+        name: constant.character.escape.hexadecimal.ruko
 
   # Embedded expressions
 
@@ -2379,7 +2379,7 @@ repository:
         name: meta.embedded.expression.ruko
         captures:
           1: {name: punctuation.definition.variable.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - comment: Interpolated expression
         applyEndPatternLast: true
         name: meta.embedded.expression.ruko
@@ -2511,13 +2511,13 @@ repository:
           1: {name: punctuation.definition.anchor.ruko}
           2:
             name: keyword.operator.prefix.ruko
-            patterns: [include: "#type-parameter-operators"]
+            patterns: [{include: "#type-parameter-operators"}]
           3:
             name: variable.parameter.ruko
-            patterns: [include: "#constants"]
+            patterns: [{include: "#constants"}]
           4:
             name: keyword.operator.suffix.ruko
-            patterns: [include: "#type-parameter-operators"]
+            patterns: [{include: "#type-parameter-operators"}]
       - name: meta.embedded.placeholder.ruko
         begin: (\@{)\s*
         end: \s*(})
@@ -2537,7 +2537,7 @@ repository:
     end: $|
     captures:
       1: {name: punctuation.definition.directive.ruko}
-    patterns: [include: "#format-syntax"]
+    patterns: [{include: "#format-syntax"}]
 
   format-syntax:
     comment: Format specifier language, inspired by MS-DOS, Bash and Python's f-strings.
@@ -2682,13 +2682,13 @@ repository:
       - comment: allow nesting of brackets but don't capture
         begin: \(
         end: \)
-        patterns: [include: "#bracketed-patterns"]
+        patterns: [{include: "#bracketed-patterns"}]
       - begin: \[
         end: \]
-        patterns: [include: "#bracketed-patterns"]
+        patterns: [{include: "#bracketed-patterns"}]
       - begin: \{
         end: \}
-        patterns: [include: "#bracketed-patterns"]
+        patterns: [{include: "#bracketed-patterns"}]
 
   fuzzy-expression:
     patterns:
@@ -2845,7 +2845,7 @@ repository:
             beginCaptures:
               1: {name: punctuation.separator.key-value.ruko}
             end: (?=[,;}]|)|$
-            patterns: [include: "#regexp-patterns"]
+            patterns: [{include: "#regexp-patterns"}]
           - include: "#fuzzy-expression"
       - match: \\[abefrntv]
         name: constant.character.escape.ruko
@@ -2898,7 +2898,7 @@ repository:
           1: {name: punctuation.section.expression.ruko}
           2: {name: keyword.control.ruko}
           3: {name: punctuation.separator.colon.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - include: "#regexp-comment"
       - comment: Lookahead assertion
         begin: (\(\?=)
@@ -2906,28 +2906,28 @@ repository:
         contentName: meta.group.look-ahead.ruko
         captures:
           1: {name: punctuation.definition.group.look-ahead.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Lookbehind assertion
         begin: (\(\?<=)
         end: (\))
         contentName: meta.group.look-behind.ruko
         captures:
           1: {name: punctuation.definition.group.look-behind.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Negative lookahead assertion
         begin: (\(\?!)
         end: (\))
         contentName: meta.group.negative-look-ahead.ruko
         captures:
           1: {name: punctuation.definition.group.negative-look-ahead.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Negative lookbehind assertion
         begin: (\(\?<!)
         end: (\))
         contentName: meta.group.negative-look-behind.ruko
         captures:
           1: {name: punctuation.definition.group.negative-look-behind.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Directive group
         begin: (\(\?)(?=%)
         captures:
@@ -2943,7 +2943,7 @@ repository:
         contentName: meta.group.longest.ruko
         captures:
           1: {name: punctuation.definition.group.longest.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Back-reference groups
         begin: (\(\?&(?:([+-]?\d+)|(`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(:)?)
         end: (\))
@@ -2951,9 +2951,9 @@ repository:
         captures:
           1: {name: punctuation.definition.group.back-reference.ruko}
           2: {name: constant.numeric.index.ruko}
-          3: {patterns: [include: "#variables"]}
+          3: {patterns: [{include: "#variables"}]}
           4: {name: punctuation.separator.colon.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Back-reference groups
         begin: (\(\?&)
         end: (\))
@@ -2979,7 +2979,7 @@ repository:
           3: {name: keyword.control.recursion.ruko}
           4: {name: keyword.other.flag.ruko}
           5: {name: punctuation.separator.colon.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Call-outs
         begin: (\(\?)(?={)
         end: (\))
@@ -2994,9 +2994,9 @@ repository:
               1: {name: punctuation.definition.group.call-out.ruko}
               2: {name: keyword.operator.range.ruko}
               3: {name: punctuation.definition.tag.ruko}
-              4: {patterns: [include: "#function-names"]}
+              4: {patterns: [{include: "#function-names"}]}
               5: {name: punctuation.definition.tag.ruko}
-            patterns: [include: $self]
+            patterns: [{include: $self}]
           - include: "#regexp-patterns"
       - comment: Atomic groups
         begin: (\(\?>)
@@ -3004,21 +3004,21 @@ repository:
         contentName: meta.group.atomic.ruko
         captures:
           1: {name: punctuation.definition.group.atomic.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Non-capturing groups
         begin: (\(\?:)
         end: (\))
         contentName: meta.group.non-capturing.ruko
         captures:
           1: {name: punctuation.definition.group.non-capturing.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Branch groups
         begin: (\(\?)(?=[(|])
         end: (\))
         contentName: meta.group.branch.ruko
         captures:
           1: {name: punctuation.definition.group.branch.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
       - comment: Absent groups
         begin: (\(\?~(\|))
         end: (\))
@@ -3036,14 +3036,14 @@ repository:
         contentName: meta.group.extended-character-class.negated.ruko
         captures:
           1: {name: punctuation.definition.character-class.negated.ruko}
-        patterns: [include: "#regexp-character-group"]
+        patterns: [{include: "#regexp-character-group"}]
       - comment: Extended character classes (non-negated)
         begin: (\(\?\[)
         end: (\]\))
         contentName: meta.group.extended-character-class.ruko
         captures:
           1: {name: punctuation.definition.character-class.ruko}
-        patterns: [include: "#regexp-character-group"]
+        patterns: [{include: "#regexp-character-group"}]
       - comment: Named groups (angle brackets)
         begin: (\(\?(?=<(?![!=])))
         end: (\))
@@ -3078,7 +3078,7 @@ repository:
         contentName: meta.group.ruko
         captures:
           1: {name: punctuation.definition.group.ruko}
-        patterns: [include: "#regexp-patterns"]
+        patterns: [{include: "#regexp-patterns"}]
 
   regexp-character-group:
     patterns:
@@ -3113,13 +3113,13 @@ repository:
         contentName: constant.other.character-class.ruko
         captures:
           1: {name: punctuation.definition.character-class.ruko}
-        patterns: [include: "#attribute-selectors"]
+        patterns: [{include: "#attribute-selectors"}]
       - begin: (\\P{)
         end: (})
         contentName: constant.other.character-class.negated.ruko
         captures:
           1: {name: punctuation.definition.character-class.negated.ruko}
-        patterns: [include: "#attribute-selectors"]
+        patterns: [{include: "#attribute-selectors"}]
       - match: (\\p)(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
         name: constant.other.character-class.ruko
         captures:
@@ -3168,14 +3168,15 @@ repository:
       - match: |-
           (?x)
           ( # from
-              \\0*\d{1,7} # decimal escape
-            | \\x\h{1,6} | \\u\h{1,4} | \\U\h{1,8} # hex escape
-            | \\b0*[01]{1,21} # binary escape
-            | \\t0*[012]{1,13} # ternary escape
-            | \\q0*[0-3]{1,16} # quaternary escape
-            | \\s0*[0-5]{1,8} # senary escape
-            | \\o0*[0-7]{1,7} # octal escape
-            | \\z0*[\d↊↋ab]{1,6} # duodecimal escape
+              \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01]) # decimal escape
+            | \\u\h{1,4} | \\U\h{1,8} # hex escape
+            | \\b0*(?:[01]|1[01]{1,19}|10000[01]{16}) # binary escape
+            | \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]) # ternary escape
+            | \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}) # quaternary escape
+            | \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]) # senary escape
+            | \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}) # octal escape
+            | \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7]) # duodecimal escape
+            | \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4}) # hexadecimal escape
             | \\[cC][@-_] # control character
             | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
             | \\(?:[abefprntv[^a-zA-Z]]) # any escape character
@@ -3183,14 +3184,15 @@ repository:
           )
             \s*(>?->?)\s* # range
           ( # to
-              \\0*\d{1,7} # decimal escape
-            | \\x\h{1,6} | \\u\h{1,4} | \\U\h{1,8} # hex escape
-            | \\b0*[01]{1,21} # binary escape
-            | \\t0*[012]{1,13} # ternary escape
-            | \\q0*[0-3]{1,16} # quaternary escape
-            | \\s0*[0-5]{1,8} # senary escape
-            | \\o0*[0-7]{1,7} # octal escape
-            | \\z0*[\d↊↋ab]{1,6} # duodecimal escape
+              \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01]) # decimal escape
+            | \\u\h{1,4} | \\U\h{1,8} # hex escape
+            | \\b0*(?:[01]|1[01]{1,19}|10000[01]{16}) # binary escape
+            | \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]) # ternary escape
+            | \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}) # quaternary escape
+            | \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]) # senary escape
+            | \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}) # octal escape
+            | \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7]) # duodecimal escape
+            | \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4}) # hexadecimal escape
             | \\[cC][@-_] # control character
             | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
             | \\(?:[abefprntv[^a-zA-Z]]) # any escape character
@@ -3205,7 +3207,7 @@ repository:
                 | 0t[012] # ternary
                 | 0q[0-3]+ # quaternary
                 | 0s[0-5]+ # senary
-                | 0z(?i:[\d↊↋ab]+) # duodecimal
+                | 0z(?i:[\dab]+) # duodecimal
                 | 0x\h+ # hexadecimal
               )
             )
@@ -3244,7 +3246,7 @@ repository:
         contentName: constant.other.character-class.posix.ruko
         captures:
           1: {name: punctuation.definition.character-class.posix.ruko}
-        patterns: [include: "#attribute-selectors"]
+        patterns: [{include: "#attribute-selectors"}]
       - begin: (\[\^)
         end: (\])
         contentName: constant.other.character-class.negated.ruko
@@ -3288,7 +3290,7 @@ repository:
         captures:
           1:
             name: entity.other.attribute-name.key.ruko
-            patterns: [include: "#unicode-property-keys"]
+            patterns: [{include: "#unicode-property-keys"}]
           2: {name: keyword.operator.comparison.ruko}
           3: {name: keyword.operator.match.ruko}
           4: {name: keyword.operator.relation.ruko}
@@ -3305,7 +3307,7 @@ repository:
               1: {name: punctuation.definition.regexp.begin.ruko}
               2: {name: punctuation.definition.regexp.end.ruko}
               3: {name: keyword.other.flag.ruko}
-            patterns: [include: "#regexp-patterns"]
+            patterns: [{include: "#regexp-patterns"}]
           - include: "#constants"
           - include: "#numbers"
           - include: "#unicode-property-values"
@@ -3345,22 +3347,20 @@ repository:
         captures:
           1: {name: punctuation.definition.splice.curly.ruko}
           2: {name: punctuation.definition.splice.curly.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: \s*(<\[)
         end: \s*(\]>)
         name: meta.splicing.ruko
         captures:
           1: {name: punctuation.definition.splice.square.ruko}
           2: {name: punctuation.definition.splice.square.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
 
   # XML (JSX)
 
   xml-tags:
     applyEndPatternLast: true
-    comment:
-      Only captured when next to opening brackets, commas, semicolons, keywords, and operators.
-      XML also supports functional components.
+    comment: Only captured when next to opening brackets, commas, semicolons, keywords, and operators. XML also supports functional components.
     begin: |-
       (?x)(?<=
         (?:
@@ -3379,7 +3379,7 @@ repository:
       ) \s*
       (?=<(?:`?[\p{L}\p{Nl}\p{Pc}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
     end: $|
-    patterns: [include: "#tag-component-name"]
+    patterns: [{include: "#tag-component-name"}]
 
   tag-component-name:
     patterns:
@@ -3404,7 +3404,7 @@ repository:
             name: meta.expression.tag.ruko
             captures:
               1: {name: punctuation.definition.splice.round.ruko}
-            patterns: [include: $self]
+            patterns: [{include: $self}]
           - include: "#tag-attributes"
           - include: "#tag-termination"
           - match: (?<=</)(>)
@@ -3428,12 +3428,12 @@ repository:
           1: {name: punctuation.definition.tag.ruko}
           2:
             name: entity.name.tag.ruko
-            patterns: [include: "#html-tag-names"]
+            patterns: [{include: "#html-tag-names"}]
         endCaptures:
           0: {name: meta.tag.ruko}
           1:
             name: entity.name.tag.ruko
-            patterns: [include: "#html-tag-names"]
+            patterns: [{include: "#html-tag-names"}]
           2: {name: punctuation.definition.tag.ruko}
           3: {name: punctuation.definition.tag.ruko}
           4: {name: invalid.illegal.termination.ruko}
@@ -3462,7 +3462,7 @@ repository:
     captures:
       1: {name: punctuation.definition.comment.ruko}
     name: comment.block.html.ruko
-    patterns: [include: "#xml-comments"]
+    patterns: [{include: "#xml-comments"}]
 
   tag-termination:
     comment: uses non consuming search for </ in </tag>
@@ -3495,7 +3495,7 @@ repository:
         name: entity.other.attribute-name.ruko
         patterns:
           - match: '[\p{Pd}\w]+'
-            patterns: [include: "#css-property-keys"]
+            patterns: [{include: "#css-property-keys"}]
           - &style-square-brackets
             begin: (\[)
             end: (\])
@@ -3526,7 +3526,7 @@ repository:
     endCaptures:
       1: {name: punctuation.definition.block.ruko}
     name: meta.attribute.style.ruko
-    patterns: [include: "#style-properties"]
+    patterns: [{include: "#style-properties"}]
 
   attribute-assignment:
     applyEndPatternLast: true
@@ -3535,7 +3535,7 @@ repository:
       1: {name: punctuation.separator.key-value.ruko}
     end: $|
     name: meta.attribute.assignment.ruko
-    patterns: [include: "#attribute-values"]
+    patterns: [{include: "#attribute-values"}]
 
   attribute-values:
     patterns:
@@ -3607,14 +3607,14 @@ repository:
       - match: |-
           (?xi)
           (&)(?:
-              (\# 0*\d{1,7}) # decimal
-            | (\#b0*[01]{1,16}) # binary
-            | (\#t0*[0123]{1,20}) # ternary
-            | (\#q0*[0-3]{1,18}) # quaternary
-            | (\#s0*[0-5]{1,14}) # senary
-            | (\#o0*[0-7]{1,11}) # octal
-            | (\#z0*[\d↊↋ab]{1,10}) # duodecimal
-            | (\#x0*(?:10\h{6}|\h{1,5})) # hexadecimal
+              (\# 0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])) # decimal
+            | (\#b0*(?:[01]|1[01]{1,19}|10000[01]{16})) # binary
+            | (\#t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01])) # ternary
+            | (\#q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8})) # quaternary
+            | (\#s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01])) # senary
+            | (\#o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5})) # octal
+            | (\#z0*(?:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7])) # duodecimal
+            | (\#x0*(?:\h|[1-f]\h{1,4}|10\h{4})) # hexadecimal
             | (\b[\p{Pd}\w]+\b) # named
             | ([^;\s]++) # invalid
           )(;)
@@ -3631,7 +3631,7 @@ repository:
           9: {name: constant.character.escape.hexadecimal.ruko}
           10:
             name: constant.character.entity.named.ruko
-            patterns: [include: "#xml-entity-names"]
+            patterns: [{include: "#xml-entity-names"}]
           11: {name: invalid.illegal.entity.ruko}
           12: {name: punctuation.definition.entity.ruko}
       - comment: Ambiguous & not part of an entity
@@ -3648,14 +3648,14 @@ repository:
         name: meta.embedded.markdown
         captures:
           1: {name: punctuation.section.markdown.ruko}
-        patterns: [include: "#markdown-content"]
+        patterns: [{include: "#markdown-content"}]
       - comment: line-break markdown
         begin: \s*(\\\\)(?=\s|$)
         while: ^\s*(\\\\)(?=\s|$)
         name: meta.embedded.markdown
         captures:
           1: {name: punctuation.definition.markdown.ruko}
-        patterns: [include: "#markdown-content"]
+        patterns: [{include: "#markdown-content"}]
 
   markdown-content:
     patterns:
@@ -3676,7 +3676,7 @@ repository:
     define: &heading
       captures:
         1: {name: punctuation.definition.heading.markdown}
-      patterns: [include: "#markdown-content"]
+      patterns: [{include: "#markdown-content"}]
 
     patterns:
       - begin: &heading-6 (?<=^|\s)(\#{6}\s*)(?!\#)(?=\s|$)
@@ -3711,7 +3711,7 @@ repository:
     captures:
       1: {name: punctuation.definition.quote.markdown}
     name: markup.quote.markdown
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   unordered-list:
     comment: "- unordered list"
@@ -3720,7 +3720,7 @@ repository:
     captures:
       1: {name: punctuation.definition.list.unnumbered.markdown}
     name: markup.list.unnumbered.markdown
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   ordered-list:
     comment: "+ ordered list"
@@ -3729,7 +3729,7 @@ repository:
     captures:
       1: {name: punctuation.definition.list.numbered.markdown}
     name: markup.list.numbered.markdown
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   definition-list:
     comment: "+ definition list"
@@ -3738,7 +3738,7 @@ repository:
     captures:
       1: {name: punctuation.definition.list.definition.markdown}
     name: markup.list.definition.markdown
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   inline-styles:
     begin: (!{)\s*
@@ -3793,7 +3793,7 @@ repository:
       - match: '[\p{P}\p{S}&&[^$\\()\[\]{}]]+'
         name: keyword.operator.math.markdown
         captures:
-          0: {patterns: [include: "#operators"]}
+          0: {patterns: [{include: "#operators"}]}
       - include: "#escapes-embedded"
       - include: "#strings"
       - include: "#punctuation"
@@ -3805,7 +3805,7 @@ repository:
       1: {name: punctuation.definition.entity.math.markdown}
       2:
         name: constant.character.math.markdown
-        patterns: [include: text.tex.latex]
+        patterns: [{include: text.tex.latex}]
       3: {name: punctuation.definition.entity.math.markdown}
 
   math-commands:
@@ -3815,7 +3815,7 @@ repository:
       1: {name: punctuation.definition.command.math.markdown}
       2:
         name: entity.name.tag.function.markdown
-        patterns: [include: text.tex.latex]
+        patterns: [{include: text.tex.latex}]
     end: $|
     patterns:
       - comment: for commands like \sum( ... )
@@ -3849,7 +3849,7 @@ repository:
     name: meta.inline.code.markdown
     captures:
       1: {name: punctuation.definition.block.markdown}
-    patterns: [include: $self]
+    patterns: [{include: $self}]
 
   ampersand:
     comment: Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.
@@ -3863,7 +3863,9 @@ repository:
           1: {name: punctuation.definition.bold.markdown}
         end: (?<=\S)(\*\*)
         name: markup.bold.markdown
-        patterns: &bold # everything except bold
+        patterns:
+          # everything except bold
+          &bold
           - include: "#ampersand"
           - include: "#bracket"
           - include: "#evaluated-code"
@@ -3901,7 +3903,9 @@ repository:
           1: {name: punctuation.definition.italic.markdown}
         end: (?<=\S)(\1)((?!\1)|(?=\1\1))
         name: markup.italic.markdown
-        patterns: &italic # everything except italic
+        patterns:
+          # everything except italic
+          &italic
           - include: "#ampersand"
           - include: "#bracket"
           - include: "#evaluated-code"
@@ -4154,7 +4158,7 @@ repository:
             captures:
               1: {name: punctuation.definition.brace.round.markdown}
               2: {name: punctuation.definition.brace.round.markdown}
-            patterns: [include: "#tag-attributes"]
+            patterns: [{include: "#tag-attributes"}]
           - comment: attribute selector inside span !!...!!
             begin: (\[)
             end: (\])
@@ -4178,7 +4182,7 @@ repository:
           - comment: tag name inside span !!...!!
             match: (?<=!\()\b[\p{Pd}\w]+\b
             name: entity.name.tag.ruko
-            patterns: [include: "#html-tag-names"]
+            patterns: [{include: "#html-tag-names"}]
           - include: "#style-selectors"
       - include: "#markdown-content"
 
@@ -4192,7 +4196,7 @@ repository:
   link-email:
     match: ((?:mailto:)?[a-zA-Z\d.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z\d-]+(?:\.[a-zA-Z\d-]+)*)
     name: meta.link.email.lt-gt.markdown
-    patterns: [include: "#string-escapes"]
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: punctuation.definition.link.markdown}
       2: {name: markup.underline.link.markdown}
@@ -4201,7 +4205,7 @@ repository:
   link-inet:
     match: ((?:https?|ftp)://.*?)
     name: meta.link.inet.markdown
-    patterns: [include: "#string-escapes"]
+    patterns: [{include: "#string-escapes"}]
     captures:
       1: {name: punctuation.definition.link.markdown}
       2: {name: markup.underline.link.markdown}
@@ -4217,7 +4221,7 @@ repository:
         name: string.other.link.description.markdown
         captures:
           1: {name: punctuation.definition.string.begin.markdown}
-        patterns: [include: "#markdown-content"]
+        patterns: [{include: "#markdown-content"}]
       - begin: (?<=\]\s*)(\() # Opening paren for url
         end: (\))
         name: markup.underline.link.markdown
@@ -4233,7 +4237,7 @@ repository:
         name: constant.other.reference.link.markdown
         captures:
           1: {name: punctuation.definition.constant.markdown}
-        patterns: [include: "#string-escapes"]
+        patterns: [{include: "#string-escapes"}]
       - include: "#space"
 
   link-inline:
@@ -4247,7 +4251,7 @@ repository:
         name: string.other.link.title.markdown
         captures:
           1: {name: punctuation.definition.link.markdown}
-        patterns: [include: "#markdown-content"]
+        patterns: [{include: "#markdown-content"}]
       - begin: (?<=\]\s*)(\() # Opening paren for url
         end: (\))
         name: markup.underline.link.markdown
@@ -4262,7 +4266,7 @@ repository:
         name: constant.other.reference.link.markdown
         captures:
           1: {name: punctuation.definition.constant.markdown}
-        patterns: [include: "#string-escapes"]
+        patterns: [{include: "#string-escapes"}]
       - include: "#space"
 
   link-ref-shortcut:
@@ -4271,7 +4275,7 @@ repository:
     name: string.other.link.title.markdown
     captures:
       1: {name: punctuation.definition.string.begin.markdown}
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   footnote:
     begin: (\[\^)
@@ -4279,7 +4283,7 @@ repository:
     name: constant.other.reference.link.markdown
     captures:
       1: {name: punctuation.definition.footnote.markdown}
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   footnote-definition:
     begin: ^(\[\^)
@@ -4287,7 +4291,7 @@ repository:
     name: constant.other.reference.link.markdown
     captures:
       1: {name: punctuation.definition.footnote.markdown}
-    patterns: [include: "#markdown-content"]
+    patterns: [{include: "#markdown-content"}]
 
   citation:
     begin: (\[@)([^\]\s]+)
@@ -4357,17 +4361,17 @@ repository:
         captures:
           1:
             name: entity.name.directory.ruko
-            patterns: [include: "#glob-syntax"]
+            patterns: [{include: "#glob-syntax"}]
       - comment: file names & extensions
         match: ([^\n\\/:"<>\|]+?)(\.)([^\n?\\/:"<>\|]+)?
         captures:
           1:
             name: variable.language.filename.ruko
-            patterns: [include: "#glob-syntax"]
+            patterns: [{include: "#glob-syntax"}]
           2: {name: punctuation.type.ruko}
           3:
             name: support.type.extension.ruko
-            patterns: [include: "#glob-syntax"]
+            patterns: [{include: "#glob-syntax"}]
       - include: "#embedded"
       - include: "#space"
       - include: "#illegal"
@@ -4656,37 +4660,37 @@ repository:
     patterns:
       - begin: \b((?i:js))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.js"]
+        patterns: [{include: "source.js"}]
       - begin: \b((?i:jsx))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.jsx"]
+        patterns: [{include: "source.jsx"}]
       - begin: \b((?i:ts))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.ts"]
+        patterns: [{include: "source.ts"}]
       - begin: \b((?i:tsx))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.tsx"]
+        patterns: [{include: "source.tsx"}]
       - begin: \b((?i:glsl))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.glsl"]
+        patterns: [{include: "source.glsl"}]
       - begin: \b((?i:wgsl))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.wgsl"]
+        patterns: [{include: "source.wgsl"}]
       - begin: \b((?i:py))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.python"]
+        patterns: [{include: "source.python"}]
       - begin: \b((?i:rb))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.ruby"]
+        patterns: [{include: "source.ruby"}]
       - begin: \b((?i:php))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.php"]
+        patterns: [{include: "source.php"}]
       - begin: \b((?i:java))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.java"]
+        patterns: [{include: "source.java"}]
       - begin: \b((?i:c))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.c"]
+        patterns: [{include: "source.c"}]
       - begin: \b((?i:cpp))\b\s*({)\s*
         <<: *script-blocks
         patterns:
@@ -4695,147 +4699,145 @@ repository:
           - include: "source.cpp"
       - begin: \b((?i:cs))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.cs"]
+        patterns: [{include: "source.cs"}]
       - begin: \b((?i:go))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.go"]
+        patterns: [{include: "source.go"}]
       - begin: \b((?i:rs))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.rust"]
+        patterns: [{include: "source.rust"}]
       - begin: \b((?i:swift))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.swift"]
+        patterns: [{include: "source.swift"}]
       - begin: \b((?i:kt))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.kotlin"]
+        patterns: [{include: "source.kotlin"}]
       - begin: \b((?i:scala))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.scala"]
+        patterns: [{include: "source.scala"}]
       - begin: \b((?i:hs))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.haskell"]
+        patterns: [{include: "source.haskell"}]
       - begin: \b((?i:lua))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.lua"]
+        patterns: [{include: "source.lua"}]
       - begin: \b((?i:dart))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.dart"]
+        patterns: [{include: "source.dart"}]
       - begin: \b((?i:objc))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.objc"]
+        patterns: [{include: "source.objc"}]
       - begin: \b((?i:objcpp))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.objcpp"]
+        patterns: [{include: "source.objcpp"}]
       - begin: \b((?i:perl))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.perl"]
+        patterns: [{include: "source.perl"}]
       - begin: \b((?i:r))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.r"]
+        patterns: [{include: "source.r"}]
       - begin: \b((?i:sh))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.shell"]
+        patterns: [{include: "source.shell"}]
       - begin: \b((?i:sql))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.sql"]
+        patterns: [{include: "source.sql"}]
       - begin: \b((?i:html))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "text.html.basic"]
+        patterns: [{include: "text.html.basic"}]
       - begin: \b((?i:xml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "text.xml"]
+        patterns: [{include: "text.xml"}]
       - begin: \b((?i:css))\b\s*({)\s
         <<: *script-blocks
-        patterns: [include: "source.css"]
+        patterns: [{include: "source.css"}]
       - begin: \b((?i:scss))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.scss"]
+        patterns: [{include: "source.scss"}]
       - begin: \b((?i:less))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.less"]
+        patterns: [{include: "source.less"}]
       - begin: \b((?i:sass))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.sass"]
+        patterns: [{include: "source.sass"}]
       - begin: \b((?i:gql))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.graphql"]
+        patterns: [{include: "source.graphql"}]
       - begin: \b((?i:css))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.css"]
+        patterns: [{include: "source.css"}]
       - begin: \b((?i:json))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.json"]
+        patterns: [{include: "source.json"}]
       - begin: \b((?i:xml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "text.xml"]
+        patterns: [{include: "text.xml"}]
       - begin: \b((?i:yaml|yml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.yaml"]
+        patterns: [{include: "source.yaml"}]
       - begin: \b((?i:markdown|md))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "text.html.markdown"]
+        patterns: [{include: "text.html.markdown"}]
       - begin: \b((?i:latex|tex))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "text.tex.latex"]
+        patterns: [{include: "text.tex.latex"}]
       - begin: \b((?i:wa(?:s[im]|t)))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.wat"]
+        patterns: [{include: "source.wat"}]
       - begin: \b((?i:cljs?))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.clojure"]
+        patterns: [{include: "source.clojure"}]
       - begin: \b((?i:make(?:file)?))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.makefile"]
+        patterns: [{include: "source.makefile"}]
       - begin: \b((?i:hs))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.haskell"]
+        patterns: [{include: "source.haskell"}]
       - begin: \b((?i:ml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.ml"]
+        patterns: [{include: "source.ml"}]
       - begin: \b((?i:ocaml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.ocaml"]
+        patterns: [{include: "source.ocaml"}]
       - begin: \b((?i:fs))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.fsharp"]
+        patterns: [{include: "source.fsharp"}]
       - begin: \b((?i:mo))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.motoko"]
+        patterns: [{include: "source.motoko"}]
       - begin: \b((?i:sol))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.solidity"]
+        patterns: [{include: "source.solidity"}]
       - begin: \b((?i:groovy))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.groovy"]
+        patterns: [{include: "source.groovy"}]
       - begin: \b((?i:vb))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.vbnet"]
+        patterns: [{include: "source.vbnet"}]
       - begin: \b((?i:jl))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.julia"]
+        patterns: [{include: "source.julia"}]
       - begin: \b((?i:elm))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.elm"]
+        patterns: [{include: "source.elm"}]
       - begin: \b((?i:exs?))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.elixir"]
+        patterns: [{include: "source.elixir"}]
       - begin: \b((?i:sh))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.shell"]
+        patterns: [{include: "source.shell"}]
       - begin: \b((?i:ps1?))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.powershell"]
+        patterns: [{include: "source.powershell"}]
       - begin: \b((?i:yaml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.yaml"]
+        patterns: [{include: "source.yaml"}]
       - begin: \b((?i:toml))\b\s*({)\s*
         <<: *script-blocks
-        patterns: [include: "source.toml"]
+        patterns: [{include: "source.toml"}]
 
   operator-declarations:
-    comment:
-      "Operator declarations. Format: <prec> <associativity> <fixity> <operator> (: <return type>).
-      Return types must be postfix since there may not be brackets in operator declarations."
+    comment: "Operator declarations. Format: <prec> <associativity> <fixity> <operator> (: <return type>). Return types must be postfix since there may not be brackets in operator declarations."
     patterns:
       - include: "#type-cast-operators"
       - include: "#comments"
@@ -4847,7 +4849,7 @@ repository:
         beginCaptures:
           1: {name: punctuation.definition.annotation.ruko}
         name: meta.type.ruko
-        patterns: [include: "#types"]
+        patterns: [{include: "#types"}]
       - match: |-
           (?x)
 
@@ -4929,7 +4931,7 @@ repository:
               - include: "#operators"
           3:
             name: variable.parameter.ruko
-            patterns: [include: "#constants"]
+            patterns: [{include: "#constants"}]
           4:
             patterns:
               - include: "#type-operators"
@@ -4957,7 +4959,7 @@ repository:
       end: $|
       patterns:
         - match: '[\p{Pd}\w]+'
-          patterns: [include: "#css-property-keys"]
+          patterns: [{include: "#css-property-keys"}]
         - &style-square-brackets
           begin: (\[)
           end: (\])
@@ -4974,7 +4976,7 @@ repository:
         name: entity.name.tag.ruko
         patterns:
           - match: '[\p{Pd}\w]+'
-            patterns: [include: "#html-tag-names"]
+            patterns: [{include: "#html-tag-names"}]
           - *style-square-brackets
       - match: \s*(::?|[.#~&*%$|^@?])(?=[\w$'"`])
         name: punctuation.definition.entity.ruko
@@ -5212,7 +5214,7 @@ repository:
     end: ^|(?=\*/)|(?=\3$)
     beginCaptures:
       1: {name: storage.type.class.jsdoc}
-    patterns: [include: "#jsdoc-name-path-scopes"]
+    patterns: [{include: "#jsdoc-name-path-scopes"}]
 
   jsdoc-simple:
     comment: "@tag"
@@ -5246,7 +5248,7 @@ repository:
     end: ^|(?=\*/)|(?=\4$)
     beginCaptures:
       1: {name: storage.type.class.jsdoc}
-    patterns: [include: "#jsdoc-typedef-scopes"]
+    patterns: [{include: "#jsdoc-typedef-scopes"}]
 
   jsdoc-inline-tags:
     name: meta.tag.inline.jsdoc
@@ -5335,7 +5337,7 @@ repository:
         begin: \.(?="|')
         end: (?=.)
         applyEndPatternLast: true
-        patterns: [include: "#jsdoc-string"]
+        patterns: [{include: "#jsdoc-string"}]
 
   jsdoc-string:
     name: string.jsdoc
@@ -5435,7 +5437,7 @@ repository:
         )
       )
     captures:
-      1: {patterns: [include: "#function-names"]}
+      1: {patterns: [{include: "#function-names"}]}
 
   piped-function-calls:
     patterns:
@@ -5546,7 +5548,7 @@ repository:
         captures:
           1:
             name: meta.function.name.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{include: "#function-names"}]
       - comment: Piped function calls
         name: meta.function.arguments.ruko
         match: |-
@@ -5596,7 +5598,7 @@ repository:
         captures:
           1:
             name: meta.function.name.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{include: "#function-names"}]
 
   parenless-function-calls:
     comment: Normal (bracketed or bracketless) function calls
@@ -5782,7 +5784,7 @@ repository:
     captures:
       1:
         name: meta.function.name.ruko
-        patterns: [include: "#function-names"]
+        patterns: [{include: "#function-names"}]
 
   function-calls:
     patterns:
@@ -6059,7 +6061,7 @@ repository:
     captures:
       1:
         name: meta.function.name.ruko
-        patterns: [include: "#function-names"]
+        patterns: [{include: "#function-names"}]
 
   selector-calls:
     applyEndPatternLast: true
@@ -6202,11 +6204,11 @@ repository:
             patterns:
               - include: "#declarations"
               - include: "#types"
-          2: {patterns: [include: "#type-parameter-operators"]}
+          2: {patterns: [{include: "#type-parameter-operators"}]}
           3:
             name: variable.parameter.ruko
-            patterns: [include: "#constants"]
-          4: {patterns: [include: "#type-parameter-operators"]}
+            patterns: [{include: "#constants"}]
+          4: {patterns: [{include: "#type-parameter-operators"}]}
 
   binding-parameters:
     patterns:
@@ -6373,11 +6375,11 @@ repository:
         patterns:
           - include: "#declarations"
           - include: "#types"
-      2: {patterns: [include: "#type-parameter-operators"]}
+      2: {patterns: [{include: "#type-parameter-operators"}]}
       3:
         name: variable.parameter.ruko
-        patterns: [include: "#constants"]
-      4: {patterns: [include: "#type-parameter-operators"]}
+        patterns: [{include: "#constants"}]
+      4: {patterns: [{include: "#type-parameter-operators"}]}
       5: {name: punctuation.definition.key-value.ruko}
 
   # Variables
@@ -6650,10 +6652,10 @@ repository:
         captures:
           1:
             name: punctuation.separator.accessor.ruko
-            patterns: [include: "#accessor-operators"]
+            patterns: [{include: "#accessor-operators"}]
           2:
             name: entity.name.function.member.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{include: "#function-names"}]
       - match: |-
           (?x)
           (?<=\\?)
@@ -6693,7 +6695,7 @@ repository:
         captures:
           1:
             name: entity.name.function.ruko
-            patterns: [include: "#function-names"]
+            patterns: [{include: "#function-names"}]
       - include: "#operators"
       - include: $self
 
@@ -7145,7 +7147,7 @@ repository:
             )
           )
         captures:
-          1: {patterns: [include: "#modifiers"]}
+          1: {patterns: [{include: "#modifiers"}]}
 
   modifiers:
     patterns:
@@ -7462,7 +7464,7 @@ repository:
         end: $|
         beginCaptures:
           1: {name: keyword.control.module.ruko}
-        patterns: [include: "#module-content"]
+        patterns: [{include: "#module-content"}]
       - applyEndPatternLast: true
         begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(show|hide)\b\s*
         end: $|
@@ -8222,7 +8224,7 @@ repository:
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.component.ruko
-            patterns: [include: "#html-tag-names"]
+            patterns: [{include: "#html-tag-names"}]
       - applyEndPatternLast: true
         begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|ignore)\b\s*
         end: $|
@@ -8466,7 +8468,7 @@ repository:
         captures:
           1: {name: keyword.operator.assignment.ruko}
           2: {name: keyword.operator.assignment.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: (\#?\()\s*
         end: \s*(\))
         captures:
@@ -8578,7 +8580,7 @@ repository:
     captures:
       1:
         name: storage.modifier.specifier.ruko
-        patterns: [include: "#modifiers"]
+        patterns: [{include: "#modifiers"}]
       2: {name: punctuation.separator.section.ruko}
 
   function-clause:
@@ -8617,7 +8619,7 @@ repository:
         captures:
           1: {name: entity.name.method.ruko}
           2: {name: keyword.operator.assignment.ruko}
-          3: {patterns: [include: "#modifiers"]}
+          3: {patterns: [{include: "#modifiers"}]}
       - begin: |-
           (?x)
           \s*
@@ -8726,7 +8728,7 @@ repository:
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
-        patterns: [include: "#argument-list-content"]
+        patterns: [{include: "#argument-list-content"}]
       - comment: "Function def before function keyword; x = func()"
         match: |-
           (?x)
@@ -8759,7 +8761,7 @@ repository:
         captures:
           1: {name: entity.name.ruko}
           2: {name: keyword.operator.assignment.ruko}
-          3: {patterns: [include: "#modifiers"]}
+          3: {patterns: [{include: "#modifiers"}]}
       - comment: "Function def with function keyword; x = fn |args| { }"
         begin: |-
           (?x)
@@ -8869,7 +8871,7 @@ repository:
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
-        patterns: [include: "#argument-list-content"]
+        patterns: [{include: "#argument-list-content"}]
 
   argument-list:
     patterns:
@@ -8982,7 +8984,7 @@ repository:
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
-        patterns: [include: "#argument-list-content"]
+        patterns: [{include: "#argument-list-content"}]
       - comment: Function argument list starting and ending with |
         name: meta.function.arguments.ruko
         begin: |-
@@ -9037,7 +9039,7 @@ repository:
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
-        patterns: [include: "#argument-list-content"]
+        patterns: [{include: "#argument-list-content"}]
 
   argument-list-content:
     name: meta.function.arguments.content.ruko
@@ -9169,7 +9171,7 @@ repository:
           - include: $self
 
   for-clause:
-    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(for(?:\s+ever|\s+each)?|(?:while)(?:\s+not)?|loop)\b\s*
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(for(?:\s+ever|\s+each)?|while(?:\s+not)?|loop)\b\s*
     end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
     name: meta.for.ruko
     beginCaptures:
@@ -9516,11 +9518,11 @@ repository:
       )
     captures:
       1: {name: keyword.operator.expression.as.ruko}
-      2: {patterns: [include: "#type-parameter-operators"]}
+      2: {patterns: [{include: "#type-parameter-operators"}]}
       3:
         name: variable.other.assignment.ruko
-        patterns: [include: "#constants"]
-      4: {patterns: [include: "#type-parameter-operators"]}
+        patterns: [{include: "#constants"}]
+      4: {patterns: [{include: "#type-parameter-operators"}]}
 
   binding-pattern-object:
     begin: (\#?{)\s*
@@ -9587,7 +9589,7 @@ repository:
       1: {name: keyword.operator.assignment.ruko}
       2: {name: keyword.operator.assignment.ruko}
     end: (?<=['")\]}\w])(?=[,;)\]}]|\|$|\|[^|])|$
-    patterns: [include: $self]
+    patterns: [{include: $self}]
 
   # Slicing syntax
 
@@ -9613,14 +9615,14 @@ repository:
     end: ^\s*(?=\S)
     captures:
       1: {name: punctuation.separator.continuation.ruko}
-    patterns: [include: "#comments"]
+    patterns: [{include: "#comments"}]
 
   line-continuation-comma:
     begin: \s*(,)\s*(?=/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)|$)
     end: ^\s*(?=\S)
     captures:
       1: {name: punctuation.separator.expression.ruko}
-    patterns: [include: "#comments"]
+    patterns: [{include: "#comments"}]
 
   comma:
     match: \s*(,)\s*
@@ -9702,7 +9704,7 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.class.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: |-
           (?x)
           (?<= # beside postfix operators
@@ -9715,7 +9717,7 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: |-
           (?x)
           (?<=
@@ -9737,7 +9739,7 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.class.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: |-
           (?x)
           (?<=
@@ -9759,7 +9761,7 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: |-
           (?x)
           (?<=
@@ -9884,13 +9886,13 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.class.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: ({)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
 
   round-brackets:
     repository:
@@ -9945,13 +9947,13 @@ repository:
         name: meta.brace.round.ruko
         captures:
           1: {name: punctuation.definition.tuple.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
       - begin: (\()\s*
         end: \s*(\))
         name: meta.brace.round.ruko
         captures:
           1: {name: punctuation.definition.expression.ruko}
-        patterns: [include: $self]
+        patterns: [{include: $self}]
 
   square-brackets:
     repository:
@@ -10001,7 +10003,9 @@ repository:
         name: meta.brace.square.ruko
         captures:
           1: {name: punctuation.definition.sequence.ruko}
-        patterns: &selector-core # duplicated from #core
+        patterns:
+          # duplicated from #core
+          &selector-core
           - include: "#selector-calls"
           - include: "#punctuation"
           - include: "#directives"
@@ -11002,11 +11006,11 @@ repository:
       - include: "source.objcpp#anonymous_pattern_24"
       - include: "source.objcpp#anonymous_pattern_25"
 
-      - # JavaScript DOM and Web API classes
-        match: \b(AbortController|AbortSignal|AbsoluteOrientationSensor|AbstractRange|AccelerometerExperimental|AesCbcParams|AesCtrParams|AesDerivedKeyParams|AesGcmParams|AesKeyGenParams|AmbientLightSensorExperimental|AnalyserNode|ANGLE_instanced_arrays|Animation|AnimationEffect|AnimationEvent|AnimationPlaybackEvent|AnimationTimeline|Attr|AudioBuffer|AudioBufferSourceNode|AudioContext|AudioData|AudioDecoder|AudioDestinationNode|AudioEncoder|AudioListener|AudioNode|AudioParam|AudioParamDescriptor|AudioParamMap|AudioProcessingEventDeprecated|AudioScheduledSourceNode|AudioSinkInfoExperimental|AudioTrack|AudioTrackList|AudioWorklet|AudioWorkletGlobalScope|AudioWorkletNode|AudioWorkletProcessor|AuthenticatorAssertionResponse|AuthenticatorAttestationResponse|AuthenticatorResponse|BackgroundFetchEventExperimental|BackgroundFetchManagerExperimental|BackgroundFetchRecordExperimental|BackgroundFetchRegistrationExperimental|BackgroundFetchUpdateUIEventExperimental|BarcodeDetectorExperimental|BarProp|BaseAudioContext|BatteryManager|BeforeInstallPromptEventExperimentalNon-standard|BeforeUnloadEvent|BiquadFilterNode|Blob|BlobEvent|BluetoothExperimental|BluetoothCharacteristicPropertiesExperimental|BluetoothDeviceExperimental|BluetoothRemoteGATTCharacteristicExperimental|BluetoothRemoteGATTDescriptorExperimental|BluetoothRemoteGATTServerExperimental|BluetoothRemoteGATTServiceExperimental|BluetoothUUID|BroadcastChannel|BrowserCaptureMediaStreamTrackExperimental|ByteLengthQueuingStrategy|Cache|CacheStorage|CanMakePaymentEventExperimental|CanvasCaptureMediaStreamTrack|CanvasGradient|CanvasPattern|CanvasRenderingContext2D|CaptureControllerExperimental|CaretPosition|CDATASection|ChannelMergerNode|ChannelSplitterNode|ChapterInformationExperimental|CharacterBoundsUpdateEventExperimental|CharacterData|Client|Clients|Clipboard|ClipboardEvent|ClipboardItem|CloseEvent|CloseWatcherExperimental|CommandEvent|Comment|CompositionEvent|CompressionStream|console|ConstantSourceNode|ContactAddressExperimental|ContactsManagerExperimental|ContentIndexExperimental|ContentIndexEventExperimental|ContentVisibilityAutoStateChangeEvent|ConvolverNode|CookieChangeEvent|CookieStore|CookieStoreManager|CountQueuingStrategy|CreateMonitorExperimental|Credential|CredentialsContainer|CropTargetExperimental|Crypto|CryptoKey|CryptoKeyPair|CSPViolationReportBody|CSS|CSSAnimation|CSSConditionRule|CSSContainerRule|CSSCounterStyleRule|CSSFontFaceRule|CSSFontFeatureValuesRule|CSSFontPaletteValuesRule|CSSFunctionDeclarationsExperimental|CSSFunctionDescriptorsExperimental|CSSFunctionRuleExperimental|CSSGroupingRule|CSSImageValue|CSSImportRule|CSSKeyframeRule|CSSKeyframesRule|CSSKeywordValue|CSSLayerBlockRule|CSSLayerStatementRule|CSSMathInvert|CSSMathMax|CSSMathMin|CSSMathNegate|CSSMathProduct|CSSMathSum|CSSMathValue|CSSMatrixComponent|CSSMediaRule|CSSNamespaceRule|CSSNestedDeclarations|CSSNumericArray|CSSNumericValue|CSSPageDescriptors|CSSPageRule|CSSPerspective|CSSPositionTryDescriptors|CSSPositionTryRule|CSSPositionValue|CSSPrimitiveValueDeprecated|CSSPropertyRule|CSSPseudoElementExperimental|CSSRotate|CSSRule|CSSRuleList|CSSScale|CSSScopeRule|CSSSkew|CSSSkewX|CSSSkewY|CSSStartingStyleRule|CSSStyleDeclaration|CSSStyleProperties|CSSStyleRule|CSSStyleSheet|CSSStyleValue|CSSSupportsRule|CSSTransformComponent|CSSTransformValue|CSSTransition|CSSTranslate|CSSUnitValue|CSSUnparsedValue|CSSValueDeprecated|CSSValueListDeprecated|CSSVariableReferenceValue|CSSViewTransitionRule|CustomElementRegistry|CustomEvent|CustomStateSet|DataTransfer|DataTransferItem|DataTransferItemList|DecompressionStream|DedicatedWorkerGlobalScope|DeferredRequestInitExperimental|DelayNode|DelegatedInkTrailPresenterExperimental|DeprecationReportBodyExperimental|DeviceMotionEvent|DeviceMotionEventAcceleration|DeviceMotionEventRotationRate|DeviceOrientationEvent|DevicePostureExperimental|DirectoryEntrySync|DirectoryReaderSync|Document|DocumentFragment|DocumentPictureInPictureExperimental|DocumentPictureInPictureEventExperimental|DocumentTimeline|DocumentType|DOMErrorDeprecated|DOMException|DOMHighResTimeStamp|DOMImplementation|DOMMatrix|DOMMatrixReadOnly|DOMParser|DOMPoint|DOMPointReadOnly|DOMQuad|DOMRect|DOMRectList|DOMRectReadOnly|DOMStringList|DOMStringMap|DOMTokenList|DragEvent|DynamicsCompressorNode|EcdhKeyDeriveParams|EcdsaParams|EcKeyGenParams|EcKeyImportParams|EncodedAudioChunk|EncodedVideoChunk|ErrorEvent|Event|EventCounts|EventSource|EventTarget|ExtendableCookieChangeEvent|ExtendableEvent|ExtendableMessageEvent|EyeDropperExperimental|FeaturePolicyExperimental|FederatedCredentialExperimental|FederatedCredentialInit|FenceExperimental|FencedFrameConfigExperimental|FetchEvent|FetchLaterResultExperimental|File|FileEntrySync|FileList|FileReader|FileReaderSync|FileSystem|FileSystemChangeRecord|FileSystemDirectoryEntry|FileSystemDirectoryHandle|FileSystemEntry|FileSystemFileEntry|FileSystemFileHandle|FileSystemHandle|FileSystemObserverExperimentalNon-standard|FileSystemSync|FileSystemSyncAccessHandle|FileSystemWritableFileStream|FocusEvent|FontDataExperimental|FontFace|FontFaceSet|FontFaceSetLoadEvent|FormData|FormDataEvent|FragmentDirective|GainNode|Gamepad|GamepadButton|GamepadEvent|GamepadHapticActuator|GamepadPoseExperimental|Geolocation|GeolocationCoordinates|GeolocationPosition|GeolocationPositionError|GestureEventNon-standard|GPU|GPUAdapter|GPUAdapterInfo|GPUBindGroup|GPUBindGroupLayout|GPUBuffer|GPUCanvasContext|GPUCommandBuffer|GPUCommandEncoder|GPUCompilationInfo|GPUCompilationMessage|GPUComputePassEncoder|GPUComputePipeline|GPUDevice|GPUDeviceLostInfo|GPUError|GPUExternalTexture|GPUInternalError|GPUOutOfMemoryError|GPUPipelineError|GPUPipelineLayout|GPUQuerySet|GPUQueue|GPURenderBundle|GPURenderBundleEncoder|GPURenderPassEncoder|GPURenderPipeline|GPUSampler|GPUShaderModule|GPUSupportedFeatures|GPUSupportedLimits|GPUTexture|GPUTextureView|GPUUncapturedErrorEvent|GPUValidationError|GravitySensor|Gyroscope|HashChangeEvent|Headers|HIDExperimental|HIDConnectionEventExperimental|HIDDeviceExperimental|HIDInputReportEventExperimental|Highlight|HighlightRegistry|History|HkdfParams|HmacImportParams|HmacKeyGenParams|HMDVRDevice|HTMLAllCollection|HTMLAnchorElement|HTMLAreaElement|HTMLAudioElement|HTMLBaseElement|HTMLBodyElement|HTMLBRElement|HTMLButtonElement|HTMLCanvasElement|HTMLCollection|HTMLDataElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDivElement|HTMLDListElement|HTMLDocument|HTMLElement|HTMLEmbedElement|HTMLFencedFrameElementExperimental|HTMLFieldSetElement|HTMLFontElementDeprecated|HTMLFormControlsCollection|HTMLFormElement|HTMLFrameSetElementDeprecated|HTMLHeadElement|HTMLHeadingElement|HTMLHRElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLInputElement|HTMLLabelElement|HTMLLegendElement|HTMLLIElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElementDeprecated|HTMLMediaElement|HTMLMenuElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLObjectElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOptionsCollection|HTMLOutputElement|HTMLParagraphElement|HTMLParamElementDeprecated|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLSelectedContentElementExperimental|HTMLSelectElement|HTMLSlotElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTimeElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|IDBCursor|IDBCursorWithValue|IDBDatabase|IDBFactory|IDBIndex|IDBKeyRange|IDBObjectStore|IDBOpenDBRequest|IDBRequest|IDBTransaction|IDBVersionChangeEvent|IdentityCredentialExperimental|IdentityCredentialErrorExperimental|IdentityCredentialRequestOptionsExperimental|IdentityProviderExperimental|IdleDeadline|IdleDetectorExperimental|IIRFilterNode|ImageBitmap|ImageBitmapRenderingContext|ImageCapture|ImageData|ImageDecoder|ImageTrack|ImageTrackList|InkExperimental|InputDeviceCapabilitiesExperimental|InputDeviceInfo|InputEvent|InstallEvent|IntegrityViolationReportBody|InterestEventExperimentalNon-standard|IntersectionObserver|IntersectionObserverEntry|InterventionReportBodyExperimental|KeyboardExperimental|KeyboardEvent|KeyboardLayoutMapExperimental|KeyframeEffect|LanguageDetectorExperimental|LargestContentfulPaint|LaunchParamsExperimental|LaunchQueueExperimental|LayoutShiftExperimental|LayoutShiftAttributionExperimental|LinearAccelerationSensor|Location|Lock|LockManager|MagnetometerExperimental|MathMLElement|MediaCapabilities|MediaDeviceInfo|MediaDevices|MediaElementAudioSourceNode|MediaEncryptedEvent|MediaError|MediaKeyMessageEvent|MediaKeys|MediaKeySession|MediaKeyStatusMap|MediaList|MediaMetadata|MediaQueryList|MediaQueryListEvent|MediaRecorder|MediaRecorderErrorEvent|MediaSession|MediaSource|MediaSourceHandle|MediaStream|MediaStreamAudioDestinationNode|MediaStreamAudioSourceNode|MediaStreamEvent|MediaStreamTrack|MediaStreamTrackAudioSourceNode|MediaStreamTrackEvent|MediaStreamTrackGeneratorExperimentalNon-standard|MediaStreamTrackProcessor|MediaTrackConstraints|MediaTrackSettings|MediaTrackSupportedConstraints|MerchantValidationEventDeprecated|MessageChannel|MessageEvent|MessagePort|MetadataExperimentalNon-standard|MIDIAccess|MIDIConnectionEvent|MIDIInput|MIDIInputMap|MIDIMessageEvent|MIDIOutput|MIDIOutputMap|MIDIPort|MimeTypeDeprecated|MimeTypeArrayDeprecated|MouseEvent|MouseScrollEvent|MutationEvent|MutationObserver|MutationRecord|NamedNodeMap|NavigateEvent|Navigation|NavigationActivation|NavigationCurrentEntryChangeEvent|NavigationDestination|NavigationHistoryEntry|NavigationPrecommitController|NavigationPreloadManager|NavigationTransition|Navigator|NavigatorLogin|NavigatorUADataExperimental|NDEFMessageExperimental|NDEFReaderExperimental|NDEFReadingEventExperimental|NDEFRecordExperimental|NetworkInformation|Node|NodeIterator|NodeList|Notification|NotificationEvent|NotRestoredReasonDetailsExperimental|NotRestoredReasonsExperimental|OES_draw_buffers_indexed|OfflineAudioCompletionEvent|OfflineAudioContext|OffscreenCanvas|OffscreenCanvasRenderingContext2D|OrientationSensor|OscillatorNode|OTPCredentialExperimental|OverconstrainedError|PageRevealEvent|PageSwapEvent|PageTransitionEvent|PaintRenderingContext2D|PaintSize|PaintWorkletGlobalScopeExperimental|PannerNode|PasswordCredentialExperimental|PasswordCredentialInit|Path2D|PaymentAddress|PaymentManagerExperimental|PaymentMethodChangeEvent|PaymentRequest|PaymentRequestEventExperimental|PaymentRequestUpdateEvent|PaymentResponse|Pbkdf2Params|Performance|PerformanceElementTimingExperimental|PerformanceEntry|PerformanceEventTiming|PerformanceLongAnimationFrameTimingExperimental|PerformanceLongTaskTimingExperimental|PerformanceMark|PerformanceMeasure|PerformanceNavigationDeprecated|PerformanceNavigationTiming|PerformanceObserver|PerformancePaintTiming|PerformanceResourceTiming|PerformanceScriptTimingExperimental|PerformanceServerTiming|PerformanceTimingDeprecated|PeriodicSyncEventExperimental|PeriodicSyncManagerExperimental|PeriodicWave|Permissions|PermissionStatus|PictureInPictureEvent|PictureInPictureWindow|PluginDeprecated|PluginArrayDeprecated|Point|PointerEvent|PopStateEvent|PositionSensorVRDevice|PresentationExperimental|PresentationAvailabilityExperimental|PresentationConnectionExperimental|PresentationConnectionAvailableEventExperimental|PresentationConnectionCloseEventExperimental|PresentationConnectionListExperimental|PresentationReceiverExperimental|PresentationRequestExperimental|PressureObserverExperimental|PressureRecordExperimental|ProcessingInstruction|ProfilerExperimental|ProgressEvent|PromiseRejectionEvent|PublicKeyCredential|PublicKeyCredentialCreationOptions|PublicKeyCredentialRequestOptions|PushEvent|PushManager|PushMessageData|PushSubscription|PushSubscriptionOptions|QuotaExceededErrorExperimental|RadioNodeList|Range|ReadableByteStreamController|ReadableStream|ReadableStreamBYOBReader|ReadableStreamBYOBRequest|ReadableStreamDefaultController|ReadableStreamDefaultReader|RelativeOrientationSensor|RemotePlayback|Report|ReportBody|ReportingObserver|Request|RequestInit|ResizeObserver|ResizeObserverEntry|ResizeObserverSize|Response|RestrictionTargetExperimental|RsaHashedImportParams|RsaHashedKeyGenParams|RsaOaepParams|RsaPssParams|RTCAudioSourceStats|RTCCertificate|RTCCertificateStats|RTCCodecStats|RTCDataChannel|RTCDataChannelEvent|RTCDataChannelStats|RTCDtlsTransport|RTCDTMFSender|RTCDTMFToneChangeEvent|RTCEncodedAudioFrame|RTCEncodedVideoFrame|RTCError|RTCErrorEvent|RTCIceCandidate|RTCIceCandidatePair|RTCIceCandidatePairStats|RTCIceCandidateStats|RTCIceParameters|RTCIceTransport|RTCIdentityAssertionExperimental|RTCInboundRtpStreamStats|RTCOutboundRtpStreamStats|RTCPeerConnection|RTCPeerConnectionIceErrorEvent|RTCPeerConnectionIceEvent|RTCPeerConnectionStats|RTCRemoteInboundRtpStreamStats|RTCRemoteOutboundRtpStreamStats|RTCRtpReceiver|RTCRtpScriptTransform|RTCRtpScriptTransformer|RTCRtpSender|RTCRtpTransceiver|RTCSctpTransport|RTCSessionDescription|RTCStatsReport|RTCTrackEvent|RTCTransformEvent|RTCTransportStats|RTCVideoSourceStats|SanitizerExperimental|SanitizerConfigExperimental|Scheduler|SchedulingExperimental|Screen|ScreenDetailedExperimental|ScreenDetailsExperimental|ScreenOrientation|ScriptProcessorNodeDeprecated|ScrollTimeline|SecurePaymentConfirmationRequest|SecurityPolicyViolationEvent|Selection|Sensor|SensorErrorEvent|SerialExperimental|SerialPortExperimental|ServiceWorker|ServiceWorkerContainer|ServiceWorkerGlobalScope|ServiceWorkerRegistration|ShadowRoot|SharedStorageDeprecated|SharedStorageOperationDeprecated|SharedStorageRunOperationDeprecated|SharedStorageWorkletDeprecated|SharedStorageWorkletGlobalScopeDeprecated|SharedWorker|SharedWorkerGlobalScope|SnapEventExperimental|SourceBuffer|SourceBufferList|SpeechGrammarDeprecated|SpeechGrammarListDeprecated|SpeechRecognition|SpeechRecognitionAlternative|SpeechRecognitionErrorEvent|SpeechRecognitionEvent|SpeechRecognitionPhraseExperimental|SpeechRecognitionResult|SpeechRecognitionResultList|SpeechSynthesis|SpeechSynthesisErrorEvent|SpeechSynthesisEvent|SpeechSynthesisUtterance|SpeechSynthesisVoice|StaticRange|StereoPannerNode|Storage|StorageAccessHandle|StorageEvent|StorageManager|StylePropertyMap|StylePropertyMapReadOnly|StyleSheet|StyleSheetList|SubmitEvent|SubtleCrypto|SummarizerExperimental|SVGAElement|SVGAngle|SVGAnimateColorElementDeprecated|SVGAnimatedAngle|SVGAnimatedBoolean|SVGAnimatedEnumeration|SVGAnimatedInteger|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedPreserveAspectRatio|SVGAnimatedRect|SVGAnimatedString|SVGAnimatedTransformList|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGDefsElement|SVGDescElement|SVGDiscardElementDeprecated|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGradientElement|SVGGraphicsElement|SVGImageElement|SVGLength|SVGLengthList|SVGLinearGradientElement|SVGLineElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMPathElement|SVGNumber|SVGNumberList|SVGPathElement|SVGPatternElement|SVGPointDeprecated|SVGPointList|SVGPolygonElement|SVGPolylineElement|SVGPreserveAspectRatio|SVGRadialGradientElement|SVGRect|SVGRectElement|SVGRenderingIntentDeprecated|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStringList|SVGStyleElement|SVGSVGElement|SVGSwitchElement|SVGSymbolElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGTransform|SVGTransformList|SVGTSpanElement|SVGUnitTypes|SVGUseElement|SVGViewElement|SyncEvent|SyncManager|TaskAttributionTimingExperimental|TaskController|TaskPriorityChangeEvent|TaskSignal|Text|TextDecoder|TextDecoderStream|TextEncoder|TextEncoderStream|TextEventDeprecated|TextFormatExperimental|TextFormatUpdateEventExperimental|TextMetrics|TextTrack|TextTrackCue|TextTrackCueList|TextTrackList|TextUpdateEventExperimental|TimeEvent|TimeRanges|ToggleEvent|Touch|TouchEvent|TouchList|TrackEvent|TransformStream|TransformStreamDefaultController|TransitionEvent|TranslatorExperimental|TreeWalker|TrustedHTML|TrustedScript|TrustedScriptURL|TrustedTypePolicy|TrustedTypePolicyFactory|UIEvent|URL|URLPattern|URLSearchParams|USBExperimental|USBAlternateInterfaceExperimental|USBConfigurationExperimental|USBConnectionEventExperimental|USBDeviceExperimental|USBEndpointExperimental|USBInterfaceExperimental|USBInTransferResultExperimental|USBIsochronousInTransferPacketExperimental|USBIsochronousInTransferResultExperimental|USBIsochronousOutTransferPacketExperimental|USBIsochronousOutTransferResultExperimental|USBOutTransferResultExperimental|UserActivation|ValidityState|VideoColorSpace|VideoDecoder|VideoEncoder|VideoFrame|VideoPlaybackQuality|VideoTrack|VideoTrackGeneratorExperimental|VideoTrackList|ViewportExperimental|ViewTimeline|ViewTransitionTypeSet|VirtualKeyboardExperimental|VisibilityStateEntryExperimental|VisualViewport|VRDisplay|VRDisplayCapabilities|VRDisplayEvent|VREyeParameters|VRFieldOfView|VRFrameData|VRLayerInit|VRPose|VRStageParameters|VTTCue|VTTRegion|WakeLock|WakeLockSentinel|WaveShaperNode|WebGL2RenderingContext|WebGLActiveInfo|WebGLBuffer|WebGLContextEvent|WebGLFramebuffer|WebGLObjectExperimental|WebGLProgram|WebGLQuery|WebGLRenderbuffer|WebGLRenderingContext|WebGLSampler|WebGLShader|WebGLShaderPrecisionFormat|WebGLSync|WebGLTexture|WebGLTransformFeedback|WebGLUniformLocation|WebGLVertexArrayObject|WebSocket|WebSocketStreamExperimental|WebTransport|WebTransportBidirectionalStream|WebTransportDatagramDuplexStream|WebTransportError|WebTransportReceiveStreamExperimental|WebTransportSendStreamExperimental|WGSLLanguageFeatures|WheelEvent|Window|WindowClient|WindowControlsOverlayExperimental|WindowControlsOverlayGeometryChangeEventExperimental|WindowSharedStorageDeprecated|Worker|WorkerGlobalScope|WorkerLocation|WorkerNavigator|Worklet|WorkletGlobalScope|WorkletSharedStorageDeprecated|WritableStream|WritableStreamDefaultController|WritableStreamDefaultWriter|XMLDocument|XMLHttpRequest|XMLHttpRequestEventTarget|XMLHttpRequestUpload|XMLSerializer|XPathEvaluator|XPathExpression|XPathResult|XRAnchorExperimental|XRAnchorSetExperimental|XRBoundedReferenceSpaceExperimental|XRCompositionLayerExperimental|XRCPUDepthInformationExperimental|XRCubeLayerExperimental|XRCylinderLayerExperimental|XRDepthInformationExperimental|XREquirectLayerExperimental|XRFrameExperimental|XRHand|XRHitTestResultExperimental|XRHitTestSourceExperimental|XRInputSource|XRInputSourceArrayExperimental|XRInputSourceEvent|XRInputSourcesChangeEvent|XRJointPose|XRJointSpace|XRLayerExperimental|XRLayerEventExperimental|XRLightEstimateExperimental|XRLightProbeExperimental|XRMediaBindingExperimental|XRPose|XRProjectionLayerExperimental|XRQuadLayerExperimental|XRRayExperimental|XRReferenceSpace|XRReferenceSpaceEvent|XRRenderStateExperimental|XRRigidTransform|XRSessionExperimental|XRSessionEvent|XRSpace|XRSubImageExperimental|XRSystemExperimental|XRTransientInputHitTestResultExperimental|XRTransientInputHitTestSourceExperimental|XRViewExperimental|XRViewerPose|XRViewport|XRWebGLBindingExperimental|XRWebGLDepthInformationExperimental|XRWebGLLayerExperimental|XRWebGLSubImageExperimental|XSLTProcessor)\b
+      # JavaScript DOM and Web API classes
+      - match: \b(AbortController|AbortSignal|AbsoluteOrientationSensor|AbstractRange|AccelerometerExperimental|AesCbcParams|AesCtrParams|AesDerivedKeyParams|AesGcmParams|AesKeyGenParams|AmbientLightSensorExperimental|AnalyserNode|ANGLE_instanced_arrays|Animation|AnimationEffect|AnimationEvent|AnimationPlaybackEvent|AnimationTimeline|Attr|AudioBuffer|AudioBufferSourceNode|AudioContext|AudioData|AudioDecoder|AudioDestinationNode|AudioEncoder|AudioListener|AudioNode|AudioParam|AudioParamDescriptor|AudioParamMap|AudioProcessingEventDeprecated|AudioScheduledSourceNode|AudioSinkInfoExperimental|AudioTrack|AudioTrackList|AudioWorklet|AudioWorkletGlobalScope|AudioWorkletNode|AudioWorkletProcessor|AuthenticatorAssertionResponse|AuthenticatorAttestationResponse|AuthenticatorResponse|BackgroundFetchEventExperimental|BackgroundFetchManagerExperimental|BackgroundFetchRecordExperimental|BackgroundFetchRegistrationExperimental|BackgroundFetchUpdateUIEventExperimental|BarcodeDetectorExperimental|BarProp|BaseAudioContext|BatteryManager|BeforeInstallPromptEventExperimentalNon-standard|BeforeUnloadEvent|BiquadFilterNode|Blob|BlobEvent|BluetoothExperimental|BluetoothCharacteristicPropertiesExperimental|BluetoothDeviceExperimental|BluetoothRemoteGATTCharacteristicExperimental|BluetoothRemoteGATTDescriptorExperimental|BluetoothRemoteGATTServerExperimental|BluetoothRemoteGATTServiceExperimental|BluetoothUUID|BroadcastChannel|BrowserCaptureMediaStreamTrackExperimental|ByteLengthQueuingStrategy|Cache|CacheStorage|CanMakePaymentEventExperimental|CanvasCaptureMediaStreamTrack|CanvasGradient|CanvasPattern|CanvasRenderingContext2D|CaptureControllerExperimental|CaretPosition|CDATASection|ChannelMergerNode|ChannelSplitterNode|ChapterInformationExperimental|CharacterBoundsUpdateEventExperimental|CharacterData|Client|Clients|Clipboard|ClipboardEvent|ClipboardItem|CloseEvent|CloseWatcherExperimental|CommandEvent|Comment|CompositionEvent|CompressionStream|console|ConstantSourceNode|ContactAddressExperimental|ContactsManagerExperimental|ContentIndexExperimental|ContentIndexEventExperimental|ContentVisibilityAutoStateChangeEvent|ConvolverNode|CookieChangeEvent|CookieStore|CookieStoreManager|CountQueuingStrategy|CreateMonitorExperimental|Credential|CredentialsContainer|CropTargetExperimental|Crypto|CryptoKey|CryptoKeyPair|CSPViolationReportBody|CSS|CSSAnimation|CSSConditionRule|CSSContainerRule|CSSCounterStyleRule|CSSFontFaceRule|CSSFontFeatureValuesRule|CSSFontPaletteValuesRule|CSSFunctionDeclarationsExperimental|CSSFunctionDescriptorsExperimental|CSSFunctionRuleExperimental|CSSGroupingRule|CSSImageValue|CSSImportRule|CSSKeyframeRule|CSSKeyframesRule|CSSKeywordValue|CSSLayerBlockRule|CSSLayerStatementRule|CSSMathInvert|CSSMathMax|CSSMathMin|CSSMathNegate|CSSMathProduct|CSSMathSum|CSSMathValue|CSSMatrixComponent|CSSMediaRule|CSSNamespaceRule|CSSNestedDeclarations|CSSNumericArray|CSSNumericValue|CSSPageDescriptors|CSSPageRule|CSSPerspective|CSSPositionTryDescriptors|CSSPositionTryRule|CSSPositionValue|CSSPrimitiveValueDeprecated|CSSPropertyRule|CSSPseudoElementExperimental|CSSRotate|CSSRule|CSSRuleList|CSSScale|CSSScopeRule|CSSSkew|CSSSkewX|CSSSkewY|CSSStartingStyleRule|CSSStyleDeclaration|CSSStyleProperties|CSSStyleRule|CSSStyleSheet|CSSStyleValue|CSSSupportsRule|CSSTransformComponent|CSSTransformValue|CSSTransition|CSSTranslate|CSSUnitValue|CSSUnparsedValue|CSSValueDeprecated|CSSValueListDeprecated|CSSVariableReferenceValue|CSSViewTransitionRule|CustomElementRegistry|CustomEvent|CustomStateSet|DataTransfer|DataTransferItem|DataTransferItemList|DecompressionStream|DedicatedWorkerGlobalScope|DeferredRequestInitExperimental|DelayNode|DelegatedInkTrailPresenterExperimental|DeprecationReportBodyExperimental|DeviceMotionEvent|DeviceMotionEventAcceleration|DeviceMotionEventRotationRate|DeviceOrientationEvent|DevicePostureExperimental|DirectoryEntrySync|DirectoryReaderSync|Document|DocumentFragment|DocumentPictureInPictureExperimental|DocumentPictureInPictureEventExperimental|DocumentTimeline|DocumentType|DOMErrorDeprecated|DOMException|DOMHighResTimeStamp|DOMImplementation|DOMMatrix|DOMMatrixReadOnly|DOMParser|DOMPoint|DOMPointReadOnly|DOMQuad|DOMRect|DOMRectList|DOMRectReadOnly|DOMStringList|DOMStringMap|DOMTokenList|DragEvent|DynamicsCompressorNode|EcdhKeyDeriveParams|EcdsaParams|EcKeyGenParams|EcKeyImportParams|EncodedAudioChunk|EncodedVideoChunk|ErrorEvent|Event|EventCounts|EventSource|EventTarget|ExtendableCookieChangeEvent|ExtendableEvent|ExtendableMessageEvent|EyeDropperExperimental|FeaturePolicyExperimental|FederatedCredentialExperimental|FederatedCredentialInit|FenceExperimental|FencedFrameConfigExperimental|FetchEvent|FetchLaterResultExperimental|File|FileEntrySync|FileList|FileReader|FileReaderSync|FileSystem|FileSystemChangeRecord|FileSystemDirectoryEntry|FileSystemDirectoryHandle|FileSystemEntry|FileSystemFileEntry|FileSystemFileHandle|FileSystemHandle|FileSystemObserverExperimentalNon-standard|FileSystemSync|FileSystemSyncAccessHandle|FileSystemWritableFileStream|FocusEvent|FontDataExperimental|FontFace|FontFaceSet|FontFaceSetLoadEvent|FormData|FormDataEvent|FragmentDirective|GainNode|Gamepad|GamepadButton|GamepadEvent|GamepadHapticActuator|GamepadPoseExperimental|Geolocation|GeolocationCoordinates|GeolocationPosition|GeolocationPositionError|GestureEventNon-standard|GPU|GPUAdapter|GPUAdapterInfo|GPUBindGroup|GPUBindGroupLayout|GPUBuffer|GPUCanvasContext|GPUCommandBuffer|GPUCommandEncoder|GPUCompilationInfo|GPUCompilationMessage|GPUComputePassEncoder|GPUComputePipeline|GPUDevice|GPUDeviceLostInfo|GPUError|GPUExternalTexture|GPUInternalError|GPUOutOfMemoryError|GPUPipelineError|GPUPipelineLayout|GPUQuerySet|GPUQueue|GPURenderBundle|GPURenderBundleEncoder|GPURenderPassEncoder|GPURenderPipeline|GPUSampler|GPUShaderModule|GPUSupportedFeatures|GPUSupportedLimits|GPUTexture|GPUTextureView|GPUUncapturedErrorEvent|GPUValidationError|GravitySensor|Gyroscope|HashChangeEvent|Headers|HIDExperimental|HIDConnectionEventExperimental|HIDDeviceExperimental|HIDInputReportEventExperimental|Highlight|HighlightRegistry|History|HkdfParams|HmacImportParams|HmacKeyGenParams|HMDVRDevice|HTMLAllCollection|HTMLAnchorElement|HTMLAreaElement|HTMLAudioElement|HTMLBaseElement|HTMLBodyElement|HTMLBRElement|HTMLButtonElement|HTMLCanvasElement|HTMLCollection|HTMLDataElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDivElement|HTMLDListElement|HTMLDocument|HTMLElement|HTMLEmbedElement|HTMLFencedFrameElementExperimental|HTMLFieldSetElement|HTMLFontElementDeprecated|HTMLFormControlsCollection|HTMLFormElement|HTMLFrameSetElementDeprecated|HTMLHeadElement|HTMLHeadingElement|HTMLHRElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLInputElement|HTMLLabelElement|HTMLLegendElement|HTMLLIElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElementDeprecated|HTMLMediaElement|HTMLMenuElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLObjectElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOptionsCollection|HTMLOutputElement|HTMLParagraphElement|HTMLParamElementDeprecated|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLSelectedContentElementExperimental|HTMLSelectElement|HTMLSlotElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTimeElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|IDBCursor|IDBCursorWithValue|IDBDatabase|IDBFactory|IDBIndex|IDBKeyRange|IDBObjectStore|IDBOpenDBRequest|IDBRequest|IDBTransaction|IDBVersionChangeEvent|IdentityCredentialExperimental|IdentityCredentialErrorExperimental|IdentityCredentialRequestOptionsExperimental|IdentityProviderExperimental|IdleDeadline|IdleDetectorExperimental|IIRFilterNode|ImageBitmap|ImageBitmapRenderingContext|ImageCapture|ImageData|ImageDecoder|ImageTrack|ImageTrackList|InkExperimental|InputDeviceCapabilitiesExperimental|InputDeviceInfo|InputEvent|InstallEvent|IntegrityViolationReportBody|InterestEventExperimentalNon-standard|IntersectionObserver|IntersectionObserverEntry|InterventionReportBodyExperimental|KeyboardExperimental|KeyboardEvent|KeyboardLayoutMapExperimental|KeyframeEffect|LanguageDetectorExperimental|LargestContentfulPaint|LaunchParamsExperimental|LaunchQueueExperimental|LayoutShiftExperimental|LayoutShiftAttributionExperimental|LinearAccelerationSensor|Location|Lock|LockManager|MagnetometerExperimental|MathMLElement|MediaCapabilities|MediaDeviceInfo|MediaDevices|MediaElementAudioSourceNode|MediaEncryptedEvent|MediaError|MediaKeyMessageEvent|MediaKeys|MediaKeySession|MediaKeyStatusMap|MediaList|MediaMetadata|MediaQueryList|MediaQueryListEvent|MediaRecorder|MediaRecorderErrorEvent|MediaSession|MediaSource|MediaSourceHandle|MediaStream|MediaStreamAudioDestinationNode|MediaStreamAudioSourceNode|MediaStreamEvent|MediaStreamTrack|MediaStreamTrackAudioSourceNode|MediaStreamTrackEvent|MediaStreamTrackGeneratorExperimentalNon-standard|MediaStreamTrackProcessor|MediaTrackConstraints|MediaTrackSettings|MediaTrackSupportedConstraints|MerchantValidationEventDeprecated|MessageChannel|MessageEvent|MessagePort|MetadataExperimentalNon-standard|MIDIAccess|MIDIConnectionEvent|MIDIInput|MIDIInputMap|MIDIMessageEvent|MIDIOutput|MIDIOutputMap|MIDIPort|MimeTypeDeprecated|MimeTypeArrayDeprecated|MouseEvent|MouseScrollEvent|MutationEvent|MutationObserver|MutationRecord|NamedNodeMap|NavigateEvent|Navigation|NavigationActivation|NavigationCurrentEntryChangeEvent|NavigationDestination|NavigationHistoryEntry|NavigationPrecommitController|NavigationPreloadManager|NavigationTransition|Navigator|NavigatorLogin|NavigatorUADataExperimental|NDEFMessageExperimental|NDEFReaderExperimental|NDEFReadingEventExperimental|NDEFRecordExperimental|NetworkInformation|Node|NodeIterator|NodeList|Notification|NotificationEvent|NotRestoredReasonDetailsExperimental|NotRestoredReasonsExperimental|OES_draw_buffers_indexed|OfflineAudioCompletionEvent|OfflineAudioContext|OffscreenCanvas|OffscreenCanvasRenderingContext2D|OrientationSensor|OscillatorNode|OTPCredentialExperimental|OverconstrainedError|PageRevealEvent|PageSwapEvent|PageTransitionEvent|PaintRenderingContext2D|PaintSize|PaintWorkletGlobalScopeExperimental|PannerNode|PasswordCredentialExperimental|PasswordCredentialInit|Path2D|PaymentAddress|PaymentManagerExperimental|PaymentMethodChangeEvent|PaymentRequest|PaymentRequestEventExperimental|PaymentRequestUpdateEvent|PaymentResponse|Pbkdf2Params|Performance|PerformanceElementTimingExperimental|PerformanceEntry|PerformanceEventTiming|PerformanceLongAnimationFrameTimingExperimental|PerformanceLongTaskTimingExperimental|PerformanceMark|PerformanceMeasure|PerformanceNavigationDeprecated|PerformanceNavigationTiming|PerformanceObserver|PerformancePaintTiming|PerformanceResourceTiming|PerformanceScriptTimingExperimental|PerformanceServerTiming|PerformanceTimingDeprecated|PeriodicSyncEventExperimental|PeriodicSyncManagerExperimental|PeriodicWave|Permissions|PermissionStatus|PictureInPictureEvent|PictureInPictureWindow|PluginDeprecated|PluginArrayDeprecated|Point|PointerEvent|PopStateEvent|PositionSensorVRDevice|PresentationExperimental|PresentationAvailabilityExperimental|PresentationConnectionExperimental|PresentationConnectionAvailableEventExperimental|PresentationConnectionCloseEventExperimental|PresentationConnectionListExperimental|PresentationReceiverExperimental|PresentationRequestExperimental|PressureObserverExperimental|PressureRecordExperimental|ProcessingInstruction|ProfilerExperimental|ProgressEvent|PromiseRejectionEvent|PublicKeyCredential|PublicKeyCredentialCreationOptions|PublicKeyCredentialRequestOptions|PushEvent|PushManager|PushMessageData|PushSubscription|PushSubscriptionOptions|QuotaExceededErrorExperimental|RadioNodeList|Range|ReadableByteStreamController|ReadableStream|ReadableStreamBYOBReader|ReadableStreamBYOBRequest|ReadableStreamDefaultController|ReadableStreamDefaultReader|RelativeOrientationSensor|RemotePlayback|Report|ReportBody|ReportingObserver|Request|RequestInit|ResizeObserver|ResizeObserverEntry|ResizeObserverSize|Response|RestrictionTargetExperimental|RsaHashedImportParams|RsaHashedKeyGenParams|RsaOaepParams|RsaPssParams|RTCAudioSourceStats|RTCCertificate|RTCCertificateStats|RTCCodecStats|RTCDataChannel|RTCDataChannelEvent|RTCDataChannelStats|RTCDtlsTransport|RTCDTMFSender|RTCDTMFToneChangeEvent|RTCEncodedAudioFrame|RTCEncodedVideoFrame|RTCError|RTCErrorEvent|RTCIceCandidate|RTCIceCandidatePair|RTCIceCandidatePairStats|RTCIceCandidateStats|RTCIceParameters|RTCIceTransport|RTCIdentityAssertionExperimental|RTCInboundRtpStreamStats|RTCOutboundRtpStreamStats|RTCPeerConnection|RTCPeerConnectionIceErrorEvent|RTCPeerConnectionIceEvent|RTCPeerConnectionStats|RTCRemoteInboundRtpStreamStats|RTCRemoteOutboundRtpStreamStats|RTCRtpReceiver|RTCRtpScriptTransform|RTCRtpScriptTransformer|RTCRtpSender|RTCRtpTransceiver|RTCSctpTransport|RTCSessionDescription|RTCStatsReport|RTCTrackEvent|RTCTransformEvent|RTCTransportStats|RTCVideoSourceStats|SanitizerExperimental|SanitizerConfigExperimental|Scheduler|SchedulingExperimental|Screen|ScreenDetailedExperimental|ScreenDetailsExperimental|ScreenOrientation|ScriptProcessorNodeDeprecated|ScrollTimeline|SecurePaymentConfirmationRequest|SecurityPolicyViolationEvent|Selection|Sensor|SensorErrorEvent|SerialExperimental|SerialPortExperimental|ServiceWorker|ServiceWorkerContainer|ServiceWorkerGlobalScope|ServiceWorkerRegistration|ShadowRoot|SharedStorageDeprecated|SharedStorageOperationDeprecated|SharedStorageRunOperationDeprecated|SharedStorageWorkletDeprecated|SharedStorageWorkletGlobalScopeDeprecated|SharedWorker|SharedWorkerGlobalScope|SnapEventExperimental|SourceBuffer|SourceBufferList|SpeechGrammarDeprecated|SpeechGrammarListDeprecated|SpeechRecognition|SpeechRecognitionAlternative|SpeechRecognitionErrorEvent|SpeechRecognitionEvent|SpeechRecognitionPhraseExperimental|SpeechRecognitionResult|SpeechRecognitionResultList|SpeechSynthesis|SpeechSynthesisErrorEvent|SpeechSynthesisEvent|SpeechSynthesisUtterance|SpeechSynthesisVoice|StaticRange|StereoPannerNode|Storage|StorageAccessHandle|StorageEvent|StorageManager|StylePropertyMap|StylePropertyMapReadOnly|StyleSheet|StyleSheetList|SubmitEvent|SubtleCrypto|SummarizerExperimental|SVGAElement|SVGAngle|SVGAnimateColorElementDeprecated|SVGAnimatedAngle|SVGAnimatedBoolean|SVGAnimatedEnumeration|SVGAnimatedInteger|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedPreserveAspectRatio|SVGAnimatedRect|SVGAnimatedString|SVGAnimatedTransformList|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGDefsElement|SVGDescElement|SVGDiscardElementDeprecated|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGradientElement|SVGGraphicsElement|SVGImageElement|SVGLength|SVGLengthList|SVGLinearGradientElement|SVGLineElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMPathElement|SVGNumber|SVGNumberList|SVGPathElement|SVGPatternElement|SVGPointDeprecated|SVGPointList|SVGPolygonElement|SVGPolylineElement|SVGPreserveAspectRatio|SVGRadialGradientElement|SVGRect|SVGRectElement|SVGRenderingIntentDeprecated|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStringList|SVGStyleElement|SVGSVGElement|SVGSwitchElement|SVGSymbolElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGTransform|SVGTransformList|SVGTSpanElement|SVGUnitTypes|SVGUseElement|SVGViewElement|SyncEvent|SyncManager|TaskAttributionTimingExperimental|TaskController|TaskPriorityChangeEvent|TaskSignal|Text|TextDecoder|TextDecoderStream|TextEncoder|TextEncoderStream|TextEventDeprecated|TextFormatExperimental|TextFormatUpdateEventExperimental|TextMetrics|TextTrack|TextTrackCue|TextTrackCueList|TextTrackList|TextUpdateEventExperimental|TimeEvent|TimeRanges|ToggleEvent|Touch|TouchEvent|TouchList|TrackEvent|TransformStream|TransformStreamDefaultController|TransitionEvent|TranslatorExperimental|TreeWalker|TrustedHTML|TrustedScript|TrustedScriptURL|TrustedTypePolicy|TrustedTypePolicyFactory|UIEvent|URL|URLPattern|URLSearchParams|USBExperimental|USBAlternateInterfaceExperimental|USBConfigurationExperimental|USBConnectionEventExperimental|USBDeviceExperimental|USBEndpointExperimental|USBInterfaceExperimental|USBInTransferResultExperimental|USBIsochronousInTransferPacketExperimental|USBIsochronousInTransferResultExperimental|USBIsochronousOutTransferPacketExperimental|USBIsochronousOutTransferResultExperimental|USBOutTransferResultExperimental|UserActivation|ValidityState|VideoColorSpace|VideoDecoder|VideoEncoder|VideoFrame|VideoPlaybackQuality|VideoTrack|VideoTrackGeneratorExperimental|VideoTrackList|ViewportExperimental|ViewTimeline|ViewTransitionTypeSet|VirtualKeyboardExperimental|VisibilityStateEntryExperimental|VisualViewport|VRDisplay|VRDisplayCapabilities|VRDisplayEvent|VREyeParameters|VRFieldOfView|VRFrameData|VRLayerInit|VRPose|VRStageParameters|VTTCue|VTTRegion|WakeLock|WakeLockSentinel|WaveShaperNode|WebGL2RenderingContext|WebGLActiveInfo|WebGLBuffer|WebGLContextEvent|WebGLFramebuffer|WebGLObjectExperimental|WebGLProgram|WebGLQuery|WebGLRenderbuffer|WebGLRenderingContext|WebGLSampler|WebGLShader|WebGLShaderPrecisionFormat|WebGLSync|WebGLTexture|WebGLTransformFeedback|WebGLUniformLocation|WebGLVertexArrayObject|WebSocket|WebSocketStreamExperimental|WebTransport|WebTransportBidirectionalStream|WebTransportDatagramDuplexStream|WebTransportError|WebTransportReceiveStreamExperimental|WebTransportSendStreamExperimental|WGSLLanguageFeatures|WheelEvent|Window|WindowClient|WindowControlsOverlayExperimental|WindowControlsOverlayGeometryChangeEventExperimental|WindowSharedStorageDeprecated|Worker|WorkerGlobalScope|WorkerLocation|WorkerNavigator|Worklet|WorkletGlobalScope|WorkletSharedStorageDeprecated|WritableStream|WritableStreamDefaultController|WritableStreamDefaultWriter|XMLDocument|XMLHttpRequest|XMLHttpRequestEventTarget|XMLHttpRequestUpload|XMLSerializer|XPathEvaluator|XPathExpression|XPathResult|XRAnchorExperimental|XRAnchorSetExperimental|XRBoundedReferenceSpaceExperimental|XRCompositionLayerExperimental|XRCPUDepthInformationExperimental|XRCubeLayerExperimental|XRCylinderLayerExperimental|XRDepthInformationExperimental|XREquirectLayerExperimental|XRFrameExperimental|XRHand|XRHitTestResultExperimental|XRHitTestSourceExperimental|XRInputSource|XRInputSourceArrayExperimental|XRInputSourceEvent|XRInputSourcesChangeEvent|XRJointPose|XRJointSpace|XRLayerExperimental|XRLayerEventExperimental|XRLightEstimateExperimental|XRLightProbeExperimental|XRMediaBindingExperimental|XRPose|XRProjectionLayerExperimental|XRQuadLayerExperimental|XRRayExperimental|XRReferenceSpace|XRReferenceSpaceEvent|XRRenderStateExperimental|XRRigidTransform|XRSessionExperimental|XRSessionEvent|XRSpace|XRSubImageExperimental|XRSystemExperimental|XRTransientInputHitTestResultExperimental|XRTransientInputHitTestSourceExperimental|XRViewExperimental|XRViewerPose|XRViewport|XRWebGLBindingExperimental|XRWebGLDepthInformationExperimental|XRWebGLLayerExperimental|XRWebGLSubImageExperimental|XSLTProcessor)\b
         name: support.class.dom.ruko
-      - # Node.JS built-in types
-        match: \b(assert|async_hooks|buffer|child_process|cluster|console|crypto|dgram|dns|domain|events|fs|http|http2|https|inspector|module|net|os|path|perf_hooks|process|punycode|querystring|readline|repl|stream|string_decoder|timers|tls|trace_events|tty|url|util|v8|vm|wasi|worker_threads|zlib)\b
+      # Node.JS built-in types
+      - match: \b(assert|async_hooks|buffer|child_process|cluster|console|crypto|dgram|dns|domain|events|fs|http|http2|https|inspector|module|net|os|path|perf_hooks|process|punycode|querystring|readline|repl|stream|string_decoder|timers|tls|trace_events|tty|url|util|v8|vm|wasi|worker_threads|zlib)\b
         name: support.type.builtin.nodejs
       - match: \b(cout|cin|cerr|clog|endl|flush|ws|boolalpha|noboolalpha|showpoint|noshowpoint|scientific|fixed|hex|dec|oct|left|right|internal|skipws|noskipws|unitbuf|nounitbuf)\b
         name: support.type.object.stdcpp
