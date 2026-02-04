@@ -175,14 +175,14 @@ show class MTRand : Io.Serializer {
       let &u8 tb = (&u8) t;
       for let i32 i in 0 ..< sizeof(Time.time) {
         h1 *= u8::max_value + 2;
-        h1 += (u32) tb[i];
+        h1 += (u32)tb[i];
       }
 
       mut u32 h2 = 0;
-      let &u8 cb = (&u8) c;
+      let &u8 cb = (&u8)c;
       for let i32 i in 0 ..< sizeof(Time.clock) {
         h2 *= u8::max_value + 2;
-        h2 += (u32) cb[i];
+        h2 += (u32)cb[i];
       }
 
       let u32 out = (h1 + #differ) ^ h2;
@@ -199,17 +199,17 @@ show class MTRand : Io.Serializer {
     proc u32 lo_bits(u32 u) = u & 0x7fffffff;
 
     // additional generation functions
-    proc f64 rand() = ((f64) #rand_int()) * (1.0 / 0xffffffff.0);
+    proc f64 rand() = ((f64)#rand_int()) * (1.0 / 0xffffffff.0);
     proc f64 rand(f64 n) = #rand() * n;
-    proc f64 rand_exc() = ((f64) #rand_int()) * (1.0 / 0x100000000.0);
+    proc f64 rand_exc() = ((f64)#rand_int()) * (1.0 / 0x100000000.0);
     proc f64 rand_exc(f64 n) = #rand_exc() * n;
-    proc f64 rand_dbl_exc() = (((f64) #rand_int()) + 0x0.8) * (1.0 / 0x100000000.0);
+    proc f64 rand_dbl_exc() = (((f64)#rand_int()) + 0x0.8) * (1.0 / 0x100000000.0);
     proc f64 rand_dbl_exc(f64 n) = #rand_dbl_exc() * n;
 
     proc f64 rand_53() {
       let u32 a = #rand_int() >> 5; // 27 bits
       let u32 b = #rand_int() >> 6; // 26 bits
-      return ((f64) a * 0x4000000.0 + (f64) b) * (1.0 / 0x20000000000000.0);
+      return ((f64)a * 0x4000000.0 + (f64)b) * (1.0 / 0x20000000000000.0);
     }
 
     proc u32 genrand_int_31() = #rand_int() >> 1;
@@ -240,15 +240,15 @@ show class MTRand : Io.Serializer {
 
     override proc str serialize() {
       mut str s = '';
-      for let i32 i in 0 ..< N: s += (str) #state->[i] + '\t';
-      s += (str) #left;
+      for let i32 i in 0 ..< N: s += (str)#state->[i] + '\t';
+      s += (str)#left;
       return s;
     }
 
     static proc deserialize(str s) {
       let str[] parts = s / '\t'; // split by tab
-      for let i32 i in 0 ..< N: #state->[i] := (u32) parts[i];
-      #left := (i32) parts[N];
+      for let i32 i in 0 ..< N: #state->[i] := (u32)parts[i];
+      #left := (i32)parts[N];
       #p_next := if #left == 0: &#state->0 else &#state->[N - #left];
     }
 
@@ -257,34 +257,34 @@ show class MTRand : Io.Serializer {
       let u8[] bytes = s.to_bytes();
       for let i32 i in 0 ..< bytes::len {
         h *= u8::max_value + 2;
-        h += (u32) bytes[i];
+        h += (u32)bytes[i];
       }
       mut u32 h2 = 0;
       for let i32 i in 0 ..< bytes::len {
         h2 *= u8::max_value + 2;
-        h2 += (u32) bytes[bytes::len - i - 1];
+        h2 += (u32)bytes[bytes::len - i - 1];
       }
       return h ^ h2;
     }
 
     // operator definitions
-    suffix oper (f64) self() = #rand()
+    suffix oper (f64)self() = #rand()
 
     right oper 4 (&Io.OutputStream) (&Io.OutputStream)o_stream <- (&MTRand)mt_rand {
       for let i32 i in 0 ..< N:
-        o_stream->write_str((str) mt_rand->state->[i] + '\t');
-      o_stream->write_str((str) mt_rand->left);
+        o_stream->write_str((str)mt_rand->state->[i] + '\t');
+      o_stream->write_str((str)mt_rand->left);
       return o_stream;
     }
 
     left oper 4 (&Io.InputStream) (&Io.InputStream)i_stream -> (&MTRand)mt_rand {
       for let i32 i in 0 ..< N {
         let str line = i_stream->read_line();
-        mt_rand->state->[i] := (u32) line;
+        mt_rand->state->[i] := (u32)line;
       }
 
       let str line = i_stream->read_line();
-      mt_rand->left := (i32) line;
+      mt_rand->left := (i32)line;
       mt_rand->p_next := &mt_rand->state->[N - mt_rand->left];
       return i_stream;
     }
@@ -306,8 +306,8 @@ rand <- Fs::open('mtstate.txt', fm_read).get.close();
 
 for let i32 i in 0 ..< 10:
   Io::stdout->write_str('Random number ' +
-    (str) (i + 1) + ': ' +
-    (str) rand.rand_int() + '\n');
+    (str)(i + 1) + ': ' +
+    (str)rand.rand_int() + '\n');
 
 /* Mersenne Twister random number generator
    Original C++ code by Shawn Cokus and Makoto Matsumoto */

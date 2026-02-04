@@ -3,7 +3,7 @@ scopeName: source.spwn # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
 patterns: [{include: "#core"}]
 
-# Last updated: February 3, 2026
+# Last updated: February 4, 2026
 #
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
@@ -4693,10 +4693,7 @@ repository:
         patterns: [{include: "source.c"}]
       - begin: \b((?i:cpp))\b\s*({)\s*
         <<: *script-blocks
-        patterns:
-          - include: "source.cpp.embedded.macro"
-          - include: "source.cpp.embedded.latex"
-          - include: "source.cpp"
+        patterns: [{include: "source.cpp"}]
       - begin: \b((?i:cs))\b\s*({)\s*
         <<: *script-blocks
         patterns: [{include: "source.cs"}]
@@ -6443,7 +6440,7 @@ repository:
 
   operators:
     patterns:
-      - include: "#type-cast-operator"
+      - include: "#type-cast-operators"
       - include: "#named-infix-operators"
       - include: "#special-operators"
       - include: "#infix-operators"
@@ -6466,7 +6463,7 @@ repository:
         captures:
           1: {name: keyword.generator.asterisk.ruko}
 
-  type-cast-operator:
+  type-cast-operators:
     comment: (named) type-cast operators (int) x
     name: keyword.operator.type-cast.ruko
     match: |-
@@ -6570,23 +6567,18 @@ repository:
         (?=\s|$)
       )
       (?=
-            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~] \#?[({] # macro and destructor calls
-          | \s+ (?:\w*|[`$\#%]*)['"] # tagged string literals
-          | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional suffix operator
-        (?:
-            \s+ (?:\w*|[`$#%]*)['"] # strings
-          | \s+ \b\d # numbers
-          | \s+ `\N # unquoted strings / stropped identifiers
-          | \s+ :`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # symbols
-          | \s+ \#? [(\[] # opening brackets
-          | \s+ /['"`\w\\(\[{] # regexp literal
-          | \s+ <(?:`?[\p{L}\p{Nl}\p{Pc}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-          | \s+ [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+        \s* (?: # literals
+            (?:\w*|[`$#%]*)['"] # strings
+          | \b\d # numbers
+          | `\N # unquoted strings / stropped identifiers
+          | :`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # symbols
+          | \#? [(\[] # opening brackets
+          | /['"`\w\\(\[{] # regexp literal
+          | <(?:`?[\p{L}\p{Nl}\p{Pc}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
                 [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
                 (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-          | \s+ \|(?: \#?[(\[{] )? # opening bracket
+          | \|(?: \#?[(\[{] )? # opening bracket
                 (?: [,;] \s* )* # optional separators
                 (?:
                   ((?:[-*&%@^!~?\\+$#]|\.\.)*) # any sigils
@@ -6594,7 +6586,7 @@ repository:
                   ([!?&*]*) # optional sigils
                   \s*
                 )
-          | \s+ [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               # ignore all keywords
               (?!
