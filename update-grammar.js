@@ -3,14 +3,14 @@ import yaml from "js-yaml";
 import prettier from "prettier";
 import {optimize} from "oniguruma-parser/optimizer";
 
-const {fromEntries, keys} = Object;
-const {isArray} = Array;
-const {stringify} = JSON;
+let {fromEntries, keys} = Object;
+let {isArray} = Array;
+let {stringify} = JSON;
 
 let file = fs.readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
 let parsed = yaml.load(file);
 
-const sortKeys = obj =>
+let sortKeys = obj =>
   isArray(obj) ? obj.map(sortKeys)
   : obj && typeof obj == "object" ?
     fromEntries(
@@ -21,24 +21,21 @@ const sortKeys = obj =>
   : obj;
 
 // remove "comment" keys recursively
-parsed = stringify(
-  parsed,
-  (k, v) => {
-    switch (typeof v) {
-      case "object":
-        for (const k of ["comment", "define"]) if (k in v) delete v[k];
-        break;
-      case "string":
-        if (["begin", "end", "match", "while"].includes(k.trim()))
-          try {
-            return optimize(v).pattern;
-          } catch {
-            return v;
-          }
-    }
-    return sortKeys(v);
-  },
-);
+parsed = stringify(parsed, (k, v) => {
+  switch (typeof v) {
+    case "object":
+      for (let k of ["comment", "define"]) if (k in v) delete v[k];
+      break;
+    case "string":
+      if (["begin", "end", "match", "while"].includes(k.trim()))
+        try {
+          return optimize(v).pattern;
+        } catch {
+          return v;
+        }
+  }
+  return sortKeys(v);
+});
 
 parsed = await prettier.format(parsed, {parser: "json", tabWidth: 4});
 
