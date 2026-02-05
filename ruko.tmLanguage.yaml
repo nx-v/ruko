@@ -535,10 +535,6 @@ repository:
           | ([\p{L}\p{Nl}\p{Pc}]\w*) # camel or snake case
         )
         |
-        # (?<!
-        #   [,;'"`)\]}\w] # literal, bracket or space
-        #   (?: [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # operators
-        # )
         (?: # objects
             (`?\b\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
           | (`?\b[\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
@@ -4841,11 +4837,8 @@ repository:
     comment: "Operator declarations. Format: <prec> <associativity> <fixity> <operator> : <return type>. Return types must be postfix since there may not be brackets in operator declarations."
     patterns:
       - include: "#type-cast-operators"
-      - include: "#comments"
-      - include: "#numbers"
-      - include: "#strings"
       - applyEndPatternLast: true
-        begin: (?<=(?:(?:[)\]}\w'"`]|\\.)[!?]?>*))(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+        begin: (?<=(?:(?:[)\]}\w'"`]|\\.))[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]*)(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
         end: $|
         beginCaptures:
           1: {name: punctuation.definition.annotation.ruko}
@@ -4884,7 +4877,7 @@ repository:
             )
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -4897,15 +4890,15 @@ repository:
                       `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
                       (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
                     )*
-                    `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b
-                  )? # last identifier
+                    `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
+                  )? 
                   \#?(?:
                     \((?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                     \[(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -4913,10 +4906,7 @@ repository:
 
           \s*
           ([\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]*) # operator
-
           (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-
-          (?!:\s) # not a type annotation
           ([\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]*) # operator
           \s*
         name: meta.binding-pattern.ruko
@@ -4926,6 +4916,7 @@ repository:
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
           2:
             patterns:
               - include: "#type-operators"
@@ -4937,6 +4928,11 @@ repository:
             patterns:
               - include: "#type-operators"
               - include: "#operators"
+      - include: "#comments"
+      - include: "#numbers"
+      - include: "#strings"
+      - include: "#comma"
+      - include: "#line-continuation-comma"
       - include: "#line-continuation"
       - include: "#infix-operators"
       - include: "#interfix-operators"
@@ -6161,7 +6157,7 @@ repository:
           (
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -6182,7 +6178,7 @@ repository:
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -6213,6 +6209,7 @@ repository:
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
           2: {patterns: [{include: "#type-parameter-operators"}]}
           3:
             name: variable.parameter.ruko
@@ -6272,7 +6269,7 @@ repository:
                 ) \b
               )
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -6293,7 +6290,7 @@ repository:
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -6325,6 +6322,7 @@ repository:
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
 
   call-parameters:
     match: |-
@@ -6341,7 +6339,7 @@ repository:
       (
         (?:
           (?: # type
-            (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
             (?:
               (?:
                 `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -6362,7 +6360,7 @@ repository:
                 {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
               )+ # allow chaining
             )+
-            [!?&*]* # postfix type operators
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
           )
           \s*
         )+
@@ -6384,6 +6382,7 @@ repository:
         patterns:
           - include: "#declarations"
           - include: "#types"
+          - include: "#operators"
       2: {patterns: [{include: "#type-parameter-operators"}]}
       3:
         name: variable.parameter.ruko
@@ -6409,10 +6408,6 @@ repository:
           | ([\p{L}\p{Nl}\p{Pc}]\w*) # camel or snake case
         )
         |
-        # (?<!
-        #   [,;'"`)\]}\w] # literal, bracket or space
-        #   (?: [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # operators
-        # )
         (?: # objects
             (`?\b\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
           | (`?\b[\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*) # screaming snake case
@@ -7577,6 +7572,7 @@ repository:
               (?:[?!]?\.|[?!:]:|[?!-]>)=?
             ) \b
           )
+
           (
             # ignore all keywords
             (?!
@@ -7608,6 +7604,7 @@ repository:
             )
             `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
           )
+
           (?!
             [\p{P}\p{S}&&[^.,;'"`/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             : (?: \s* (?: [,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
@@ -7829,7 +7826,7 @@ repository:
         )
         (?:
           (?: # type
-            (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
             (?:
               (?:
                 `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -7850,7 +7847,7 @@ repository:
                 {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
               )+ # allow chaining
             )+
-            [!?&*]* # postfix type operators
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
           )
           \s*
         )+
@@ -7876,6 +7873,7 @@ repository:
         patterns:
           - include: "#declarations"
           - include: "#types"
+          - include: "#operators"
       2: {name: variable.other.assignment.ruko}
 
   typed-declarations:
@@ -7914,7 +7912,7 @@ repository:
         )
         (?:
           (?: # type
-            (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
             (?:
               (?:
                 `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -7935,7 +7933,7 @@ repository:
                 {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
               )+ # allow chaining
             )+
-            [!?&*]* # postfix type operators
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
           )
           \s*
         )+
@@ -7950,6 +7948,7 @@ repository:
         patterns:
           - include: "#declarations"
           - include: "#types"
+          - include: "#operators"
 
   variable-declarations:
     comment: Variable declaration with optional postfix type annotation
@@ -7991,7 +7990,7 @@ repository:
         (
           (?:
             (?: # type
-              (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
               (?:
                 (?:
                   `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8012,7 +8011,7 @@ repository:
                   {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                 )+ # allow chaining
               )+
-              [!?&*]* # postfix type operators
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
             )
             \s*
           )*
@@ -8023,9 +8022,11 @@ repository:
     beginCaptures:
       1: {name: storage.type.variable.ruko}
       2:
+        name: storage.type.ruko
         patterns:
           - include: "#declarations"
           - include: "#types"
+          - include: "#operators"
     name: meta.variable.declaration.ruko
     patterns:
       - &variable-declaration
@@ -8090,7 +8091,7 @@ repository:
                 ) \b
               )
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8111,7 +8112,7 @@ repository:
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8138,6 +8139,7 @@ repository:
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
           2: {name: variable.other.assignment.ruko}
       - include: "#type-signature"
       - include: "#default-value"
@@ -8662,7 +8664,7 @@ repository:
             )
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8683,7 +8685,7 @@ repository:
                     {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8694,7 +8696,7 @@ repository:
             (?: [,;] \s* )* # optional separators
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8715,7 +8717,7 @@ repository:
                     {(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8726,9 +8728,11 @@ repository:
           1: {name: entity.name.method.ruko}
           2: {name: keyword.operator.assignment.ruko}
           3:
+            name: storage.type.ruko
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -8805,7 +8809,7 @@ repository:
             )
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8826,7 +8830,7 @@ repository:
                     {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8837,7 +8841,7 @@ repository:
             (?: [,;] \s* )* # optional separators
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8858,7 +8862,7 @@ repository:
                     {(?>(?:\g'5'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8869,9 +8873,11 @@ repository:
           1: {name: entity.name.ruko}
           2: {name: keyword.operator.assignment.ruko}
           3:
+            name: storage.type.ruko
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -8880,7 +8886,7 @@ repository:
   argument-list:
     patterns:
       - comment: Function argument list starting and ending with |
-        name: meta.function.arguments.ruko
+        name: meta.function.declaration.ruko
         begin: |-
           (?x)(?<=
             (?:
@@ -8920,7 +8926,7 @@ repository:
             )
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8941,7 +8947,7 @@ repository:
                     {(?>(?:\g'1'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8952,7 +8958,7 @@ repository:
             (?: [,;] \s* )* # optional separators
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -8973,23 +8979,25 @@ repository:
                     {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
           ))
         beginCaptures:
           1:
+            name: storage.type.ruko
             patterns:
               - include: "#declarations"
               - include: "#types"
+              - include: "#operators"
           2: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         patterns: [{include: "#argument-list-content"}]
       - comment: Function argument list starting and ending with |
-        name: meta.function.arguments.ruko
+        name: meta.function.declaration.ruko
         begin: |-
           (?x)(?<=
             (?:
@@ -9011,7 +9019,7 @@ repository:
             (?: [,;] \s* )* # optional separators
             (?:
               (?: # type
-                (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -9027,12 +9035,12 @@ repository:
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
                   )?
                   \#?(?:
-                    \((?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # parentheses
-                    \[(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # brackets
-                    {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # braces
+                    \((?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
+                    \[(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets
+                    {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                   )+ # allow chaining
                 )+
-                [!?&*]* # postfix type operators
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -9385,7 +9393,7 @@ repository:
                 )
                 (?:
                   (?: # type
-                    (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                     (?:
                       (?:
                         `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -9406,7 +9414,7 @@ repository:
                         {(?>(?:\g'2'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                       )+ # allow chaining
                     )+
-                    [!?&*]* # postfix type operators
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
                   )
                   \s*
                 )+
@@ -9416,7 +9424,7 @@ repository:
                 (?: [,;] \s* )* # optional separators
                 (?:
                   (?: # type
-                    (?:[-*&%@^!~?\\+$#]|\.\.)* # prefix type operators
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
                     (?:
                       (?:
                         `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -9437,7 +9445,7 @@ repository:
                         {(?>(?:\g'3'|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^{}]+))*)} # curly brackets
                       )+ # allow chaining
                     )+
-                    [!?&*]* # postfix type operators
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
                   )
                   \s*
                 )+
