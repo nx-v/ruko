@@ -5,48 +5,51 @@
     "repository": {
         "accessor-operators": {
             "captures": {
-                "1": { "name": "keyword.operator.optional.ruko" },
-                "2": { "name": "keyword.operator.unwrap.ruko" },
-                "3": { "name": "keyword.operator.accessor.ruko" }
+                "1": {
+                    "patterns": [
+                        {
+                            "match": "!",
+                            "name": "keyword.operator.unwrap.ruko"
+                        },
+                        {
+                            "match": "\\?",
+                            "name": "keyword.operator.optional.ruko"
+                        },
+                        {
+                            "match": "=",
+                            "name": "keyword.operator.assignment.ruko"
+                        }
+                    ]
+                }
             },
-            "match": "(?<=\\b|>)(?:(\\?[.:>]=?)|(![.:>]=?)|((?:::|->|\\.)=?))(?=\\b|<)",
-            "name": "punctuation.type.arguments.ruko"
+            "match": "(?<=^|[]\"')>`}\\w\\s])((?:[!?]?\\.|[!:?]:|[-!?]>)=?)(?=$|[\"'(<\\[`{\\w\\s])",
+            "name": "keyword.operator.accessor.ruko"
         },
         "ampersand": {
             "match": "&(?!([A-Za-z\\d]+|#\\d+|#x\\h+);)",
             "name": "meta.other.valid-ampersand.markdown"
         },
         "angle-brackets": {
+            "begin": "(?<=^|[]\"')>`}\\w\\s][!?]?|(?:[!?]\\.|[!:?]:|[-!?]>)=?)(<)(?=(?:[-!#-\\&*+<?@\\\\^~]|\\.\\.)*(?:[\"'`\\w]|#?[(\\[{]))",
+            "beginCaptures": {
+                "1": { "name": "punctuation.type.arguments.ruko" }
+            },
+            "end": "(?<=^|[]\"')>`}\\w][!?]?)(>)(?:(!)|(~)|(\\*))?",
+            "endCaptures": {
+                "1": { "name": "punctuation.type.arguments.ruko" },
+                "2": { "name": "keyword.operator.macro.ruko" },
+                "3": { "name": "keyword.operator.destructor.ruko" },
+                "4": { "name": "keyword.generator.asterisk.ruko" }
+            },
+            "name": "meta.type-arguments.ruko",
             "patterns": [
-                {
-                    "captures": {
-                        "1": { "name": "punctuation.type.arguments.ruko" }
-                    },
-                    "match": "(?<=^|[]\"')>`}\\w\\s][!?]?|(?:[!?]\\.|[!:?]:|[-!?]>)=?)(<>)(?=[!*~]?(?:[\"'<`\\w]|#?[(\\[{]))"
-                },
-                {
-                    "begin": "(?<=^|[]\"')>`}\\w\\s][!?]?|(?:[!?]\\.|[!:?]:|[-!?]>)=?)(<)(?=(?:[-!#-\\&*+<?@\\\\^~]|\\.\\.)*(?:[\"'`\\w]|#?[(\\[{]))",
-                    "beginCaptures": {
-                        "1": { "name": "punctuation.type.arguments.ruko" }
-                    },
-                    "end": "(?<=^|[]\"')>`}\\w][!?]?)(>)(?:(!)|(~)|(\\*))?",
-                    "endCaptures": {
-                        "1": { "name": "punctuation.type.arguments.ruko" },
-                        "2": { "name": "keyword.operator.macro.ruko" },
-                        "3": { "name": "keyword.operator.destructor.ruko" },
-                        "4": { "name": "keyword.generator.asterisk.ruko" }
-                    },
-                    "name": "meta.type-arguments.ruko",
-                    "patterns": [
-                        { "include": "#types" },
-                        { "include": "#type-signature" },
-                        { "include": "#punctuation" },
-                        { "include": "#brackets" },
-                        { "include": "#embedded-expressions" },
-                        { "include": "#embedded-formatting" },
-                        { "include": "#embedded-arguments" }
-                    ]
-                }
+                { "include": "#types" },
+                { "include": "#type-signature" },
+                { "include": "#punctuation" },
+                { "include": "#brackets" },
+                { "include": "#embedded-expressions" },
+                { "include": "#embedded-formatting" },
+                { "include": "#embedded-arguments" }
             ]
         },
         "argument-list": {
@@ -1060,7 +1063,15 @@
                         "7": { "name": "variable.language.constructor.ruko" },
                         "8": { "name": "variable.language.destructor.ruko" },
                         "9": { "name": "variable.language.prototype.ruko" },
-                        "10": { "name": "variable.language.index.ruko" },
+                        "10": {
+                            "name": "variable.language.index.ruko",
+                            "patterns": [
+                                {
+                                    "match": "[-+]",
+                                    "name": "keyword.operator.sign.ruko"
+                                }
+                            ]
+                        },
                         "11": { "name": "variable.language.underscore.ruko" }
                     },
                     "match": "(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(true|false)|(n(?:ull|an))|(undef)|(infty)|(it|this|super|self)|(args)|(ctor)|(dtor)|(proto)|(_[-+]?\\d+)|(\\p{Pc}+))\\b"
@@ -1088,13 +1099,11 @@
                 { "include": "#typed-bindings" },
                 { "include": "#keywords" },
                 { "include": "#comments" },
-                { "include": "#symbols" },
                 { "include": "#type-signature" },
                 { "include": "#argument-list" },
                 { "include": "#function-calls" },
-                { "include": "#decorators" },
-                { "include": "#splice-brackets" },
                 { "include": "#xml-tags" },
+                { "include": "#splice-brackets" },
                 { "include": "#generics" },
                 { "include": "#literals" },
                 { "include": "#accessor-operators" },
@@ -1172,7 +1181,7 @@
         "curly-brackets": {
             "patterns": [
                 {
-                    "begin": "(?<=[]\"')`}\\w][[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]+\\s+)(#\\{)\\s*",
+                    "begin": "(?<=[]\"')`}\\w][[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]+\\s+)(#\\{)\\s*",
                     "captures": {
                         "1": { "name": "punctuation.definition.class.ruko" }
                     },
@@ -1181,7 +1190,7 @@
                     "patterns": [{ "include": "$self" }]
                 },
                 {
-                    "begin": "(?<=[]\"')`}\\w][[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]+\\s+)(\\{)\\s*",
+                    "begin": "(?<=[]\"')`}\\w][[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]+\\s+)(\\{)\\s*",
                     "captures": {
                         "1": { "name": "punctuation.definition.block.ruko" }
                     },
@@ -1280,7 +1289,7 @@
                     ]
                 },
                 {
-                    "begin": "(?<=[]\"')`}\\w]|[^.\\s]\\.=?|[!:?]:=?|[-!?]>=?)(#?\\{)\\s*",
+                    "begin": "(?<=[]\"')>`}\\w][!*~]?|[^.\\s]\\.=?|[!:?]:=?|[-!?]>=?)(#?\\{)\\s*",
                     "captures": {
                         "1": { "name": "punctuation.definition.template.ruko" }
                     },
@@ -1536,7 +1545,7 @@
                         "1": { "name": "storage.type.shader.ruko" }
                     },
                     "end": "$|",
-                    "name": "meta.script.ruko",
+                    "name": "meta.shader.ruko",
                     "patterns": [
                         { "include": "#declaration-clause" },
                         { "include": "#namespace-separators" },
@@ -1932,7 +1941,7 @@
         },
         "decorators": {
             "applyEndPatternLast": true,
-            "begin": "(?<=^|[]\"'()\\[`{}\\s]|[]\"')`}\\w\\s]\\s*[:=])(@)(?=[\\p{L}\\p{Nl}\\p{Pc}])",
+            "begin": "(@)(?=[\\p{L}\\p{Nl}\\p{Pc}])",
             "captures": {
                 "1": { "name": "punctuation.definition.decorator.ruko" },
                 "2": { "name": "entity.name.decorator.ruko" }
@@ -2338,13 +2347,13 @@
                     ]
                 }
             },
-            "match": "(?<=(?:^|[]\"'),;`}\\w\\s]|#?[(\\[{])(?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|([[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|((?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)\\b(?=[!*~]?#?[({]|(?:[!?]?\\.|[!:?]:|[-!?]>)<)|(?<=^|(?:[]\"'),;`}\\w\\s]|#?[(\\[{]|\\\\.)[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+{0,1})\\b(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)\\b(?=[!*~]?#?[({]|(?:[!?]?\\.|[!:?]:|[-!?]>)<)",
+            "match": "(?<=(?:^|[]\"'),;`}\\w\\s]|#?[(\\[{])(?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|([[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|((?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)\\b(?=[!*~]?#?[({]|(?:[!?]?\\.|[!:?]:|[-!?]>)?<)|(?<=^|(?:[]\"'),;`}\\w\\s]|#?[(\\[{])[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+{0,1})\\b(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)\\b(?=[!*~]?#?[({]|(?:[!?]?\\.|[!:?]:|[-!?]>)?<)",
             "name": "meta.function.name.ruko"
         },
         "embedded-verbatim": {
             "patterns": [
                 {
-                    "match": "([#%@])\\1",
+                    "match": "##|@@|%%",
                     "name": "constant.character.escape.ruko"
                 },
                 { "include": "#embedded-expressions" },
@@ -2922,36 +2931,26 @@
             ]
         },
         "generics": {
+            "begin": "(?<=^|[]\"')>`}\\w\\s][!?]?|(?:[!?]\\.|[!:?]:|[-!?]>)=?)(<)(?=(?:[-!#-\\&*+<?@\\\\^~]|\\.\\.)*(?:[\"'`\\w]|#?[(\\[{]))",
+            "beginCaptures": {
+                "1": { "name": "punctuation.type.arguments.ruko" }
+            },
+            "end": "(?<=^|[]\"')>`}\\w][!?]?)(>)(?:(!)|(~)|(\\*))?",
+            "endCaptures": {
+                "1": { "name": "punctuation.type.arguments.ruko" },
+                "2": { "name": "keyword.operator.macro.ruko" },
+                "3": { "name": "keyword.operator.destructor.ruko" },
+                "4": { "name": "keyword.generator.asterisk.ruko" }
+            },
+            "name": "meta.type-arguments.ruko",
             "patterns": [
-                {
-                    "captures": {
-                        "1": { "name": "punctuation.type.arguments.ruko" }
-                    },
-                    "match": "(?<=^|[]\"')>`}\\w\\s][!?]?|(?:[!?]\\.|[!:?]:|[-!?]>)=?)(<>)(?=[!*~]?(?:[\"'<`\\w]|#?[(\\[{]))"
-                },
-                {
-                    "begin": "(?<=^|[]\"')>`}\\w\\s][!?]?|(?:[!?]\\.|[!:?]:|[-!?]>)=?)(<)(?=(?:[-!#-\\&*+<?@\\\\^~]|\\.\\.)*(?:[\"'`\\w]|#?[(\\[{]))",
-                    "beginCaptures": {
-                        "1": { "name": "punctuation.type.arguments.ruko" }
-                    },
-                    "end": "(?<=^|[]\"')>`}\\w][!?]?)(>)(?:(!)|(~)|(\\*))?",
-                    "endCaptures": {
-                        "1": { "name": "punctuation.type.arguments.ruko" },
-                        "2": { "name": "keyword.operator.macro.ruko" },
-                        "3": { "name": "keyword.operator.destructor.ruko" },
-                        "4": { "name": "keyword.generator.asterisk.ruko" }
-                    },
-                    "name": "meta.type-arguments.ruko",
-                    "patterns": [
-                        { "include": "#types" },
-                        { "include": "#type-signature" },
-                        { "include": "#punctuation" },
-                        { "include": "#brackets" },
-                        { "include": "#embedded-expressions" },
-                        { "include": "#embedded-formatting" },
-                        { "include": "#embedded-arguments" }
-                    ]
-                }
+                { "include": "#types" },
+                { "include": "#type-signature" },
+                { "include": "#punctuation" },
+                { "include": "#brackets" },
+                { "include": "#embedded-expressions" },
+                { "include": "#embedded-formatting" },
+                { "include": "#embedded-arguments" }
             ]
         },
         "glob-syntax": {
@@ -3146,17 +3145,17 @@
         "ignore-long-lines": { "match": "^\\N{4097,}$" },
         "illegal": {
             "patterns": [
-                { "match": "\\p{N}+", "name": "invalid.illegal.number.ruko" },
-                { "match": "\\w+", "name": "invalid.illegal.variable.ruko" },
+                { "match": "\\p{N}", "name": "invalid.illegal.number.ruko" },
+                { "match": "\\w", "name": "invalid.illegal.variable.ruko" },
                 {
                     "match": "[]()\\[{}]",
                     "name": "invalid.illegal.missing-bracket.ruko"
                 },
                 {
-                    "match": "[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+",
+                    "match": "[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]",
                     "name": "invalid.illegal.operator.ruko"
                 },
-                { "match": "\\S+", "name": "invalid.illegal.uncaught.ruko" }
+                { "match": "\\S", "name": "invalid.illegal.uncaught.ruko" }
             ]
         },
         "image-inline": {
@@ -3800,6 +3799,8 @@
                 { "include": "#strings-bracketed" },
                 { "include": "#symbols" },
                 { "include": "#numbers" },
+                { "include": "#symbols" },
+                { "include": "#decorators" },
                 { "include": "#constants" }
             ]
         },
@@ -4360,7 +4361,7 @@
         "numbers": {
             "applyEndPatternLast": true,
             "begin": "(?=\\d)",
-            "end": "\\b\\s*",
+            "end": "\\b",
             "name": "meta.number.ruko",
             "patterns": [
                 {
@@ -4890,7 +4891,7 @@
                             ]
                         }
                     },
-                    "match": "((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(?:[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:<(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>)?|(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)?#?(?:\\((?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*\\s*)+)\\s*([[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*)\\s*",
+                    "match": "((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(?:[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:<(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>)?|(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)?#?(?:\\((?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*\\s*)+)\\s*([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)\\s*",
                     "name": "meta.binding-pattern.ruko"
                 },
                 { "include": "#comments" },
@@ -4909,6 +4910,7 @@
             "patterns": [
                 { "include": "#type-cast-operators" },
                 { "include": "#named-infix-operators" },
+                { "include": "#accessor-operators" },
                 { "include": "#special-operators" },
                 { "include": "#infix-operators" },
                 { "include": "#interfix-operators" },
@@ -4929,7 +4931,7 @@
             "captures": {
                 "1": { "patterns": [{ "include": "#function-names" }] }
             },
-            "match": "\\b(^\\s*[])}]*\\s*|`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)\\b(?=(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!~]#?[({])",
+            "match": "\\b(^\\s*[])}]*\\s*|`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)\\b(?=(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!*~]#?[({])",
             "name": "meta.function.arguments.ruko"
         },
         "parenless-function-calls": {
@@ -4937,9 +4939,12 @@
                 "1": {
                     "name": "meta.function.name.ruko",
                     "patterns": [{ "include": "#function-names" }]
-                }
+                },
+                "2": { "name": "keyword.operator.macro.ruko" },
+                "3": { "name": "keyword.operator.destructor.ruko" },
+                "4": { "name": "keyword.generator.asterisk.ruko" }
             },
-            "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[`{}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)(?![[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!~]#?[({]|\\s+(?:\\w*|[#$%`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
+            "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)(?:(!)|(~)|(\\*))?(?![[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!*~]#?[({]|\\s+(?:\\w*|[#%@`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
             "name": "meta.function.arguments.ruko"
         },
         "path-drawing": {
@@ -4991,7 +4996,7 @@
                             "patterns": [{ "include": "#function-names" }]
                         }
                     },
-                    "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[`{}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)\\b(?=\\s+(?:<[$*+|]>?|[$.°·])\\s+|\\b(?:<[$*+|]>?|[°·])\\b)",
+                    "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)\\b(?=\\s+(?:<[$*+|]>?|[$.°·])\\s+|\\b(?:<[$*+|]>?|[°·])\\b)",
                     "name": "meta.function.arguments.ruko"
                 },
                 {
@@ -5081,7 +5086,7 @@
                     ]
                 }
             },
-            "match": "(?<=[]\"')`}\\w][[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]*)([[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]])",
+            "match": "(?<=[]\"')`}\\w][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*)([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]])",
             "name": "keyword.operator.postfix.ruko"
         },
         "prefix-operators": {
@@ -5175,7 +5180,7 @@
                     ]
                 }
             },
-            "match": "([[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]])(?=[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))",
+            "match": "([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]])(?=[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))",
             "name": "keyword.operator.prefix.ruko"
         },
         "prerendered": {
@@ -5241,7 +5246,7 @@
                     "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b([iou]nto|[io]n|off?|where|any|all|some|every|asc|desc|unique|take|drop|first|last|limit|offset|top|bottom|first|last|count|sum|avg|min|max|mean|median|mode)\\b\\s*"
                 },
                 {
-                    "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[`{}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b(?![[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!~]#?[({]|\\s+(?:\\w*|[#$%`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
+                    "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b(?![[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!*~]#?[({]|\\s+(?:\\w*|[#%@`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
                     "name": "keyword.control.query.ruko"
                 },
                 { "include": "$self" }
@@ -6216,7 +6221,7 @@
                     ]
                 },
                 {
-                    "begin": "(?<=[]\"')`}\\w]|[^.\\s]\\.=?|[!:?]:=?|[-!?]>=?)(#?\\()\\s*",
+                    "begin": "(?<=[]\"')>`}\\w][!*~]?|[^.\\s]\\.=?|[!:?]:=?|[-!?]>=?)(#?\\()\\s*",
                     "captures": {
                         "1": {
                             "name": "punctuation.definition.parameters.ruko"
@@ -7318,26 +7323,28 @@
             ]
         },
         "selector-calls": {
-            "applyEndPatternLast": true,
-            "begin": "(?<=(?:^|[]\"')`}\\w]|\\\\.|(?:[!?]|[!:?]:|[-!?]>)?=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b:?)\\s*)((?:[!?]|[!:?]:|[-!?]>)?=?)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b(?=:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))",
+            "begin": "(?<=(?:^|[]\"')`}\\w]|\\\\.|(?:[!?]|[!:?]:|[-!?]>)?=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b:?)\\s*)((?:[!?]?\\.?|[!:?]:|[-!?]>)=?)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b(?=:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))",
             "beginCaptures": {
                 "1": {
+                    "name": "keyword.operator.accessor.ruko",
                     "patterns": [
+                        { "include": "#accessor-operators" },
                         {
-                            "captures": {
-                                "1": {
-                                    "name": "keyword.operator.optional.ruko"
-                                },
-                                "2": { "name": "keyword.operator.unwrap.ruko" },
-                                "3": {
-                                    "name": "keyword.operator.accessor.ruko"
-                                }
-                            },
-                            "match": "\\?[:>]?=?|![:>]?=?|(?:::|->)?=?"
+                            "match": "!",
+                            "name": "keyword.operator.unwrap.ruko"
+                        },
+                        {
+                            "match": "\\?",
+                            "name": "keyword.operator.optional.ruko"
+                        },
+                        {
+                            "match": "=",
+                            "name": "keyword.operator.assignment.ruko"
                         }
                     ]
                 },
                 "2": {
+                    "name": "entity.name.selector.ruko",
                     "patterns": [
                         {
                             "captures": {
@@ -7375,15 +7382,12 @@
                     ]
                 }
             },
-            "end": "$|",
+            "end": "(:)(?=\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$)||$",
+            "endCaptures": {
+                "1": { "name": "punctuation.separator.key-value.ruko" }
+            },
             "name": "meta.message.ruko",
-            "patterns": [
-                { "include": "#brackets" },
-                {
-                    "match": "(:)(?=\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$)",
-                    "name": "punctuation.separator.key-value.ruko"
-                }
-            ]
+            "patterns": [{ "include": "#brackets" }]
         },
         "selector-function-calls": {
             "captures": {
@@ -7392,7 +7396,7 @@
                     "patterns": [{ "include": "#function-names" }]
                 }
             },
-            "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[`{}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)(?!:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?!\\s*\\s(?:\\?[:>]?=?|![:>]?=?|(?:::|->)?=?)(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!~]#?[({]|\\s+(?:\\w*|[#$%`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
+            "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*)(?!:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?!\\s*(?:\\s(?:[!?]?\\.?|[!:?]:|[-!?]>)=?)?(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!*~]#?[({]|\\s+(?:\\w*|[#%@`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
             "name": "meta.function.arguments.ruko"
         },
         "semicolon": {
@@ -7639,7 +7643,7 @@
                     ]
                 },
                 {
-                    "begin": "(?<=[]\"')`}\\w]|[^.\\s]\\.=?|[!:?]:=?|[-!?]>=?)(#?\\[)\\s*",
+                    "begin": "(?<=[]\"')>`}\\w][!*~]?|[^.\\s]\\.=?|[!:?]:=?|[-!?]>=?)(#?\\[)\\s*",
                     "captures": {
                         "1": {
                             "name": "punctuation.definition.attribute-selector.ruko"
@@ -9584,7 +9588,9 @@
                     "match": "\\b(println|printf??|format|equals|equalsIgnoreCase|compareTo|compareToIgnoreCase|length|charAt|substring|indexOf|lastIndexOf|toUpperCase|toLowerCase|trim|split|replace|replaceAll|replaceFirst|valueOf|isEmpty|contains|startsWith|endsWith|hashCode|getClass|notify|notifyAll|wait|clone|toString)\\b",
                     "name": "support.function.method.java"
                 },
-                { "include": "source.r#builtin-functions" }
+                { "include": "source.r#builtin-functions" },
+                { "include": "source.coffee#method_names" },
+                { "include": "source.coffee#function_names" }
             ]
         },
         "switch-case-clause": {
@@ -9661,7 +9667,7 @@
             "patterns": [
                 {
                     "applyEndPatternLast": true,
-                    "begin": "(?<=^|[]\"'()\\[`{}\\s]|[]\"')`}\\w\\s]\\s*[:=])(:)(?=[\"'`])",
+                    "begin": "(:)(?=[#$%`]*[\"'])",
                     "captures": {
                         "1": { "name": "punctuation.definition.symbol.ruko" }
                     },
@@ -9685,7 +9691,7 @@
                             ]
                         }
                     },
-                    "match": "(?<=^|[]\"'()\\[`{}\\s]|[]\"')`}\\w\\s]\\s*[:=])(:)(`?\\b[\\p{Pd}\\w]+)\\b",
+                    "match": "(:)(`?\\b[\\p{Pd}\\w]+)\\b",
                     "name": "constant.other.symbol.ruko"
                 }
             ]
@@ -9731,6 +9737,9 @@
                 { "include": "#embedded-formatting" },
                 { "include": "#embedded-arguments" },
                 { "include": "#function-calls" },
+                { "include": "#prefix-operators" },
+                { "include": "#suffix-operators" },
+                { "include": "#interfix-operators" },
                 { "include": "#variables" },
                 { "include": "#brackets" },
                 { "include": "#comments" },
@@ -9812,12 +9821,8 @@
             "end": "(</(?=\\b|>))",
             "patterns": [
                 { "include": "#comments" },
-                { "include": "#xml-entities" },
-                { "include": "#tag-component-name" },
-                { "include": "#inline-styles" },
-                { "include": "#tag-component-name" },
                 { "include": "#xml-comments" },
-                { "include": "#escapes-embedded" },
+                { "include": "#tag-component-name" },
                 { "include": "$self" }
             ]
         },
@@ -9885,11 +9890,13 @@
                     "name": "storage.type.ruko",
                     "patterns": [
                         { "include": "#declarations" },
-                        { "include": "#types" }
+                        { "include": "#types" },
+                        { "include": "#operators" },
+                        { "include": "#illegal" }
                     ]
                 }
             },
-            "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[`{}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)(?<!#?[(\\[{]\\s*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s*)(<(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>|#?(?:\\((?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)(?!#?[(\\[{]\\s+(?:$|[,;]|/[*/]\\s+))(?![[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?!\\s+(?:[!?]|[!:?]:|[-!?]>)?=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?=\\s*(?:(?:\\w*|[#$%`]*)[\"']|\\b\\d|`\\N|:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|#?[(\\[]|/[\"'(\\[\\\\`{\\w]|<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
+            "match": "(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)(?<!#?[(\\[{]\\s*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s*)(<(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>|#?(?:\\((?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)(?!#?[(\\[{]\\s+(?:$|[,;]|/[*/]\\s+))(?![[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?!\\s+(?:[!?]|[!:?]:|[-!?]>)?=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?=\\s*(?:(?:\\w*|[#$%`]*)[\"']|\\b\\d|`\\N|:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|#?[(\\[]|/[\"'(\\[\\\\`{\\w]|<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
             "name": "keyword.operator.type-cast.ruko"
         },
         "type-clause": {
@@ -10011,7 +10018,7 @@
                     ]
                 },
                 {
-                    "begin": "(?<=(?:^|[(,;\\[{]|(?:^|[]\"'(),;\\[`{}\\w]|\\\\.):\\s*|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+)\\s*)(?<!(?:[]\"')`}\\w]|\\\\.)>*\\s*)(#\\{)\\s*",
+                    "begin": "(?<=(?:^|[(,;\\[{]|(?:^|[]\"'(),;\\[`{}\\w]|\\\\.):\\s*|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+)\\s*)(?<![]\"')`}\\w]>*\\s*)(#\\{)\\s*",
                     "captures": {
                         "1": { "name": "punctuation.definition.mapping.ruko" }
                     },
@@ -10025,7 +10032,7 @@
                     ]
                 },
                 {
-                    "begin": "(?<=(?:^|[(,;\\[{]|(?:^|[]\"'(),;\\[`{}\\w]|\\\\.):\\s*|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+)\\s*)(?<!(?:[]\"')`}\\w]|\\\\.)>*\\s*)(\\{)\\s*",
+                    "begin": "(?<=(?:^|[(,;\\[{]|(?:^|[]\"'(),;\\[`{}\\w]|\\\\.):\\s*|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+)\\s*)(?<![]\"')`}\\w]>*\\s*)(\\{)\\s*",
                     "captures": {
                         "1": {
                             "name": "punctuation.definition.dictionary.ruko"
@@ -10135,7 +10142,7 @@
                     "captures": {
                         "1": { "patterns": [{ "include": "#modifiers" }] }
                     },
-                    "match": "\\s*((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b\\b(?![[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*[:>](?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=\\s+(?:\\w*|[#$%`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end|ext|impl|infer|(?:inst|value|field|entry|type|name|size|key|addr|ptr|id)of)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
+                    "match": "\\s*((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b\\b(?![[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*[:>](?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=\\s+(?:\\w*|[#%@`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end|ext|impl|infer|(?:inst|value|field|entry|type|name|size|key|addr|ptr|id)of)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
                     "name": "storage.modifier.ruko"
                 }
             ]
@@ -10447,7 +10454,7 @@
                 "11": { "name": "support.type.class.ruko" },
                 "12": { "name": "entity.name.type.ruko" }
             },
-            "match": "\\s*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(?:(?<=(?:^|[]\"'),;`}\\w\\s]|#?[(\\[{])(?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|([[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|((?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|([\\p{L}\\p{Nl}\\p{Pc}]\\w*))|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)(?![!?]?\\.\\.+)(?=(?:[!?]?\\.|[!:?]:|[-!?]>)=?(?!\\s|$)|#?\\[)|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b))\\b\\s*"
+            "match": "\\s*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(?:(?<=(?:^|[]\"'),;>`}\\w\\s]|#?[(\\[{])(?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|([[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|((?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|([\\p{L}\\p{Nl}\\p{Pc}]\\w*))|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)(?![!?]?\\.\\.+)(?=(?:[!?]?\\.|[!:?]:|[-!?]>)=?(?!\\s|$)|#?\\[)|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b))\\b\\s*"
         },
         "typed-bindings": {
             "captures": {
@@ -10497,6 +10504,7 @@
         "types-inherited": {
             "patterns": [
                 { "include": "#type-operators" },
+                { "include": "#type-modifiers" },
                 {
                     "match": "\\s*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b\\b",
                     "name": "entity.other.inherited-class.ruko"
@@ -10764,7 +10772,7 @@
             "end": "(?=[]),;}])",
             "patterns": [
                 {
-                    "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[`{}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b(?![[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!~]#?[({]|\\s+(?:\\w*|[#$%`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./;\\[\\\\`{}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
+                    "match": "(?<=(?:(?:^|[,;]|[]\"')`}\\w\\s][:\\\\]|#?[(\\[{])\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?\\s+|\\b[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]+)?\\b|[]\"')>`}\\w][!?]?\\s*\\|\\s*|(?:^|[]\"'(),;\\[{}\\s])\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b\\s*)[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(?<!\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?\\b)((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b(?![[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*:(?:\\s*(?:[]\"'),;`}\\w\\s]|#?[(\\[{])|$))(?!\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?(?=\\s|$))(?!\\s+\\\\[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{]))(?=(?:(?:[!?]|[!:?]:|[-!?]>)=?)?#?[({]|(?:(?:[!?]|[!:?]:|[-!?]>)=?)?<[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|[!*~]#?[({]|\\s+(?:\\w*|[#%@`]*)[\"']|[[\\p{P}\\p{S}]&&[^]\"'(),/;\\[\\\\`{}\\p{Pc}]]*(?:\\s+(?:\\w*|[#$%`]*)[\"']|\\s+\\b\\d|\\s+`\\N|\\s+:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b|\\s+#?[(\\[]|\\s+/[\"'(\\[\\\\`{\\w]|\\s+<(?:`?[(\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?:[\"'`\\w]|#?[(\\[{])|\\s+\\|(?:#?[(\\[{])?(?:[,;]\\s*)*((?:[-!#-\\&*+?@\\\\^~]|\\.\\.)*)(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b([!\\&*?]*)\\s*|\\s+[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:(?:[!?]?\\.|[!:?]:|[-!?]>)=?`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)*\\s*\\b[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*))",
                     "name": "keyword.control.validate.ruko"
                 },
                 { "include": "$self" }
@@ -10823,7 +10831,7 @@
                 "11": { "name": "variable.other.class.ruko" },
                 "12": { "name": "variable.other.readwrite.ruko" }
             },
-            "match": "(?:(?<=(?:^|[]\"'),;`}\\w\\s]|#?[(\\[{])(?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|([[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|((?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|([\\p{L}\\p{Nl}\\p{Pc}]\\w*))|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)(?![!?]?\\.\\.+)(?=(?:[!?]?\\.|[!:?]:|[-!?]>)=?(?!\\s|$)|#?\\[)|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b))\\b",
+            "match": "(?:(?<=(?:^|[]\"'),;>`}\\w\\s]|#?[(\\[{])(?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|([[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|((?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|([\\p{L}\\p{Nl}\\p{Pc}]\\w*))|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b)(?![!?]?\\.\\.+)(?=(?:[!?]?\\.|[!:?]:|[-!?]>)=?(?!\\s|$)|#?\\[)|(?:(`?\\b\\p{Pc}+\\w*(?!\\p{Pc}+))\\b|(`?\\b[[\\p{L}\\p{Nl}]&&\\P{Ll}][\\w&&\\P{Ll}]*)|(`?\\b(?:[[\\p{L}\\p{Nl}\\p{Pc}]&&\\P{Ll}][\\w&&\\P{Lu}]*)+)|(`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b))\\b",
             "name": "meta.variable.ruko"
         },
         "when-clause": {

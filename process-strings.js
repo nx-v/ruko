@@ -1,4 +1,4 @@
-let fs = require("fs");
+import fs from "fs";
 let {stringify} = JSON;
 let {isArray} = Array;
 let {keys, values, entries} = Object;
