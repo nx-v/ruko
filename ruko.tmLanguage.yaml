@@ -2589,7 +2589,7 @@ repository:
             ^ # beginning of line
           | [,;] # separator
           | \#? [(\[{] # opening bracket
-          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
               `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -3329,7 +3329,7 @@ repository:
             ^ # beginning of line
           | [,;] # separator
           | \#? [(\[{] # opening bracket
-          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
               `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -3405,6 +3405,7 @@ repository:
           - include: "#tag-termination"
           - match: (?<=</)(>)
             name: punctuation.definition.tag.ruko
+          - include: "#illegal"
 
   html-tag-names:
     patterns:
@@ -3552,7 +3553,7 @@ repository:
       - include: "#operators"
 
   spread-attribute:
-    comment: Spread ...attribute
+    comment: Spread ..attribute
     match: \s*(?<!\.)(\.\.)(?=[\p{L}\p{Nl}\p{Pc}($])
     captures:
       1: {name: punctuation.definition.spread.ruko}
@@ -4856,7 +4857,7 @@ repository:
                       (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
                     )*
                     `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
-                  )? 
+                  )?
                   \#?(?:
                     \((?>(?:\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^()]+))*)\) | # round brackets
                     \[(?>(?:\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|(?>[^\[\]]+))*)\] | # square brackets
@@ -5426,9 +5427,9 @@ repository:
                 ) \s+
               | # primary operator that isn't an accessor or assignment
                 \b (?:
-                  [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   (?:[\p{P}\p{S}]*
-                    [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   )?
                 ) \b
               | ['"`)\]}>\w][!?]? \s*\|\s* # end of lambda literal
@@ -5588,9 +5589,9 @@ repository:
             ) \s+
           | # primary operator that isn't an accessor or assignment
             \b (?:
-              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               (?:[\p{P}\p{S}]*
-                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               )?
             ) \b
           | ['"`)\]}>\w][!?]? \s*\|\s* # end of lambda literal
@@ -5674,9 +5675,9 @@ repository:
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
         : (?: \s* (?: [,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
       )
-      (?! # infix operator
+      (?! # infix operator not beginning with /
         \s+
-        [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
         (?:[\p{P}\p{S}]*
           [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
         )?
@@ -5834,9 +5835,9 @@ repository:
             ) \s+
           | # primary operator that isn't an accessor or assignment
             \b (?:
-              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               (?:[\p{P}\p{S}]*
-                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               )?
             ) \b
           | ['"`)\]}>\w][!?]? \s*\|\s* # end of lambda literal
@@ -5917,9 +5918,9 @@ repository:
       (?!
         : (?: \s* (?: [,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
       )
-      (?! # infix operator
+      (?! # infix operator not beginning with /
         \s+
-        [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
         (?:[\p{P}\p{S}]*
           [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
         )?
@@ -5932,7 +5933,7 @@ repository:
       )
       (?! # function name
         \s*
-        (?:\s 
+        (?:\s
         (?:[?!]?\.?|[?!:]:|[?!-]>)=?)? # accessor
         # ignore all keywords
         (?!
@@ -6481,9 +6482,9 @@ repository:
         `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # selector name
         : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
       )
-      (?! # infix operator
+      (?! # infix operator not beginning with /
         \s+
-        [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+        [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
         (?:[\p{P}\p{S}]*
           [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
         )?
@@ -6651,9 +6652,13 @@ repository:
             | ( ~~?>|<~~? ) # wavy arrow
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
-            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
+            | ( [^\x{20}-\x{ff}&&[^\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[^\x{20}-\x{ff}&&[^\p{S}\p{P}]]*
+                  [^\x{20}-\x{ff}&&[^\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                )?
+              )
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
                 (?:[\p{P}\p{S}]*
                   [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                 )?
@@ -6689,8 +6694,8 @@ repository:
           27: {name: keyword.operator.arrow.wavy.ruko}
           28: {name: keyword.operator.math.custom.ruko}
           29: {name: keyword.operator.currency.custom.ruko}
-          30: {name: keyword.operator.ascii.ruko}
-          31: {name: keyword.operator.arrow.ruko}
+          30: {name: keyword.operator.arrow.ruko}
+          31: {name: keyword.operator.ascii.ruko}
           32: {name: keyword.operator.infix.ruko}
         end: ^\s*(?=\S)
         patterns:
@@ -6729,9 +6734,13 @@ repository:
             | ( ~~?>|<~~? ) # wavy arrow
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
-            | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # other operators
+            | ( [^\x{20}-\x{ff}&&[^\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[^\x{20}-\x{ff}&&[^\p{S}\p{P}]]*
+                  [^\x{20}-\x{ff}&&[^\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                )?
+              )
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
                 (?:[\p{P}\p{S}]*
                   [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                 )?
@@ -6773,9 +6782,17 @@ repository:
         | ( ~~?>|<~~? ) # wavy arrow
         | ( \p{Sm}+ ) # math symbols
         | ( \p{Sc}+ ) # currency symbols
-        | ( [!#-&*+\-./:-@\\^|~¡-©«-±´¶·¸»¿×÷]+ ) # ascii operators
         | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-        | ( [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ ) # other operators
+        | ( [^\x{20}-\x{ff}&&[^\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+            (?:[^\x{20}-\x{ff}&&[^\p{S}\p{P}]]*
+              [^\x{20}-\x{ff}&&[^\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+            )?
+          )
+        | ( [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # interfix operator
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+            )?
+          )
       )(?=(?:['"`\w]|\#?[(\[{]))
     captures:
       <<: *infix-operator-captures
@@ -6985,9 +7002,9 @@ repository:
             [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             [:>] (?: \s* (?: [,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
           )
-          (?! # infix operator
+          (?! # infix operator not beginning with /
             \s+
-            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
             (?:[\p{P}\p{S}]*
               [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
             )?
@@ -7447,9 +7464,9 @@ repository:
                 ) \s+
               | # primary operator that isn't an accessor or assignment
                 \b (?:
-                  [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   (?:[\p{P}\p{S}]*
-                    [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   )?
                 ) \b
               | ['"`)\]}>\w][!?]? \s*\|\s* # end of lambda literal
@@ -7527,9 +7544,9 @@ repository:
             [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             : (?: \s* (?: [,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
           )
-          (?! # infix operator
+          (?! # infix operator not beginning with /
             \s+
-            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
             (?:[\p{P}\p{S}]*
               [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
             )?
@@ -8810,7 +8827,7 @@ repository:
             (?:
                 [,;] # separator
               | \#? [(\[{] # opening bracket
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
             ) \s*
           ) \s*
 
@@ -8922,7 +8939,7 @@ repository:
                 ^ # beginning of line
               | [,;] # separator
               | \#? [(\[{] # opening bracket
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # postfix or infix operator
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
               | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
                 (?:
                   `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
@@ -9573,8 +9590,8 @@ repository:
   generics: &generics
     comment: <...> generics
     name: meta.type-arguments.ruko
-    begin: (?<=^|['"`)\]}>\w\s][!?]?|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w]|\#?[(\[{]))
-    end: (?<=^|['"`)\]}>\w][!?]?)(>)(?:(!)|(~)|(\*))?
+    begin: (?<=^|['"`)\]}>\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]?|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w]|\#?[(\[{]))
+    end: (?<=^|['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]?)(>)(?:(!)|(~)|(\*))?
     beginCaptures:
       1: {name: punctuation.type.arguments.ruko}
     endCaptures:
@@ -9586,10 +9603,10 @@ repository:
       - include: "#types"
       - include: "#type-signature"
       - include: "#punctuation"
+      - include: "#embedded"
       - include: "#brackets"
-      - include: "#embedded-expressions"
-      - include: "#embedded-formatting"
-      - include: "#embedded-arguments"
+      - include: "#comments"
+      - include: "#illegal"
 
   accessor-operators:
     match: (?<=^|['"`>)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=$|['"`<(\[{\w\s])
@@ -9650,9 +9667,9 @@ repository:
               | (?:^|[,;'"`)\]}\w\s])\| # beside a lambda pipe
               | ^\s*\| # beside a lambda pipe
               | (?:^|[,;'"`)\]}\w])
-                (?:[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   (?:[\p{P}\p{S}]*
-                    [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   )?
                 ): # beside a key-value separator
             )
@@ -9672,9 +9689,9 @@ repository:
               | (?:^|[,;'"`)\]}\w\s])\| # beside a lambda pipe
               | ^\s*\| # beside a lambda pipe
               | (?:^|[,;'"`)\]}\w])
-                (?:[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   (?:[\p{P}\p{S}]*
-                    [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   )?
                 ): # beside a key-value separator
             )
