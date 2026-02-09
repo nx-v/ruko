@@ -25,6 +25,7 @@ parsed = stringify(parsed, (k, v) => {
   switch (typeof v) {
     case "object":
       for (let k of ["comment", "define"]) if (k in v) delete v[k];
+      if (k == "repository" || "repository" in v) return v;
       break;
     case "string":
       if (["begin", "end", "match", "while"].includes(k.trim()))

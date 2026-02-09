@@ -4873,29 +4873,55 @@ repository:
 
           \s*
           ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
           (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+
           ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
           \s*
         name: meta.binding-pattern.ruko
         captures:
-          1:
+          1: &prefix-type-annotation
             name: storage.type.ruko
-            patterns: &prefix-type-annotation
+            patterns:
               - include: "#modifiers"
               - include: "#declarations"
               - include: "#types"
               - include: "#operators"
-          2:
+          2: &type-operators
             patterns:
               - include: "#type-operators"
               - include: "#operators"
           3:
             name: variable.parameter.ruko
             patterns: [{include: "#constants"}]
-          4:
-            patterns:
-              - include: "#type-operators"
-              - include: "#operators"
+          4: *type-operators
       - include: "#comments"
       - include: "#numbers"
       - include: "#strings"
@@ -6147,13 +6173,40 @@ repository:
             )+
           )?
 
-          (?:
-            \s*
-            ((?:[-*&%@^!~?\\+$#]|\.\.)*) # any sigils
-            (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-            ([!?&*]*) # optional sigils
-            \s*
+          \s*
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
           )
+          (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+          \s*
 
           (?=
             $ | # end of line
@@ -6167,14 +6220,12 @@ repository:
           )
         name: meta.argument-list.item.ruko
         captures:
-          1:
-            name: storage.type.ruko
-            patterns: *prefix-type-annotation
-          2: {patterns: [{include: "#type-parameter-operators"}]}
+          1: *prefix-type-annotation
+          2: *type-operators
           3:
             name: variable.parameter.ruko
             patterns: [{include: "#constants"}]
-          4: {patterns: [{include: "#type-parameter-operators"}]}
+          4: *type-operators
 
   binding-parameters:
     patterns:
@@ -6258,12 +6309,40 @@ repository:
 
           (?=
             \s*
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # operator
 
-            (?:[-*&%@^!~?\\+$#]|\.\.)* # any sigils
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+                # declaration keywords
+                |va[rl]|let|mut|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
+                |try|retry|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|race|join
+                |raise|error|final|copy|move|drop|sink
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              ) \b
+            )
             `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
-            [!?&*]* # optional sigils
 
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # operator
             \s*
+
             (?:
               $ | # end of line
               \s* (?:
@@ -6277,9 +6356,7 @@ repository:
           )
         name: meta.binding-pattern.ruko
         captures:
-          1:
-            name: storage.type.ruko
-            patterns: *prefix-type-annotation
+          1: *prefix-type-annotation
 
   call-parameters:
     match: |-
@@ -6322,28 +6399,50 @@ repository:
         )+
       )?
 
-      (?:
-        \s*
-        ((?:[-*&%@^!~?\\+$#]|\.\.)*) # any sigils
-        (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-        ([!?&*]*) # optional sigils
-        \s*
+      \s*
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+        (?: # keywords
+          # wordlike operators
+          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+          |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+          # declaration keywords
+          |va[rl]|let|mut|const
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+          |module|schema|struct|record|object|union|macro|space
+          |query|quote|style|script|shader|compo|temp|oper|realm
+
+          # control flow keywords
+          |if|elif|else|[tw]hen|guard|with
+          |for|while|loop|break|skip|redo
+          |try|retry|switch|[cm]atch|case|def|throw
+          |return|yield|await|goto|pass|defer|race|join
+          |raise|error|final|copy|move|drop|sink
+          |[gd]o|from|where|use|show|hide
+
+          # miscellaneous keywords
+          |debug|assert|check|decl|ignore
+          |use|echo|eval|exec|scope|safe|unsafe
+          |begin|end
+        ) \b
       )
+      (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+      \s*
 
       (:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
     name: meta.parameter-list.item.ruko
     captures:
-      1:
-        name: storage.type.ruko
-        patterns:
-          - include: "#declarations"
-          - include: "#types"
-          - include: "#operators"
-      2: {patterns: [{include: "#type-parameter-operators"}]}
+      1: *prefix-type-annotation
+      2: *type-operators
       3:
         name: variable.parameter.ruko
         patterns: [{include: "#constants"}]
-      4: {patterns: [{include: "#type-parameter-operators"}]}
+      4: *type-operators
       5: {name: punctuation.definition.key-value.ruko}
 
   # Variables
@@ -6546,13 +6645,7 @@ repository:
         )
       )
     captures:
-      1:
-        name: storage.type.ruko
-        patterns:
-          - include: "#declarations"
-          - include: "#types"
-          - include: "#operators"
-          - include: "#illegal"
+      1: *prefix-type-annotation
 
   named-infix-operators:
     comment: 'Named infix operators: x \fn\ y'
@@ -7362,7 +7455,7 @@ repository:
     end: $|
     beginCaptures:
       1: {name: keyword.control.loop.ruko}
-    patterns:
+    patterns: &label
       - match: *entity-name
         name: constant.other.label.ruko
 
@@ -7372,9 +7465,7 @@ repository:
     end: $|
     beginCaptures:
       1: {name: keyword.control.error.ruko}
-    patterns:
-      - match: *entity-name
-        name: constant.other.label.ruko
+    patterns: *label
 
   flow-expression:
     applyEndPatternLast: true
@@ -7382,9 +7473,7 @@ repository:
     end: $|
     beginCaptures:
       1: {name: keyword.control.flow.ruko}
-    patterns:
-      - match: *entity-name
-        name: constant.other.label.ruko
+    patterns: *label
 
   module-expression:
     patterns:
@@ -7399,9 +7488,7 @@ repository:
         end: $|
         beginCaptures:
           1: {name: keyword.control.module.ruko}
-        patterns:
-          - match: *entity-name
-            name: constant.other.label.ruko
+        patterns: *label
 
   module-content:
     patterns:
@@ -7797,9 +7884,7 @@ repository:
       )
     name: meta.binding-pattern.ruko
     captures:
-      1:
-        name: storage.type.ruko
-        patterns: *prefix-type-annotation
+      1: *prefix-type-annotation
       2: {name: variable.other.assignment.ruko}
 
   typed-declarations:
@@ -7869,9 +7954,7 @@ repository:
         `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
       )
     captures:
-      1:
-        name: storage.type.ruko
-        patterns: *prefix-type-annotation
+      1: *prefix-type-annotation
 
   variable-declarations:
     comment: Variable declaration with optional postfix type annotation
@@ -7942,9 +8025,7 @@ repository:
     end: $|
     beginCaptures:
       1: {name: storage.type.variable.ruko}
-      2:
-        name: storage.type.ruko
-        patterns: *prefix-type-annotation
+      2: *prefix-type-annotation
     name: meta.variable.declaration.ruko
     patterns:
       - &variable-declaration
@@ -8035,6 +8116,35 @@ repository:
               \s*
             )+
           )?
+          \s*
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
 
           \s*
           (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8052,9 +8162,7 @@ repository:
               ) \b
           )
         captures:
-          1:
-            name: storage.type.ruko
-            patterns: *prefix-type-annotation
+          1: *prefix-type-annotation
           2: {name: variable.other.assignment.ruko}
       - include: "#type-signature"
       - include: "#default-value"
@@ -8656,9 +8764,7 @@ repository:
         captures:
           1: {name: entity.name.method.ruko}
           2: {name: keyword.operator.assignment.ruko}
-          3:
-            name: storage.type.ruko
-            patterns: *prefix-type-annotation
+          3: *prefix-type-annotation
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -8798,9 +8904,7 @@ repository:
         captures:
           1: {name: entity.name.ruko}
           2: {name: keyword.operator.assignment.ruko}
-          3:
-            name: storage.type.ruko
-            patterns: *prefix-type-annotation
+          3: *prefix-type-annotation
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -8908,9 +9012,7 @@ repository:
             )+
           ))
         beginCaptures:
-          1:
-            name: storage.type.ruko
-            patterns: *prefix-type-annotation
+          1: *prefix-type-annotation
           2: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
