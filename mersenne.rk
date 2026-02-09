@@ -185,9 +185,9 @@ show class MTRand : Io.Serializer {
         h2 += (u32)cb[i];
       }
 
-      let u32 out = (h1 + #differ) ^ h2;
+      let u32 `out = (h1 + #differ) ^ h2;
       #differ += 1;
-      return out;
+      return `out;
     }
 
     proc u32 twist(u32 m, u32 s0, u32 s1) =  m ^ (#mix_bits(s0, s1) >> 1) ^ #magic(s1);
@@ -697,9 +697,7 @@ show class MTRand = script cs {
       used |= used >> 16;
 
       uint i;
-      do
-        i = randInt() & used;
-      while (i > n);
+      do i = randInt() & used; while (i > n);
       return i;
     }
 
@@ -801,19 +799,16 @@ show class MTRand = script cs {
       uint[] s = state;
       int i = 1;
       s[0] = seed & 0xffffffffU;
-      for (; i < N; ++i) {
+      for (; i < N; ++i)
         s[i] = (1812433253U * (s[i - 1] ^ (s[i - 1] >> 30)) + (uint)i) & 0xffffffffU;
-      }
     }
 
     protected void reload() {
       int i;
-      for (i = N - M; i > 0; --i) {
+      for (i = N - M; i > 0; --i)
         state[N - i] = twist(state[N - i + M], state[N - i], state[N - i + 1]);
-      }
-      for (; i > 1; --i) {
+      for (; i > 1; --i)
         state[N - i] = twist(state[N - i + M - N], state[N - i], state[N - i + 1]);
-      }
       state[N - 1] = twist(state[M - 1], state[N - 1], state[0]);
 
       left = N;

@@ -413,7 +413,7 @@ repository:
           2: {name: keyword.control.directive.ruko}
         patterns: [{include: $self}]
       - applyEndPatternLast: true
-        begin: ^\s*(%)(scope|safe|unsafe|begin|end)\b
+        begin: ^\s*(%)(scope|begin|end)\b
         end: $
         name: meta.directive.ruko
         captures:
@@ -4177,13 +4177,13 @@ repository:
         end: (\])
         name: string.other.link.description.markdown
         captures:
-          1: {name: punctuation.definition.string.begin.markdown}
+          1: {name: punctuation.definition.link.markdown}
         patterns: [{include: "#markdown-content"}]
       - begin: (?<=\]\s*)(\() # Opening paren for url
         end: (\))
-        name: markup.underline.link.markdown
+        name: markup.underline.link.image.markdown
         captures:
-          1: {name: punctuation.definition.link.markdown}
+          1: {name: punctuation.definition.metadata.markdown}
         patterns:
           - include: "#link-inet"
           - include: "#link-email"
@@ -4880,7 +4880,8 @@ repository:
         captures:
           1:
             name: storage.type.ruko
-            patterns:
+            patterns: &prefix-type-annotation
+              - include: "#modifiers"
               - include: "#declarations"
               - include: "#types"
               - include: "#operators"
@@ -5523,7 +5524,7 @@ repository:
           (?x)
           (?<=
               (?:^ | \s+)
-                 (?:<?[|+*$]>|[.·°¢]) \s+ # infix operator
+                 (?:<?[|+*$]>|[.·°#]) \s+ # infix operator
             | \b (?:<?[|+*$]>|[·°]) \b  # primary operator
           )
           \b
@@ -6168,10 +6169,7 @@ repository:
         captures:
           1:
             name: storage.type.ruko
-            patterns:
-              - include: "#declarations"
-              - include: "#types"
-              - include: "#operators"
+            patterns: *prefix-type-annotation
           2: {patterns: [{include: "#type-parameter-operators"}]}
           3:
             name: variable.parameter.ruko
@@ -6281,10 +6279,7 @@ repository:
         captures:
           1:
             name: storage.type.ruko
-            patterns:
-              - include: "#declarations"
-              - include: "#types"
-              - include: "#operators"
+            patterns: *prefix-type-annotation
 
   call-parameters:
     match: |-
@@ -6628,13 +6623,13 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
-            | ( [&|^#§¦¤¶¬~¯] ) # bitwise
+            | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
+            | ( [&|^»§¦¤«~¬] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
             | ( \+\+|--|××|÷÷|±±|%% ) # string
             | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$¢] ) # application
+            | ( <[|+*$]>|[$#] ) # application
             | ( <\+|\+>|[.·°] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
@@ -6710,13 +6705,13 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
-            | ( [&|^#§¦¤¶¬~¯] ) # bitwise
+            | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
+            | ( [&|^»§¦¤«~¬] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
             | ( \+\+|--|××|÷÷|±±|%% ) # string
             | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$¢] ) # application
+            | ( <[|+*$]>|[$#] ) # application
             | ( <\+|\+>|[.·°] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
@@ -6757,13 +6752,13 @@ repository:
         | ( \?[.:>] ) # optional
         | ( ![.:>] ) # mandatory
         | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|\#\#|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯ ) # logical
-        | ( [&|^#§¦¤¶¬~¯] ) # bitwise
+        | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
+        | ( [&|^»§¦¤«~¬] ) # bitwise
         | ( <<[<>]?|[<>]?>> ) # bitwise shift
         | ( \+\+|--|××|÷÷|±±|%% ) # string
         | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
         | ( [|+*$]>|<[|+*$] ) # pipeline
-        | ( <[|+*$]>|[$¢] ) # application
+        | ( <[|+*$]>|[$#] ) # application
         | ( <\+|\+>|[.·°] ) # composition
         | ( [<>][:!]|[:!][<>] ) # class
         | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
@@ -7289,8 +7284,6 @@ repository:
 
   declaration-keywords:
     patterns:
-      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|def|ignore|safe|unsafe)\b\s*
-        name: keyword.other.declare.ruko
       - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
         name: storage.type.ruko
       - match: |-
@@ -7327,9 +7320,11 @@ repository:
         name: keyword.control.$1.ruko
       - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(when|guard)\b\s*
         name: keyword.control.signal.ruko
-      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|def|ignore|safe|unsafe)\b\s*
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|def)\b\s*
         name: keyword.other.declare.ruko
-      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|echo|eval|exec)\b\s*
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(safe|unsafe)\b\s*
+        name: keyword.other.safety.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|echo|eval|exec|ignore)\b\s*
         name: keyword.other.$1.ruko
       - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
         name: keyword.control.validate.ruko
@@ -7804,10 +7799,7 @@ repository:
     captures:
       1:
         name: storage.type.ruko
-        patterns:
-          - include: "#declarations"
-          - include: "#types"
-          - include: "#operators"
+        patterns: *prefix-type-annotation
       2: {name: variable.other.assignment.ruko}
 
   typed-declarations:
@@ -7879,18 +7871,13 @@ repository:
     captures:
       1:
         name: storage.type.ruko
-        patterns:
-          - include: "#declarations"
-          - include: "#types"
-          - include: "#operators"
+        patterns: *prefix-type-annotation
 
   variable-declarations:
     comment: Variable declaration with optional postfix type annotation
     applyEndPatternLast: true
     begin: |-
       (?x)
-      (?<!\#?[(\[{]\s*) # not after opening brackets
-
       \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b
 
       (
@@ -7957,10 +7944,7 @@ repository:
       1: {name: storage.type.variable.ruko}
       2:
         name: storage.type.ruko
-        patterns:
-          - include: "#declarations"
-          - include: "#types"
-          - include: "#operators"
+        patterns: *prefix-type-annotation
     name: meta.variable.declaration.ruko
     patterns:
       - &variable-declaration
@@ -8070,10 +8054,7 @@ repository:
         captures:
           1:
             name: storage.type.ruko
-            patterns:
-              - include: "#declarations"
-              - include: "#types"
-              - include: "#operators"
+            patterns: *prefix-type-annotation
           2: {name: variable.other.assignment.ruko}
       - include: "#type-signature"
       - include: "#default-value"
@@ -8166,7 +8147,7 @@ repository:
             name: entity.name.component.ruko
             patterns: [{include: "#html-tag-names"}]
       - applyEndPatternLast: true
-        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|ignore)\b\s*
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|def)\b\s*
         end: $|
         beginCaptures:
           1: {name: keyword.other.declare.ruko}
@@ -8677,10 +8658,7 @@ repository:
           2: {name: keyword.operator.assignment.ruko}
           3:
             name: storage.type.ruko
-            patterns:
-              - include: "#declarations"
-              - include: "#types"
-              - include: "#operators"
+            patterns: *prefix-type-annotation
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -8822,10 +8800,7 @@ repository:
           2: {name: keyword.operator.assignment.ruko}
           3:
             name: storage.type.ruko
-            patterns:
-              - include: "#declarations"
-              - include: "#types"
-              - include: "#operators"
+            patterns: *prefix-type-annotation
           4: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -8935,10 +8910,7 @@ repository:
         beginCaptures:
           1:
             name: storage.type.ruko
-            patterns:
-              - include: "#declarations"
-              - include: "#types"
-              - include: "#operators"
+            patterns: *prefix-type-annotation
           2: {name: punctuation.separator.arguments.ruko}
         endCaptures:
           1: {name: punctuation.separator.arguments.ruko}
@@ -9502,7 +9474,7 @@ repository:
         name: punctuation.separator.mapping.ruko
       - include: "#binding-pattern"
       - include: "#type-clause"
-      - include: "#illegal"
+      - include: $self
 
   binding-pattern-tuple:
     begin: (\#?\()\s*
@@ -9521,7 +9493,7 @@ repository:
         name: punctuation.separator.arguments.ruko
       - include: "#binding-pattern"
       - include: "#type-clause"
-      - include: "#illegal"
+      - include: $self
 
   binding-pattern-array:
     begin: (\#?\[)\s*
@@ -9540,7 +9512,7 @@ repository:
         name: punctuation.separator.sequence.ruko
       - include: "#binding-pattern"
       - include: "#type-clause"
-      - include: "#illegal"
+      - include: $self
 
   default-value:
     begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=(?:['"`\w]|\#?[(\[{]))

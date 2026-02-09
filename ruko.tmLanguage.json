@@ -60,6 +60,7 @@
                         "1": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
@@ -384,6 +385,7 @@
                         "1": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
@@ -432,7 +434,7 @@
                 },
                 { "include": "#binding-pattern" },
                 { "include": "#type-clause" },
-                { "include": "#illegal" }
+                { "include": "$self" }
             ]
         },
         "binding-pattern-object": {
@@ -461,7 +463,7 @@
                 },
                 { "include": "#binding-pattern" },
                 { "include": "#type-clause" },
-                { "include": "#illegal" }
+                { "include": "$self" }
             ]
         },
         "binding-pattern-tuple": {
@@ -488,7 +490,7 @@
                 },
                 { "include": "#binding-pattern" },
                 { "include": "#type-clause" },
-                { "include": "#illegal" }
+                { "include": "$self" }
             ]
         },
         "block-comments": {
@@ -1404,10 +1406,6 @@
         "declaration-keywords": {
             "patterns": [
                 {
-                    "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(decl|def|ignore|safe|unsafe)\\b\\s*",
-                    "name": "keyword.other.declare.ruko"
-                },
-                {
                     "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(va[lr]|let|mut|const)\\b\\s*",
                     "name": "storage.type.ruko"
                 },
@@ -1439,6 +1437,7 @@
                         "1": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
@@ -1593,7 +1592,7 @@
                 },
                 {
                     "applyEndPatternLast": true,
-                    "begin": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(decl|ignore)\\b\\s*",
+                    "begin": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(de(?:cl|f))\\b\\s*",
                     "beginCaptures": {
                         "1": { "name": "keyword.other.declare.ruko" }
                     },
@@ -2107,7 +2106,7 @@
                 },
                 {
                     "applyEndPatternLast": true,
-                    "begin": "^\\s*(%)(scope|safe|unsafe|begin|end)\\b",
+                    "begin": "^\\s*(%)(scope|begin|end)\\b",
                     "captures": {
                         "1": {
                             "name": "punctuation.definition.directive.ruko"
@@ -2673,6 +2672,7 @@
                         "3": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
@@ -2704,6 +2704,7 @@
                         "3": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
@@ -2914,11 +2915,15 @@
                     "name": "keyword.control.signal.ruko"
                 },
                 {
-                    "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(decl|def|ignore|safe|unsafe)\\b\\s*",
+                    "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(de(?:cl|f))\\b\\s*",
                     "name": "keyword.other.declare.ruko"
                 },
                 {
-                    "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(debug|assert|check|echo|eval|exec)\\b\\s*",
+                    "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b((?:|un)safe)\\b\\s*",
+                    "name": "keyword.other.safety.ruko"
+                },
+                {
+                    "match": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(debug|assert|check|echo|eval|exec|ignore)\\b\\s*",
                     "name": "keyword.other.$1.ruko"
                 },
                 {
@@ -3167,9 +3172,7 @@
                 {
                     "begin": "(!\\[)",
                     "captures": {
-                        "1": {
-                            "name": "punctuation.definition.string.begin.markdown"
-                        }
+                        "1": { "name": "punctuation.definition.link.markdown" }
                     },
                     "end": "(])",
                     "name": "string.other.link.description.markdown",
@@ -3178,10 +3181,12 @@
                 {
                     "begin": "(?<=]\\s*)(\\()",
                     "captures": {
-                        "1": { "name": "punctuation.definition.link.markdown" }
+                        "1": {
+                            "name": "punctuation.definition.metadata.markdown"
+                        }
                     },
                     "end": "(\\))",
-                    "name": "markup.underline.link.markdown",
+                    "name": "markup.underline.link.image.markdown",
                     "patterns": [
                         { "include": "#link-inet" },
                         { "include": "#link-email" },
@@ -3206,7 +3211,7 @@
         "infix-operators": {
             "patterns": [
                 {
-                    "begin": "(?<=^|[(\\[{\\s])(?:([[\\p{P}\\p{S}]&&[^]!\"'(),.:-?\\[`{}~\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*=)|(\\?[.:>])|(![.:>])|(\\.|::|->)|(&&|\\|\\||\\^\\^|##|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯)|([#\\&^|~¤¦§¬¯¶])|(<<[<>]?|[<>]?>>)|(\\+\\+|--|××|÷÷|±±|%%)|([-+±×÷][%|]?|\\*\\*?[%|]?|~?/|%%?)|([$*+|]>|<[$*+|])|(<[$*+|]>|[$¢])|(<\\+|\\+>|[.°·])|([<>][!:]|[!:][<>])|([.>]\\.[.<]|[.=]\\.[.=]|\\.\\.)|([<>]=?|<=?>)|(\\.\\.+|··+|°°+)|([!=]==?)|(~[!=]|[!=]~)|(\\?\\?\\??|¿¿)|(!!!?|¡¡)|(\\?:?|¿:)|(!:?|¡:)|(\\$|:?:?:)|([:?]?=)|(==?>|<==)|(--?>|<--?)|(~~?>|<~~?)|(\\p{Sm}+)|(\\p{Sc}+)|([\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+)|([ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[ -ÿ&&[\\p{S}\\p{P}]]*[ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?)|([[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?))(?=\\s*$|\\s+/[*/](?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))",
+                    "begin": "(?<=^|[(\\[{\\s])(?:([[\\p{P}\\p{S}]&&[^]!\"'(),.:-?\\[`{}~\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*=)|(\\?[.:>])|(![.:>])|(\\.|::|->)|(&&|\\|\\||\\^\\^|»»|§§|¦¦|¤¤|««|~~|¬¬)|([\\&^|~¤¦§«¬»])|(<<[<>]?|[<>]?>>)|(\\+\\+|--|××|÷÷|±±|%%)|([-+±×÷][%|]?|\\*\\*?[%|]?|~?/|%%?)|([$*+|]>|<[$*+|])|(<[$*+|]>|[#$])|(<\\+|\\+>|[.°·])|([<>][!:]|[!:][<>])|([.>]\\.[.<]|[.=]\\.[.=]|\\.\\.)|([<>]=?|<=?>)|(\\.\\.+|··+|°°+)|([!=]==?)|(~[!=]|[!=]~)|(\\?\\?\\??|¿¿)|(!!!?|¡¡)|(\\?:?|¿:)|(!:?|¡:)|(\\$|:?:?:)|([:?]?=)|(==?>|<==)|(--?>|<--?)|(~~?>|<~~?)|(\\p{Sm}+)|(\\p{Sc}+)|([\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+)|([ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[ -ÿ&&[\\p{S}\\p{P}]]*[ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?)|([[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?))(?=\\s*$|\\s+/[*/](?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+))",
                     "beginCaptures": {
                         "1": {
                             "name": "keyword.operator.assignment.augmented.ruko"
@@ -3294,7 +3299,7 @@
                         "31": { "name": "keyword.operator.ascii.ruko" },
                         "32": { "name": "keyword.operator.infix.ruko" }
                     },
-                    "match": "(?<=^|[(\\[{\\s])(?:([[\\p{P}\\p{S}]&&[^]!\"'(),.:-?\\[`{}~\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*=)|(\\?[.:>])|(![.:>])|(\\.|::|->)|(&&|\\|\\||\\^\\^|##|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯)|([#\\&^|~¤¦§¬¯¶])|(<<[<>]?|[<>]?>>)|(\\+\\+|--|××|÷÷|±±|%%)|([-+±×÷][%|]?|\\*\\*?[%|]?|~?/|%%?)|([$*+|]>|<[$*+|])|(<[$*+|]>|[$¢])|(<\\+|\\+>|[.°·])|([<>][!:]|[!:][<>])|([.>]\\.[.<]|[.=]\\.[.=]|\\.\\.)|([<>]=?|<=?>)|(\\.\\.+|··+|°°+)|([!=]==?)|(~[!=]|[!=]~)|(\\?\\?\\??|¿¿)|(!!!?|¡¡)|(\\?:?|¿:)|(!:?|¡:)|(\\$|:?:?:)|([:?]?=)|(==?>|<==)|(--?>|<--?)|(~~?>|<~~?)|(\\p{Sm}+)|(\\p{Sc}+)|([\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+)|([ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[ -ÿ&&[\\p{S}\\p{P}]]*[ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?)|([[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?))(?=$|[])}\\s])"
+                    "match": "(?<=^|[(\\[{\\s])(?:([[\\p{P}\\p{S}]&&[^]!\"'(),.:-?\\[`{}~\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*=)|(\\?[.:>])|(![.:>])|(\\.|::|->)|(&&|\\|\\||\\^\\^|»»|§§|¦¦|¤¤|««|~~|¬¬)|([\\&^|~¤¦§«¬»])|(<<[<>]?|[<>]?>>)|(\\+\\+|--|××|÷÷|±±|%%)|([-+±×÷][%|]?|\\*\\*?[%|]?|~?/|%%?)|([$*+|]>|<[$*+|])|(<[$*+|]>|[#$])|(<\\+|\\+>|[.°·])|([<>][!:]|[!:][<>])|([.>]\\.[.<]|[.=]\\.[.=]|\\.\\.)|([<>]=?|<=?>)|(\\.\\.+|··+|°°+)|([!=]==?)|(~[!=]|[!=]~)|(\\?\\?\\??|¿¿)|(!!!?|¡¡)|(\\?:?|¿:)|(!:?|¡:)|(\\$|:?:?:)|([:?]?=)|(==?>|<==)|(--?>|<--?)|(~~?>|<~~?)|(\\p{Sm}+)|(\\p{Sc}+)|([\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+)|([ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[ -ÿ&&[\\p{S}\\p{P}]]*[ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?)|([[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),;\\[\\\\`{}\\p{Pc}]]+)?))(?=$|[])}\\s])"
                 }
             ]
         },
@@ -3374,7 +3379,7 @@
                 "31": { "name": "keyword.operator.ascii.ruko" },
                 "32": { "name": "keyword.operator.interfix.ruko" }
             },
-            "match": "(?<=[]\"')}\\w])(?:([[\\p{P}\\p{S}]&&[^]!\"'(),.:-?\\[`{}~\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*=)|(\\?[.:>])|(![.:>])|(\\.|::|->)|(&&|\\|\\||\\^\\^|##|§§|¦¦|¤¤|¶¶|~~|¬¬|¯¯)|([#\\&^|~¤¦§¬¯¶])|(<<[<>]?|[<>]?>>)|(\\+\\+|--|××|÷÷|±±|%%)|([-+±×÷][%|]?|\\*\\*?[%|]?|~?/|%%?)|([$*+|]>|<[$*+|])|(<[$*+|]>|[$¢])|(<\\+|\\+>|[.°·])|([<>][!:]|[!:][<>])|([.>]\\.[.<]|[.=]\\.[.=]|\\.\\.)|([<>]=?|<=?>)|(\\.\\.+|··+|°°+)|([!=]==?)|(~[!=]|[!=]~)|(\\?\\?\\??|¿¿)|(!!!?|¡¡)|(\\?:?|¿:)|(!:?|¡:)|(\\$|:?:?:)|([:?]?=)|(==?>|<==)|(--?>|<--?)|(~~?>|<~~?)|(\\p{Sm}+)|(\\p{Sc}+)|([\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+)|([ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[ -ÿ&&[\\p{S}\\p{P}]]*[ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?)|([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?))(?=[\"'`\\w]|#?[(\\[{])"
+            "match": "(?<=[]\"')}\\w])(?:([[\\p{P}\\p{S}]&&[^]!\"'(),.:-?\\[`{}~\\p{Pc}]][[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]*=)|(\\?[.:>])|(![.:>])|(\\.|::|->)|(&&|\\|\\||\\^\\^|»»|§§|¦¦|¤¤|««|~~|¬¬)|([\\&^|~¤¦§«¬»])|(<<[<>]?|[<>]?>>)|(\\+\\+|--|××|÷÷|±±|%%)|([-+±×÷][%|]?|\\*\\*?[%|]?|~?/|%%?)|([$*+|]>|<[$*+|])|(<[$*+|]>|[#$])|(<\\+|\\+>|[.°·])|([<>][!:]|[!:][<>])|([.>]\\.[.<]|[.=]\\.[.=]|\\.\\.)|([<>]=?|<=?>)|(\\.\\.+|··+|°°+)|([!=]==?)|(~[!=]|[!=]~)|(\\?\\?\\??|¿¿)|(!!!?|¡¡)|(\\?:?|¿:)|(!:?|¡:)|(\\$|:?:?:)|([:?]?=)|(==?>|<==)|(--?>|<--?)|(~~?>|<~~?)|(\\p{Sm}+)|(\\p{Sc}+)|([\\p{In_Arrows}\\p{In_Supplemental_Arrows_A}\\p{In_Supplemental_Arrows_B}\\p{In_Supplemental_Arrows_C}\\p{In_Miscellaneous_Symbols_and_Arrows}]+)|([ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[ -ÿ&&[\\p{S}\\p{P}]]*[ -ÿ&&[[\\p{S}\\p{P}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?)|([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+(?:[\\p{P}\\p{S}]*[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]]+)?))(?=[\"'`\\w]|#?[(\\[{])"
         },
         "italic": {
             "patterns": [
@@ -4870,6 +4875,7 @@
                         "1": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
@@ -5007,7 +5013,7 @@
                             "patterns": [{ "include": "#function-names" }]
                         }
                     },
-                    "match": "(?<=(?:^|\\s+)(?:<?[$*+|]>|[.¢°·])\\s+|\\b(?:<?[$*+|]>|[°·])\\b)\\b((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b\\b",
+                    "match": "(?<=(?:^|\\s+)(?:<?[$*+|]>|[#.°·])\\s+|\\b(?:<?[$*+|]>|[°·])\\b)\\b((?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*)\\b\\b",
                     "name": "meta.function.arguments.ruko"
                 }
             ]
@@ -10454,6 +10460,7 @@
                 "1": {
                     "name": "storage.type.ruko",
                     "patterns": [
+                        { "include": "#modifiers" },
                         { "include": "#declarations" },
                         { "include": "#types" },
                         { "include": "#operators" }
@@ -10469,6 +10476,7 @@
                 "1": {
                     "name": "storage.type.ruko",
                     "patterns": [
+                        { "include": "#modifiers" },
                         { "include": "#declarations" },
                         { "include": "#types" },
                         { "include": "#operators" }
@@ -10773,12 +10781,13 @@
         },
         "variable-declarations": {
             "applyEndPatternLast": true,
-            "begin": "(?<!#?[(\\[{]\\s*)\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(va[lr]|let|mut|const)\\b((?:<(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>|#?(?:\\((?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)+)?\\s*(?!$|[,;]|:\\s|[])}]|\\s(?:[:?]?=|#?\\{)(?:\\s|$)|\\s(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|of)\\b)(?=#?[(\\[{]|((?:[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:<(?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>)?|(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)?#?(?:\\((?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*\\s*)*)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)",
+            "begin": "\\s*(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(va[lr]|let|mut|const)\\b((?:<(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>|#?(?:\\((?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)+)?\\s*(?!$|[,;]|:\\s|[])}]|\\s(?:[:?]?=|#?\\{)(?:\\s|$)|\\s(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|of)\\b)(?=#?[(\\[{]|((?:[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:<(?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^<>]+))*)>)?|(?:(?:`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)?#?(?:\\((?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^()]+))*)\\)|\\[(?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^]\\[]+))*)]|\\{(?>(?:\\g<2>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|(?>[^{}]+))*)})+)+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*\\s*)*)`?\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)",
             "beginCaptures": {
                 "1": { "name": "storage.type.variable.ruko" },
                 "2": {
                     "name": "storage.type.ruko",
                     "patterns": [
+                        { "include": "#modifiers" },
                         { "include": "#declarations" },
                         { "include": "#types" },
                         { "include": "#operators" }
@@ -10793,6 +10802,7 @@
                         "1": {
                             "name": "storage.type.ruko",
                             "patterns": [
+                                { "include": "#modifiers" },
                                 { "include": "#declarations" },
                                 { "include": "#types" },
                                 { "include": "#operators" }
