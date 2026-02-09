@@ -6463,6 +6463,10 @@ repository:
       )
 
       (?!
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # not followed by accessor
+        (?:$|['"`(\[{\w\s]) # or a literal or opening bracket
+      ) 
+      (?!
         \#?[(\[{] \s+ (?: $ | [,;] | /[/*] \s+ ) # not followed by opening bracket
       )
       (?!
@@ -7885,7 +7889,7 @@ repository:
     applyEndPatternLast: true
     begin: |-
       (?x)
-      (?<!\#?[(\[{]) # not after opening brackets
+      (?<!\#?[(\[{]\s*) # not after opening brackets
 
       \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b
 
@@ -8096,7 +8100,7 @@ repository:
               - include: "#embedded-formatting"
               - include: "#embedded-arguments"
               - include: $self
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.quote.ruko
@@ -8110,7 +8114,7 @@ repository:
           - include: "#style-rules"
           - include: "#style-pair"
           - include: "#style-block"
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.style.ruko
@@ -8124,7 +8128,7 @@ repository:
         patterns:
           - include: "#angle-brackets"
           - include: "#operator-declarations"
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - match: *entity-name
             name: variable.parameter.ruko
       - applyEndPatternLast: true
@@ -8134,7 +8138,7 @@ repository:
           1: {name: storage.type.shader.ruko}
         name: meta.shader.ruko
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.shader.ruko
@@ -8146,7 +8150,7 @@ repository:
         name: meta.script.ruko
         patterns:
           - include: "#script-blocks"
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.script.ruko
@@ -8156,7 +8160,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.component.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.component.ruko
@@ -8173,7 +8177,7 @@ repository:
           1: {name: storage.type.function.ruko}
         patterns:
           - include: "#curly-brackets"
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.function.ruko
@@ -8184,7 +8188,7 @@ repository:
           1: {name: storage.type.procedure.ruko}
         patterns:
           - include: "#curly-brackets"
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.procedure.ruko
@@ -8195,7 +8199,7 @@ repository:
           1: {name: storage.type.iterator.ruko}
         patterns:
           - include: "#curly-brackets"
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.iterator.ruko
@@ -8205,7 +8209,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.actor.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.actor.ruko
@@ -8215,7 +8219,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.property.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.property.ruko
@@ -8225,7 +8229,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.template.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.template.ruko
@@ -8235,7 +8239,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.class.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.class.ruko
@@ -8245,7 +8249,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.interface.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.interface.ruko
@@ -8255,7 +8259,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.enum.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.enum.ruko
@@ -8265,7 +8269,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.module.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.module.ruko
@@ -8275,7 +8279,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.implementation.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.implementation.ruko
@@ -8285,7 +8289,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.schema.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.schema.ruko
@@ -8295,7 +8299,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.macro.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.macro.ruko
@@ -8305,7 +8309,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.query.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.query.ruko
@@ -8315,7 +8319,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.object.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.object.ruko
@@ -8325,7 +8329,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.record.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.record.ruko
@@ -8335,7 +8339,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.trait.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.trait.ruko
@@ -8345,7 +8349,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.realm.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.realm.ruko
@@ -8355,7 +8359,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.union.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.union.ruko
@@ -8365,7 +8369,7 @@ repository:
         beginCaptures:
           1: {name: storage.type.struct.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.struct.ruko
@@ -8375,12 +8379,12 @@ repository:
         beginCaptures:
           1: {name: storage.type.namespace.ruko}
         patterns:
-          - include: "#declaration-clause"
+          - include: "#declaration-content"
           - include: "#namespace-separators"
           - match: *entity-name
             name: entity.name.namespace.ruko
 
-  declaration-clause:
+  declaration-content:
     name: meta.declaration.ruko
     patterns:
       - include: "#typed-declarations"
@@ -10980,10 +10984,8 @@ repository:
       # PHP
       - include: "source.php#support"
 
-      # C++ / Objective-C++
+      # C, Objective-C, C++, Objective-C++
       - include: "source.objcpp#c_functions"
-
-      # C / Objective-C
       - include: "source.objc#c_functions"
 
       # JavaScript
