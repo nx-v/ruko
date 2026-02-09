@@ -107,6 +107,9 @@ patterns: [{include: "#core"}]
 # - Added infix function call syntax using backslashes, similar to Haskell's
 #   backtick function call syntax.
 #   For example: a \x\ b is equivalent to x(a, b).
+# - Added prefix type-cast operators using parentheses, similar to C-style casts.
+#   A space is NOT allowed between the closing parenthesis and the operand.
+#   For example: (int)x, (float)y, (MyType)z.
 # - Brought back parentheses-less function calls from earlier versions of Ruko,
 #   where multiple literals in a row with or without commas are treated as
 #   function calls. Both can be used together: f a g(b, c) d.
@@ -5414,18 +5417,18 @@ repository:
 
       (
           ^ \s* [)\]}]* \s* # start of line with possible closing brackets
-       | `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
-        (?:
-          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-          `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
-        )*
+        | `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
+          (?:
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+            `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
+          )*
       )
 
       \b
       (?=
         (?:
             (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
         )
       )
@@ -5717,7 +5720,7 @@ repository:
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
           | \s+ (?:\w*|[`@#%]*)['"] # tagged string literals
           | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional postfix operator
@@ -5994,7 +5997,7 @@ repository:
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
           | \s+ (?:\w*|[`@#%]*)['"] # tagged string literals
           | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional postfix operator
@@ -6527,7 +6530,7 @@ repository:
           1: {name: keyword.generator.asterisk.ruko}
 
   type-cast-operators:
-    comment: (named) type-cast operators (int) x
+    comment: (named) type-cast operators. Highlighted as prefix.
     name: keyword.operator.type-cast.ruko
     match: |-
       (?x)
@@ -6586,63 +6589,62 @@ repository:
         (?=\s|$)
       )
       (?=
-        \s* (?: # literals
-            (?:\w*|[`$#%]*)['"] # strings
-          | \b\d # numbers
-          | `\N # unquoted strings / stropped identifiers
-          | :`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # symbols
-          | \#? [(\[] # opening brackets
-          | /['"`\w\\(\[{] # regexp literal
-          | <(?:`?[\p{L}\p{Nl}\p{Pc}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
-                [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
-                (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
-          | \|(?: \#?[(\[{] )? # opening bracket
-                (?: [,;] \s* )* # optional separators
-                (?:
-                  ((?:[-*&%@^!~?\\+$#]|\.\.)*) # any sigils
-                  (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  ([!?&*]*) # optional sigils
-                  \s*
-                )
-          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-            (?: # identifier
-              # ignore all keywords
-              (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                (?: # keywords
-                  # wordlike operators
-                  [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                )
-                \b
-              )
-              `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
+        # literals
+          (?:\w*|[`$#%]*)['"] # strings
+        | \b\d # numbers
+        | `\N # unquoted strings / stropped identifiers
+        | :`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # symbols
+        | \#? [(\[] # opening brackets
+        | /['"`\w\\(\[{] # regexp literal
+        | <(?:`?[\p{L}\p{Nl}\p{Pc}(]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+        | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+              [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+              (?: ['"`\w] | \#?[(\[{]) # literal or opening bracket
+        | \|(?: \#?[(\[{] )? # opening bracket
+              (?: [,;] \s* )* # optional separators
               (?:
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
-              )*
+                ((?:[-*&%@^!~?\\+$#]|\.\.)*) # any sigils
+                (`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                ([!?&*]*) # optional sigils
+                \s*
+              )
+        | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+          (?: # identifier
+            # ignore all keywords
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+              (?: # keywords
+                # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+                # declaration keywords
+                |va[rl]|let|mut|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
+
+                # control flow keywords
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
+                |try|retry|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|race|join
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              )
+              \b
             )
-            \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
-        )
+            `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # identifier
+            (?:
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+              `?\b[\p{L}\p{Nl}\p{Pc}]\w*\b # last identifier
+            )*
+          )
+          \s*\b[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
       )
     captures:
       1: *prefix-type-annotation
@@ -6742,9 +6744,9 @@ repository:
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[\x{20}-\x{ff}&&[\p{S}\p{P}]]*
-                  [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+            | ( [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[ -ÿ&&[\p{S}\p{P}]]*
+                  [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                 )?
               )
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
@@ -6824,9 +6826,9 @@ repository:
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[\x{20}-\x{ff}&&[\p{S}\p{P}]]*
-                  [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+            | ( [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[ -ÿ&&[\p{S}\p{P}]]*
+                  [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                 )?
               )
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
@@ -6842,58 +6844,54 @@ repository:
     match: |-
       (?x)
       (?<=['")\]}\w])
-      (?:
-        (?!
-          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]*
-          [.,:;'"`|<>/\\()\[\]{}\p{Pc}]+ # fail if operator contains any of these characters
-          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]*
-          (?=(?:['"`\w]|\#?[(\[{]))
-        ) (?:
-            ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-          | ( \?[.:>] ) # optional
-          | ( ![.:>] ) # mandatory
-          | ( (?:\.|::|->) ) # accessors
-          | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
-          | ( [&|^»§¦¤«~¬] ) # bitwise
-          | ( <<[<>]?|[<>]?>> ) # bitwise shift
-          | ( \+\+|--|××|÷÷|±±|%% ) # string
-          | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-          | ( [|+*$]>|<[|+*$] ) # pipeline
-          | ( <[|+*$]>|[$#] ) # application
-          | ( <\+|\+>|[.·°] ) # composition
-          | ( [<>][:!]|[:!][<>] ) # class
-          | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-          | ( [<>]=?|<=?> ) # relational
-          | ( \.\.+|··+|°°+ ) # dots
-          | ( [!=]==? ) # comparison
-          | ( ~[=!]|[=!]~ ) # similarity
-          | ( \?\?\??|¿¿ ) # null-coalescing
-          | ( !!!?|¡¡ ) # coalescing
-          | ( \?:?|¿: ) # conditional
-          | ( !:?|¡: ) # ternary
-          | ( \$|:?:?: ) # macro
-          | ( [?:]?= ) # assignment
-          | ( ==?>|<== ) # fat arrow
-          | ( --?>|<--? ) # skinny arrow
-          | ( ~~?>|<~~? ) # wavy arrow
-          | ( \p{Sm}+ ) # math symbols
-          | ( \p{Sc}+ ) # currency symbols
-          | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-          | ( [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-              (?:[\x{20}-\x{ff}&&[\p{S}\p{P}]]*
-                [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-              )?
-            )
-          | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-              (?:[\p{P}\p{S}]*
-                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-              )?
-            )
-        )
-      )(?=(?:['"`\w]|\#?[(\[{]))
+      ( [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ ) # infix operators
+      (?=['"`\w]|\#?[(\[{])
     captures:
-      <<: *infix-operator-captures
-      32: {name: keyword.operator.interfix.ruko}
+      1:
+        name: keyword.operator.interfix.ruko
+        patterns:
+          - match: |-
+              (?x)
+              (?<=['")\]}\w])
+              (?:
+                  ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+                | ( \?[.:>] ) # optional
+                | ( ![.:>] ) # mandatory
+                | ( (?:\.|::|->) ) # accessors
+                | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
+                | ( [&|^»§¦¤«~¬] ) # bitwise
+                | ( <<[<>]?|[<>]?>> ) # bitwise shift
+                | ( \+\+|--|××|÷÷|±±|%% ) # string
+                | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+                | ( [|+*$]>|<[|+*$] ) # pipeline
+                | ( <[|+*$]>|[$#] ) # application
+                | ( <\+|\+>|[.·°] ) # composition
+                | ( [<>][:!]|[:!][<>] ) # class
+                | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+                | ( [<>]=?|<=?> ) # relational
+                | ( \.\.+|··+|°°+ ) # dots
+                | ( [!=]==? ) # comparison
+                | ( ~[=!]|[=!]~ ) # similarity
+                | ( \?\?\??|¿¿ ) # null-coalescing
+                | ( !!!?|¡¡ ) # coalescing
+                | ( \?:?|¿: ) # conditional
+                | ( !:?|¡: ) # ternary
+                | ( \$|:?:?: ) # macro
+                | ( [?:]?= ) # assignment
+                | ( ==?>|<== ) # fat arrow
+                | ( --?>|<--? ) # skinny arrow
+                | ( ~~?>|<~~? ) # wavy arrow
+                | ( \p{Sm}+ ) # math symbols
+                | ( \p{Sc}+ ) # currency symbols
+                | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+                | ( [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                    (?:[ -ÿ&&[\p{S}\p{P}]]*
+                      [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                    )?
+                  )
+              )
+              (?=$|[)\]}\s])
+            captures: *infix-operator-captures
 
   prefix-operators:
     comment: Prefix operators
@@ -7501,6 +7499,8 @@ repository:
 
   module-content:
     patterns:
+      - match: \s*(?<!:):(?!:)\s*
+        name: keyword.operator.alias.ruko
       - include: "#line-continuation-comma"
       - include: "#extern-expression"
       - begin: ({)\s*
@@ -7517,8 +7517,6 @@ repository:
       - include: "#comments"
       - include: "#type-operators"
       - include: "#accessor-operators"
-      - match: \s*(?<!:):(?!:)\s*
-        name: keyword.operator.alias.ruko
       - include: "#regexp-patterns"
       - include: "#type-keywords"
       - match: \s*(?<!\*)\*(?!\*)\s*
@@ -7650,7 +7648,7 @@ repository:
           )
           (?=
                 (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | [!~*] \#?[({] # macro, destructor and generator calls
               | \s+ (?:\w*|[`@#%]*)['"] # tagged string literals
               | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* # optional postfix operator
@@ -8501,7 +8499,7 @@ repository:
       - include: "#line-continuation-comma"
       - include: "#comma"
       - include: "#line-continuation"
-      - begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=(?:['"`\w]|\#?[(\[{]))
+      - begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
         end: (?=[,;)\]}]|$)
         captures:
           1: {name: keyword.operator.assignment.ruko}
@@ -9149,7 +9147,7 @@ repository:
           1: {name: keyword.other.typedef.ruko}
         patterns:
           - include: "#types"
-          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=(?:['"`\w]|\#?[(\[{]))
+          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
             captures:
               1: {name: keyword.operator.assignment.ruko}
               2: {name: keyword.operator.assignment.ruko}
@@ -9626,7 +9624,7 @@ repository:
       - include: $self
 
   default-value:
-    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=(?:['"`\w]|\#?[(\[{]))
+    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
     captures:
       1: {name: keyword.operator.assignment.ruko}
       2: {name: keyword.operator.assignment.ruko}
