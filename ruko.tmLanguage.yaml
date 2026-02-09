@@ -6559,7 +6559,7 @@ repository:
       (?!
         (?:[?!]?\.|[?!:]:|[?!-]>)=? # not followed by accessor
         (?:$|['"`(\[{\w\s]) # or a literal or opening bracket
-      ) 
+      )
       (?!
         \#?[(\[{] \s+ (?: $ | [,;] | /[/*] \s+ ) # not followed by opening bracket
       )
@@ -6840,47 +6840,56 @@ repository:
   interfix-operators:
     comment: Interfix operators - x+y (without spaces)
     match: |-
-      (?x) (?<=['")\]}\w])(?:
-          ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-        | ( \?[.:>] ) # optional
-        | ( ![.:>] ) # mandatory
-        | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
-        | ( [&|^»§¦¤«~¬] ) # bitwise
-        | ( <<[<>]?|[<>]?>> ) # bitwise shift
-        | ( \+\+|--|××|÷÷|±±|%% ) # string
-        | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-        | ( [|+*$]>|<[|+*$] ) # pipeline
-        | ( <[|+*$]>|[$#] ) # application
-        | ( <\+|\+>|[.·°] ) # composition
-        | ( [<>][:!]|[:!][<>] ) # class
-        | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-        | ( [<>]=?|<=?> ) # relational
-        | ( \.\.+|··+|°°+ ) # dots
-        | ( [!=]==? ) # comparison
-        | ( ~[=!]|[=!]~ ) # similarity
-        | ( \?\?\??|¿¿ ) # null-coalescing
-        | ( !!!?|¡¡ ) # coalescing
-        | ( \?:?|¿: ) # conditional
-        | ( !:?|¡: ) # ternary
-        | ( \$|:?:?: ) # macro
-        | ( [?:]?= ) # assignment
-        | ( ==?>|<== ) # fat arrow
-        | ( --?>|<--? ) # skinny arrow
-        | ( ~~?>|<~~? ) # wavy arrow
-        | ( \p{Sm}+ ) # math symbols
-        | ( \p{Sc}+ ) # currency symbols
-        | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-        | ( [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-            (?:[\x{20}-\x{ff}&&[\p{S}\p{P}]]*
-              [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-            )?
-          )
-        | ( [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # interfix operator
-            (?:[\p{P}\p{S}]*
-              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-            )?
-          )
+      (?x)
+      (?<=['")\]}\w])
+      (?:
+        (?!
+          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]*
+          [.,:;'"`|<>/\\()\[\]{}\p{Pc}]+ # fail if operator contains any of these characters
+          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]*
+          (?=(?:['"`\w]|\#?[(\[{]))
+        ) (?:
+            ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+          | ( \?[.:>] ) # optional
+          | ( ![.:>] ) # mandatory
+          | ( (?:\.|::|->) ) # accessors
+          | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
+          | ( [&|^»§¦¤«~¬] ) # bitwise
+          | ( <<[<>]?|[<>]?>> ) # bitwise shift
+          | ( \+\+|--|××|÷÷|±±|%% ) # string
+          | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+          | ( [|+*$]>|<[|+*$] ) # pipeline
+          | ( <[|+*$]>|[$#] ) # application
+          | ( <\+|\+>|[.·°] ) # composition
+          | ( [<>][:!]|[:!][<>] ) # class
+          | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+          | ( [<>]=?|<=?> ) # relational
+          | ( \.\.+|··+|°°+ ) # dots
+          | ( [!=]==? ) # comparison
+          | ( ~[=!]|[=!]~ ) # similarity
+          | ( \?\?\??|¿¿ ) # null-coalescing
+          | ( !!!?|¡¡ ) # coalescing
+          | ( \?:?|¿: ) # conditional
+          | ( !:?|¡: ) # ternary
+          | ( \$|:?:?: ) # macro
+          | ( [?:]?= ) # assignment
+          | ( ==?>|<== ) # fat arrow
+          | ( --?>|<--? ) # skinny arrow
+          | ( ~~?>|<~~? ) # wavy arrow
+          | ( \p{Sm}+ ) # math symbols
+          | ( \p{Sc}+ ) # currency symbols
+          | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+          | ( [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+              (?:[\x{20}-\x{ff}&&[\p{S}\p{P}]]*
+                [\x{20}-\x{ff}&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+              )?
+            )
+          | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+            )
+        )
       )(?=(?:['"`\w]|\#?[(\[{]))
     captures:
       <<: *infix-operator-captures
