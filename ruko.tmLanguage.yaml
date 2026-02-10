@@ -960,7 +960,7 @@ repository:
       - comment: Infix type operators
         match: |-
           (?x)
-          (?<=^|['"`)\]}\w\s])
+          (?<=^|[\s(\[{])
             (?:
                (\+)       # sum (left union)
               |(\-)       # difference
@@ -976,7 +976,42 @@ repository:
               |(\?)|(!)   # conditionals
               |(\+>|<\+)  # composition
             )
-          (?=['"`\w\s]|\#?[(\[{])
+          (?=$|[)\]}\s])
+        captures:
+          1: {name: keyword.operator.sum.ruko}
+          2: {name: keyword.operator.difference.ruko}
+          3: {name: keyword.operator.pointer.ruko}
+          4: {name: keyword.operator.union.ruko}
+          5: {name: keyword.operator.intersection.ruko}
+          6: {name: keyword.operator.exclusion.ruko}
+          7: {name: keyword.operator.relational.ruko}
+          8: {name: keyword.operator.equality.ruko}
+          9: {name: keyword.operator.prototype.ruko}
+          10: {name: keyword.operator.pattern.ruko}
+          11: {name: keyword.operator.extends.ruko}
+          12: {name: keyword.operator.conditional.ruko}
+          13: {name: keyword.operator.ternary.ruko}
+          14: {name: keyword.operator.composition.ruko}
+      - comment: Interfix type operators
+        match: |-
+          (?x)
+          (?<=['")\]}\w])
+            (?:
+               (\+)       # sum (left union)
+              |(\-)       # difference
+              |(\*)       # pointer
+              |(\|)       # union
+              |(\&)       # intersection
+              |(\^)       # exclusion
+              |([<>][:=]) # strict super-/subtype
+              |(=[:!])    # equality/inequality
+              |(:[<>])    # variance (i.e. covariant/contravariant)
+              |([=!]~)    # pattern match/non-pattern match
+              |(::?)      # extends/implements
+              |(\?)|(!)   # conditionals
+              |(\+>|<\+)  # composition
+            )
+          (?=['"`\w]|\#?[(\[{])
         captures:
           1: {name: keyword.operator.sum.ruko}
           2: {name: keyword.operator.difference.ruko}
@@ -5743,7 +5778,7 @@ repository:
           | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
           | (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-          | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
         (?:
             :?[@#$%]*['"] # strings and symbols
           | \b\d # numbers
@@ -6038,7 +6073,7 @@ repository:
           | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
           | (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-          | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
         (?:
             :?[@#$%]*['"] # strings and symbols
           | \b\d # numbers
@@ -7007,7 +7042,7 @@ repository:
                     )?
                   )
               )
-              (?=$|[)\]}\s])
+              (?=['"`\w]|\#?[(\[{])
             captures: *infix-operator-captures
 
   prefix-operators:
@@ -7230,7 +7265,7 @@ repository:
           )
           (?= 
                 (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-              | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+              | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
             (?:
                 :?[@#$%]*['"] # strings and symbols
               | \b\d # numbers
@@ -7784,7 +7819,7 @@ repository:
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | [!~*] \#?[({] # macro, destructor and generator calls
               | (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-              | [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+              | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
             (?:
                 :?[@#$%]*['"] # strings and symbols
               | \b\d # numbers
