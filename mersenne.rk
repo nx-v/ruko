@@ -60,7 +60,7 @@ show class MTRand : Io.Serializer {
     // find the biggest used bit
     proc u32 rand_int(u32 n) {
       mut used = n;
-      for let i32 i in 0..5:
+      for let i32 i in 0 .. 5:
         used |= used >> (1 << i);
 
       mut u32 i;
@@ -132,7 +132,7 @@ show class MTRand : Io.Serializer {
     proc initialize(u32 one_seed) {
       #state->0 := one_seed & 0xffffffff;
 
-      for let i32 i in 1..<N {
+      for let i32 i in 1 ..< N {
         let u32 x = #state->[i - 1] ^ (#state->[i - 1] >> 30);
         #state->[i] := (0x6c078965 * x + i) & 0xffffffff;
       }
@@ -280,7 +280,7 @@ show class MTRand : Io.Serializer {
     left oper 4 (&Io.InputStream) (&Io.InputStream)i_stream -> (&MTRand)mt_rand {
       for let i32 i in 0 ..< N {
         let str line = i_stream->read_line();
-        mt_rand->state->[i] := (u32)line;
+        mt_rand->state->[i] := (u32) line;
       }
 
       let str line = i_stream->read_line();
