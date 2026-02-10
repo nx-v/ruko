@@ -5513,7 +5513,7 @@ repository:
                   )?
                 ) \s+
               | # primary operator that isn't an accessor or assignment
-                (?:^|[,;'"()\[\]{}]) (?:
+                (?:^|[,;'"`()\[\]{}\w]) (?:
                   [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   (?:[\p{P}\p{S}]*
                     [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
@@ -5553,7 +5553,7 @@ repository:
             [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
           )
           (?<! # accessor or assignment
-            (?:^|[,;'"()\[\]{}]) (?:
+            (?:^|[,;'"`()\[\]{}\w]) (?:
               (?:[?!]?\.|[?!:]:|[?!-]>)=?
             )
           )
@@ -5674,7 +5674,7 @@ repository:
               )?
             ) \s+
           | # primary operator that isn't an accessor or assignment
-            (?:^|[,;'"()\[\]{}]) (?:
+            (?:^|[,;'"`()\[\]{}\w]) (?:
               [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               (?:[\p{P}\p{S}]*
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
@@ -5714,7 +5714,7 @@ repository:
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
       )
       (?<! # accessor or assignment
-        (?:^|[,;'"()\[\]{}]) (?:
+        (?:^|[,;'"`()\[\]{}\w]) (?:
           (?:[?!]?\.|[?!:]:|[?!-]>)=?
         )
       )
@@ -5937,7 +5937,7 @@ repository:
               )?
             ) \s+
           | # primary operator that isn't an accessor or assignment
-            (?:^|[,;'"()\[\]{}]) (?:
+            (?:^|[,;'"`()\[\]{}\w]) (?:
               [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               (?:[\p{P}\p{S}]*
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
@@ -5977,7 +5977,7 @@ repository:
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
       )
       (?<! # accessor or assignment
-        (?:^|[,;'"()\[\]{}]) (?:
+        (?:^|[,;'"`()\[\]{}\w]) (?:
           (?:[?!]?\.|[?!:]:|[?!-]>)=?
         )
       )
@@ -6639,7 +6639,7 @@ repository:
               )?
             ) \s+
           | # primary operator that isn't an accessor or assignment
-            (?:^|[,;'"()\[\]{}]) (?:
+            (?:^|[,;'"`()\[\]{}\w]) (?:
               [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               (?:[\p{P}\p{S}]*
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
@@ -6679,7 +6679,7 @@ repository:
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
       )
       (?<! # accessor or assignment
-        (?:^|[,;'"()\[\]{}]) (?:
+        (?:^|[,;'"`()\[\]{}\w]) (?:
           (?:[?!]?\.|[?!:]:|[?!-]>)=?
         )
       )
@@ -6692,6 +6692,11 @@ repository:
         )+ # allow chaining
       )
 
+      (?! # accessor or assignment
+        (?:
+          (?:[?!]?\.|[?!:]:|[?!-]>)=?
+        ) (?:$|[,;'"`()\[\]{}\w])
+      )
       (?!
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
         : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
@@ -7721,7 +7726,7 @@ repository:
                   )?
                 ) \s+
               | # primary operator that isn't an accessor or assignment
-                (?:^|[,;'"()\[\]{}]) (?:
+                (?:^|[,;'"`()\[\]{}\w]) (?:
                   [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   (?:[\p{P}\p{S}]*
                     [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
@@ -7761,7 +7766,7 @@ repository:
             [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
           )
           (?<! # accessor or assignment
-            (?:^|[,;'"()\[\]{}]) (?:
+            (?:^|[,;'"`()\[\]{}\w]) (?:
               (?:[?!]?\.|[?!:]:|[?!-]>)=?
             )
           )
@@ -8071,7 +8076,7 @@ repository:
       (?=
           \s[?:]?=(?:\s|$) # assignment
         | :\s # type annotations
-        | \s(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+        | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
           (?: # keywords
             # wordlike operators
             [io]n|of
