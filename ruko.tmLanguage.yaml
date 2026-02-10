@@ -102,8 +102,6 @@ patterns: [{include: "#core"}]
 # - Overall syntax has been reworked to be terser and more consistent.
 #   Inspired by Rust, Zig, Flix, Jai, Odin, D, Reason/ReScript and Motoko.
 #   Keywords may be changed at short notice to better fit the new syntax.
-# - Identifiers now allow a single backtick (`) at the start to allow
-#   reserved keywords to be used as identifiers. For example: `if, `while, `func, etc.
 # - Identifiers can now be encased inside backticks, of which the content
 #   can be anything except another backtick. This allows for more flexibility
 #   in naming conventions. For example: `my-variable`, `ClassName!`, `func123?`, etc.
@@ -2511,7 +2509,7 @@ repository:
           2:
             name: keyword.operator.prefix.ruko
             patterns: [{include: "#type-parameter-operators"}]
-          3:
+          3: &parameter-variable
             name: variable.parameter.ruko
             patterns: [{include: "#constants"}]
           4:
@@ -4953,9 +4951,7 @@ repository:
             patterns:
               - include: "#type-operators"
               - include: "#operators"
-          3:
-            name: variable.parameter.ruko
-            patterns: [{include: "#constants"}]
+          3: *parameter-variable
           4: *type-operators
       - include: "#comments"
       - include: "#numbers"
@@ -6291,9 +6287,7 @@ repository:
         captures:
           1: *prefix-type-annotation
           2: *type-operators
-          3:
-            name: variable.parameter.ruko
-            patterns: [{include: "#constants"}]
+          3: *parameter-variable
           4: *type-operators
 
   binding-parameters:
@@ -6508,9 +6502,7 @@ repository:
     captures:
       1: *prefix-type-annotation
       2: *type-operators
-      3:
-        name: variable.parameter.ruko
-        patterns: [{include: "#constants"}]
+      3: *parameter-variable
       4: *type-operators
       5: {name: punctuation.definition.key-value.ruko}
 
@@ -9710,20 +9702,47 @@ repository:
         ) \b
       )
 
-      (?:
-        \s*
-        ((?:[-*&%@^!~?\\+$#]|\.\.)*) # any sigils
-        ((?>`[^`]+?`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
-        ([!?&*]*) # optional sigils
-        \s*
+      \s*
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+        (?: # keywords
+          # wordlike operators
+          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+          |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+
+          # declaration keywords
+          |va[rl]|let|mut|const
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+          |module|schema|struct|record|object|union|macro|space
+          |query|quote|style|script|shader|compo|temp|oper|realm
+
+          # control flow keywords
+          |if|elif|else|[tw]hen|guard|with
+          |for|while|loop|break|skip|redo
+          |try|retry|switch|[cm]atch|case|def|throw
+          |return|yield|await|goto|pass|defer|race|join
+          |raise|error|final|copy|move|drop|sink
+          |[gd]o|from|where|use|show|hide
+
+          # miscellaneous keywords
+          |debug|assert|check|decl|ignore
+          |use|echo|eval|exec|scope|safe|unsafe
+          |begin|end
+        ) \b
       )
+      ((?>`[^`]+?`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+      \s*
     captures:
       1: {name: keyword.operator.expression.as.ruko}
-      2: {patterns: [{include: "#type-parameter-operators"}]}
+      2: *type-operators
       3:
         name: variable.other.assignment.ruko
         patterns: [{include: "#constants"}]
-      4: {patterns: [{include: "#type-parameter-operators"}]}
+      4: *type-operators
 
   binding-pattern-object:
     begin: (\#?{)\s*
@@ -11230,12 +11249,21 @@ repository:
       # Batch
       - include: "source.bat#commands"
 
+      # R
+      - include: "source.r#builtin-functions"
+
       # PHP
       - include: "source.php#support"
 
       # C, Objective-C, C++, Objective-C++
       - include: "source.objcpp#c_functions"
       - include: "source.objc#c_functions"
+      - match: \b(strlen|strcpy|strncpy|strcat|strncat|strcmp|strncmp|sprintf|snprintf|vsprintf|vsnprintf|fopen|fclose|fread|fwrite|fprintf|fscanf|printf|scanf|malloc|calloc|realloc|free|memcpy|memmove|memset|memcmp|exit|abort|atoi|atol|atof|strtol|strtoul|strtod|rand|srand|time|clock|difftime|gmtime|localtime|mktime|strftime|perror|remove|rename|tmpfile|tmpnam)\b
+        name: support.function.builtin.c
+      - match: \b(getline|ignore|putback|read|readsome|sync|tellg|tellp|unget|write)\b
+        name: support.function.method.stdcpp
+      - match: \b(printf|scanf|sprintf|fprintf|snprintf|fscanf|sscanf|vprintf|vscanf|vsprintf|vfprintf|vsnprintf|vfscanf|vsscanf|malloc|calloc|realloc|free|memcpy|memmove|memset|memcmp|strlen|strcpy|strncpy|strcat|strncat|strcmp|strncmp|strchr|strrchr|strstr|strtok|atoi|atol|atof|strtol|strtoul|strtod|exit|abort)\b
+        name: support.function.builtin.cpp
 
       # JavaScript
       - match: \b(Array|ArrayBuffer|Blob|Boolean|Date|document|Function|Int(8|16|32|64)Array|Math|Map|Number|Object|Proxy|RegExp|Set|String|WeakMap|window|Uint(8|16|32|64)Array|XMLHttpRequest|console)\b
@@ -11262,14 +11290,6 @@ repository:
       - include: "source.python#builtin-types"
       - include: "source.python#magic-function-names"
 
-      # C, C++
-      - match: \b(strlen|strcpy|strncpy|strcat|strncat|strcmp|strncmp|sprintf|snprintf|vsprintf|vsnprintf|fopen|fclose|fread|fwrite|fprintf|fscanf|printf|scanf|malloc|calloc|realloc|free|memcpy|memmove|memset|memcmp|exit|abort|atoi|atol|atof|strtol|strtoul|strtod|rand|srand|time|clock|difftime|gmtime|localtime|mktime|strftime|perror|remove|rename|tmpfile|tmpnam)\b
-        name: support.function.builtin.c
-      - match: \b(getline|ignore|putback|read|readsome|sync|tellg|tellp|unget|write)\b
-        name: support.function.method.stdcpp
-      - match: \b(printf|scanf|sprintf|fprintf|snprintf|fscanf|sscanf|vprintf|vscanf|vsprintf|vfprintf|vsnprintf|vfscanf|vsscanf|malloc|calloc|realloc|free|memcpy|memmove|memset|memcmp|strlen|strcpy|strncpy|strcat|strncat|strcmp|strncmp|strchr|strrchr|strstr|strtok|atoi|atol|atof|strtol|strtoul|strtod|exit|abort)\b
-        name: support.function.builtin.cpp
-
       # Rust
       - match: \b(clone|collect|contains|count|drain|extend|filter|find|fold|get|insert|is_empty|len|map|pop|push|remove|retain|sort|split|unwrap|unwrap_or|unwrap_or_else)\b
         name: support.function.method.rust
@@ -11277,9 +11297,6 @@ repository:
       # Java
       - match: \b(println|print|printf|format|equals|equalsIgnoreCase|compareTo|compareToIgnoreCase|length|charAt|substring|indexOf|lastIndexOf|toUpperCase|toLowerCase|trim|split|replace|replaceAll|replaceFirst|valueOf|isEmpty|contains|startsWith|endsWith|hashCode|getClass|notify|notifyAll|wait|clone|toString)\b
         name: support.function.method.java
-
-      # R
-      - include: "source.r#builtin-functions"
 
     # # CoffeeScript
     # - include: "source.coffee#function_names"
