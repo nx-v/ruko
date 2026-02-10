@@ -1269,7 +1269,7 @@
                             ]
                         }
                     },
-                    "match": "(:)((?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b))",
+                    "match": "(:)((?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b))",
                     "name": "constant.other.symbol.ruko"
                 }
             ]
@@ -3902,7 +3902,7 @@
                         { "include": "#unicode-property-values" },
                         { "include": "#css-property-values" },
                         {
-                            "match": "(?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b)",
+                            "match": "(?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b)",
                             "name": "constant.other.attribute-value.ruko"
                         }
                     ]
@@ -3979,6 +3979,7 @@
             "applyEndPatternLast": true,
             "begin": "(?<=(?:^|[,;]|#?[(\\[{]|[[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+\\s|(?:^|[]\"'(),;\\[{}\\s])(?:(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)(?:[!:?]:|[!?]?\\.|[-!?]>)=?)*(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)\\s)\\s*)\\s*(?=<(?:[(`\\p{L}\\p{Nl}\\p{Pc}]|>(?![[\\p{P}\\p{S}]&&[^]\"'(),;\\[`{}\\p{Pc}]]+)))",
             "end": "$|",
+            "name": "meta.tag.top.ruko",
             "patterns": [{ "include": "#tag-component-name" }]
         },
         "tag-component-name": {
@@ -3986,11 +3987,13 @@
                 {
                     "begin": "(<)(?=\\()",
                     "beginCaptures": {
+                        "0": { "name": "meta.tag.ruko" },
                         "1": { "name": "punctuation.definition.tag.ruko" }
                     },
                     "contentName": "text.xml.ruko",
                     "end": "\\s*(?:(/>)|((?<=</).*?)(>))\\s*",
                     "endCaptures": {
+                        "0": { "name": "meta.tag.ruko" },
                         "1": { "name": "punctuation.definition.tag.ruko" },
                         "2": { "name": "invalid.illegal.termination.ruko" },
                         "3": { "name": "punctuation.definition.tag.ruko" }
@@ -4018,6 +4021,7 @@
                 {
                     "begin": "(<)((?:(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)(?:[!:?]:|[!?]?\\.|[-!?]>)=?)*(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))?(?=[]\"'(),/;>\\[{}\\s])",
                     "beginCaptures": {
+                        "0": { "name": "meta.tag.ruko" },
                         "1": { "name": "punctuation.definition.tag.ruko" },
                         "2": {
                             "name": "entity.name.tag.ruko",
@@ -4104,7 +4108,7 @@
                     "name": "entity.other.attribute-name.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -4208,7 +4212,7 @@
                     ]
                 },
                 {
-                    "match": "(?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b)",
+                    "match": "(?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b)",
                     "name": "constant.other.attribute-value.ruko"
                 },
                 { "include": "#operators" }
@@ -4254,7 +4258,7 @@
                         "11": { "name": "invalid.illegal.entity.ruko" },
                         "12": { "name": "punctuation.definition.entity.ruko" }
                     },
-                    "match": "(?i)(&)(?:(#0*(?:\\d|[1-9]\\d{1,5}|10\\d{5}|110\\d{4}|111[0-3]\\d{3}|11140\\d{2}|111410\\d|111411[01]))|(#b0*(?:[01]|1[01]{1,19}|10000[01]{16}))|(#t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]))|(#q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}))|(#s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]))|(#o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}))|(#z0*(?:[ab\\d]|[1-b][ab\\d]{1,4}|[123][ab\\d]{5}|4[0-4][ab\\d]{4}|45[0-7][ab\\d]{3}|458[0-7][ab\\d]{2}|4588\\d[ab\\d]|4588a[0-7]))|(#x0*(?:\\h|[1-f]\\h{1,4}|10\\h{4}))|((?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b))|([^;\\s]++))(;)",
+                    "match": "(?i)(&)(?:(#0*(?:\\d|[1-9]\\d{1,5}|10\\d{5}|110\\d{4}|111[0-3]\\d{3}|11140\\d{2}|111410\\d|111411[01]))|(#b0*(?:[01]|1[01]{1,19}|10000[01]{16}))|(#t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]))|(#q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}))|(#s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]))|(#o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}))|(#z0*(?:[ab\\d]|[1-b][ab\\d]{1,4}|[123][ab\\d]{5}|4[0-4][ab\\d]{4}|45[0-7][ab\\d]{3}|458[0-7][ab\\d]{2}|4588\\d[ab\\d]|4588a[0-7]))|(#x0*(?:\\h|[1-f]\\h{1,4}|10\\h{4}))|((?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b))|([^;\\s]++))(;)",
                     "name": "constant.other.entity.ruko"
                 },
                 {
@@ -4486,11 +4490,11 @@
                 },
                 "3": { "name": "punctuation.definition.entity.math.markdown" }
             },
-            "match": "(\\\\)((?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b))(;?)"
+            "match": "(\\\\)((?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b))(;?)"
         },
         "math-commands": {
             "applyEndPatternLast": true,
-            "begin": "(\\\\)((?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b))(?=[(\\[{])",
+            "begin": "(\\\\)((?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b))(?=[(\\[{])",
             "beginCaptures": {
                 "1": { "name": "punctuation.definition.command.math.markdown" },
                 "2": {
@@ -4977,10 +4981,7 @@
                             "begin": "(\\()",
                             "captures": {
                                 "1": {
-                                    "name": "punctuation.definition.brace.round.markdown"
-                                },
-                                "2": {
-                                    "name": "punctuation.definition.brace.round.markdown"
+                                    "name": "punctuation.definition.group.ruko"
                                 }
                             },
                             "end": "(\\))",
@@ -4991,7 +4992,7 @@
                             "begin": "(\\[)",
                             "captures": {
                                 "1": {
-                                    "name": "punctuation.definition.selector.ruko"
+                                    "name": "punctuation.definition.attribute-selector.ruko"
                                 }
                             },
                             "end": "(])",
@@ -5005,10 +5006,7 @@
                             "begin": "(\\{)",
                             "captures": {
                                 "1": {
-                                    "name": "punctuation.definition.style.ruko"
-                                },
-                                "2": {
-                                    "name": "punctuation.definition.style.ruko"
+                                    "name": "punctuation.definition.block.ruko"
                                 }
                             },
                             "end": "(})",
@@ -5020,7 +5018,7 @@
                             ]
                         },
                         {
-                            "match": "(?<=!\\()(?>`[^`]+`|\\b[\\w&&\\D][\\p{Pd}\\w]*\\b)",
+                            "match": "(?<=!\\()(?>`[^`]+`|\\b[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*\\b)",
                             "name": "entity.name.tag.ruko",
                             "patterns": [{ "include": "#html-tag-names" }]
                         },
@@ -6889,7 +6887,7 @@
                     "name": "entity.name.tag.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#html-tag-names" }]
                         },
                         {
@@ -6919,7 +6917,7 @@
                     "name": "entity.other.attribute-name.key.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -6945,7 +6943,7 @@
                     "name": "entity.other.attribute-name.id.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -6971,7 +6969,7 @@
                     "name": "entity.other.attribute-name.class.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -6997,7 +6995,7 @@
                     "name": "entity.other.attribute-name.pseudo-class.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7023,7 +7021,7 @@
                     "name": "entity.other.attribute-name.pseudo-element.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7049,7 +7047,7 @@
                     "name": "entity.name.type.anchor.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7075,7 +7073,7 @@
                     "name": "entity.name.type.alias.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7101,7 +7099,7 @@
                     "name": "entity.name.template.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7127,7 +7125,7 @@
                     "name": "entity.name.function.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7153,7 +7151,7 @@
                     "name": "entity.name.method.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7179,7 +7177,7 @@
                     "name": "entity.name.procedure.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7205,7 +7203,7 @@
                     "name": "entity.name.property.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7231,7 +7229,7 @@
                     "name": "entity.name.trait.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7257,7 +7255,7 @@
                     "name": "entity.name.decorator.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7283,7 +7281,7 @@
                     "name": "entity.name.schema.ruko",
                     "patterns": [
                         {
-                            "match": "[\\w&&\\D][\\p{Pd}\\w]*",
+                            "match": "[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*",
                             "patterns": [{ "include": "#css-property-keys" }]
                         },
                         {
@@ -7305,7 +7303,7 @@
             ]
         },
         "style-pair": {
-            "begin": "(?<=(?:^|;|#?[(\\[{])\\s*)((?:\\[(?>\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`[^`]+`|[^]\"'\\[`]+)*]|[\\w&&\\D][\\p{Pd}\\w]*)*)\\s*(:)(?=\\s+|$)",
+            "begin": "(?<=(?:^|;|#?[(\\[{])\\s*)((?:\\[(?>\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`[^`]+`|[^]\"'\\[`]+)*]|[\\w&&[^\\d\\p{No}]][\\p{Pd}\\w]*)*)\\s*(:)(?=\\s+|$)",
             "beginCaptures": {
                 "1": {
                     "name": "support.type.property-name.ruko",
@@ -8059,7 +8057,7 @@
                         }
                     },
                     "match": "(?<=(?:^|(?:^|[^|])\\||#?[(\\[{]|[,;])\\s*)\\s*((?:[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*(?:(?:(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)(?:<(?>\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`[^`]+`|[<>][:=]|:[<>]|\\+>|<\\+|[^\"'<>`]+)*>)?|(?:(?:(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b)(?:[!?]?\\.|[!:?]:|[-!?]>)=?)*(?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))?#?(?:\\((?>\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`[^`]+`|[^\"'()`]+)*\\)|\\[(?>\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`[^`]+`|[^]\"'\\[`]+)*]|\\{(?>\\g<1>|'(?:\\\\.|[^'\\\\])*'|\"(?:\\\\.|[^\"\\\\])*\"|`[^`]+`|[^\"'`{}]+)*})+)+[[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*\\s*)+)?\\s*([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:[io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del|ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old|va[lr]|let|mut|const|func|pro[cp]|type|class|actor|trait|enum|in?ter|impl|module|schema|struct|record|object|union|macro|space|query|quote|style|script|shader|compo|temp|oper|realm|if|elif|else|[tw]hen|guard|with|for|while|loop|break|skip|redo|try|retry|switch|[cm]atch|case|def|throw|return|yield|await|goto|pass|defer|race|join|raise|error|final|copy|move|drop|sink|[dg]o|from|where|use|show|hide|debug|assert|check|decl|ignore|use|echo|eval|exec|scope|safe|unsafe|begin|end)\\b)((?>`[^`]+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))([[\\p{P}\\p{S}]&&[^]\"'(),./:;<>\\[\\\\`{|}\\p{Pc}]]*)\\s*(?=$|\\s*(?:|(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(as)\\b|[]),;}]|\\s[:?]?=\\s+[-!#-\\&*+?@\\\\^~]*(?:[\"'`\\w]|#?[(\\[{])|\\|:?(?:$|[]\"')<`}\\w\\s]|#?[(\\[{])))",
-                    "name": "meta.argument-list.item.ruko"
+                    "name": "meta.argument.ruko"
                 }
             ]
         },
