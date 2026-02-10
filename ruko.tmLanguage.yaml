@@ -6808,13 +6808,14 @@ repository:
       - comment: Infix operators at the end of line
         begin: |-
           (?x)
-          (?<=^|[\s(\[{])(?:
+          (?<=^|[\s(\[{])
+          (?:
               ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
-            | ( [&|^»§¦¤«~¬] ) # bitwise
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
             | ( \+\+|--|××|÷÷|±±|%% ) # string
             | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
@@ -6849,7 +6850,8 @@ repository:
                   [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                 )?
               )
-          )(?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
+          )
+          (?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
         beginCaptures: &infix-operator-captures
           1: {name: keyword.operator.assignment.augmented.ruko}
           2: {name: keyword.operator.optional.ruko}
@@ -6890,13 +6892,14 @@ repository:
       - comment: Infix operators - "e.g"., x + y
         match: |-
           (?x)
-          (?<=^|[\s(\[{])(?:
+          (?<=^|[\s(\[{])
+          (?:
               ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
-            | ( [&|^»§¦¤«~¬] ) # bitwise
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
             | ( \+\+|--|××|÷÷|±±|%% ) # string
             | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
@@ -6931,7 +6934,8 @@ repository:
                   [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                 )?
               )
-          )(?=$|[)\]}\s])
+          )
+          (?=$|[)\]}\s])
         captures: *infix-operator-captures
 
   interfix-operators:
@@ -6953,8 +6957,8 @@ repository:
                 | ( \?[.:>] ) # optional
                 | ( ![.:>] ) # mandatory
                 | ( (?:\.|::|->) ) # accessors
-                | ( &&|\|\||\^\^|»»|§§|¦¦|¤¤|««|~~|¬¬ ) # logical
-                | ( [&|^»§¦¤«~¬] ) # bitwise
+                | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
+                | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
                 | ( <<[<>]?|[<>]?>> ) # bitwise shift
                 | ( \+\+|--|××|÷÷|±±|%% ) # string
                 | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
@@ -6982,6 +6986,11 @@ repository:
                 | ( [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
                     (?:[ -ÿ&&[\p{S}\p{P}]]*
                       [ -ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                    )?
+                  )
+                | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+                    (?:[\p{P}\p{S}]*
+                      [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                     )?
                   )
               )
@@ -9626,10 +9635,10 @@ repository:
     captures:
       1: {name: variable.other.constant.ruko}
 
-  object-argument:
+  object-binding:
     match: (?<=^|[,;]|\#?[(\[{])\s*((?>`[^'"].*?`|`?\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s*(?=[,;)\]}]|[?:]?=(?:['"`\w\s]|\#?[(\[{])|$)
     captures:
-      1: {name: variable.other.constant.ruko}
+      1: {name: variable.other.assignment.ruko}
 
   # Binding pattern components
 
@@ -9703,6 +9712,7 @@ repository:
     patterns:
       - include: "#as-keyword"
       - include: "#binding-parameters"
+      - include: "#object-assignment"
       - include: "#object-values"
       - include: "#object-labels"
       - include: "#type-signature"
