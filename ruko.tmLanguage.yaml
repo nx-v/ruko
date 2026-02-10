@@ -5425,7 +5425,7 @@ repository:
           (?: # operators
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
           )?
-        ) 
+        )
         (?: # identifiers
             (\b\p{Pc}+\w*(?!\p{Pc}+)\b) # leading underscore
           | (\b[\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*\b) # screaming snake case
@@ -5594,7 +5594,6 @@ repository:
             )*
           )
 
-          \b
           (?=
               \s+ (?:<[|+*$]>?|[.·°$]) (\s+|$) # infix operator
             | (?:<[|+*$]>?|[·°]) # primary operator
@@ -5647,7 +5646,6 @@ repository:
             )*
             (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
           )
-          \b
         captures:
           1:
             name: meta.function.name.ruko
@@ -5757,21 +5755,19 @@ repository:
       (?:(!)|(~)|(\*))? # macro, destructor, or generator call
 
       (?!
-        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-        : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
-      )
-      (?! # infix operator not beginning with /
-        \s+
-        [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
-        (?:[\p{P}\p{S}]*
-          [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-        )?
-        (?=\s|$)
-      )
-      (?! # function name
-        \s+ \\ # infix function operator
           [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-          (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -6019,54 +6015,51 @@ repository:
       )
 
       (?!
-        : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
-      )
-      (?! # infix operator not beginning with /
-        \s+
-        [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
-        (?:[\p{P}\p{S}]*
-          [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-        )?
-        (?=\s|$)
-      )
-      (?! # function name
-        \s+ \\ # infix function operator
-          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-          (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
-      )
-      (?! # function name
-        \s*
-        (?:\s(?:[?!]?\.?|[?!:]:|[?!-]>)=?)? # accessor
-        # ignore all keywords
-        (?!
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # keywords
-            # wordlike operators
-            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+        | # function name
+          \s*
+          (?:\s(?:[?!]?\.?|[?!:]:|[?!-]>)=?)? # accessor
+          # ignore all keywords
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
 
-            # control flow keywords
-            |if|elif|else|[tw]hen|guard|with
-            |for|while|loop|break|skip|redo
-            |try|retry|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|race|join
-            |raise|error|final|copy|move|drop|sink
-            |[gd]o|from|where|use|show|hide
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
 
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
-        )
-        (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-        : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+          (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -6696,26 +6689,23 @@ repository:
       )
 
       (?! # accessor or assignment
-        (?:
-          (?:[?!]?\.|[?!:]:|[?!-]>)=?
-        ) (?:$|[,;'"`()\[\]{}\w])
-      )
-      (?!
-        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-        : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
-      )
-      (?! # infix operator not beginning with /
-        \s+
-        [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
-        (?:[\p{P}\p{S}]*
-          [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-        )?
-        (?=\s|$)
-      )
-      (?! # function name
-        \s+ \\ # infix function operator
+          (?:
+            (?:[?!]?\.|[?!:]:|[?!-]>)=?
+          ) (?:$|[,;'"`()\[\]{}\w])
+        | # followed by another operator
           [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-          (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
       )
       (?=
         \s* # space before literal
@@ -7255,23 +7245,21 @@ repository:
           )
 
           (?!
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-            [:>] (?:\s* (?:[,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
-          )
-          (?! # infix operator not beginning with /
-            \s+
-            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
-            (?:[\p{P}\p{S}]*
-              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-            )?
-            (?=\s|$)
-          )
-          (?! # function name
-            \s+ \\ # infix function operator
               [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-              (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+              [:>] (?:\s* (?:[,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
+            | # infix operator not beginning with /
+              \s+
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+              (?=\s|$)
+            | # function name
+              \s+ \\ # infix function operator
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+                (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
           )
-          (?= 
+          (?=
                 (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
               | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
             (?:
@@ -7806,21 +7794,19 @@ repository:
           )
 
           (?!
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-            : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
-          )
-          (?! # infix operator not beginning with /
-            \s+
-            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
-            (?:[\p{P}\p{S}]*
-              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-            )?
-            (?=\s|$)
-          )
-          (?! # function name
-            \s+ \\ # infix function operator
               [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
-              (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+              : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+            | # infix operator not beginning with /
+              \s+
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+              (?=\s|$)
+            | # function name
+              \s+ \\ # infix function operator
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+                (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
           )
           (?=
                 (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -8192,7 +8178,7 @@ repository:
     patterns:
       - &variable-declaration
         match: |-
-          (?x) 
+          (?x)
           (?<=
             (?:
                 ^ # start of line
