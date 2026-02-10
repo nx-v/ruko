@@ -31,7 +31,8 @@ parsed = stringify(parsed, (k, v) => {
       if (["begin", "end", "match", "while"].includes(k.trim()))
         try {
           return optimize(v).pattern;
-        } catch {
+        } catch (e) {
+          // console.error("Invalid pattern:", e, v);
           return v;
         }
   }
