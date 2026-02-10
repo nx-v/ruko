@@ -38,8 +38,8 @@ let &mut int z = &mut a;
 &Type a = 10;
 (int | 'hello world') b = "hello world";
 let int[] result = [];
-pub func int x(const int x) =
-  arr.reduce 0 (|int sum, value| sum + value);
+pub func int x(mut const int x) =
+  arr.reduce 0 (int |int sum, int value| sum + value);
 let x = 10;
 let mut str name = "Ruko";
 let f32 pi = 3.14159;
@@ -48,6 +48,8 @@ let f128 z = 1.618033988749895;
 let bool isActive = true;
 let char initial = 'R';
 let [int | str] c = 42;
+mut<X :> T> func<T> identity = |x: x|: X = x
+mut<X :> T> func<T> X identity = X |x x| = x
 ((((((((((((((((((((int | str))))))))))))))))))))[] c = [1, "two", 3, "four"];
 
 // style DSL example
@@ -227,9 +229,9 @@ print $ formatPowerSet sortedPowerSet [1 ..< 10];
 shader MazeGenerator {
   struct Uniforms {prop u32 mazeSize, u32 numWalls};
   struct WallsArray {prop u32[] values};
-  pub mut<group 0 id 0> Uniforms uniforms;
-  `out` mut<group 0 id 1> u32[] walls;
-  `out` mut<group 0 id 2> WallsArray wallsArray;
+  pub mut[group 0, id 0] Uniforms uniforms;
+  `out` mut[group 0, id 1] u32[] walls;
+  `out` mut[group 0, id 2] WallsArray wallsArray;
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
     let i32 size = i32 uniforms.mazeSize;
@@ -399,7 +401,7 @@ let defaultUser = {
 } by User;
 
 // Assigning to a dynamic key
-(const[ "name", "id"]).forEach(proc(str key) {
+(const["name", "id"]).forEach(proc(str key) {
   userToBeBuilt[key] = "default"
 });
 

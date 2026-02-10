@@ -472,7 +472,7 @@ repository:
         (?: # keywords
           # wordlike operators
           [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
           # declaration keywords
           |va[rl]|let|mut|const
@@ -603,7 +603,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -627,7 +627,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -845,7 +845,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -1468,7 +1468,7 @@ repository:
         captures:
           1: {name: punctuation.definition.symbol.ruko}
         patterns: [{include: "#strings"}]
-      - match: (:)((?>`[^`]+`|\b[\p{Pd}\w]+\b))
+      - match: (:)((?>`[^`]+`|\b[\w&&\D][\p{Pd}\w]*\b))
         name: constant.other.symbol.ruko
         captures:
           1: {name: punctuation.definition.symbol.ruko}
@@ -2424,7 +2424,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -2511,7 +2511,7 @@ repository:
                   (?: # keywords
                     # wordlike operators
                     [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                     # declaration keywords
                     |va[rl]|let|mut|const
@@ -3344,7 +3344,7 @@ repository:
           - include: "#unicode-property-values"
           - include: "#css-property-values"
           - &attribute-identifier
-            match: (?>`[^`]+`|\b[\p{Pd}\w]+\b)
+            match: (?>`[^`]+`|\b[\w&&\D][\p{Pd}\w]*\b)
             name: constant.other.attribute-value.ruko
       - match: ((?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
         name: entity.other.attribute-name.key.ruko
@@ -3521,7 +3521,7 @@ repository:
         end: $|
         name: entity.other.attribute-name.ruko
         patterns:
-          - match: '[\p{Pd}\w]+'
+          - match: '[\w&&\D][\p{Pd}\w]*'
             patterns: [{include: "#css-property-keys"}]
           - &style-square-brackets
             begin: (\[)
@@ -3576,7 +3576,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -3639,7 +3639,7 @@ repository:
             | (\#o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5})) # octal
             | (\#z0*(?:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7])) # duodecimal
             | (\#x0*(?:\h|[1-f]\h{1,4}|10\h{4})) # hexadecimal
-            | ((?>`[^`]+`|\b[\p{Pd}\w]+\b)) # named
+            | ((?>`[^`]+`|\b[\w&&\D][\p{Pd}\w]*\b)) # named
             | ([^;\s]++) # invalid
           )(;)
         name: constant.other.entity.ruko
@@ -3824,7 +3824,7 @@ repository:
       - include: "#space"
 
   math-entities:
-    match: (\\)((?>`[^`]+`|\b[\p{Pd}\w]+\b))(;?)
+    match: (\\)((?>`[^`]+`|\b[\w&&\D][\p{Pd}\w]*\b))(;?)
     captures:
       1: {name: punctuation.definition.entity.math.markdown}
       2:
@@ -3834,7 +3834,7 @@ repository:
 
   math-commands:
     applyEndPatternLast: true
-    begin: (\\)((?>`[^`]+`|\b[\p{Pd}\w]+\b))(?=[(\[{])
+    begin: (\\)((?>`[^`]+`|\b[\w&&\D][\p{Pd}\w]*\b))(?=[(\[{])
     beginCaptures:
       1: {name: punctuation.definition.command.math.markdown}
       2:
@@ -4204,7 +4204,7 @@ repository:
               - include: "#style-list"
               - include: $self
           - comment: tag name inside span !!...!!
-            match: (?<=!\()(?>`[^`]+`|\b[\p{Pd}\w]+\b)
+            match: (?<=!\()(?>`[^`]+`|\b[\w&&\D][\p{Pd}\w]*\b)
             name: entity.name.tag.ruko
             patterns: [{include: "#html-tag-names"}]
           - include: "#style-selectors"
@@ -4887,7 +4887,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -4946,7 +4946,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -5011,7 +5011,7 @@ repository:
       applyEndPatternLast: true
       end: $|
       patterns:
-        - match: '[\p{Pd}\w]+'
+        - match: '[\w&&\D][\p{Pd}\w]*'
           patterns: [{include: "#css-property-keys"}]
         - &style-square-brackets
           begin: (\[)
@@ -5028,7 +5028,7 @@ repository:
         <<: *attribute-selectors
         name: entity.name.tag.ruko
         patterns:
-          - match: '[\p{Pd}\w]+'
+          - match: '[\w&&\D][\p{Pd}\w]*'
             patterns: [{include: "#html-tag-names"}]
           - *style-square-brackets
       - match: \s*(::?|[.#~&*%$|^@?])(?=[\w$'"`])
@@ -5080,7 +5080,7 @@ repository:
         name: entity.name.schema.ruko
 
   style-pair:
-    begin: (?<=(?:^|;|\#?[(\[{])\s*)((?:\[(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`\[\]]+)*\]|[\p{Pd}\w]+)*)\s*(:)(?=\s+|$)
+    begin: (?<=(?:^|;|\#?[(\[{])\s*)((?:\[(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`\[\]]+)*\]|[\w&&\D][\p{Pd}\w]*)*)\s*(:)(?=\s+|$)
     end: (?=[;}\])])|$
     name: meta.property.css.ruko
     beginCaptures:
@@ -5526,7 +5526,7 @@ repository:
                   (?: # keywords
                     # wordlike operators
                     [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                     # declaration keywords
                     |va[rl]|let|mut|const
@@ -5565,7 +5565,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5619,7 +5619,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5687,7 +5687,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5726,7 +5726,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -5827,7 +5827,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -5950,7 +5950,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -5989,7 +5989,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -6043,7 +6043,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -6122,7 +6122,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -6277,7 +6277,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -6351,7 +6351,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -6401,56 +6401,57 @@ repository:
             )+
           )
 
+          \s*
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+          ((?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+          \s*
+
           (?=
-            \s*
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # operator
-
-            (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
-            )
-            (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # operator
-            \s*
-
-            (?:
-              $ | # end of line
-              \s* (?:
-                | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword
-                | [)\]}] # close bracket
-                | [,;] # separator
-                | \s (?:[?:]?=) \s+ (?:[-*&%@^!~?\\+$#]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
-                | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]) # pipe
-              )
+            $ | # end of line
+            \s* (?:
+              | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword
+              | [)\]}] # close bracket
+              | [,;] # separator
+              | \s (?:[?:]?=) \s+ (?:[-*&%@^!~?\\+$#]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
+              | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]) # pipe
             )
           )
         name: meta.binding-pattern.ruko
         captures:
           1: *prefix-type-annotation
+          2: *type-operators
+          3: *parameter-variable
+          4: *type-operators
 
   call-parameters:
     match: |-
@@ -6501,7 +6502,7 @@ repository:
         (?: # keywords
           # wordlike operators
           [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
           # declaration keywords
           |va[rl]|let|mut|const
@@ -6652,7 +6653,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -6685,11 +6686,13 @@ repository:
       )
 
       (
-        \#?(?:
-          \((?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`()]+)*\) | # round brackets
-          \[(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`\[\]]+)*\] | # square brackets
-          {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`{}]+)*} # curly brackets
-        )+ # allow chaining
+        (?:
+          \#?(?:
+            \((?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`()]+)*\) | # round brackets
+            \[(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`\[\]]+)*\] | # square brackets
+            {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[^'"`{}]+)*} # curly brackets
+          )+ # allow chaining
+        )+
       )
 
       (?! # accessor or assignment
@@ -6764,7 +6767,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -6824,7 +6827,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -7161,7 +7164,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -7226,7 +7229,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -7318,7 +7321,7 @@ repository:
                     (?: # keywords
                       # wordlike operators
                       [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                      |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                      |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                       # declaration keywords
                       |va[rl]|let|mut|const
@@ -7739,7 +7742,7 @@ repository:
                   (?: # keywords
                     # wordlike operators
                     [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                     # declaration keywords
                     |va[rl]|let|mut|const
@@ -7777,7 +7780,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -7872,7 +7875,7 @@ repository:
                     (?: # keywords
                       # wordlike operators
                       [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                      |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                      |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                       # declaration keywords
                       |va[rl]|let|mut|const
@@ -7921,7 +7924,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # control flow keywords
               |if|elif|else|[tw]hen|guard|with
@@ -7946,7 +7949,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -8018,7 +8021,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -8099,7 +8102,7 @@ repository:
           (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
             # declaration keywords
             |va[rl]|let|mut|const
@@ -8175,8 +8178,11 @@ repository:
           ) \b
       )
       (?=
-        < | \s* \#?[(\[{] # generics or opening bracket
-          | \s* (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+        < # generics
+        | \s* [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* (?:
+            \#?[(\[{] # opening brackets
+          | (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+        )
       )
     end: $|
     beginCaptures:
@@ -8209,7 +8215,7 @@ repository:
                 (?: # keywords
                   # wordlike operators
                   [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                   # declaration keywords
                   |va[rl]|let|mut|const
@@ -8266,7 +8272,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -8684,7 +8690,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -8735,7 +8741,7 @@ repository:
             (?: # keywords
               # wordlike operators
               [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
               # declaration keywords
               |va[rl]|let|mut|const
@@ -8818,7 +8824,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -8956,7 +8962,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -9068,7 +9074,7 @@ repository:
               (?: # keywords
                 # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                 # declaration keywords
                 |va[rl]|let|mut|const
@@ -9530,7 +9536,7 @@ repository:
                   (?: # keywords
                     # wordlike operators
                     [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
                     # declaration keywords
                     |va[rl]|let|mut|const
@@ -9658,7 +9664,7 @@ repository:
         (?: # keywords
           # wordlike operators
           [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
           # declaration keywords
           |va[rl]|let|mut|const
@@ -9689,7 +9695,7 @@ repository:
         (?: # keywords
           # wordlike operators
           [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
           # declaration keywords
           |va[rl]|let|mut|const
@@ -9993,7 +9999,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -10015,7 +10021,7 @@ repository:
             \b
               (?: # wordlike operators
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -10193,7 +10199,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -10239,7 +10245,7 @@ repository:
             \b
               (?: # destructuring keywords
                 [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|n?and|x?n?or|(?:co)?n?imply|not|[gs]et|new|old
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
               )
             \b
             (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
