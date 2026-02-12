@@ -51,6 +51,7 @@ let [int | str] c = 42;
 mut<X :> T> func<T> identity = |x: x|: X = x
 mut<X :> T> func<T> X identity = X |x x| = x
 ((((((((((((((((((((int | str))))))))))))))))))))[] c = [1, "two", 3, "four"];
+X<(|x| func<X>)> identity = |x: x|: X = x
 
 // style DSL example
 style `style` {
@@ -296,7 +297,6 @@ print randomString;
 // function call with different argument types
 funcName(arg1: 10, &mut arg2: 2, stat MyType{k: v} arg3: "hello");
 let v = #{a: pub int |*a| a + 1};
-
 oper int k + int x = x * 2;
 
 // chaining with custom operators
@@ -321,31 +321,31 @@ proc x(
   stat (K where K ~ (α + β + γ)) u,
   *pub ((|T, U| <(T as [*U]?)>(U ^ T)) | str) v,
   *&mut (α | β)? y?,
-  &mut (*(*(γ?)?)? where !(α & β)?) z?,
+  &mut (***γ??? where !(α & β)?) z!,
 ) = unsafe {
   mut *α? p = null;
-  mut *(*(β?)) q = null;
-  mut *(*(γ?)) r = null;
+  mut **β? q = null;
+  mut **γ? r = null;
 
   for let int i = 0, i < a::size + 17, i += 1 {
     if y? && !p?:
       p := &y as *α;
     if p? && !q? {
-      q := &*(p as *(*β));
+      q := &*(p as **β);
       q[i % 20] := (i * i << (i & 3)) ^ 0xfeedface;
     }
   }
 
   if z? && z != false:
     for let int j = 0, j < 20, j += 1:
-      *(*z)[j] := ((*(*z)[j] ?? 0) + j) as γ;
+      **z[j] := ((**z[j] ?? 0) + j) as γ;
 
-  func str l = |*[*i32] θ| {
+  func str l = |*(*i32[]) θ| {
     θ[0][0] := θ[0][0] ^ 1337;
-    <div style={color: :green}> \* Pointer value: #{*θ[0][0]} *\ </>;
+    <div style={color: :green}>\* Pointer value: #{*θ[0][0]} *\</>;
   }
 
-  λ(&q as *[*i32]);
+  λ(&q as *(*i32[]));
 }
 
 // simple linked list node
@@ -396,8 +396,6 @@ scope `for` for let `in` in [`mut` alloc: init: release:]:
 // The user hasn't been constructed yet, so we need
 // to use 'as' here
 let userToBeBuilt = {} as User;
-
-x = |*x|
 
 |x| struct User {
   let str id;

@@ -303,7 +303,7 @@ repository:
       - include: "#function-calls"
       - include: "#xml-tags"
       - include: "#splice-brackets"
-      - include: "#generics"
+      - include: "#angle-brackets"
       - include: "#literals"
       - include: "#accessor-operators"
       - include: "#type-cast-operators"
@@ -2410,7 +2410,7 @@ repository:
           1: {name: punctuation.definition.variable.ruko}
         patterns:
           - include: "#constants"
-          - include: "#generics"
+          - include: "#angle-brackets"
           - include: "#brackets"
           - include: "#embedded-function-calls"
           - match: (?<=>|\w)(!)(?=\#?[({])
@@ -2459,7 +2459,7 @@ repository:
           (\@) # sigil
           (?:
             \s*
-            ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+            ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
             ( # identifier
               (?: # function name
                 \b
@@ -2493,7 +2493,7 @@ repository:
                 (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
               )
             )
-            ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+            ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
             \s*
           )
         captures:
@@ -2501,6 +2501,7 @@ repository:
           2: &type-operators
             name: keyword.operator.type.modifier.ruko
             patterns:
+              - include: "#type-parameter-operators"
               - include: "#type-operators"
               - include: "#operators"
           3: &parameter-variable
@@ -2542,7 +2543,7 @@ repository:
           3: {name: punctuation.separator.key-value.ruko}
         patterns:
           - include: "#constants"
-          - include: "#generics"
+          - include: "#angle-brackets"
           - include: "#brackets"
           - include: "#embedded-function-calls"
           - match: (?<=>|\w)(!)(?=\#?[({])
@@ -3556,7 +3557,7 @@ repository:
         end: $|
         patterns:
           - include: "#constants"
-          - include: "#generics"
+          - include: "#angle-brackets"
           - include: "#brackets"
           - include: "#embedded-function-calls"
           - match: (?<=>|\w)(!)(?=\#?[({])
@@ -4863,7 +4864,7 @@ repository:
             )
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -4884,14 +4885,14 @@ repository:
                     {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
           )
 
           \s*
-          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+          ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
 
           (?!
             (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
@@ -4922,7 +4923,7 @@ repository:
           )
           ((?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
-          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+          ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
           \s*
         name: meta.binding-pattern.ruko
         captures:
@@ -5024,6 +5025,7 @@ repository:
         name: entity.name.schema.ruko
 
   style-entry:
+    comment: "Style property entries. Format: <property>: <value>;"
     begin: |-
       (?x)
       (?<=(?:^|;|\#?[(\[{])\s*)
@@ -5038,9 +5040,9 @@ repository:
                   (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
                 )*
                 (?>`(?>\\`|[^`])+`|\b[\w\p{Pd}]+b) # last identifier
-              ) 
-              (?>'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`)? # strings 
-            | (?>'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`) # strings 
+              )
+              (?>'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`)? # string/quoted identifier
+            | (?>'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`) # string/quoted identifier
             | (?:
                 (?:
                   (?>`(?>\\`|[^`])+`|\b[\w\p{Pd}]+\b) # identifier
@@ -5504,7 +5506,7 @@ repository:
                     [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   )?
                 )
-              | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+              | ['"`)\]}>\w][\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
               | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
                 \b
@@ -5535,7 +5537,7 @@ repository:
                 \b
               ) \s*
             )
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
           )
           (?<! # accessor or assignment
             (?:^|[,;'"`()\[\]{}\w]) (?:
@@ -5661,7 +5663,7 @@ repository:
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               )?
             )
-          | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+          | ['"`)\]}>\w][\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
@@ -5692,7 +5694,7 @@ repository:
             \b
           ) \s*
         )
-        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+        [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
       )
       (?<! # accessor or assignment
         (?:^|[,;'"`()\[\]{}\w]) (?:
@@ -5737,7 +5739,7 @@ repository:
       (?:(!)|(~)|(\*))? # macro, destructor, or generator call
 
       (?!
-          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+          [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | # infix operator not beginning with /
           \s+
@@ -5748,7 +5750,7 @@ repository:
           (?=\s|$)
         | # function name
           \s+ \\ # infix function operator
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
       )
       (?=
@@ -5756,7 +5758,7 @@ repository:
           | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
           | (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+          | [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
         (?:
             :?[@#$%]*['"] # strings and symbols
           | \b\d # numbers
@@ -5771,7 +5773,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?: # type
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                  [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                   (?:
                     (?:
                       (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -5792,7 +5794,7 @@ repository:
                       {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                     )+ # allow chaining
                   )+
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                  [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                 )
                 \s*
               )+
@@ -5920,7 +5922,7 @@ repository:
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               )?
             )
-          | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+          | ['"`)\]}>\w][\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
@@ -5951,7 +5953,7 @@ repository:
             \b
           ) \s*
         )
-        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+        [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
       )
       (?<! # accessor or assignment
         (?:^|[,;'"`()\[\]{}\w]) (?:
@@ -6005,7 +6007,7 @@ repository:
           (?=\s|$)
         | # function name
           \s+ \\ # infix function operator
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
         | # function name
           \s*
@@ -6045,7 +6047,7 @@ repository:
           | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
           | [!~*] \#?[({] # macro, destructor and generator calls
           | (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+          | [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
         (?:
             :?[@#$%]*['"] # strings and symbols
           | \b\d # numbers
@@ -6060,7 +6062,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?: # type
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                  [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                   (?:
                     (?:
                       (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -6081,7 +6083,7 @@ repository:
                       {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                     )+ # allow chaining
                   )+
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                  [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                 )
                 \s*
               )+
@@ -6203,7 +6205,7 @@ repository:
           (
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -6224,7 +6226,7 @@ repository:
                     {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -6334,7 +6336,7 @@ repository:
                 ) \b
               )
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -6355,14 +6357,14 @@ repository:
                     {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
           )
 
           \s*
-          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+          ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
 
           (?!
             (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
@@ -6393,7 +6395,7 @@ repository:
           )
           ((?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
-          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+          ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
           \s*
 
           (?=
@@ -6428,7 +6430,7 @@ repository:
       (
         (?:
           (?: # type
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
             (?:
               (?:
                 (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -6449,14 +6451,14 @@ repository:
                 {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
               )+ # allow chaining
             )+
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
           )
           \s*
         )+
       )?
 
       \s*
-      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+      ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
 
       (?!
         (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
@@ -6487,7 +6489,7 @@ repository:
       )
       ((?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
-      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+      ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
       \s*
 
       (:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
@@ -6558,9 +6560,9 @@ repository:
     patterns:
       - include: "#type-cast-operators"
       - include: "#named-infix-operators"
+      - include: "#infix-operators"
       - include: "#accessor-operators"
       - include: "#special-operators"
-      - include: "#infix-operators"
       - include: "#interfix-operators"
       - include: "#postfix-operators"
       - include: "#prefix-operators"
@@ -6607,7 +6609,7 @@ repository:
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
               )?
             )
-          | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+          | ['"`)\]}>\w][\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             \b
@@ -6638,7 +6640,7 @@ repository:
             \b
           ) \s*
         )
-        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+        [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
       )
       (?<! # accessor or assignment
         (?:^|[,;'"`()\[\]{}\w]) (?:
@@ -6661,7 +6663,7 @@ repository:
             (?:[?!]?\.|[?!:]:|[?!-]>)=?
           ) (?:$|[,;'"`()\[\]{}\w])
         | # followed by another operator
-          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+          [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | # infix operator not beginning with /
           \s+
@@ -6672,7 +6674,7 @@ repository:
           (?=\s|$)
         | # function name
           \s+ \\ # infix function operator
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
       )
       (?=
@@ -6681,7 +6683,7 @@ repository:
             :?[@#$%]*['"] # strings and symbols
           | \b\d # numbers
           | :(?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
-          | \s \#? [(\[{] # opening brackets
+          | \s \#? [(\[] # opening brackets
           | /[,;'"`\\(\[{\w] # regexp literal
           | <(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -6691,7 +6693,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?: # type
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                  [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                   (?:
                     (?:
                       (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -6712,7 +6714,7 @@ repository:
                       {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                     )+ # allow chaining
                   )+
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                  [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                 )
                 \s*
               )+
@@ -7106,11 +7108,12 @@ repository:
     name: storage.modifier.ruko
     match: |-
       (?x)
+
       (
         # highlight everything before the identifier as type
         (?!
           (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # ignore keywords
+          (?: # keywords
             # wordlike operators
             [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
             |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
@@ -7137,11 +7140,11 @@ repository:
         )
         (?:
           (?:
-            (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+            (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
             (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
           )*
-          (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-          (?:<(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[<>][:=]|:[<>]|\+>|<\+|[^'"`<>]+)*>)? # generics
+          (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          (?:<(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`[^`]+`|[<>][:=]|:[<>]|\+>|<\+|[^'"`<>]+)*>)? # generics
           \s* # whitespace
         )+
       )
@@ -7160,8 +7163,9 @@ repository:
       1:
         patterns:
           - include: "#type-brackets"
-          - include: "#generics"
+          - include: "#angle-brackets"
           - include: "#type-operators"
+          - include: "#type-parameter-operators"
           - include: "#modifiers"
 
   type-modifiers:
@@ -7203,7 +7207,7 @@ repository:
           )
 
           (?!
-              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+              [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
               [:>] (?:\s* (?:[,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
             | # infix operator not beginning with /
               \s+
@@ -7214,12 +7218,12 @@ repository:
               (?=\s|$)
             | # function name
               \s+ \\ # infix function operator
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
                 (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
           )
           (?=
                 (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-              | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+              | [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
             (?:
                 :?[@#$%]*['"] # strings and symbols
               | \b\d # numbers
@@ -7234,7 +7238,7 @@ repository:
                   (?:[,;] \s*)* # optional separators
                   (?:
                     (?: # type
-                      [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                      [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                       (?:
                         (?:
                           (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -7255,7 +7259,7 @@ repository:
                           {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                         )+ # allow chaining
                       )+
-                      [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                      [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                     )
                     \s*
                   )+
@@ -7316,6 +7320,15 @@ repository:
             |mut|immut|shared|unique
             |static|instance
             |stat|dyn|inst
+            |dynamic|virtual
+            |override|overrides
+            |abstract|concrete
+            |partial|complete
+            |export|import
+            |inline|outline
+            |inlineable|noinline
+            |intrinsic|builtin
+            |native|foreign
           )\b
         name: storage.modifier.specifier.ruko
       - comment: Mutability and ownership
@@ -7681,7 +7694,7 @@ repository:
                     [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                   )?
                 )
-              | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+              | ['"`)\]}>\w][\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
               | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
                 \b
@@ -7712,7 +7725,7 @@ repository:
                 \b
               ) \s*
             )
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operator except slashes
           )
           (?<! # accessor or assignment
             (?:^|[,;'"`()\[\]{}\w]) (?:
@@ -7752,7 +7765,7 @@ repository:
           )
 
           (?!
-              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+              [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
               : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
             | # infix operator not beginning with /
               \s+
@@ -7763,7 +7776,7 @@ repository:
               (?=\s|$)
             | # function name
               \s+ \\ # infix function operator
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix operators except slashes
                 (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
           )
           (?=
@@ -7771,7 +7784,7 @@ repository:
               | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
               | [!~*] \#?[({] # macro, destructor and generator calls
               | (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-              | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+              | [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
             (?:
                 :?[@#$%]*['"] # strings and symbols
               | \b\d # numbers
@@ -7786,7 +7799,7 @@ repository:
                   (?:[,;] \s*)* # optional separators
                   (?:
                     (?: # type
-                      [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                      [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                       (?:
                         (?:
                           (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -7807,7 +7820,7 @@ repository:
                           {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                         )+ # allow chaining
                       )+
-                      [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                      [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                     )
                     \s*
                   )+
@@ -7989,7 +8002,7 @@ repository:
         )
         (?:
           (?: # type
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
             (?:
               (?:
                 (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8010,7 +8023,7 @@ repository:
                 {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
               )+ # allow chaining
             )+
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
           )
           \s*
         )+
@@ -8026,7 +8039,7 @@ repository:
         | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
           (?: # ignore keywords
             # wordlike operators
-            [io]n|of
+            [io]n|of|to|by
           ) \b
       )
     name: meta.binding-pattern.ruko
@@ -8070,7 +8083,7 @@ repository:
         )
         (?:
           (?: # type
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
             (?:
               (?:
                 (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8091,7 +8104,7 @@ repository:
                 {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
               )+ # allow chaining
             )+
-            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+            [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
           )
           \s*
         )+
@@ -8118,12 +8131,12 @@ repository:
         | \s(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
           (?: # ignore keywords
             # wordlike operators
-            [io]n|of
+            [io]n|of|to|by
           ) \b
       )
       (?=
         < # generics
-        | \s* [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* (?:
+        | \s* [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* (?:
             \#?[(\[{] # opening brackets
           | (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
         )
@@ -8182,7 +8195,7 @@ repository:
                 ) \b
               )
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8203,7 +8216,7 @@ repository:
                     {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8250,7 +8263,7 @@ repository:
             | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
               (?: # ignore keywords
                 # wordlike operators
-                [io]n|of
+                [io]n|of|to|by
               ) \b
           )
         captures:
@@ -8790,7 +8803,7 @@ repository:
             )
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8811,7 +8824,7 @@ repository:
                     {(?>\g<3>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8822,7 +8835,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8843,7 +8856,7 @@ repository:
                     {(?>\g<5>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8928,7 +8941,7 @@ repository:
             )
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8949,7 +8962,7 @@ repository:
                     {(?>\g<3>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -8960,7 +8973,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -8981,7 +8994,7 @@ repository:
                     {(?>\g<5>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -9040,7 +9053,7 @@ repository:
             )
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -9061,7 +9074,7 @@ repository:
                     {(?>\g<1>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -9072,7 +9085,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -9093,7 +9106,7 @@ repository:
                     {(?>\g<3>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -9128,7 +9141,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?: # type
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                 (?:
                   (?:
                     (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -9149,7 +9162,7 @@ repository:
                     {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                   )+ # allow chaining
                 )+
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
               )
               \s*
             )+
@@ -9500,7 +9513,7 @@ repository:
                 )
                 (?:
                   (?: # type
-                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                    [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                     (?:
                       (?:
                         (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -9521,7 +9534,7 @@ repository:
                         {(?>\g<2>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                       )+ # allow chaining
                     )+
-                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                    [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                   )
                   \s*
                 )+
@@ -9531,7 +9544,7 @@ repository:
                 (?:[,;] \s*)* # optional separators
                 (?:
                   (?: # type
-                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix type operators
+                    [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # prefix type operators
                     (?:
                       (?:
                         (?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -9552,7 +9565,7 @@ repository:
                         {(?>\g<3>|'(?:\\.|[^\\'])*'|"(?:\\.|[^\\"])*"|`(?>\\`|[^`])+`|[^'"`{}]+)*} # curly brackets
                       )+ # allow chaining
                     )+
-                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # postfix type operators
+                    [\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]* # postfix type operators
                   )
                   \s*
                 )+
@@ -9628,7 +9641,7 @@ repository:
       )
 
       \s*
-      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+      ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
 
       (?!
         (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
@@ -9659,7 +9672,7 @@ repository:
       )
       ((?>`(?>\\`|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
-      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
+      ([\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*) # operator
       \s*
     captures:
       1: {name: keyword.operator.expression.as.ruko}
@@ -9787,7 +9800,20 @@ repository:
       - include: "#square-brackets"
       - include: "#round-brackets"
 
-  generics: &generics
+  accessor-operators:
+    match: (?<=^|['"`>)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=$|['"`<(\[{\w])
+    name: keyword.operator.accessor.ruko
+    captures:
+      1:
+        patterns:
+          - match: "!"
+            name: keyword.operator.unwrap.ruko
+          - match: \?
+            name: keyword.operator.optional.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+
+  angle-brackets: &generics
     patterns:
       - comment: empty generics
         name: meta.type-arguments.ruko
@@ -9796,7 +9822,7 @@ repository:
           1: {name: punctuation.type.arguments.ruko}
       - comment: <...> generics
         name: meta.type-arguments.ruko
-        begin: (?<=^|['"`)\]}>\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]?|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w]|\#?[(\[{]))
+        begin: (?<=^|['"`)\]}>\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]?|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=[\p{P}\p{S}&&[^,:;'"`|<>/\()\[\]{}\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
         end: (?<=^|['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]?)(>)(?:(!)|(~)|(\*))?
         beginCaptures:
           1: {name: punctuation.type.arguments.ruko}
@@ -9813,21 +9839,6 @@ repository:
           - include: "#brackets"
           - include: "#comments"
           - include: "#illegal"
-
-  accessor-operators:
-    match: (?<=^|['"`>)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=$|['"`<(\[{\w\s])
-    name: keyword.operator.accessor.ruko
-    captures:
-      1:
-        patterns:
-          - match: "!"
-            name: keyword.operator.unwrap.ruko
-          - match: \?
-            name: keyword.operator.optional.ruko
-          - match: =
-            name: keyword.operator.assignment.ruko
-
-  angle-brackets: *generics
 
   curly-brackets:
     repository:
@@ -10169,7 +10180,7 @@ repository:
           - include: "#decorators"
           - include: "#splice-brackets"
           - include: "#xml-tags"
-          - include: "#generics"
+          - include: "#angle-brackets"
           - include: "#literals"
           - include: "#accessor-operators"
           - include: "#brackets"
