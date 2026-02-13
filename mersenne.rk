@@ -308,11 +308,11 @@ for let i32 i in 0 ..< 10:
   Io::stdout->write_str('Random number ' +
     (str) (i + 1) + ': ' +
     (str) rand.rand_int() + '\n');
-
+    
 /* Mersenne Twister random number generator
    Original C++ code by Shawn Cokus and Makoto Matsumoto */
 
-show class MTRand = script cpp {
+show class MTRand = %cpp
   #ifndef MERSENNETWISTER_H
   #define MERSENNETWISTER_H
 
@@ -376,8 +376,8 @@ show class MTRand = script cpp {
     // Saving and loading generator state
     void save(uint32* saveArray) const; // to array of size SAVE
     void load(uint32 *const loadArray); // from such array
-    friend std::ostream& operator<<(std::ostream& os, const MTRand& mtrand);
-    friend std::istream& operator>>(std::istream& is, MTRand& mtrand);
+    friend std::ostream& operator<<(std::ostream& os, const MTRand& mtRand);
+    friend std::istream& operator>>(std::istream& is, MTRand& mtRand);
     MTRand& operator=(const MTRand& o);
 
   protected:
@@ -612,19 +612,19 @@ show class MTRand = script cpp {
     pNext = &state[N-left];
   }
 
-  inline std::ostream& operator<<(std::ostream& os, const MTRand& mtrand) {
-    register const MTRand::uint32 *s = mtrand.state;
-    register int i = mtrand.N;
+  inline std::ostream& operator<<(std::ostream& os, const MTRand& mtRand) {
+    register const MTRand::uint32 *s = mtRand.state;
+    register int i = mtRand.N;
     for (; i--; os << *s++ << "\t") {}
-    return os << mtrand.left;
+    return os << mtRand.left;
   }
 
-  inline std::istream& operator>>(std::istream& is, MTRand& mtrand) {
-    register MTRand::uint32 *s = mtrand.state;
-    register int i = mtrand.N;
+  inline std::istream& operator>>(std::istream& is, MTRand& mtRand) {
+    register MTRand::uint32 *s = mtRand.state;
+    register int i = mtRand.N;
     for (; i--; is >> *s++) {}
-    is >> mtrand.left;
-    mtrand.pNext = &mtrand.state[mtrand.N-mtrand.left];
+    is >> mtRand.left;
+    mtRand.pNext = &mtRand.state[mtRand.N-mtRand.left];
     return is;
   }
 
@@ -640,9 +640,9 @@ show class MTRand = script cpp {
   }
 
   #endif  // MERSENNETWISTER_H
-}
+cpp%
 
-show class MTRand = script cs {
+show class MTRand = %cs
   // C# port of Mersenne Twister random number generator
   // Not thread safe (unless auto-initialization is avoided and each thread has
   // its own MTRand object)
@@ -840,4 +840,4 @@ show class MTRand = script cs {
       return h1 ^ h2;
     }
   }
-}
+cs%
