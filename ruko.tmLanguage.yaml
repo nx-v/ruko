@@ -3498,7 +3498,7 @@ repository:
     endCaptures:
       1: {name: punctuation.definition.block.ruko}
     name: meta.attribute.style.ruko
-    patterns: [{include: "#style-properties"}]
+    patterns: [{include: "#style-content"}]
 
   attribute-assignment:
     applyEndPatternLast: true
@@ -3720,7 +3720,7 @@ repository:
       1: {name: punctuation.definition.directive.ruko}
     name: meta.inline.styles.ruko
     patterns:
-      - include: "#style-properties"
+      - include: "#style-content"
       - include: $self
 
   inline-markdown:
@@ -4146,7 +4146,7 @@ repository:
             captures:
               1: {name: punctuation.definition.block.ruko}
             patterns:
-              - include: "#style-properties"
+              - include: "#style-content"
               - include: "#style-list"
               - include: $self
           - comment: tag name inside span !!...!!
@@ -5135,7 +5135,7 @@ repository:
     captures:
       1: {name: punctuation.section.property-list.ruko}
     patterns:
-      - include: "#style-properties"
+      - include: "#style-content"
       - include: "#style-list"
       - include: $self
 
@@ -5261,7 +5261,7 @@ repository:
       - include: "#style-property-values"
       - include: "#space"
 
-  style-properties:
+  style-content:
     patterns:
       - include: "#comments"
       - include: "#clauses"
@@ -5285,17 +5285,16 @@ repository:
         patterns:
           - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
             name: keyword.operator.expression.as.ruko
-          - include: "#clauses"
-          - include: "#constants"
           - include: "#declarations"
-          - include: "#style-entries"
-          - include: $self
+          - include: "#clauses"
+          - include: "#style-content"
       - begin: \s*(\[)\s*
         end: \s*(\])\s*
         captures:
           1: {name: punctuation.definition.selector.ruko}
         patterns:
           - include: "#attribute-selectors"
+          - include: "#style-entries"
           - include: $self
       - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from|to|except|only|as)\b\s*
         name: keyword.operator.expression.ruko
