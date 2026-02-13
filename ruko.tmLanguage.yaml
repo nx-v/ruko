@@ -298,7 +298,7 @@ repository:
       - include: "#keywords"
       - include: "#comments"
       - include: "#type-signature"
-      - include: "#lambda"
+      - include: "#lambdas"
       - include: "#function-calls"
       - include: "#xml-tags"
       - include: "#splice-brackets"
@@ -994,7 +994,7 @@ repository:
       - comment: Interfix type operators
         match: |-
           (?x)
-          (?<=['")\]}\w])
+          (?<=['"`)\]}\w])
             (?:
                (\+)       # sum (left union)
               |(\-)       # difference
@@ -1426,7 +1426,7 @@ repository:
           - include: "#unit-suffix"
 
   unit-suffix:
-    match: (?<=['")\]}\w])(`?[\p{L}\p{Nl}\p{Pc}]\w*)\b
+    match: (?<=['"`)\]}\w])(`?[\p{L}\p{Nl}\p{Pc}]\w*)\b
     name: keyword.other.unit.ruko
 
   byte-shift-suffix:
@@ -2457,43 +2457,38 @@ repository:
           (?x)
           (\@) # sigil
           (?:
-            \s*
-            ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
-            ( # identifier
-              (?: # function name
-                \b
-                (?!
-                  (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                  (?: # ignore keywords
-                    # wordlike operators
-                    [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+            ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
-                    # declaration keywords
-                    |va[rl]|let|mut|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                    |module|schema|struct|record|object|union|macro|space
-                    |query|quote|style|script|shader|compo|temp|oper|realm
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+              (?: # ignore keywords
+                # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
 
-                    # control flow keywords
-                    |if|elif|else|[tw]hen|guard|with
-                    |for|while|loop|break|skip|redo
-                    |try|retry|switch|[cm]atch|case|def|throw
-                    |return|yield|await|goto|pass|defer|race|join
-                    |raise|error|final|copy|move|drop|sink
-                    |[gd]o|from|where|use|show|hide
+                # declaration keywords
+                |va[rl]|let|mut|const
+                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+                |module|schema|struct|record|object|union|macro|space
+                |query|quote|style|script|shader|compo|temp|oper|realm
 
-                    # miscellaneous keywords
-                    |debug|assert|check|decl|ignore
-                    |use|echo|eval|exec|scope|safe|unsafe
-                    |begin|end
-                  ) \b
-                )
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-              )
+                # control flow keywords
+                |if|elif|else|[tw]hen|guard|with
+                |for|while|loop|break|skip|redo
+                |try|retry|switch|[cm]atch|case|def|throw
+                |return|yield|await|goto|pass|defer|race|join
+                |raise|error|final|copy|move|drop|sink
+                |[gd]o|from|where|use|show|hide
+
+                # miscellaneous keywords
+                |debug|assert|check|decl|ignore
+                |use|echo|eval|exec|scope|safe|unsafe
+                |begin|end
+              ) \b
             )
-            ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # operator
-            \s*
+            ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+            ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
           )
         captures:
           1: {name: punctuation.definition.anchor.ruko}
@@ -8782,7 +8777,7 @@ repository:
       - include: "#line-continuation-comma"
       - include: "#comma"
       - include: "#line-continuation"
-      - begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+      - begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
         end: (?=[,;)\]}]|$)
         captures:
           1: {name: keyword.operator.assignment.ruko}
@@ -9045,7 +9040,7 @@ repository:
               \s*
             )+
           ))
-        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
           1: {name: entity.name.method.ruko}
@@ -9183,7 +9178,7 @@ repository:
               \s*
             )+
           ))
-        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
           1: {name: entity.name.ruko}
@@ -9194,7 +9189,7 @@ repository:
           1: {name: punctuation.definition.function.ruko}
         patterns: [{include: "#lambda-content"}]
 
-  lambda:
+  lambdas:
     patterns:
       - comment: Lambda starting and ending with |
         name: meta.lambda.ruko
@@ -9300,7 +9295,7 @@ repository:
           2: {name: punctuation.definition.function.ruko}
         endCaptures:
           1: {name: punctuation.definition.function.ruko}
-        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         patterns: [{include: "#lambda-content"}]
       - comment: Lambda starting and ending with |
         name: meta.lambda.no-return.ruko
@@ -9353,9 +9348,9 @@ repository:
           ))
         beginCaptures:
           1: {name: punctuation.definition.function.ruko}
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         endCaptures:
           1: {name: punctuation.definition.function.ruko}
-        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         patterns: [{include: "#lambda-content"}]
 
   lambda-content:
@@ -9422,7 +9417,7 @@ repository:
           1: {name: keyword.other.typedef.ruko}
         patterns:
           - include: "#types"
-          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
             captures:
               1: {name: keyword.operator.assignment.ruko}
               2: {name: keyword.operator.assignment.ruko}
@@ -9471,7 +9466,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.case-statement.ruko}
         patterns:
-          - include: "#lambda"
+          - include: "#lambdas"
           - applyEndPatternLast: true
             begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
             end: $|
@@ -9542,7 +9537,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.case-statement.ruko}
         patterns:
-          - include: "#lambda"
+          - include: "#lambdas"
           - applyEndPatternLast: true
             begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
             end: $|
@@ -9587,7 +9582,7 @@ repository:
         endCaptures:
           1: {name: punctuation.definition.case-statement.ruko}
         patterns:
-          - include: "#lambda"
+          - include: "#lambdas"
           - applyEndPatternLast: true
             begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
             end: $|
@@ -9927,11 +9922,11 @@ repository:
       - include: $self
 
   default-value:
-    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['")\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
     captures:
       1: {name: keyword.operator.assignment.ruko}
       2: {name: keyword.operator.assignment.ruko}
-    end: (?<=['")\]}\w])(?=[,;)\]}]|\|$|\|[^|])|$
+    end: (?<=['"`)\]}\w])(?=[,;)\]}]|\|$|\|[^|])|$
     patterns: [{include: $self}]
 
   # Slicing syntax
@@ -10358,7 +10353,7 @@ repository:
           - include: "#comments"
           - include: "#symbols"
           - include: "#type-signature"
-          - include: "#lambda"
+          - include: "#lambdas"
           - include: "#function-clause"
           - include: "#selector-function-calls"
           - include: "#decorators"
