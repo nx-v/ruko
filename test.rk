@@ -39,7 +39,7 @@ let &mut int z = &mut a;
 (int | 'hello world') b = "hello world";
 let int[] result = [];
 pub func int x(mut const int x) =
-  arr.reduce 0 (int |int sum, int value| sum + value);
+  arr.reduce 0 (int|int sum, int value| sum + value);
 let x = 10;
 let mut str name = "Ruko";
 let f32 pi = 3.14159;
@@ -49,7 +49,7 @@ let bool isActive = true;
 let char initial = 'R';
 let [int | str] c = 42;
 mut<X :> T> func<T> identity = |x: x|: X = x;
-mut<X :> T> func<T> X identity = X |x x| = x;
+mut<X :> T> func<T> X identity = X|x x| = x;
 X<(|x| func<X>)> identity = |x: x|: X = x;
 ((((((((((((((((((((int | str))))))))))))))))))))[] c = [1, "two", 3, "four"];
 
@@ -83,7 +83,7 @@ func int[][] sortedPowerSet(int[] arr) {
   }
 
   return result.=sort |int a, int b| {
-    let int countA = a.reduce 0 (|int c,, int i| c + 1);
+    let int countA = a.reduce 0 (int|int c,, int i| c + 1);
     let int countB = b.reduce 0 (|int d,, int i| d + 1);
     if countA != countB:
       countA - countB;
@@ -95,11 +95,11 @@ func int[][] sortedPowerSet(int[] arr) {
 }
 
 // infix functional style
-func int[][] sortedPowerSet = |int[] arr| 0 ..< 1 << arr::len
-  \sort\ |int a, int b| (-) ([a, b] \map\
-      |int k| (arr \reduce\ 0, |int c,, int i| c + ((k >> i) & 1))
-    ) || arr \reduce\ 0, |int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
-  \map\ |int e| (arr \filter\ |, int i| (e >> i) & 1);
+func int[][] sortedPowerSet = int[][]|int[] arr| 0 ..< 1 << arr::len
+  \sort\ int[]|int a, int b| (-) ([a, b]
+  \map\ int[]|int k| (arr \reduce\ 0, int|int c,, int i| c + ((k >> i) & 1))
+    ) || arr \reduce\ 0, int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
+  \map\ int[]|int e| (arr \filter\ int|, int i| (e >> i) & 1);
 
 // LINQ style
 func int[][] sortedPowerSet(int[] arr) =
@@ -131,8 +131,8 @@ func int[][] sortedPowerSet(int[] arr) =
     result = push result subset;
 
   return sort result |int a, int b| =
-    let int countA = reduce a 0 (|int c,, int i| c + 1);
-    let int countB = reduce b 0 (|int d,, int i| d + 1);
+    let int countA = reduce a 0 (int|int c,, int i| c + 1);
+    let int countB = reduce b 0 (int|int d,, int i| d + 1);
     if countA != countB:
       countA - countB;
     for let int i in 0 ..< min a::len b::len:
@@ -144,16 +144,16 @@ func int[][] sortedPowerSet(int[] arr) =
 func int[][] sortedPowerSet(int[] arr) {
   mut int[][] result = [];
 
-  [0 ..< 1 << arr::len each: |int i| {
+  [0 ..< 1 << arr::len each: int|int i| {
     mut int[] subset = [];
-    [0 ..< arr::len each: |int j|
+    [0 ..< arr::len each: int|int j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset];
   }]
 
-  return [result =sort: |int a, int b| {
-    let int countA = [a reduce: 0, |int c,, int i| c + 1];
-    let int countB = [b reduce: 0, |int d,, int i| d + 1];
+  return [result =sort: int|int a, int b| {
+    let int countA = [a reduce: 0, int|int c,, int i| c + 1];
+    let int countB = [b reduce: 0, int|int d,, int i| d + 1];
     if countA != countB: return countA - countB;
     for let int i in 0 ..< min(a::len, b::len):
       if a[i] != b[i]:
@@ -174,9 +174,9 @@ func int[][] sortedPowerSet(int[] arr) {
     result = (push result subset);
   }
 
-  return (sort result (|int a, int b| {
-    let int countA = (reduce a 0 (|int c,, int i| (+ c 1)));
-    let int countB = (reduce b 0 (|int d,, int i| (+ d 1)));
+  return (sort result (int|int a, int b| {
+    let int countA = (reduce a 0 (int|int c,, int i| (+ c 1)));
+    let int countB = (reduce b 0 (int|int d,, int i| (+ d 1)));
     if (!= countA countB):
       (- countA countB);
     for let int i in (..< 0 (min a::len b::len)):
@@ -199,8 +199,8 @@ func int[][] sortedPowerSet(int[] arr) {
     result.=push subset;
   </for>
   <return (result.=sort(|int a, int b| <>
-    <let(type int) (countA)=(a.reduce 0 (|int c,, int i| c + 1))/>
-    <let(type int) (countB)=(b.reduce 0 (|int d,, int i| d + 1))/>
+    <let(type int) (countA)=(a.reduce 0 (int|int c,, int i| c + 1))/>
+    <let(type int) (countB)=(b.reduce 0 (int|int d,, int i| d + 1))/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -218,8 +218,8 @@ for let i in sortedPowerSet [1 ... 16]:
   echo i;
 
 // LINQ-style queries
-func str formatPowerSet = |int[][] a| =
-  a.iter(iter: from let int[] subset in a
+func str formatPowerSet = |intint[][] a| =
+  a.iter(`iter`: from let int[] subset in a
     where subset::len > 0
     select '[' ++ [subset map: str x `join`: ','] ++ ']'
   ).join(', ');
@@ -296,9 +296,9 @@ print randomString;
 
 // function call with different argument types
 funcName(arg1: 10, &a arg2: 2, stat MyType{k: v} arg3: "hello");
-let v = #{a: pub int |*a| a + 1};
+let v = #{a: pub int|*a| a + 1};
 oper int k + int x = x * 2;
-x = pub int |*a| a + 1;
+x = pub int|*a| a + 1;
 
 // chaining with custom operators
 // Haskell-style
@@ -341,13 +341,25 @@ proc x(
     for let int j = 0, j < 20, j += 1:
       **z[j] := ((**z[j] ?? 0) + j) as γ;
 
-  func str l = |*(*i32[]) θ| {
+  func str l = (compo)|*(*i32[]) θ| {
     θ[0][0] := θ[0][0] ^ 1337;
     <div style={color: :green}>\* Pointer value: #{*θ[0][0]} *\</>;
   }
 
   λ(&q as *(*i32[]));
 }
+
+x(
+  struct {let u32 size = 32} {},
+  unsafe {malloc u8},
+  null,
+  null,
+)(
+  stat u32,
+  unsafe {malloc str},
+  null,
+  null,
+);
 
 // simple linked list node
 struct Node {

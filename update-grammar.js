@@ -21,27 +21,29 @@ let sortKeys = obj =>
   : obj;
 
 // remove "comment" keys recursively
-parsed = stringify(parsed, (k, v) => {
-  switch (typeof v) {
-    case "object":
-      for (let k of ["comment", "define"]) if (k in v) delete v[k];
-      if (k == "repository" || "repository" in v) return v;
-      break;
-    case "string":
-      if (["begin", "end", "match", "while"].includes(k.trim()))
-        try {
-          return optimize(v).pattern;
-        } catch (e) {
-          // console.error("Invalid pattern:", e, v);
-          return v;
-        }
-  }
-  return sortKeys(v);
-});
+parsed = stringify(
+  parsed,
+  (k, v) => {
+    switch (typeof v) {
+      case "object":
+        for (let k of ["comment", "define"]) if (k in v) delete v[k];
+        if (k == "repository" || "repository" in v) return v;
+        break;
+      case "string":
+        if (["begin", "end", "match", "while"].includes(k.trim()))
+          try {
+            return optimize(v).pattern;
+          } catch (e) {
+            // console.error("Invalid pattern:", e, v);
+            return v;
+          }
+    }
+    return sortKeys(v);
+  },
+  4,
+);
 
-parsed = await prettier.format(parsed, {parser: "json", tabWidth: 4});
-
-// parsed = JSON.stringify(parsed, null, 2);
+// parsed = await prettier.format(parsed, {parser: "json", tabWidth: 4});
 
 fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", parsed);
 fs.writeFileSync(

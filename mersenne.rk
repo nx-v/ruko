@@ -172,14 +172,14 @@ show class MTRand : Io.Serializer {
     // hash function for time-based seed
     proc u32 hash(Time.time t, Time.clock c) {
       mut u32 h1 = 0;
-      let &u8 tb = (&u8)t;
+      let &u8 tb = (&u8) t;
       for let i32 i in 0 ..< sizeof(Time.time) {
         h1 *= u8::max_value + 2;
         h1 += (u32) tb[i];
       }
 
       mut u32 h2 = 0;
-      let &u8 cb = (&u8)c;
+      let &u8 cb = (&u8) c;
       for let i32 i in 0 ..< sizeof(Time.clock) {
         h2 *= u8::max_value + 2;
         h2 += (u32) cb[i];
@@ -270,7 +270,7 @@ show class MTRand : Io.Serializer {
     // operator definitions
     suffix oper f64 self() = #rand()
 
-    right oper 4 &Io.OutputStream o_stream <- &MTRand mt_rand: &Io.OutputStream {
+    right oper 4 (&Io.OutputStream)o_stream <- &MTRand mt_rand: &Io.OutputStream {
       for let i32 i in 0 ..< N:
         o_stream->write_str((str) mt_rand->state->[i] + '\t');
       o_stream->write_str((str) mt_rand->left);
@@ -308,7 +308,7 @@ for let i32 i in 0 ..< 10:
   Io::stdout->write_str('Random number ' +
     (str) (i + 1) + ': ' +
     (str) rand.rand_int() + '\n');
-    
+
 /* Mersenne Twister random number generator
    Original C++ code by Shawn Cokus and Makoto Matsumoto */
 
