@@ -546,7 +546,7 @@ repository:
   type-signature:
     applyEndPatternLast: true
     name: meta.type.ruko
-    begin: (?<=[)\]}\w'"`][!?]?>*\|?|^\|?)(:)(?=$|\s+<*(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w\s]|\#?[(\[{]))
+    begin: (?<=['"`)\]}\w][!?]?>*\|?|^\|?)(:)(?=$|\s+<*(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w\s]|\#?[(\[{]))
     end: $|
     captures:
       1: {name: punctuation.definition.annotation.ruko}
@@ -649,12 +649,12 @@ repository:
             (?:
                 ^
               | [,;(\[{]
-              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s*
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s*
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
             )
             \s*
           )
-          (?<! [\w'"`)\]}] >* \s* ) # not after generics
+          (?<! ['"`\w)\]}] >* \s* ) # not after generics
           (\#{)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
@@ -671,12 +671,12 @@ repository:
             (?:
                 ^
               | [,;(\[{]
-              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s*
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s*
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
             )
             \s*
           )
-          (?<! [\w'"`)\]}] >* \s* ) # not after generics
+          (?<! ['"`\w)\]}] >* \s* ) # not after generics
           ({)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
@@ -940,7 +940,7 @@ repository:
             |(\#) # private
             |(\.\.) # spread
           )
-          (?=[\w'"`]|\#?[(\[{<])
+          (?=(?:[*&%@^!~?\\+$#<-]|\.\.)*(?:['"`\w]|\#?[(\[{<]))
         captures: &prefix-type-operator-captures
           1: {name: keyword.operator.pointer.ruko}
           2: {name: keyword.operator.reference.ruko}
@@ -1029,7 +1029,7 @@ repository:
       - comment: postfix type operators
         match: |-
           (?x)
-          (?<=[\w'"`)\]}>])
+          (?<=['"`\w)\]}>][!?*&*]*)
           (?:
              (\!) # result type
             |(\?) # option type
@@ -2495,8 +2495,8 @@ repository:
           2: &type-operators
             name: keyword.operator.type.modifier.ruko
             patterns:
-              - include: "#type-parameter-operators"
               - include: "#type-operators"
+              - include: "#type-parameter-operators"
               - include: "#operators"
           3: &parameter-variable
             name: variable.parameter.ruko
@@ -5005,7 +5005,7 @@ repository:
     patterns:
       - include: "#type-cast-operators"
       - applyEndPatternLast: true
-        begin: (?<=(?:(?:[)\]}\w'"`]|\\.))[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]*)(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+        begin: (?<=(?:(?:['"`)\]}\w]|\\.))[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]*)(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
         end: $|
         beginCaptures:
           1: {name: punctuation.definition.annotation.ruko}
@@ -6313,7 +6313,7 @@ repository:
       (?x) (?<= # literal
         (?:
             ^ # start of line
-          | [\w'"`)\]}] # literals and closing brackets
+          | ['"`\w)\]}] # literals and closing brackets
           | \\. # escape sequences
           | (?:[?!]|[?!:]:|[?!-]>)?=?
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b):? # static members
@@ -6376,7 +6376,7 @@ repository:
               | (?:^ | [^|]) \| # open pipe
               | \#?[(\[{] # open bracket
               | [,;] # separator
-            )
+            ) \s*
           ) \s*
 
           (
@@ -6462,7 +6462,7 @@ repository:
           4: *type-operators
       - &binding-annotation
         applyEndPatternLast: true
-        begin: (?<=(?:(?:[)\]}\w'"`]|\\.)[!?]?>*))(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+        begin: (?<=(?:(?:['"`)\]}\w]|\\.)[!?]?>*))(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
         end: $|
         beginCaptures:
           1: {name: punctuation.definition.annotation.ruko}
@@ -6480,7 +6480,7 @@ repository:
               | (?:^ | [^|]) \| # open pipe
               | \#?[(\[{] # open bracket
               | [,;] # separator
-            )
+            ) \s*
           ) \s*
 
           (
@@ -6601,7 +6601,7 @@ repository:
           | (?:^ | [^|]) \| # open pipe
           | \#?[(\[{] # open bracket
           | [,;] # separator
-        )
+        ) \s*
       ) \s*
 
       (
@@ -8147,7 +8147,7 @@ repository:
           ^ # start of line
           | [,;] # terminator / separator
           | \#? [(\[{] # opening bracket
-        )
+        ) \s*
       ) \s*
 
       (
@@ -8851,7 +8851,7 @@ repository:
         )
       )
       (:)(?=\s+|$)
-    name: meta.modifier.declaration.ruko
+    name: meta.label.ruko
     captures:
       1: {name: entity.name.label.ruko}
       2: {name: punctuation.separator.section.ruko}
@@ -8901,12 +8901,12 @@ repository:
         )+
       )
       (:)(?=\s+|$)
-    name: meta.modifier.declaration.ruko
+    name: meta.modifier.section.ruko
     captures:
       1:
         name: storage.modifier.specifier.ruko
         patterns: [{include: "#modifiers"}]
-      2: {name: punctuation.separator.section.ruko}
+      2: {name: punctuation.section.expression.ruko}
 
   function-clause:
     patterns:
@@ -10170,7 +10170,7 @@ repository:
           (?<=
             (?:
                 [,;(\[{] # beside opening bracket or separator
-              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s* # beside key-value separator
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # beside key-value separator
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # beside other operators
             )
             \s*
@@ -10189,7 +10189,7 @@ repository:
           (?<=
             (?:
                 [,;(\[{] # beside opening bracket or separator
-              | (?:^|[,;()\[\]{}\w'"`]|\\.):\s* # beside key-value separator
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # beside key-value separator
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # beside other operators
             )
             \s*
