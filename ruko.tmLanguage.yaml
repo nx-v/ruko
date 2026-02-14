@@ -3,7 +3,7 @@ scopeName: source.spwn # will change to Ruko once the language is out
 fileTypes: [ruko, rk, spwn]
 patterns: [{include: "#core"}]
 
-# Last updated: February 11, 2026
+# Last updated: February 14, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -654,14 +654,14 @@ repository:
           (?x)
           (?<=
             (?:
-                ^
-              | [,;(\[{]
-              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s*
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
+                ^ # beginning of line
+              | [,;(\[{] # separator or opening bracket
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # label or key
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
             )
             \s*
           )
-          (?<! ['"`\w)\]}] >* \s* ) # not after generics
+          (?<! ['"`)\]}\w] [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* >* \s* ) # not after generics
           (\#{)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
@@ -676,14 +676,14 @@ repository:
           (?x)
           (?<=
             (?:
-                ^
-              | [,;(\[{]
-              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s*
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
+                ^ # beginning of line
+              | [,;(\[{] # separator or opening bracket
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # label or key
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
             )
             \s*
           )
-          (?<! ['"`\w)\]}] >* \s* ) # not after generics
+          (?<! ['"`)\]}\w] [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* >* \s* ) # not after generics
           ({)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
@@ -1036,7 +1036,7 @@ repository:
       - comment: postfix type operators
         match: |-
           (?x)
-          (?<=['"`\w)\]}>][!?*&*]*)
+          (?<=['"`)\]}\w>][!?*&*]*)
           (?:
              (\!) # result type
             |(\?) # option type
@@ -5626,6 +5626,7 @@ repository:
       1:
         patterns: &function-names
           - include: "#type-names"
+          - include: "#css-functions"
           - include: "#builtin-functions"
         name: entity.name.tag.directive.ruko
       2:
@@ -6334,7 +6335,7 @@ repository:
       (?x) (?<= # literal
         (?:
             ^ # start of line
-          | ['"`\w)\]}] # literals and closing brackets
+          | ['"`)\]}\w] # literals and closing brackets
           | \\. # escape sequences
           | (?:[?!]|[?!:]:|[?!-]>)?=?
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b):? # static members
@@ -9928,7 +9929,7 @@ repository:
       - include: "#as-keyword"
       - include: "#binding-parameters"
       - include: "#object-assignment"
-      - include: "#object-punning"
+      - include: "#object-binding"
       - include: "#object-labels"
       - include: "#type-signature"
       - include: "#typed-declarations"
@@ -10116,7 +10117,7 @@ repository:
           (?x)
           (?<=
             (?:
-                (?:^|[\s\p{P}\p{S}]):\|\s*\| # beside a lambda pipe
+                (?:^|[\p{P}\p{S}\s]):\|\s*\| # beside a lambda pipe
               | (?:^|[,;'"`)\]}\w\s])\| # beside a lambda pipe
               | ^\s*\| # beside a lambda pipe
               | (?:^|[,;'"`)\]}\w])
@@ -10138,7 +10139,7 @@ repository:
           (?x)
           (?<=
             (?:
-                (?:^|[\s\p{P}\p{S}]):\|\s*\| # beside a lambda pipe
+                (?:^|[\p{P}\p{S}\s]):\|\s*\| # beside a lambda pipe
               | (?:^|[,;'"`)\]}\w\s])\| # beside a lambda pipe
               | ^\s*\| # beside a lambda pipe
               | (?:^|[,;'"`)\]}\w])

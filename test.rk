@@ -97,8 +97,8 @@ func int[][] sortedPowerSet(int[] arr) {
 // infix functional style
 func int[][] sortedPowerSet = int[][]|int[] arr| 0 ..< 1 << arr::len
   \sort\ int[]|int a, int b| (-) ([a, b]
-  \map\ int[]|int k| (arr \reduce\ 0, int|int c,, int i| c + ((k >> i) & 1))
-    ) || arr \reduce\ 0, int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
+  \map\ int[]|int k| (arr \reduce\ 0, (int|int c,, int i| c + ((k >> i) & 1)))
+    ) || arr \reduce\ 0, (int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1))
   \map\ int[]|int e| (arr \filter\ int|, int i| (e >> i) & 1);
 
 // LINQ style
@@ -130,7 +130,7 @@ func int[][] sortedPowerSet(int[] arr) =
         subset = push subset arr[j];
     result = push result subset;
 
-  return sort result |int a, int b| =
+  return sort result (int[][]|int a, int b| =
     let int countA = reduce a 0 (int|int c,, int i| c + 1);
     let int countB = reduce b 0 (int|int d,, int i| d + 1);
     if countA != countB:
@@ -138,20 +138,20 @@ func int[][] sortedPowerSet(int[] arr) =
     for let int i in 0 ..< min a::len b::len:
       if a[i] != b[i]:
         a[i] - b[i];
-    a::len - b::len;
+    a::len - b::len);
 
 // Objective-C & Ruby style
 func int[][] sortedPowerSet(int[] arr) {
   mut int[][] result = [];
 
-  [0 ..< 1 << arr::len each: int|int i| {
+  [0 ..< 1 << arr::len each: |int i| {
     mut int[] subset = [];
-    [0 ..< arr::len each: int|int j|
+    [0 ..< arr::len each: |int j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset];
   }]
 
-  return [result =sort: int|int a, int b| {
+  return [result =sort: int[][]|int a, int b| {
     let int countA = [a reduce: 0, int|int c,, int i| c + 1];
     let int countB = [b reduce: 0, int|int d,, int i| d + 1];
     if countA != countB: return countA - countB;
@@ -174,7 +174,7 @@ func int[][] sortedPowerSet(int[] arr) {
     result = (push result subset);
   }
 
-  return (sort result (int|int a, int b| {
+  return (sort result (int[][]|int a, int b| {
     let int countA = (reduce a 0 (int|int c,, int i| (+ c 1)));
     let int countB = (reduce b 0 (int|int d,, int i| (+ d 1)));
     if (!= countA countB):
@@ -198,7 +198,7 @@ func int[][] sortedPowerSet(int[] arr) {
     </for>
     result.=push subset;
   </for>
-  <return (result.=sort(|int a, int b| <>
+  <return (result.=sort(int[][]|int a, int b| <>
     <let(type int) (countA)=(a.reduce 0 (int|int c,, int i| c + 1))/>
     <let(type int) (countB)=(b.reduce 0 (int|int d,, int i| d + 1))/>
     <if (countA != countB)>
@@ -218,7 +218,7 @@ for let i in sortedPowerSet [1 ... 16]:
   echo i;
 
 // LINQ-style queries
-func str formatPowerSet = |intint[][] a| =
+func str formatPowerSet = |int[][] a| =
   a.iter(`iter`: from let int[] subset in a
     where subset::len > 0
     select '[' ++ [subset map: str x `join`: ','] ++ ']'
@@ -249,13 +249,13 @@ shader MazeGenerator {
   proc randomCarveCellWalls(Vec2<i32> cellCoords) {
     let i32 cellIndex = getCellIndex cellCoords;
 
-    let size = i32 uniforms.mazeSize;
-    let numWalls = i32 uniforms.numWalls;
+    let i32 size = i32 uniforms.mazeSize;
+    let i32 numWalls = i32 uniforms.numWalls;
 
-    const tWallType = 0; // top
-    const rWallType = 1; // right
-    const bWallType = 0; // bottom
-    const lWallType = 1; // left
+    const i32 tWallType = 0; // top
+    const i32 rWallType = 1; // right
+    const i32 bWallType = 0; // bottom
+    const i32 lWallType = 1; // left
 
     // isOnEdge -> Vec2 isMostLeftEdge isMostBottomEdge
     mut Vec2<bool> isOnEdge = cellCoords == Vec2 0;
@@ -517,17 +517,17 @@ style `style` {
 </div>;
 
 // LaTeX example
-script latex {
-  \documentclass{article}
-  \usepackage{amsmath}
-  \begin{document}
-  Here is an inline equation: \(E = mc^2\).
-  And here is a displayed equation:
-  \[
-    \int_{a}^{b} f(x) \, dx = F(b) - F(a)
-  \]
-  \end{document}
-}
+%latex
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+Here is an inline equation: \(E = mc^2\).
+And here is a displayed equation:
+\[
+  \int_{a}^{b} f(x) \, dx = F(b) - F(a)
+\]
+\end{document}
+latex%
 
 // SQL query example
 from users
@@ -540,14 +540,14 @@ limit 50
 select users.id, users.name, count posts.id as post_count;
 
 %sql
-  select users.id, users.name, count(posts.id) as post_count
-  from users
-  left join posts on users.id = posts.user_id
-  where users.active = 1
-  group by users.id, users.name
-  having post_count > 10
-  order by post_count desc
-  limit 50;
+select users.id, users.name, count(posts.id) as post_count
+from users
+left join posts on users.id = posts.user_id
+where users.active = 1
+group by users.id, users.name
+having post_count > 10
+order by post_count desc
+limit 50;
 sql%
 
 // Rust codegen example
@@ -588,93 +588,93 @@ rs%
 
 // PHP & Laravel broadcasting example
 %php
-  use x\y;
+use x\y;
 
-  class PostCreated implements ShouldBroadcast {
-    use Dispatchable, SerializesModels;
-    public $post;
-    public function __construct(Post $post) {
-      $this->post = $post;
-    }
+class PostCreated implements ShouldBroadcast {
+  use Dispatchable, SerializesModels;
+  public $post;
+  public function __construct(Post $post) {
+    $this->post = $post;
   }
+}
 
-  class PostController extends Controller {
-    public function store(Request $request) {
-      $post = Post::create($request->all());
-      broadcast(new PostCreated($post))->toOthers();
-      return response()->json($post, 201);
-    }
+class PostController extends Controller {
+  public function store(Request $request) {
+    $post = Post::create($request->all());
+    broadcast(new PostCreated($post))->toOthers();
+    return response()->json($post, 201);
   }
+}
 
-  class Post extends Model {
-    protected $fillable = ['title', 'content'];
+class Post extends Model {
+  protected $fillable = ['title', 'content'];
+}
+
+class BroadcastServiceProvider extends ServiceProvider {
+  public function boot() {
+    Broadcast::routes();
+    require base_path('routes/channels.php');
   }
+}
 
-  class BroadcastServiceProvider extends ServiceProvider {
-    public function boot() {
-      Broadcast::routes();
-      require base_path('routes/channels.php');
-    }
+class UserChannel {
+  public function join(User $user) {
+    return Auth::check();
   }
+}
 
-  class UserChannel {
-    public function join(User $user) {
-      return Auth::check();
-    }
+class PostChannel {
+  public function join(User $user) {
+    return Auth::check();
   }
+}
 
-  class PostChannel {
-    public function join(User $user) {
-      return Auth::check();
-    }
-  }
-
-  channel('user.{id}', UserChannel::class);
-  channel('post.{id}', PostChannel::class);
+channel('user.{id}', UserChannel::class);
+channel('post.{id}', PostChannel::class);
 php%
 
 // JavaScript codegen example
 %js
-  import React, { useEffect, useState } from 'react';
-  import { io } from "socket.io-client";
+import React, { useEffect, useState } from 'react';
+import { io } from "socket.io-client";
 
-  interface Post {
-    id: number;
-    title: string;
-    content: string;
-  }
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+}
 
-  const socket = io("http://localhost:6001");
+const socket = io("http://localhost:6001");
 
-  const App: React.FC = () => {
-    const [posts, setPosts] = useState<Post[]>([]);
+const App: React.FC = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
 
-    useEffect(() => {
-      socket.on("PostCreated", (data: Post) => {
-        setPosts((prevPosts) => [...prevPosts, data]);
-      });
+  useEffect(() => {
+    socket.on("PostCreated", (data: Post) => {
+      setPosts((prevPosts) => [...prevPosts, data]);
+    });
 
-      return () => {
-        socket.off("PostCreated");
-      };
-    }, []);
+    return () => {
+      socket.off("PostCreated");
+    };
+  }, []);
 
-    return (
-      <div>
-        <h1>Posts</h1>
-        <ul>
-          {posts.map((post) => (
-            <li key={post.id}>
-              <h2>{post.title}</h2>
-              <p>{post.content}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
+  return (
+    <div>
+      <h1>Posts</h1>
+      <ul>
+        {posts.map((post) => (
+          <li key={post.id}>
+            <h2>{post.title}</h2>
+            <p>{post.content}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
-  export default App;
+export default App;
 js%
 
 // string literals with interpolation and raw strings.
