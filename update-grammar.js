@@ -202,8 +202,8 @@ parsed = stringify(
                 return result;
               });
             return optimize(value).pattern;
-          } catch (err){
-            console.error(err, value)
+          } catch (err) {
+            // console.error(err, value)
             return value;
           }
     }

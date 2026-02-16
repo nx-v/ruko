@@ -2419,7 +2419,7 @@ repository:
             end: \s*(\))
             name: meta.expression.tag.ruko
             captures:
-              1: {name: punctuation.definition.splice.round.ruko}
+              1: {name: punctuation.definition.group.ruko}
             patterns: [{include: $self}]
           - include: "#tag-attributes"
           - include: "#tag-termination"
@@ -2448,7 +2448,7 @@ repository:
             end: \s*(\])
             name: meta.expression.tag.ruko
             captures:
-              1: {name: punctuation.definition.splice.round.ruko}
+              1: {name: punctuation.definition.selector.ruko}
             patterns: [{include: $self}]
           - include: "#tag-attributes"
           - include: "#tag-termination"
@@ -2477,7 +2477,7 @@ repository:
             end: \s*(\})
             name: meta.expression.tag.ruko
             captures:
-              1: {name: punctuation.definition.splice.curly.ruko}
+              1: {name: punctuation.definition.block.ruko}
             patterns: [{include: $self}]
           - include: "#tag-attributes"
           - include: "#tag-termination"
@@ -2683,14 +2683,14 @@ repository:
       - comment: block-style markdown
         begin: \s*(\\\*)(?=\s|$)
         end: \s*(\*\\)
-        name: meta.embedded.markdown
+        name: string.markdown
         captures:
           1: {name: punctuation.section.markdown.ruko}
         patterns: [{include: "#markdown-content"}]
       - comment: line-break markdown
         begin: \s*(\\\\)(?=\s|$)
         while: ^\s*(\\\\)(?=\s|$)
-        name: meta.embedded.markdown
+        name: string.markdown
         captures:
           1: {name: punctuation.definition.markdown.ruko}
         patterns: [{include: "#markdown-content"}]
@@ -3189,15 +3189,15 @@ repository:
         name: meta.tag.span.markdown
         patterns:
           - comment: tag attributes inside span !!...!!
-            begin: (\()
-            end: (\))
+            begin: \s*(\()\s*
+            end: \s*(\))
             name: meta.brace.round.markdown
             captures:
-              1: {name: punctuation.definition.group.ruko}
+              1: {name: punctuation.definition.tag.ruko}
             patterns: [{include: "#tag-attributes"}]
           - comment: attribute selector inside span !!...!!
-            begin: (\[)
-            end: (\])
+            begin: \s*(\[)\s*
+            end: \s*(\])
             name: meta.brace.square.markdown
             captures:
               1: {name: punctuation.definition.selector.ruko}
@@ -3205,8 +3205,8 @@ repository:
               - include: "#selectors"
               - include: $self
           - comment: style block inside span !!...!!
-            begin: ({)
-            end: (})
+            begin: \s*({)\s*
+            end: \s*(})
             name: meta.brace.curly.markdown
             captures:
               1: {name: punctuation.definition.block.ruko}
@@ -3215,9 +3215,19 @@ repository:
               - include: "#style-list"
               - include: $self
           - comment: tag name inside span !!...!!
-            match: (?<=!\()(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b)
-            name: entity.name.tag.ruko
-            patterns: [{include: "#html-tag-names"}]
+            match: |-
+              (?x)
+              (?<=!\()(
+                (?:
+                  (?>`(?>``|[^`])+`|\b[\w\p{Pd}]+\b) # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                )*
+                (?>`(?>``|[^`])+`|\b[\w\p{Pd}]+\b) # last identifier
+              )
+            captures:
+              1:
+                name: entity.name.tag.markdown
+                patterns: [{include: "#html-tag-names"}]
           - include: "#style-selectors"
       - include: "#markdown-content"
 
@@ -4166,7 +4176,7 @@ repository:
           - match: '[\w&&[^\d\p{No}]][\p{Pd}\w]*'
             patterns: [{include: "#html-tag-names"}]
           - include: "#brackets"
-      - match: \s*(::?|[.#~&*%$|^@?])(?=[\w$'"`])
+      - match: \s*(::?|[.#~&*%$|^@?])(?=[\w'"`])
         name: punctuation.definition.entity.ruko
       - begin: \s*(?<=~)\b
         <<: *selectors
