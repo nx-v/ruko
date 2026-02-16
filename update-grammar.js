@@ -183,38 +183,63 @@ let parsed1 = sortKeys(parsed);
 delete parsed.repository.define;
 
 // remove "comment" and "define" keys from all sub-objects in repository
-parsed = stringify(
-  parsed,
-  (k, value) => {
-    switch (typeof value) {
-      case "object":
-        for (let key of ["comment", "define"]) if (key in value) delete value[key];
-        if (k == "repository" || "repository" in value) return value;
-        break;
+parsed = stringify(parsed, (k, value) => {
+  switch (typeof value) {
+    case "object":
+      for (let key of ["comment", "define"]) if (key in value) delete value[key];
+      if (k == "repository" || "repository" in value) return value;
+      break;
 
-      case "string":
-        if (["begin", "end", "match", "while"].includes(k.trim()))
-          try {
-            if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
-              value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
-                let code = p2.replace(/(?<!\\)#this\./, "parsed1.");
-                return eval(code);
-              });
-            return optimize(value).pattern;
-          } catch (err) {
-            // console.error(err, value)
-            return value;
-          }
-    }
-    return sortKeys(value);
-  },
-  4,
-);
+    case "string":
+      if (["begin", "end", "match", "while"].includes(k.trim()))
+        try {
+          if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
+            value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
+              let code = p2.replace(/(?<!\\)#this\./, "parsed1.");
+              return eval(code);
+            });
+          return optimize(value).pattern;
+        } catch (err) {
+          // console.error(err, value)
+          return value;
+        }
+  }
+  return sortKeys(value);
+});
 
 // parsed = await prettier.format(parsed, {parser: "json", tabWidth: 4});
 
+// recursively mirror directory from source to destination.
+// may remove files in destination that are not in source.
+// if destination does not exist, it will be created.
+// source and destination should be absolute paths.
+const mirrorDir = (source, destination) => {
+  if (!fs.existsSync(destination)) fs.mkdirSync(destination, {recursive: true});
+
+  let sourceEntries = new Set(fs.readdirSync(source));
+  let destEntries = new Set(fs.readdirSync(destination));
+  for (let entry of sourceEntries) {
+    let sourcePath = `${source}/${entry}`;
+    let destPath = `${destination}/${entry}`;
+    if (fs.lstatSync(sourcePath).isDirectory()) fs.cpSync(sourcePath, destPath, {recursive: true});
+    else fs.copyFileSync(sourcePath, destPath);
+  }
+
+  for (let entry of destEntries) {
+    if (!sourceEntries.has(entry)) {
+      let destPath = `${destination}/${entry}`;
+      if (fs.lstatSync(destPath).isDirectory()) fs.rmSync(destPath, {recursive: true, force: true});
+      else fs.rmdirSync(destPath);
+    }
+  }
+};
+
 fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", parsed);
 fs.writeFileSync(
-  "C:/Users/Admin/.vscode/extensions/spu7nix.spwn-language-support-0.0.5/syntaxes/spwn.tmLanguage.json",
+  "C:/Users/Admin/Videos/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json",
   parsed,
+);
+mirrorDir(
+  "C:/Users/Admin/Videos/nexovolta.ruko-language-support-0.0.1",
+  "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
 );
