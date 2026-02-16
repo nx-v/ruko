@@ -23,7 +23,7 @@ proc main {
 
   [FS writeFile: :utf-8, new? Log{
     path: 'C://users/NexoV/memories/2025',
-    message: 'before there was code, there was\n' *
+    message: 'before there was code, there was\n' +
       Figlet.toAscii(str prophecy),
     title: 'nu-Eden: Sundered Skies',
   }];
@@ -87,8 +87,8 @@ func int[][] sortedPowerSet(int[] arr) {
   }
 
   return result.=sort(int[][]|int a, int b| {
-    let int countA = a.reduce 0 (int|int c,, int i| c + 1);
-    let int countB = b.reduce 0 (int|int d,, int i| d + 1);
+    let int countA = a.reduce 0, int|int c,, int i| c + 1;
+    let int countB = b.reduce 0, int|int d,, int i| d + 1;
     if countA != countB:
       countA - countB;
     for let int i in 0 ..< min a::len b::len:
@@ -101,8 +101,8 @@ func int[][] sortedPowerSet(int[] arr) {
 // infix functional style
 func sortedPowerSet = int[][]|int[] arr| 0 ..< 1 << arr::len
   \sort\ int[]|int a, int b| (-) ([a, b]
-  \map\ int[]|int k| (arr \reduce\ 0, (int|int c,, int i| c + ((k >> i) & 1)))
-    ) || arr \reduce\ 0, (int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1))
+  \map\ int[]|int k| (arr \reduce\ 0, int|int c,, int i| c + ((k >> i) & 1))
+    ) || arr \reduce\ 0, int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
   \map\ int[]|int e| (arr \filter\ int|, int i| (e >> i) & 1);
 
 // LINQ style
@@ -135,8 +135,8 @@ func int[][] sortedPowerSet(int[] arr) =
     result = push result subset;
 
   return sort result (int[][]|int a, int b| =
-    let int countA = reduce a 0 (int|int c,, int i| c + 1);
-    let int countB = reduce b 0 (int|int d,, int i| d + 1);
+    let int countA = reduce a 0, int|int c,, int i| c + 1;
+    let int countB = reduce b 0, int|int d,, int i| d + 1;
     if countA != countB:
       countA - countB;
     for let int i in 0 ..< min a::len b::len:
@@ -203,8 +203,8 @@ func int[][] sortedPowerSet(int[] arr) {
     result.=push subset;
   </for>
   <return (result.=sort(int[][]|int a, int b| <>
-    <let(type int) (countA)=(a.reduce 0 (int|int c,, int i| c + 1))/>
-    <let(type int) (countB)=(b.reduce 0 (int|int d,, int i| d + 1))/>
+    <let(type int) (countA)=(a.reduce 0, int|int c,, int i| c + 1)/>
+    <let(type int) (countB)=(b.reduce 0, int|int d,, int i| d + 1)/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -235,8 +235,8 @@ shader MazeGenerator {
   struct Uniforms {prop u32 mazeSize, u32 numWalls};
   struct WallsArray {prop u32[] values};
   mut<group 0, id 0> Uniforms uniforms;
-  out mut<group 0, id 1> u32[] walls;
-  out mut<group 0, id 2> WallsArray wallsArray;
+  mut<group 0, id 1> u32[] walls;
+  mut<group 0, id 2> WallsArray wallsArray;
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
     let i32 size = i32 uniforms.mazeSize;
@@ -359,7 +359,7 @@ x(
   null,
   null,
 )(
-  stat u32,
+  unsafe {malloc(type stat u32)},
   unsafe {malloc(type str)},
   null,
   null,
@@ -414,46 +414,77 @@ scope `for` for let `in` in [`mut` alloc: init: release:]:
 module CounterMessage(use React) {
   let compo make = |{count, ?username}|{
     let times = switch count {
-      case 1: "once"
-      case 2: "twice"
-      case n: Int.toString(n) ++ " times"
+      case 1: "once";
+      case 2: "twice";
+      case n: Int.toString(n) ++ " times";
     }
 
     let name = switch username {
-      case Some(""): "Anonymous"
-      case Some(name): name
-      case None: "Anonymous"
+      case Some(""): "Anonymous";
+      case Some(name): name;
+      case None: "Anonymous";
     }
 
-    <div>#"Hello #name, you clicked me #times"</div>
-  }
+    <div>#"Hello #name, you clicked me #times"</div>;
+  };
 }
 
 module App(use React, CounterMessage) {
   let compo make = |()|{
-    let (int count, int setCount) = useState(|()|0)
-    let (username, setUsername) = useState(|()|"Anonymous")
+    let (int count, int setCount) = useState(|()|0);
+    let (username, setUsername) = useState(|()|"Anonymous");
 
     <div>
-      "Username: "
+      "Username: ";
       <input
         type="text"
         value=username
         onChange=(|event|{
-          event.preventDefault()
-          let eventTarget = event.target
-          let username = eventTarget."value"
-          setUsername(|prev|username)
+          event.preventDefault();
+          let eventTarget = event.target;
+          let username = eventTarget."value";
+          setUsername(|prev|username);
         })
-      />
+      />;
       <button onClick=(|evt|setCount(|prev|prev + 1))>
-        "Click me"
-      </button>
+        "Click me";
+      </button>;
       <button onClick=(|evt|setCount(|_|0))>
-        "Reset"
-      </button>
-      <CounterMessage count username/>
-    </div>
+        "Reset";
+      </button>;
+      <CounterMessage count username/>;
+    </div>;
+  };
+}
+
+// Tokio async client example with blocking wrapper
+use bytes::Bytes;
+use std::time::Duration;
+
+impl BlockingClient {
+  pub func crate::Result<Bytes?> `get`(&mut self, &str key) {
+    self.rt.block_on(self.inner.get(key));
+  }
+
+  pub func crate::Result<()> `set`(&mut self, &str key, Bytes value) {
+    self.rt.block_on(self.inner.set(key, value));
+  }
+
+  pub func crate::Result<()> set_expires(
+    &mut self,
+    &str key,
+    Bytes value,
+    Duration expiration,
+  ) {
+    self.rt.block_on(self.inner.set_expires(key, value, expiration));
+  }
+
+  pub func crate::Result<u64> publish(
+    &mut self,
+    &str channel,
+    Bytes message
+  ) {
+    self.rt.block_on(self.inner.publish(channel, message));
   }
 }
 
@@ -558,7 +589,7 @@ style `style` {
       {style X {x: 10px}}!(p inline styled paragraph)
       {inline code} !{color: :red}**bold red text**
       $\a + y = z ^ 2 - \sqrt{y + x + a}$ // inline math
-      !(tag.class span tag with custom attributes !(x nested?!))
+      !(tag .class span tag with custom attributes !(x nested?!))
     *\
 
       for let i in 0 ... 3:
@@ -762,12 +793,12 @@ let templateString = @"""
   This is a template string, that is, a function returning a string.
   Arguments are provided for let interpolation, with the syntax @varName
   or @{mut varName = expression}.
-  The value of x doubled is: @{x = x * 2}
+  The value of x doubled is: @{mut x = x * 2}
 """;
 
 // regex with inline comments and whitespace
-/ // HTML entity
-  (&)(?:
+print (/(&) // HTML entity start
+    (?:
       (\# 0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])) // decimal
     | (\#b0*(?:[01]|1[01]{1,19}|10000[01]{16})) // binary
     | (\#t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01])) // ternary
@@ -778,7 +809,8 @@ let templateString = @"""
     | (\#x0*(?:\h|[1-f]\h{1,4}|10\h{4})) // hexadecimal
     | (\b[\p{Pd}\w]+\b) // named
     | ([^;\s]++) // invalid
-  )(;)
+  )
+  (;) // HTML entity end
 /xi.test('&#x1F600;
   &#128512;
   &#b110000001010100000000000000000;
@@ -788,16 +820,44 @@ let templateString = @"""
   &#o1405000;
   &#z468a0;
   &#x1F600;
-  &#invalid;');
+  &#invalid;')
+);
 
-print "Regex matched valid numeral entities!";
+// Footgun "Hello, World!" example using Ruko as a base
+public static threadSafe comptime heapAllocated stackFrameSize256 executionDeterministic sideEffectFree memorySafe boundsChecked exceptionSafe overflowChecked divisionSafe concurrentSafe func Main(
+  Footgun::StandardLibrary::Collections::Generic::ImmutableList<Footgun::StandardLibrary::Text::Unicode::UTF8::String> @InputArguments
+): Footgun::StandardLibrary::Primitives::Void::Unit where
+  requires InputArguments is not Footgun::StandardLibrary::Null::NullType::NullValue
+  requires InputArguments.length <= 1024
+  ensures Footgun::StandardLibrary::MemorySafety::MemorySafeExecution
+  ensures Footgun::StandardLibrary::ExecutionDeterminism::DeterministicExecution
+  ensures Footgun::StandardLibrary::ExceptionSafety::ExceptionSafeExecution
+  ensures Footgun::StandardLibrary::OverflowSafety::OverflowSafeExecution
+  ensures Footgun::StandardLibrary::DivisionSafety::DivisionSafeExecution
+  ensures Footgun::StandardLibrary::ConcurrencySafety::ConcurrentSafeExecution
+  ensures Footgun::StandardLibrary::SideEffectSafety::SideEffectFreeExecution
+  ensures Footgun::StandardLibrary::BoundsSafety::BoundsCheckedExecution
+  ensures Footgun::StandardLibrary::HeapAllocation::HeapAllocatedExecution
+{
+  immutable stackAllocated let Footgun::StandardLibrary::Text::UTF8String *WelcomeMessage = "Hello, Footgun World!";
+  [Footgun::StandardLibrary::Console
+    WriteToStdout: Footgun::StandardLibrary::Text::UTF8StringEncodingOptions{
+      StringToWrite: WelcomeMessage,
+      EncodingOptions: Footgun::StandardLibrary::Text::UTF8::TextEncodingOptions::UTF8WithBOM,
+    }
+    UsingFlushPolicy: Footgun::StandardLibrary::ConsoleFlushPolicy::Immediate
+    WithThreadSafety: Footgun::StandardLibrary::ConsoleThreadSafetyPolicy::ThreadSafe
+    WithColorPolicy: Footgun::StandardLibrary::ConsoleColorPolicy::Default
+    WithOutputDestination: Footgun::StandardLibrary::ConsoleOutputDestination::StandardOutput
+  ];
+  return Footgun::StandardLibrary::Primitives::Void::Unit::DefaultValue;
+};
 
 // "coastline" @by eddyflux
 // @version 1.0
 // from the Strudel Synth Bank
 // Snippet from Strudel Language Examples
 
-// Haskell + Objective-C style
 samples 'github:eddyflux/crate';
 setcps 0.75;
 let chords = [chord '<Bbm9 Fm9>/4' dict: 'ireal'];
@@ -823,7 +883,6 @@ let chords = [chord '<Bbm9 Fm9>/4' dict: 'ireal'];
   run: 64
 ];
 
-// JavaScript-style
 samples('github:eddyflux/crate');
 setcps(0.75);
 let chords = chord('<Bbm9 Fm9>/4').dict('ireal');
@@ -844,4 +903,5 @@ stack(
     .fm(sine.range(3, 8).slow(8)).lpf(sine.range(500, 1000).slow(8)).lpq(5)
     .rarely().ply('2').chunk(4).fast(2).gain(perlin.range(0.6, 0.9))
     .mask('<0 1 1 0>/16')
-);
+).late('[0 0.01]*4').late('[0 0.01]*2').size(4).delay(0.125).size(2).mix(0.3)
+  .run(64);

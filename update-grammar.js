@@ -62,7 +62,7 @@ parsed.repository.numbers.patterns = (() => {
 
   let map = bases.map(({name, digits, prefix}) => {
     let result = parse(
-      stringify(base, (key, value) =>
+      stringify(base, (_, value) =>
         typeof value == "string" ?
           value
             .replace(/\$name/g, name)
@@ -198,8 +198,7 @@ parsed = stringify(
             if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
               value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
                 let code = p2.replace(/(?<!\\)#this\./, "parsed1.");
-                let result = eval(code);
-                return result;
+                return eval(code);
               });
             return optimize(value).pattern;
           } catch (err) {
