@@ -4,7 +4,7 @@ fileTypes: [ruko, rk, spwn]
 patterns: [{include: "#core"}]
 
 # Last updated: February 14, 2026
-# This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
+#this file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
 # https://github.com/nx-v/ruko
@@ -246,7 +246,7 @@ patterns: [{include: "#core"}]
 #   range operators '>..', '...', '..<' and '>.<', and the step operator '..'.
 # - Generics now capture properly before and after function and type names.
 #   For example, T.<x>, T?.<x>, T!.<x>, T::<x>, T?:<x>, T!:<x>.
-#   They can even be curried: x<T><U>(y), x<T><U><V>(y).
+#   They can even be curried: x<1><U>(y), x<1><U><V>(y).
 # - Generic type parameters now work for prefix operators as well. "i.e". T<&x>, etc.
 # - Fixed a bug where escape sequences for literals would accept integers bigger than
 #   decimal 1114111 which now are highlighted as an error.
@@ -348,6 +348,107 @@ repository:
         name: invalid.illegal.operator.ruko
       - match: \S
         name: invalid.illegal.uncaught.ruko
+
+  define:
+    repository:
+      ignore-keywords:
+        match: |-
+          (?x)
+          \b
+          (?: # ignore keywords
+            # wordlike operators
+            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+
+            # declaration keywords
+            |va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+
+            # control flow keywords
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
+            |try|retry|switch|[cm]atch|case|def|throw
+            |return|yield|await|goto|pass|defer|race|join
+            |raise|error|final|copy|move|drop|sink
+            |[gd]o|from|where|use|show|hide
+
+            # miscellaneous keywords
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
+            |begin|end
+          ) \b
+
+      prefix-type-definition:
+        match: |-
+          (?x)
+          (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
+
+          (?:
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+
+            (?:
+              < # generics
+                (?> 
+                    \g<t> # either recurse or match balanced generics
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                        (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
+                      )\s # infix type operators with spaces
+                  | [^'"`<>()\[\]{}]+ # other characters
+                )*
+              >
+            )? |
+
+            (?:
+              (?:
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+              )*
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            )?
+
+            \#? # optional sharp for splice invocation
+
+            (?:
+              \( # round brackets
+                (?>
+                    \g<t> # either recurse or match balanced brackets
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | [^'"`()\[\]{}]*
+                )*
+              \) |
+              \[ # square brackets
+                (?>
+                    \g<t> # either recurse or match balanced brackets
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | [^'"`()\[\]{}]*
+                )*
+              \] |
+              { # curly brackets
+                (?>
+                    \g<t> # either recurse or match balanced brackets
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | [^'"`()\[\]{}]*
+                )*
+              }
+            )+ # allow chaining
+          )+
+
+          (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
 
   # Directives
 
@@ -481,31 +582,8 @@ repository:
       (?x) \s*
 
       (?!
-        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # ignore keywords
-          # wordlike operators
-          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-          # declaration keywords
-          |va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|elif|else|[tw]hen|guard|with
-          |for|while|loop|break|skip|redo
-          |try|retry|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|race|join
-          |raise|error|final|copy|move|drop|sink
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
       )
 
       (?:
@@ -854,31 +932,8 @@ repository:
           (?x)
 
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
 
           # identifier
@@ -939,7 +994,7 @@ repository:
           (?x)
           \s*
           (?:
-             (\*) # pointer
+            (\*) # pointer
             |(\&) # reference
             |(\%) # format
             |(\@) # decorator
@@ -975,7 +1030,7 @@ repository:
           (?x)
           (?<=^|[\s(\[{])
             (?:
-               (\+)       # sum (left union)
+              (\+)        # sum (left union)
               |(\-)       # difference
               |(\*)       # pointer
               |(\|)       # union
@@ -1010,7 +1065,7 @@ repository:
           (?x)
           (?<=['"`)\]}\w])
             (?:
-               (\+)       # sum (left union)
+              (\+)        # sum (left union)
               |(\-)       # difference
               |(\*)       # pointer
               |(\|)       # union
@@ -1045,7 +1100,7 @@ repository:
           (?x)
           (?<=['"`)\]}\w>][!?*&*]*)
           (?:
-             (\!) # result type
+            (\!) # result type
             |(\?) # option type
             |(\*) # pointer type
             |(\&) # reference type
@@ -1062,7 +1117,7 @@ repository:
         match: |-
           (?x)
           (?:
-             (\*) # pointer
+            (\*) # pointer
             |(\&) # reference
             |(\%) # format
             |(\@) # decorator
@@ -1082,7 +1137,7 @@ repository:
         match: |-
           (?x)
           (?:
-             (\!) # result type
+            (\!) # result type
             |(\?) # option type
             |(\*) # pointer type
             |(\&) # reference type
@@ -1157,287 +1212,7 @@ repository:
     begin: (?=\d)
     end: $|
     name: meta.number.ruko
-    patterns:
-      - applyEndPatternLast: true
-        comment: arbitrary base numbers (\d+b prefix)
-        name: constant.numeric.arbitrary-base.ruko
-        begin: |-
-          (?ix)\b
-            ((?!0)\d+)(b) # base prefix
-            ([\p{alnum}](?:[\p{alnum}_]*[\p{alnum}])?) # digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: storage.type.numeric.base.ruko}
-          3: {name: constant.numeric.arbitrary-base.digits.ruko}
-        patterns:
-          - match: (\.)([\p{alnum}](?:[\p{alnum}_]*[\p{alnum}])?)
-            name: constant.numeric.arbitrary-base.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?p) # exponent delimiter
-              ([+-])? # sign
-              ([\p{alnum}](?:[\p{alnum}_]*[\p{alnum}])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.arbitrary-base.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([\p{alnum}](?:[\p{alnum}_]*[\p{alnum}])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.arbitrary-base.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: binary (0b prefix)
-        name: constant.numeric.binary.ruko
-        begin: |-
-          (?ix)\b(0b) # prefix
-            ([01](?:[01_]*[01])?) # binary digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.binary.digits.ruko}
-        patterns:
-          - match: (\.)([01](?:[01_]*[01])?)
-            name: constant.numeric.binary.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([01](?:[01_]*[01])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.binary.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([01](?:[01_]*[01])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.binary.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: ternary (0t prefix)
-        name: constant.numeric.ternary.ruko
-        begin: |-
-          (?ix)\b(0t) # prefix
-            ([0-2](?:[0-2_]*[0-2])?) # ternary digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.ternary.digits.ruko}
-        patterns:
-          - match: (\.)([0-2](?:[0-2_]*[0-2])?)
-            name: constant.numeric.ternary.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?p) # exponent delimiter
-              ([+-])? # sign
-              ([0-2](?:[0-2_]*[0-2])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.ternary.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([0-2](?:[0-2_]*[0-2])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.ternary.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: quaternary (0q prefix)
-        name: constant.numeric.quaternary.ruko
-        begin: |-
-          (?ix)\b(0q) # prefix
-            ([0-3](?:[0-3_]*[0-3])?) # quaternary digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.quaternary.digits.ruko}
-        patterns:
-          - match: (\.)([0-4](?:[0-4_]*[0-4])?)
-            name: constant.numeric.quaternary.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?p) # exponent delimiter
-              ([+-])? # sign
-              ([0-3](?:[0-3_]*[0-3])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.quaternary.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([0-3](?:[0-3_]*[0-3])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.quaternary.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: senary (0s prefix)
-        name: constant.numeric.senary.ruko
-        begin: |-
-          (?ix)\b(0s) # prefix
-            ([0-5](?:[0-5_]*[0-5])?) # senary digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.senary.digits.ruko}
-        patterns:
-          - match: (\.)([0-5](?:[0-5_]*[0-5])?)
-            name: constant.numeric.senary.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([0-5](?:[0-5_]*[0-5])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.senary.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([0-5](?:[0-5_]*[0-5])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.senary.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: octal (0o prefix)
-        name: constant.numeric.octal.ruko
-        begin: |-
-          (?ix)\b(0o) # prefix
-            ([0-7](?:[0-7_]*[0-7])?) # octal digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.octal.digits.ruko}
-        patterns:
-          - match: (\.)([0-7](?:[0-7_]*[0-7])?)
-            name: constant.numeric.octal.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?p) # exponent delimiter
-              ([+-])? # sign
-              ([0-7](?:[0-7_]*[0-7])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.octal.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([0-7](?:[0-7_]*[0-7])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.octal.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: duodecimal (0z prefix)
-        name: constant.numeric.duodecimal.ruko
-        begin: |-
-          (?ix)\b(0z) # prefix
-            ([\dab](?:[\dab_]*[\dab])?) # duodecimal digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.duodecimal.digits.ruko}
-        patterns:
-          - match: (\.)([\dab](?:[\dab_]*[\dab])?)
-            name: constant.numeric.duodecimal.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([\dab](?:[\dab_]*[\dab])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.duodecimal.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([\dab](?:[\dab_]*[\dab])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.duodecimal.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: hexadecimal (0x prefix)
-        name: constant.numeric.hexadecimal.ruko
-        begin: |-
-          (?ix)\b(0x) # prefix
-            (\h(?:[\h_]*[\h])?) # hexadecimal digits
-        end: $|
-        captures:
-          1: {name: storage.type.numeric.ruko}
-          2: {name: constant.numeric.hexadecimal.digits.ruko}
-        patterns:
-          - match: (\.)([\h](?:[\h_]*[\h])?)
-            name: constant.numeric.hexadecimal.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?p) # exponent delimiter
-              ([+-])? # sign
-              ([\h](?:[\h_]*[\h])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.hexadecimal.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([\h](?:[\h_]*[\h])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.hexadecimal.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: decimal (no prefix)
-        name: constant.numeric.decimal.ruko
-        begin: |-
-          (?ix)\b(?:) # no prefix
-            (\d(?:[\d_]*\d)?) # integer part
-        end: $|
-        captures:
-          1: {name: constant.numeric.decimal.integer.ruko}
-        patterns:
-          - match: (\.)([\d](?:[\d_]*[\d])?)
-            name: constant.numeric.decimal.fraction.ruko
-            captures:
-              1: {name: punctuation.separator.decimal.ruko}
-          - match: |-
-              (?ix)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([\d](?:[\d_]*[\d])?) # exponent
-            captures:
-              1: {name: keyword.operator.expression.exponent.ruko}
-              2: {name: keyword.operator.sign.exponent.ruko}
-              3: {name: constant.numeric.decimal.exponent.ruko}
-          - match: |-
-              (?ix)(/) # rational delimiter
-              ([\d](?:[\d_]*[\d])?) # denominator
-            captures:
-              1: {name: punctuation.separator.rational.ruko}
-              2: {name: constant.numeric.decimal.denominator.ruko}
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
+    patterns: [] # processed in update-grammar
 
   unit-suffix:
     match: (?<=['"`)\]}\w])(`?[\p{L}\p{Nl}\p{Pc}]\w*)\b
@@ -1495,700 +1270,7 @@ repository:
 
   # Strings
 
-  strings:
-    patterns:
-      - comment: multi single-quoted verbatim, interpolated, format, and template string
-        begin: \s*(\$+\#+%+@+|\$+\#+@+%+|\$+%+\#+@+|\$+%+@+\#+|\$+@+\#+%+|\$+@+%+\#+|\#+\$+%+@+|\#+\$+@+%+|\#+%+\$+@+|\#+%+@+\$+|\#+@+\$+%+|\#+@+%+\$+|%+\$+\#+@+|%+\$+@+\#+|%+\#+\$+@+|%+\#+@+\$+|%+@+\$+\#+|%+@+\#+\$+|@+\$+\#+%+|@+\$+%+\#+|@+\#+\$+%+|@+\#+%+\$+|@+%+\$+\#+|@+%+\#+\$+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#|%%|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted verbatim, interpolated, format, and template string
-        begin: \s*(\$+\#+%+@+|\$+\#+@+%+|\$+%+\#+@+|\$+%+@+\#+|\$+@+\#+%+|\$+@+%+\#+|\#+\$+%+@+|\#+\$+@+%+|\#+%+\$+@+|\#+%+@+\$+|\#+@+\$+%+|\#+@+%+\$+|%+\$+\#+@+|%+\$+@+\#+|%+\#+\$+@+|%+\#+@+\$+|%+@+\$+\#+|%+@+\#+\$+|@+\$+\#+%+|@+\$+%+\#+|@+\#+\$+%+|@+\#+%+\$+|@+%+\$+\#+|@+%+\#+\$+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#|%%|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: single-quoted verbatim, interpolated, format, and template string
-        begin: \s*(\$+\#+%+@+|\$+\#+@+%+|\$+%+\#+@+|\$+%+@+\#+|\$+@+\#+%+|\$+@+%+\#+|\#+\$+%+@+|\#+\$+@+%+|\#+%+\$+@+|\#+%+@+\$+|\#+@+\$+%+|\#+@+%+\$+|%+\$+\#+@+|%+\$+@+\#+|%+\#+\$+@+|%+\#+@+\$+|%+@+\$+\#+|%+@+\#+\$+|@+\$+\#+%+|@+\$+%+\#+|@+\#+\$+%+|@+\#+%+\$+|@+%+\$+\#+|@+%+\#+\$+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#|%%|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: double-quoted verbatim, interpolated, format, and template string
-        begin: \s*(\$+\#+%+@+|\$+\#+@+%+|\$+%+\#+@+|\$+%+@+\#+|\$+@+\#+%+|\$+@+%+\#+|\#+\$+%+@+|\#+\$+@+%+|\#+%+\$+@+|\#+%+@+\$+|\#+@+\$+%+|\#+@+%+\$+|%+\$+\#+@+|%+\$+@+\#+|%+\#+\$+@+|%+\#+@+\$+|%+@+\$+\#+|%+@+\#+\$+|@+\$+\#+%+|@+\$+%+\#+|@+\#+\$+%+|@+\#+%+\$+|@+%+\$+\#+|@+%+\#+\$+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#|%%|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted interpolated, format, and template string
-        begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted interpolated, format, and template string
-        begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: single-quoted interpolated, format, and template string
-        begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: double-quoted interpolated, format, and template string
-        begin: \s*(\#+%+@+|\#+@+%+|%+\#+@+|%+@+\#+|@+\#+%+|@+%+\#+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted verbatim, interpolated, and format string
-        begin: \s*(\$+\#+%+|\$+%+\#+|\#+\$+%+|\#+%+\$+|%+\$+\#+|%+\#+\$+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#|%%'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: multi double-quoted verbatim, interpolated, and format string
-        begin: \s*(\$+\#+%+|\$+%+\#+|\#+\$+%+|\#+%+\$+|%+\$+\#+|%+\#+\$+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#|%%'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: single-quoted verbatim, interpolated, and format string
-        begin: \s*(\$+\#+%+|\$+%+\#+|\#+\$+%+|\#+%+\$+|%+\$+\#+|%+\#+\$+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#|%%'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: double-quoted verbatim, interpolated, and format string
-        begin: \s*(\$+\#+%+|\$+%+\#+|\#+\$+%+|\#+%+\$+|%+\$+\#+|%+\#+\$+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#|%%'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: multi single-quoted verbatim, interpolated, and template string
-        begin: \s*(\$+\#+@+|\$+@+\#+|\#+\$+@+|\#+@+\$+|@+\$+\#+|@+\#+\$+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted verbatim, interpolated, and template string
-        begin: \s*(\$+\#+@+|\$+@+\#+|\#+\$+@+|\#+@+\$+|@+\$+\#+|@+\#+\$+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: single-quoted verbatim, interpolated, and template string
-        begin: \s*(\$+\#+@+|\$+@+\#+|\#+\$+@+|\#+@+\$+|@+\$+\#+|@+\#+\$+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: double-quoted verbatim, interpolated, and template string
-        begin: \s*(\$+\#+@+|\$+@+\#+|\#+\$+@+|\#+@+\$+|@+\$+\#+|@+\#+\$+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted verbatim, format, and template string
-        begin: \s*(\$+%+@+|\$+@+%+|%+\$+@+|%+@+\$+|@+\$+%+|@+%+\$+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: "''|%%|@@"
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted verbatim, format, and template string
-        begin: \s*(\$+%+@+|\$+@+%+|%+\$+@+|%+@+\$+|@+\$+%+|@+%+\$+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|%%|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: single-quoted verbatim, format, and template string
-        begin: \s*(\$+%+@+|\$+@+%+|%+\$+@+|%+@+\$+|@+\$+%+|@+%+\$+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: "''|%%|@@"
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: double-quoted verbatim, format, and template string
-        begin: \s*(\$+%+@+|\$+@+%+|%+\$+@+|%+@+\$+|@+\$+%+|@+%+\$+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|%%|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted interpolated and format string
-        begin: \s*(\#+%+|%+\#+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: multi double-quoted interpolated and format string
-        begin: \s*(\#+%+|%+\#+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: single-quoted interpolated and format string
-        begin: \s*(\#+%+|%+\#+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: double-quoted interpolated and format string
-        begin: \s*(\#+%+|%+\#+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-formatting"
-      - comment: multi single-quoted interpolated and template string
-        begin: \s*(\#+@+|@+\#+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted interpolated and template string
-        begin: \s*(\#+@+|@+\#+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: single-quoted interpolated and template string
-        begin: \s*(\#+@+|@+\#+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: double-quoted interpolated and template string
-        begin: \s*(\#+@+|@+\#+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted format and template string
-        begin: \s*(%+@+|@+%+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted format and template string
-        begin: \s*(%+@+|@+%+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: single-quoted format and template string
-        begin: \s*(%+@+|@+%+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: double-quoted format and template string
-        begin: \s*(%+@+|@+%+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted verbatim and interpolated string
-        begin: \s*(\$+\#+|\#+\$+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-      - comment: multi double-quoted verbatim and interpolated string
-        begin: \s*(\$+\#+|\#+\$+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-      - comment: single-quoted verbatim and interpolated string
-        begin: \s*(\$+\#+|\#+\$+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '''''|\#\#'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-      - comment: double-quoted verbatim and interpolated string
-        begin: \s*(\$+\#+|\#+\$+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|\#\#'
-            name: constant.character.escape.ruko
-          - include: "#embedded-expressions"
-      - comment: multi single-quoted verbatim and format string
-        begin: \s*(\$+%+|%+\$+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: "''|%%"
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-      - comment: multi double-quoted verbatim and format string
-        begin: \s*(\$+%+|%+\$+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|%%'
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-      - comment: single-quoted verbatim and format string
-        begin: \s*(\$+%+|%+\$+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: "''|%%"
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-      - comment: double-quoted verbatim and format string
-        begin: \s*(\$+%+|%+\$+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|%%'
-            name: constant.character.escape.ruko
-          - include: "#embedded-formatting"
-      - comment: multi single-quoted verbatim and template string
-        begin: \s*(\$+@+|@+\$+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: "''|@@"
-            name: constant.character.escape.ruko
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted verbatim and template string
-        begin: \s*(\$+@+|@+\$+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-arguments"
-      - comment: single-quoted verbatim and template string
-        begin: \s*(\$+@+|@+\$+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: "''|@@"
-            name: constant.character.escape.ruko
-          - include: "#embedded-arguments"
-      - comment: double-quoted verbatim and template string
-        begin: \s*(\$+@+|@+\$+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - match: '""|@@'
-            name: constant.character.escape.ruko
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted interpolated string
-        begin: \s*(\#+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-      - comment: multi double-quoted interpolated string
-        begin: \s*(\#+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-      - comment: single-quoted interpolated string
-        begin: \s*(\#+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-      - comment: double-quoted interpolated string
-        begin: \s*(\#+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-expressions"
-      - comment: multi single-quoted format string
-        begin: \s*(%+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-      - comment: multi double-quoted format string
-        begin: \s*(%+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-      - comment: single-quoted format string
-        begin: \s*(%+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-      - comment: double-quoted format string
-        begin: \s*(%+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-formatting"
-      - comment: multi single-quoted template string
-        begin: \s*(@+)('''+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-arguments"
-      - comment: multi double-quoted template string
-        begin: \s*(@+)("""+)\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-arguments"
-      - comment: single-quoted template string
-        begin: \s*(@+)(')\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-arguments"
-      - comment: double-quoted template string
-        begin: \s*(@+)(")\s*
-        contentName: string.template.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns:
-          - include: "#string-escapes"
-          - include: "#embedded-arguments"
-      - comment: multi single-quoted verbatim string
-        begin: \s*(\$+)('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{match: "''", name: constant.character.escape.ruko}]
-      - comment: multi double-quoted verbatim string
-        begin: \s*(\$+)("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{match: '""', name: constant.character.escape.ruko}]
-      - comment: single-quoted verbatim string
-        begin: \s*(\$+)(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{match: "''", name: constant.character.escape.ruko}]
-      - comment: double-quoted verbatim string
-        begin: \s*(\$+)(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{match: '""', name: constant.character.escape.ruko}]
-      - comment: multi single-quoted plain string
-        begin: \s*()('''+)\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{include: "#string-escapes"}]
-      - comment: multi double-quoted plain string
-        begin: \s*()("""+)\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{include: "#string-escapes"}]
-      - comment: single-quoted plain string
-        begin: \s*()(')\s*
-        contentName: string.quoted.single.ruko
-        end: \s*((\2)(?!'+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{include: "#string-escapes"}]
-      - comment: double-quoted plain string
-        begin: \s*()(")\s*
-        contentName: string.quoted.double.ruko
-        end: \s*((\2)(?!"+))
-        captures:
-          1: {name: storage.type.string.ruko}
-          2: {name: punctuation.definition.string.ruko}
-        patterns: [{include: "#string-escapes"}]
+  strings: {} # processed in update-grammar
 
   string-escapes:
     patterns:
@@ -2391,31 +1473,8 @@ repository:
           (?x)
           (\#) # beginning of identifier
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           (?=[`\p{L}\p{Nl}\p{Pc}]) # next to a word
         end: $|
@@ -2474,31 +1533,8 @@ repository:
             ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -3534,31 +2570,8 @@ repository:
         begin: |-
           (?x)
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
 
           (?=[`\p{L}\p{Nl}\p{Pc}]) # next to a word
@@ -5024,6 +4037,8 @@ repository:
           - include: "source.regexp.python"
           - include: "source.python#comments"
 
+  # Operators
+
   operator-declarations:
     comment: "Operator declarations. Format: <prec> <associativity> <fixity> <operator> : <return type>. Return types must be postfix since there may not be brackets in operator declarations."
     patterns:
@@ -5040,58 +4055,12 @@ repository:
 
           (
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -5101,31 +4070,8 @@ repository:
           ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -5727,32 +4673,7 @@ repository:
               | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
               | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-                \b
-                  (?: # ignore keywords
-                    # wordlike operators
-                    [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                    # declaration keywords
-                    |va[rl]|let|mut|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                    |module|schema|struct|record|object|union|macro|space
-                    |query|quote|style|script|shader|compo|temp|oper|realm
-
-                    # control flow keywords
-                    |if|elif|else|[tw]hen|guard|with
-                    |for|while|loop|break|skip|redo
-                    |try|retry|switch|[cm]atch|case|def|throw
-                    |return|yield|await|goto|pass|defer|race|join
-                    |raise|error|final|copy|move|drop|sink
-                    |[gd]o|from|where|use|show|hide
-
-                    # miscellaneous keywords
-                    |debug|assert|check|decl|ignore
-                    |use|echo|eval|exec|scope|safe|unsafe
-                    |begin|end
-                  )
-                \b
+                #this.repository.define.repository['ignore-keywords'].match
               ) \s*
             )
             [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
@@ -5765,31 +4686,8 @@ repository:
 
           (
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
             (?:
@@ -5817,31 +4715,8 @@ repository:
           \b
           (
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?:
               (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -5884,32 +4759,7 @@ repository:
           | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            \b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              )
-            \b
+            #this.repository.define.repository['ignore-keywords'].match
           ) \s*
         )
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
@@ -5922,31 +4772,8 @@ repository:
 
       (
         (?!
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # ignore keywords
-            # wordlike operators
-            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|elif|else|[tw]hen|guard|with
-            |for|while|loop|break|skip|redo
-            |try|retry|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|race|join
-            |raise|error|final|copy|move|drop|sink
-            |[gd]o|from|where|use|show|hide
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
         )
         (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
         (?:
@@ -5991,31 +4818,8 @@ repository:
           | \| ( # start of lambda literal
               (?:[,;] \s*)* # optional separators
               (?:
-                (?: # type
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                      |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                      |[^'"`<>()\[\]{}]+)*>)? | # generics
-                    (?:
-                      (?:
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                      )*
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    )?
-                    \#?(?:
-                      \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                      \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                      {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                    )+ # allow chaining
-                  )+
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                (?:
+                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
                 )
                 \s*
               )+
@@ -6023,31 +4827,8 @@ repository:
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                (?: # ignore keywords
-                  # wordlike operators
-                  [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                )
-                \b
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
               )
               (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
               (?:
@@ -6146,32 +4927,7 @@ repository:
           | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            \b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              )
-            \b
+            #this.repository.define.repository['ignore-keywords'].match
           ) \s*
         )
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
@@ -6184,31 +4940,8 @@ repository:
 
       (
         (?!
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # ignore keywords
-            # wordlike operators
-            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|elif|else|[tw]hen|guard|with
-            |for|while|loop|break|skip|redo
-            |try|retry|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|race|join
-            |raise|error|final|copy|move|drop|sink
-            |[gd]o|from|where|use|show|hide
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
         )
         (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
         (?:
@@ -6234,31 +4967,8 @@ repository:
           \s*
           (?:\s(?:[?!]?\.?|[?!:]:|[?!-]>)=?)? # accessor
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
@@ -6283,31 +4993,8 @@ repository:
           | \| ( # start of lambda literal
               (?:[,;] \s*)* # optional separators
               (?:
-                (?: # type
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                      |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                      |[^'"`<>()\[\]{}]+)*>)? | # generics
-                    (?:
-                      (?:
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                      )*
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    )?
-                    \#?(?:
-                      \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                      \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                      {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                    )+ # allow chaining
-                  )+
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                (?:
+                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
                 )
                 \s*
               )+
@@ -6315,31 +5002,8 @@ repository:
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                (?: # ignore keywords
-                  # wordlike operators
-                  [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                )
-                \b
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
               )
               (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
               (?:
@@ -6428,31 +5092,8 @@ repository:
 
           (
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?: 
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -6462,31 +5103,8 @@ repository:
           ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -6536,31 +5154,8 @@ repository:
 
           (
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|\s(?:
-                    [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?: 
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -6570,31 +5165,8 @@ repository:
           ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -6632,31 +5204,8 @@ repository:
 
       (
         (?:
-          (?: # type
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-            (?:
-              (?:
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-              )*
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                |[^'"`<>()\[\]{}]+)*>)? | # generics
-              (?:
-                (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )?
-              \#?(?:
-                \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-              )+ # allow chaining
-            )+
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+          (?: 
+            #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
           )
           \s*
         )+
@@ -6666,31 +5215,8 @@ repository:
       ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
       (?!
-        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # ignore keywords
-          # wordlike operators
-          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-          # declaration keywords
-          |va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|elif|else|[tw]hen|guard|with
-          |for|while|loop|break|skip|redo
-          |try|retry|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|race|join
-          |raise|error|final|copy|move|drop|sink
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
       )
       ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -6817,32 +5343,7 @@ repository:
           | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            \b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              )
-            \b
+            #this.repository.define.repository['ignore-keywords'].match
           ) \s*
         )
         [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
@@ -6855,10 +5356,36 @@ repository:
 
       (
         (?:
-          \#?(?:
-            \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-            \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-            {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
+          \#? # optional sharp for splice invocation
+
+          (?:
+            \( # round brackets
+              (?>
+                  \g<t> # either recurse or match balanced brackets
+                | '(?>\\.|[^\\'])*' # char literals
+                | "(?>\\.|[^\\"])*" # string literals
+                | `(?>``|[^`])+` # identifier with backticks
+                | [^'"`()\[\]{}]*
+              )*
+            \) |
+            \[ # square brackets
+              (?>
+                  \g<t> # either recurse or match balanced brackets
+                | '(?>\\.|[^\\'])*' # char literals
+                | "(?>\\.|[^\\"])*" # string literals
+                | `(?>``|[^`])+` # identifier with backticks
+                | [^'"`()\[\]{}]*
+              )*
+            \] |
+            { # curly brackets
+              (?>
+                  \g<t> # either recurse or match balanced brackets
+                | '(?>\\.|[^\\'])*' # char literals
+                | "(?>\\.|[^\\"])*" # string literals
+                | `(?>``|[^`])+` # identifier with backticks
+                | [^'"`()\[\]{}]*
+              )*
+            }
           )+ # allow chaining
         )+
       )
@@ -6885,31 +5412,8 @@ repository:
       (?=
         (?: # identifier
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            )
-            \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           (?:
@@ -6932,31 +5436,8 @@ repository:
           | \| ( # start of lambda literal
               (?:[,;] \s*)* # optional separators
               (?:
-                (?: # type
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                      |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                      |[^'"`<>()\[\]{}]+)*>)? | # generics
-                    (?:
-                      (?:
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                      )*
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    )?
-                    \#?(?:
-                      \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                      \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                      {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                    )+ # allow chaining
-                  )+
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                (?:
+                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
                 )
                 \s*
               )+
@@ -6964,31 +5445,8 @@ repository:
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                (?: # ignore keywords
-                  # wordlike operators
-                  [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                )
-                \b
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
               )
               (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
               (?:
@@ -7023,31 +5481,8 @@ repository:
           (?<=\\?)
           ( # function name
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           )
@@ -7353,31 +5788,8 @@ repository:
 
       (
         (?!
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # ignore keywords
-            # wordlike operators
-            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|elif|else|[tw]hen|guard|with
-            |for|while|loop|break|skip|redo
-            |try|retry|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|race|join
-            |raise|error|final|copy|move|drop|sink
-            |[gd]o|from|where|use|show|hide
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
         )
         (?:
           (?:
@@ -7420,31 +5832,8 @@ repository:
       \s*
       (
         (?!
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # ignore keywords
-            # wordlike operators
-            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|elif|else|[tw]hen|guard|with
-            |for|while|loop|break|skip|redo
-            |try|retry|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|race|join
-            |raise|error|final|copy|move|drop|sink
-            |[gd]o|from|where|use|show|hide
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
         )
         (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
       )
@@ -7481,31 +5870,8 @@ repository:
           | \| ( # start of lambda literal
               (?:[,;] \s*)* # optional separators
               (?:
-                (?: # type
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                      |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                      |[^'"`<>()\[\]{}]+)*>)? | # generics
-                    (?:
-                      (?:
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                      )*
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                    )?
-                    \#?(?:
-                      \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                      \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                      {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                    )+ # allow chaining
-                  )+
-                  (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                (?:
+                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
                 )
                 \s*
               )+
@@ -7513,31 +5879,8 @@ repository:
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                (?: # ignore keywords
-                  # wordlike operators
-                  [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                )
-                \b
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
               )
               (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
               (?:
@@ -7916,7 +6259,7 @@ repository:
     begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
     beginCaptures:
       1: {name: keyword.control.validate.ruko}
-    end: (?=[,;)\]}]) # this is the only clause that doesn't end at the end of the line
+    end: (?=[,;)\]}]) #this is the only clause that doesn't end at the end of the line
     patterns:
       - match: &parenless-call |-
           (?x)
@@ -7945,32 +6288,7 @@ repository:
               | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
               | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-                \b
-                  (?: # ignore keywords
-                    # wordlike operators
-                    [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                    # declaration keywords
-                    |va[rl]|let|mut|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                    |module|schema|struct|record|object|union|macro|space
-                    |query|quote|style|script|shader|compo|temp|oper|realm
-
-                    # control flow keywords
-                    |if|elif|else|[tw]hen|guard|with
-                    |for|while|loop|break|skip|redo
-                    |try|retry|switch|[cm]atch|case|def|throw
-                    |return|yield|await|goto|pass|defer|race|join
-                    |raise|error|final|copy|move|drop|sink
-                    |[gd]o|from|where|use|show|hide
-
-                    # miscellaneous keywords
-                    |debug|assert|check|decl|ignore
-                    |use|echo|eval|exec|scope|safe|unsafe
-                    |begin|end
-                  )
-                \b
+                #this.repository.define.repository['ignore-keywords'].match
               ) \s*
             )
             [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
@@ -7983,31 +6301,8 @@ repository:
 
           (
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           )
@@ -8047,31 +6342,8 @@ repository:
               | \| ( # start of lambda literal
                   (?:[,;] \s*)* # optional separators
                   (?:
-                    (?: # type
-                      (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                      (?:
-                        (?:
-                          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                        )*
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                        (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                          |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                          |[^'"`<>()\[\]{}]+)*>)? | # generics
-                        (?:
-                          (?:
-                            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                          )*
-                          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                        )?
-                        \#?(?:
-                          \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                          \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                          {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                        )+ # allow chaining
-                      )+
-                      (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                    (?:
+                      #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
                     )
                     \s*
                   )+
@@ -8079,31 +6351,8 @@ repository:
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
                 (?: # identifier
                   (?!
-                    (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                    (?: # ignore keywords
-                      # wordlike operators
-                      [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                      |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                      # declaration keywords
-                      |va[rl]|let|mut|const
-                      |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                      |module|schema|struct|record|object|union|macro|space
-                      |query|quote|style|script|shader|compo|temp|oper|realm
-
-                      # control flow keywords
-                      |if|elif|else|[tw]hen|guard|with
-                      |for|while|loop|break|skip|redo
-                      |try|retry|switch|[cm]atch|case|def|throw
-                      |return|yield|await|goto|pass|defer|race|join
-                      |[gd]o|from|where|use|show|hide
-
-                      # miscellaneous keywords
-                      |debug|assert|check|decl|ignore
-                      |use|echo|eval|exec|scope|safe|unsafe
-                      |begin|end
-                    )
-                    \b
+                    (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                    #this.repository.define.repository['ignore-keywords'].match
                   )
                   (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
                   (?:
@@ -8122,7 +6371,7 @@ repository:
     begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
-    end: (?=[;)\]}]) # this is the only clause that doesn't end at the end of the line
+    end: (?=[;)\]}]) #this is the only clause that doesn't end at the end of the line
     patterns:
       - match: |-
           (?x)
@@ -8153,31 +6402,8 @@ repository:
           (
             # highlight everything before the identifier as type
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
           )
@@ -8222,32 +6448,7 @@ repository:
           | \#? [(\[{] # opening bracket
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
-            \b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              )
-            \b
+            #this.repository.define.repository['ignore-keywords'].match
           ) \s*
         ) \s*
       ) \s*
@@ -8255,57 +6456,11 @@ repository:
       (
         (?:
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
-          (?: # type
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-            (?:
-              (?:
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-              )*
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                |[^'"`<>()\[\]{}]+)*>)? | # generics
-              (?:
-                (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )?
-              \#?(?:
-                \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-              )+ # allow chaining
-            )+
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+          (?:
+            #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
           )
           \s*
         )+
@@ -8315,31 +6470,8 @@ repository:
       ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
       (?!
-        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # ignore keywords
-          # wordlike operators
-          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-          # declaration keywords
-          |va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|elif|else|[tw]hen|guard|with
-          |for|while|loop|break|skip|redo
-          |try|retry|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|race|join
-          |raise|error|final|copy|move|drop|sink
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
       )
       ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -8369,58 +6501,12 @@ repository:
 
       (
         (?!
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # ignore keywords
-            # wordlike operators
-            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-            # declaration keywords
-            |va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-
-            # control flow keywords
-            |if|elif|else|[tw]hen|guard|with
-            |for|while|loop|break|skip|redo
-            |try|retry|switch|[cm]atch|case|def|throw
-            |return|yield|await|goto|pass|defer|race|join
-            |raise|error|final|copy|move|drop|sink
-            |[gd]o|from|where|use|show|hide
-
-            # miscellaneous keywords
-            |debug|assert|check|decl|ignore
-            |use|echo|eval|exec|scope|safe|unsafe
-            |begin|end
-          ) \b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
         )
         (?:
-          (?: # type
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-            (?:
-              (?:
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-              )*
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                |[^'"`<>()\[\]{}]+)*>)? | # generics
-              (?:
-                (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )?
-              \#?(?:
-                \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-              )+ # allow chaining
-            )+
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+          (?:
+            #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
           )
           \s*
         )+
@@ -8486,57 +6572,11 @@ repository:
           (
             (?:
               (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                (?: # ignore keywords
-                  # wordlike operators
-                  [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                  |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                  # declaration keywords
-                  |va[rl]|let|mut|const
-                  |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-
-                  # control flow keywords
-                  |if|elif|else|[tw]hen|guard|with
-                  |for|while|loop|break|skip|redo
-                  |try|retry|switch|[cm]atch|case|def|throw
-                  |return|yield|await|goto|pass|defer|race|join
-                  |raise|error|final|copy|move|drop|sink
-                  |[gd]o|from|where|use|show|hide
-
-                  # miscellaneous keywords
-                  |debug|assert|check|decl|ignore
-                  |use|echo|eval|exec|scope|safe|unsafe
-                  |begin|end
-                ) \b
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
               )
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -8960,31 +7000,8 @@ repository:
       (
         (?:
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           \s*
@@ -9010,31 +7027,8 @@ repository:
       (
         (?:
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
           )
           (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           \s*
@@ -9091,60 +7085,14 @@ repository:
           ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s+ # label
           ([?:]?=)\s+ # assignment operator
 
-          (
+          ((?# group 3)
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
               )
               \s*
             )+
@@ -9154,31 +7102,8 @@ repository:
           (\|) (?=(
             (?:[,;] \s*)* # optional separators
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<5>')
               )
               \s*
             )+
@@ -9233,60 +7158,14 @@ repository:
           ([?:]?=)\s+ # Assignment operator
           \s*
 
-           (
+          (
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<4>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
               )
               \s*
             )+
@@ -9296,31 +7175,8 @@ repository:
           (\|) (?=(
             (?:[,;] \s*)* # optional separators
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<5>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<5>')
               )
               \s*
             )+
@@ -9353,58 +7209,12 @@ repository:
 
           (
             (?!
-              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-              (?: # ignore keywords
-                # wordlike operators
-                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                # declaration keywords
-                |va[rl]|let|mut|const
-                |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                |module|schema|struct|record|object|union|macro|space
-                |query|quote|style|script|shader|compo|temp|oper|realm
-
-                # control flow keywords
-                |if|elif|else|[tw]hen|guard|with
-                |for|while|loop|break|skip|redo
-                |try|retry|switch|[cm]atch|case|def|throw
-                |return|yield|await|goto|pass|defer|race|join
-                |raise|error|final|copy|move|drop|sink
-                |[gd]o|from|where|use|show|hide
-
-                # miscellaneous keywords
-                |debug|assert|check|decl|ignore
-                |use|echo|eval|exec|scope|safe|unsafe
-                |begin|end
-              ) \b
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
             )
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -9414,31 +7224,8 @@ repository:
           (\|) (?=(
             (?:[,;] \s*)* # optional separators
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
               )
               \s*
             )+
@@ -9466,31 +7253,8 @@ repository:
           (\|) (?=(
             (?:[,;] \s*)* # optional separators
             (?:
-              (?: # type
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                    |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                    |[^'"`<>()\[\]{}]+)*>)? | # generics
-                  (?:
-                    (?:
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                  )?
-                  \#?(?:
-                    \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                    \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                    {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                  )+ # allow chaining
-                )+
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+              (?:
+                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
               )
               \s*
             )+
@@ -9812,58 +7576,12 @@ repository:
                 \b
               ) | ( # lambda declaration
                 (?!
-                  (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-                  (?: # ignore keywords
-                    # wordlike operators
-                    [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-                    |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-                    # declaration keywords
-                    |va[rl]|let|mut|const
-                    |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-                    |module|schema|struct|record|object|union|macro|space
-                    |query|quote|style|script|shader|compo|temp|oper|realm
-
-                    # control flow keywords
-                    |if|elif|else|[tw]hen|guard|with
-                    |for|while|loop|break|skip|redo
-                    |try|retry|switch|[cm]atch|case|def|throw
-                    |return|yield|await|goto|pass|defer|race|join
-                    |raise|error|final|copy|move|drop|sink
-                    |[gd]o|from|where|use|show|hide
-
-                    # miscellaneous keywords
-                    |debug|assert|check|decl|ignore
-                    |use|echo|eval|exec|scope|safe|unsafe
-                    |begin|end
-                  ) \b
+                  (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                  #this.repository.define.repository['ignore-keywords'].match
                 )
                 (?:
-                  (?: # type
-                    (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                    (?:
-                      (?:
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                      )*
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                      (?:<(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                        |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                        |[^'"`<>()\[\]{}]+)*>)? | # generics
-                      (?:
-                        (?:
-                          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                        )*
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                      )?
-                      \#?(?:
-                        \((?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                        \[(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                        {(?>\g<2>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                      )+ # allow chaining
-                    )+
-                    (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                  (?:
+                    #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
                   )
                   \s*
                 )+
@@ -9872,31 +7590,8 @@ repository:
               \s* \| (?=(
                 (?:[,;] \s*)* # optional separators
                 (?:
-                  (?: # type
-                    (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                    (?:
-                      (?:
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                        (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                      )*
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                      (?:<(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`
-                        |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
-                        |[^'"`<>()\[\]{}]+)*>)? | # generics
-                      (?:
-                        (?:
-                          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                        )*
-                        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                      )?
-                      \#?(?:
-                        \((?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\) | # round brackets
-                        \[(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*\] | # square brackets
-                        {(?>\g<3>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`(?>``|[^`])+`|[^'"`()\[\]{}]*)*} # curly brackets
-                      )+ # allow chaining
-                    )+
-                    (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                  (?:
+                    #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
                   )
                   \s*
                 )+
@@ -9975,31 +7670,8 @@ repository:
       ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
       (?!
-        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # ignore keywords
-          # wordlike operators
-          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-          # declaration keywords
-          |va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|elif|else|[tw]hen|guard|with
-          |for|while|loop|break|skip|redo
-          |try|retry|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|race|join
-          |raise|error|final|copy|move|drop|sink
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
       )
       ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -10092,62 +7764,16 @@ repository:
       \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
 
       (?!
-        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # ignore keywords
-          # wordlike operators
-          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-          # declaration keywords
-          |va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|elif|else|[tw]hen|guard|with
-          |for|while|loop|break|skip|redo
-          |try|retry|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|race|join
-          |raise|error|final|copy|move|drop|sink
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
       )
 
       \s*
       ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
       (?!
-        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # ignore keywords
-          # wordlike operators
-          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-          # declaration keywords
-          |va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-
-          # control flow keywords
-          |if|elif|else|[tw]hen|guard|with
-          |for|while|loop|break|skip|redo
-          |try|retry|switch|[cm]atch|case|def|throw
-          |return|yield|await|goto|pass|defer|race|join
-          |raise|error|final|copy|move|drop|sink
-          |[gd]o|from|where|use|show|hide
-
-          # miscellaneous keywords
-          |debug|assert|check|decl|ignore
-          |use|echo|eval|exec|scope|safe|unsafe
-          |begin|end
-        ) \b
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
       )
       ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
