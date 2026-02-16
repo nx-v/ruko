@@ -202,7 +202,8 @@ parsed = stringify(
                 return result;
               });
             return optimize(value).pattern;
-          } catch {
+          } catch (err){
+            console.error(err, value)
             return value;
           }
     }

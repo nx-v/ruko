@@ -183,9 +183,8 @@ patterns: [{include: "#core"}]
 # - Add regexp patterns for Unicode character properties, scripts, blocks,
 #   categories, etc. Refer to: https://www.unicode.org/reports/tr18/
 # - Reworked number syntax highighting to be more consistent and stricter.
-# - Add dynamic JSX/XML literals <(expr)/>.
-# - Added support for splicing syntax <[ ]> / <{ }> to embed expressions OR
-#   statements, respectively, inside JSX/XML tags.
+# - Add dynamic JSX/XML literals <(expr)/>, <[expr]>, and <{expr}>
+#   for dynamic tag names, attributes and content respectively.
 # - Add operator definition syntax for user-defined operators.
 #     oper param <postfix>: return_type { ... }
 #     oper <prefix> param: return_type { ... }
@@ -315,7 +314,6 @@ repository:
       - include: "#lambdas"
       - include: "#function-calls"
       - include: "#xml-tags"
-      - include: "#splice-brackets"
       - include: "#angle-brackets"
       - include: "#literals"
       - include: "#accessor-operators"
@@ -380,7 +378,7 @@ repository:
             |begin|end
           ) \b
 
-      prefix-type-definition:
+      prefix-type-annotation:
         match: |-
           (?x)
           (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
@@ -2371,25 +2369,6 @@ repository:
           2: {name: keyword.operator.pattern.ruko}
       - include: "#space"
 
-  # Splicing
-
-  splice-brackets:
-    patterns:
-      - begin: \s*(<{)
-        end: \s*(}>)
-        name: meta.splicing.ruko
-        captures:
-          1: {name: punctuation.definition.splice.curly.ruko}
-          2: {name: punctuation.definition.splice.curly.ruko}
-        patterns: [{include: $self}]
-      - begin: \s*(<\[)
-        end: \s*(\]>)
-        name: meta.splicing.ruko
-        captures:
-          1: {name: punctuation.definition.splice.square.ruko}
-          2: {name: punctuation.definition.splice.square.ruko}
-        patterns: [{include: $self}]
-
   # XML (JSX)
 
   xml-tags:
@@ -2411,7 +2390,7 @@ repository:
             \s
         ) \s*
       ) \s*
-      (?=<(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
+      (?=<(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
     end: $|
     name: meta.tag.top.ruko
     patterns: [{include: "#tag-component-name"}]
@@ -2419,7 +2398,7 @@ repository:
   tag-component-name:
     patterns:
       - comment: Expression tags like <( ... )>.
-        contentName: text.xml.ruko
+        contentName: meta.xml.ruko
         begin: (<)(?=\()
         end: |
           (?x) \s*
@@ -2446,8 +2425,67 @@ repository:
           - include: "#tag-termination"
           - match: (?<=</)(>)
             name: punctuation.definition.tag.ruko
-      - comment: Tags that end > are trapped in tag-termination. <$></> is a fragment tag.
-        contentName: text.xml.ruko
+          - include: "#illegal"
+      - comment: Array tags like <[ ... ]>.
+        contentName: meta.xml.ruko
+        begin: (<)(?=\[)
+        end: |
+          (?x) \s*
+          (?:
+              (/>) # Tags implicitly closed.
+            | ((?<=</).*?)(>)
+          ) \s*
+        beginCaptures:
+          0: {name: meta.tag.ruko}
+          1: {name: punctuation.definition.tag.ruko}
+        endCaptures:
+          0: {name: meta.tag.ruko}
+          1: {name: punctuation.definition.tag.ruko}
+          2: {name: invalid.illegal.termination.ruko}
+          3: {name: punctuation.definition.tag.ruko}
+        patterns:
+          - begin: (?<=<\[)\s*
+            end: \s*(\])
+            name: meta.expression.tag.ruko
+            captures:
+              1: {name: punctuation.definition.splice.round.ruko}
+            patterns: [{include: $self}]
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
+      - comment: Object tags like <{ ... }>.
+        contentName: meta.xml.ruko
+        begin: (<)(?={)
+        end: |
+          (?x) \s*
+          (?:
+              (/>) # Tags implicitly closed.
+            | ((?<=</).*?)(>)
+          ) \s*
+        beginCaptures:
+          0: {name: meta.tag.ruko}
+          1: {name: punctuation.definition.tag.ruko}
+        endCaptures:
+          0: {name: meta.tag.ruko}
+          1: {name: punctuation.definition.tag.ruko}
+          2: {name: invalid.illegal.termination.ruko}
+          3: {name: punctuation.definition.tag.ruko}
+        patterns:
+          - begin: (?<=<\{)\s*
+            end: \s*(\})
+            name: meta.expression.tag.ruko
+            captures:
+              1: {name: punctuation.definition.splice.curly.ruko}
+            patterns: [{include: $self}]
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
+      - comment: Standard tags like <div>.
+        contentName: meta.xml.ruko
         begin: |-
           (?x)
           (<) # start tag begin
@@ -4060,7 +4098,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -4811,7 +4849,7 @@ repository:
           | \#? [(\[] # opening brackets
           | /[^/*\s] # regexp literal
           | \\[\\*]\s # markdown literal
-          | <(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
@@ -4819,7 +4857,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
                 )
                 \s*
               )+
@@ -4986,7 +5024,7 @@ repository:
           | \#? [(\[] # opening brackets
           | /[^/*\s] # regexp literal
           | \\[\\*]\s # markdown literal
-          | <(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
@@ -4994,7 +5032,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
                 )
                 \s*
               )+
@@ -5093,7 +5131,7 @@ repository:
           (
             (?:
               (?: 
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -5155,7 +5193,7 @@ repository:
           (
             (?:
               (?: 
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -5205,7 +5243,7 @@ repository:
       (
         (?:
           (?: 
-            #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
           )
           \s*
         )+
@@ -5358,36 +5396,34 @@ repository:
         (?:
           \#? # optional sharp for splice invocation
 
-          (?:
-            \( # round brackets
-              (?>
-                  \g<t> # either recurse or match balanced brackets
-                | '(?>\\.|[^\\'])*' # char literals
-                | "(?>\\.|[^\\"])*" # string literals
-                | `(?>``|[^`])+` # identifier with backticks
-                | [^'"`()\[\]{}]*
-              )*
-            \) |
-            \[ # square brackets
-              (?>
-                  \g<t> # either recurse or match balanced brackets
-                | '(?>\\.|[^\\'])*' # char literals
-                | "(?>\\.|[^\\"])*" # string literals
-                | `(?>``|[^`])+` # identifier with backticks
-                | [^'"`()\[\]{}]*
-              )*
-            \] |
-            { # curly brackets
-              (?>
-                  \g<t> # either recurse or match balanced brackets
-                | '(?>\\.|[^\\'])*' # char literals
-                | "(?>\\.|[^\\"])*" # string literals
-                | `(?>``|[^`])+` # identifier with backticks
-                | [^'"`()\[\]{}]*
-              )*
-            }
-          )+ # allow chaining
-        )+
+          \( # round brackets
+            (?>
+                \g<1> # either recurse or match balanced brackets
+              | '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+              | `(?>``|[^`])+` # identifier with backticks
+              | [^'"`()\[\]{}]*
+            )*
+          \) |
+          \[ # square brackets
+            (?>
+                \g<1> # either recurse or match balanced brackets
+              | '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+              | `(?>``|[^`])+` # identifier with backticks
+              | [^'"`()\[\]{}]*
+            )*
+          \] |
+          { # curly brackets
+            (?>
+                \g<1> # either recurse or match balanced brackets
+              | '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+              | `(?>``|[^`])+` # identifier with backticks
+              | [^'"`()\[\]{}]*
+            )*
+          }
+        )+ # allow chaining
       )
 
       (?! # accessor or assignment
@@ -5429,7 +5465,7 @@ repository:
           | \#? [(\[] # opening brackets
           | /[^/*\s] # regexp literal
           | \\[\\*]\s # markdown literal
-          | <(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
@@ -5437,7 +5473,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
                 )
                 \s*
               )+
@@ -5863,7 +5899,7 @@ repository:
           | \#? [(\[] # opening brackets
           | /[^/*\s] # regexp literal
           | \\[\\*]\s # markdown literal
-          | <(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
             (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
@@ -5871,7 +5907,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
                 )
                 \s*
               )+
@@ -6259,7 +6295,7 @@ repository:
     begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
     beginCaptures:
       1: {name: keyword.control.validate.ruko}
-    end: (?=[,;)\]}]) #this is the only clause that doesn't end at the end of the line
+    end: (?=[,;)\]}]) # doesn't terminate at EOL
     patterns:
       - match: &parenless-call |-
           (?x)
@@ -6335,7 +6371,7 @@ repository:
               | \#? [(\[] # opening brackets
               | /[^/*\s] # regexp literal
               | \\[\\*]\s # markdown literal
-              | <(?:[`(\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+              | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
               | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
                 [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
                 (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
@@ -6343,7 +6379,7 @@ repository:
                   (?:[,;] \s*)* # optional separators
                   (?:
                     (?:
-                      #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
+                      #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
                     )
                     \s*
                   )+
@@ -6371,7 +6407,7 @@ repository:
     begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
-    end: (?=[;)\]}]) #this is the only clause that doesn't end at the end of the line
+    end: (?=[;)\]}]) # doesn't terminate at EOL
     patterns:
       - match: |-
           (?x)
@@ -6460,7 +6496,7 @@ repository:
             #this.repository.define.repository['ignore-keywords'].match
           )
           (?:
-            #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
           )
           \s*
         )+
@@ -6506,7 +6542,7 @@ repository:
         )
         (?:
           (?:
-            #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
           )
           \s*
         )+
@@ -6576,7 +6612,7 @@ repository:
                 #this.repository.define.repository['ignore-keywords'].match
               )
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -7092,7 +7128,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
               )
               \s*
             )+
@@ -7103,7 +7139,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<5>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
               )
               \s*
             )+
@@ -7165,7 +7201,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
               )
               \s*
             )+
@@ -7176,7 +7212,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<5>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
               )
               \s*
             )+
@@ -7214,7 +7250,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
               )
               \s*
             )+
@@ -7225,7 +7261,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
               )
               \s*
             )+
@@ -7254,7 +7290,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
               )
               \s*
             )+
@@ -7581,7 +7617,7 @@ repository:
                 )
                 (?:
                   (?:
-                    #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<2>')
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
                   )
                   \s*
                 )+
@@ -7591,7 +7627,7 @@ repository:
                 (?:[,;] \s*)* # optional separators
                 (?:
                   (?:
-                    #this.repository.define.repository['prefix-type-definition'].match.split('<t>').join('<3>')
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
                   )
                   \s*
                 )+
@@ -8281,7 +8317,6 @@ repository:
           - include: "#function-clause"
           - include: "#selector-function-calls"
           - include: "#decorators"
-          - include: "#splice-brackets"
           - include: "#xml-tags"
           - include: "#angle-brackets"
           - include: "#literals"
