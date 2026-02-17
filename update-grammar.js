@@ -220,7 +220,6 @@ grammar = parse(
                 exposeAnchors: true,
                 removeEmptyGroups: true,
                 unwrapUselessGroups: true,
-                preventReDoS: true,
               },
             }).pattern;
           } catch (err) {

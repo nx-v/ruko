@@ -4895,8 +4895,8 @@ repository:
   function-names:
     define: &function-names
       patterns:
-        - include: "#stdlib-types"
         - include: "#stdlib-functions"
+        - include: "#stdlib-types"
         - include: "#builtin-functions"
         - include: "#css-functions"
         - include: "#type-names"
@@ -5110,7 +5110,7 @@ repository:
         name: meta.function.name.ruko
         patterns: [{include: "#function-names"}]
 
-  selector-calls:
+  selector-method-calls:
     begin: |-
       (?x) (?<= # literal
         (?:
@@ -5144,10 +5144,18 @@ repository:
         patterns:
           - match: *identifiers
             captures:
-              1: {name: entity.name.tag.directive.ruko}
-              2: {name: entity.name.function.tagged-template.ruko}
-              3: {name: entity.name.function.method.ruko}
-              4: {name: entity.name.function.member.ruko}
+              1:
+                name: entity.name.tag.directive.ruko
+                <<: *function-names
+              2:
+                name: entity.name.function.tagged-template.ruko
+                <<: *function-names
+              3:
+                name: entity.name.function.method.ruko
+                <<: *function-names
+              4:
+                name: entity.name.function.member.ruko
+                <<: *function-names
     endCaptures:
       1: {name: punctuation.definition.selector.ruko}
     patterns: [{include: "#brackets"}]
@@ -8328,7 +8336,7 @@ repository:
         patterns:
           # duplicated from #core
           &selector-core
-          - include: "#selector-calls"
+          - include: "#selector-method-calls"
           - include: "#punctuation"
           - include: "#directives"
           - include: "#function-clause"
@@ -9293,15 +9301,32 @@ repository:
   builtin-functions:
     comment: Names for general support functions in Ruko standard library organized by naming conventions for maintainability
     patterns:
-      - comment: magic functions like __init__, __str__, etc
+      - comment: Built-in functions
+        match: |-
+          (?x)\b(
+            # builtins that are always available in the global namespace
+            abs | aiter | all | any | anext | ascii | bin | breakpoint | callable | chr | compile | copyright | credits | delattr | dir | divmod | enumerate | eval | exec | exit | filter | format | getattr | globals | hasattr | hash | help | hex | id | input | isinstance | issubclass | iter | len | license | locals | map | max | memoryview | min | next | oct | open | ord | pow | print | quit | range | reload | repr | reversed | round | setattr | sorted | sum | vars | zip | file | reduce | intern | raw_input | unicode | cmp | basestring | execfile | long | xrange |
+            # type names that are also functions for type conversion, like int(), str(), etc
+            bool | bytearray | bytes | classmethod | complex | dict | float | frozenset | int | list | object | property | set | slice | staticmethod | str | tuple | type |
+            # special functions for operator overloading and other language features
+            abs | add | aenter | aexit | aiter | and | anext | await | bool | call | ceil | class_getitem | cmp | coerce | complex | contains | copy | deepcopy | del | delattr | delete | delitem | delslice | dir | div | divmod | enter | eq | exit | float | floor | floordiv | format | ge | get | getattr | getattribute | getinitargs | getitem | getnewargs | getslice | getstate | gt | hash | hex | iadd | iand | idiv | ifloordiv | ilshift | imod | imul | index | init | instancecheck | int | invert | ior | ipow | irshift | isub | iter | itruediv | ixor | le | len | long | lshift | lt | missing | mod | mul | ne | neg | new | next | nonzero | oct | or | pos | pow | radd | rand | rdiv | rdivmod | reduce | reduce_ex | repr | reversed | rfloordiv | rlshift | rmod | rmul | ror | round | rpow | rrshift | rshift | rsub | rtruediv | rxor | set | setattr | setitem | set_name | setslice | setstate | sizeof | str | sub | subclasscheck | truediv | trunc | unicode | xor | matmul | rmatmul | imatmul | init_subclass | set_name | fspath | bytes | prepare | length_hint |
+            # Ruko standard library functions that are commonly used and should be highlighted as builtin support functions for better discoverability and readability in code
+            all | annotations | bases | builtins | class | closure | code | debug | defaults | dict | doc | file | func | globals | kwdefaults | match_args | members | metaclass | methods | module | mro | mro_entries | name | qualname | post_init | self | signature | slots | subclasses | version | weakref | wrapped | classcell | spec | path | package | future | traceback |
+            # common keywords that are also functions in some contexts
+            and | assert | async | await | break | class | continue | def | del | elif | else | except | finally | for | from | global | if | in | is | lambda | nonlocal | not | or | pass | raise | return | try | while | with | yield | as | import | self | cls | super
+          )\b
+      - comment: Magic functions like __init__, __str__, etc
         match: \b\p{Pc}+(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)\p{Pc}+\b
         name: support.function.magic.ruko
-      - comment: accessor functions like getName, setValue, etc
+      - comment: Accessor functions like getName, setValue, etc
         match: \b[gs]et[\p{Lu}\p{Pc}]\w*\b
         name: support.function.accessor.ruko
-      - comment: conversion functions
-        match: \b((i|ha)s|can|to|from)[\p{Lu}\p{Pc}]\w*\b
+      - comment: Type-related functions like isStr, hasProp, canRun, toList, fromDict
+        match: \b((i|ha)s|to|from)[\p{Lu}\p{Pc}]\w*\b
         name: support.function.type.ruko
+      - comment: Commonly used functions for control flow and error handling like canRun, shouldRetry, mustSucceed, etc
+        match: \b(can|could|will|would|may|might|must|shall|should)[\p{Lu}\p{Pc}]\w*\b
+        name: support.function.error.ruko
       - include: "#support-functions"
 
   support-types:

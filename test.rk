@@ -429,10 +429,11 @@ module CounterMessage(use React) {
   };
 }
 
+// console output example with various options
 module App(use React, CounterMessage) {
   let compo make = |()|{
-    let (int count, int setCount) = useState(|()|0);
-    let (username, setUsername) = useState(|()|"Anonymous");
+    let (int count, |int _| int setCount) = useState(|()|0);
+    let (str username, |str _| int setUsername) = useState(|()|"Anonymous");
 
     <div>
       "Username: ";
@@ -471,18 +472,13 @@ impl BlockingClient {
   }
 
   pub func crate::Result<()> set_expires(
-    &mut self,
-    &str key,
-    Bytes value,
-    Duration expiration,
+    &mut self, &str key, Bytes value, Duration expiration,
   ) {
     self.rt.block_on(self.inner.set_expires(key, value, expiration));
   }
 
   pub func crate::Result<u64> publish(
-    &mut self,
-    &str channel,
-    Bytes message
+    &mut self, &str channel, Bytes message
   ) {
     self.rt.block_on(self.inner.publish(channel, message));
   }
