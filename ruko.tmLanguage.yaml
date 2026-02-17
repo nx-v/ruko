@@ -1,5 +1,5 @@
 name: Ruko
-scopeName: source.rk # will change to Ruko once the language is out
+scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
@@ -4895,6 +4895,8 @@ repository:
   function-names:
     define: &function-names
       patterns:
+        - include: "#stdlib-types"
+        - include: "#stdlib-functions"
         - include: "#builtin-functions"
         - include: "#css-functions"
         - include: "#type-names"
@@ -4902,20 +4904,19 @@ repository:
     patterns:
       - include: "#accessor-operators"
       - match: |-
-          (?x) \s*
-
-          (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
-            #this.repository.define.repository['ignore-keywords'].match
-          )
-
+          (?x)
           (?:
             (?<=
-              (?:^ | [,;'"`>)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
               (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
             )
             # methods
             #this.repository.define.repository['identifiers'].match
+            (?=
+                $ # end of line
+              | (?:<\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
+                (?:[,;'"`)\]}\w\s] | \#?[(\[{])
+            )
             |
             (?<=
               (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
@@ -4928,8 +4929,6 @@ repository:
                 (?:[,;'"`)\]}\w\s] | \#?[(\[{])
             )
           )
-
-          \s*
         captures: &function-calls
           1:
             name: entity.name.tag.directive.ruko
@@ -9365,9 +9364,3 @@ repository:
       - include: "#stdlib-constants"
       - include: "#stdlib-properties"
       - include: "#stdlib-parameters"
-      # Python
-      - include: "source.python#builtin-functions"
-      - include: "source.python#builtin-constants"
-      # CoffeeScript
-      - include: "source.coffee#method_names"
-      - include: "source.coffee#function-names"

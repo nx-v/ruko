@@ -1,17 +1,7 @@
 import yaml from "js-yaml";
 import {optimize} from "oniguruma-parser/optimizer";
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  lstatSync,
-  cpSync,
-  copyFileSync,
-  rmSync,
-  rmdirSync,
-  writeFileSync,
-} from "fs";
+import {mirrorDir} from "./utils.js";
+import {readFileSync, writeFileSync} from "fs";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
@@ -19,31 +9,6 @@ let {keys, values, fromEntries, entries} = Object;
 
 let file = readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
 let grammar = yaml.load(file);
-
-// recursively mirror directory from source to destination.
-// may remove files in destination that are not in source.
-// if destination does not exist, it will be created.
-// source and destination should be absolute paths.
-const mirrorDir = (source, destination) => {
-  if (!existsSync(destination)) mkdirSync(destination, {recursive: true});
-
-  let sourceEntries = new Set(readdirSync(source));
-  let destEntries = new Set(readdirSync(destination));
-  for (let entry of sourceEntries) {
-    let sourcePath = `${source}/${entry}`;
-    let destPath = `${destination}/${entry}`;
-    if (lstatSync(sourcePath).isDirectory()) cpSync(sourcePath, destPath, {recursive: true});
-    else copyFileSync(sourcePath, destPath);
-  }
-
-  for (let entry of destEntries) {
-    if (!sourceEntries.has(entry)) {
-      let destPath = `${destination}/${entry}`;
-      if (lstatSync(destPath).isDirectory()) rmSync(destPath, {recursive: true, force: true});
-      else rmdirSync(destPath);
-    }
-  }
-};
 
 // === NUMBERS ===
 
@@ -267,7 +232,7 @@ grammar = parse(
 );
 
 import stdlib from "file://C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json" with {type: "json"};
-grammar.repository = {...stdlib.repository, ...grammar.repository};
+grammar.repository = {...grammar.repository, ...stdlib.repository};
 grammar.information_for_contributors = stdlib.information_for_contributors;
 grammar = stringify(sortKeys(grammar), null, 4);
 

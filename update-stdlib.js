@@ -1,19 +1,7 @@
 import {optimize} from "oniguruma-parser/optimizer";
 import {globSync} from "glob";
-import regexgen from "regexgen";
-
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  lstatSync,
-  cpSync,
-  copyFileSync,
-  rmSync,
-  rmdirSync,
-  writeFileSync,
-} from "fs";
+import {mirrorDir} from "./utils.js";
+import {readFileSync, writeFileSync} from "fs";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
@@ -137,7 +125,7 @@ let grammar = {
   comment:
     "This file was generated using data from https://github.com/DefinitelyTyped/DefinitelyTyped",
   name: "Ruko Standard Library",
-  scopeName: "source.rk.stdlib",
+  scopeName: "source.rk.std",
   patterns: repositoryKeys.map(key => ({include: `#stdlib-${pluralize(key)}`})),
   repository: fromEntries(
     repositoryKeys.map(key => [
@@ -195,3 +183,11 @@ grammar.information_for_contributors = [
 grammar = stringify(grammar);
 
 writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json", grammar);
+// writeFileSync(
+//   "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko-stdlib.tmLanguage.json",
+//   grammar,
+// );
+// mirrorDir(
+//   "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1",
+//   "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
+// );
