@@ -3,15 +3,14 @@ scopeName: source.rk # will change to Ruko once the language is out
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
-# Last updated: February 14, 2026
-#this file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
+# Last updated: February 17, 2026
+# This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
 # https://github.com/nx-v/ruko
-# Note that this grammar is still actively being developed alongside
-# the compiler and spec itself, so frequent updates may be necessary.
-# If you find any bugs or want to suggest any new features, please
-# open an issue or a pull request on the repository above.
+# Note that this grammar is incomplete as part of it requires a build step to
+# generate the full grammar with all the patterns, so if you want to contribute,
+# please open an issue or a pull request on the repository above.
 
 # === TODOs ===
 # - [/] Fix bugs with prefix type annotations in function parameters,
@@ -62,7 +61,7 @@ patterns: [{include: "#core"}]
 #   having everything in one big pattern.
 # - Duplicate patterns using the alias/merge feature in YAML (&,*,<<)
 #   to reduce redundancy and make maintenance easier.
-#   - Each section in the grammar has a built-in repository for this purpose.
+#   - Each section in the grammar has a builtin repository for this purpose.
 # - All patterns should have better comments explaining what they do.
 # - Add support for s-expressions (Lisp-style syntax) as an alternative
 #   syntax for function calls and expressions. This will require a massive
@@ -77,7 +76,7 @@ patterns: [{include: "#core"}]
 #   for inspiration.
 #   https://safecpp.org/draft.html
 #   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
-# - [ ] Plan and implement all the built-in modules, classes, objects, constants
+# - [ ] Plan and implement all the builtin modules, classes, objects, constants
 #   functions and properties for Ruko's standard library.
 #   This would all be done in a separate PR and once the grammar is completely
 #   finished.
@@ -380,7 +379,7 @@ repository:
           ) \b
 
       identifiers:
-        match: |-
+        match: &identifiers |-
           (?x)
           (?: # identifiers
               ((?>`\p{Pc}(?:``|[^`])*`|\b\p{Pc}+\w*(?!\p{Pc}+)\b)) # leading underscore
@@ -580,7 +579,6 @@ repository:
       - include: "#angle-brackets"
       - include: "#type-keywords"
       - include: "#type-modifiers"
-      - include: "#type-names"
       - include: "#literals"
       - include: "#type-variables"
       - include: "#type-operators"
@@ -615,19 +613,43 @@ repository:
       )
 
       \s*
-    captures:
-      1: {name: support.type.instance.ruko}
-      2: {name: entity.name.interface.ruko}
-      3: {name: support.type.interface.ruko}
-      4: {name: entity.name.instance.ruko}
-      5: {name: support.type.module.ruko}
-      6: {name: entity.name.namespace.ruko}
-      7: {name: support.type.namespace.ruko}
-      8: {name: entity.name.module.ruko}
-      9: {name: support.type.type.ruko}
-      10: {name: entity.name.class.ruko}
-      11: {name: support.type.class.ruko}
-      12: {name: entity.name.type.ruko}
+    captures: &type-names
+      1:
+        name: support.type.instance.ruko
+        patterns: [{include: "#type-names"}]
+      2:
+        name: entity.name.interface.ruko
+        patterns: [{include: "#type-names"}]
+      3:
+        name: support.type.interface.ruko
+        patterns: [{include: "#type-names"}]
+      4:
+        name: entity.name.instance.ruko
+        patterns: [{include: "#type-names"}]
+      5:
+        name: support.type.module.ruko
+        patterns: [{include: "#type-names"}]
+      6:
+        name: entity.name.namespace.ruko
+        patterns: [{include: "#type-names"}]
+      7:
+        name: support.type.namespace.ruko
+        patterns: [{include: "#type-names"}]
+      8:
+        name: entity.name.module.ruko
+        patterns: [{include: "#type-names"}]
+      9:
+        name: support.type.type.ruko
+        patterns: [{include: "#type-names"}]
+      10:
+        name: entity.name.class.ruko
+        patterns: [{include: "#type-names"}]
+      11:
+        name: support.type.class.ruko
+        patterns: [{include: "#type-names"}]
+      12:
+        name: entity.name.type.ruko
+        patterns: [{include: "#type-names"}]
 
   type-signature:
     applyEndPatternLast: true
@@ -4633,64 +4655,6 @@ repository:
 
   # Function and method calls
 
-  embedded-function-calls:
-    comment: Embedded function calls within strings or other embedded code blocks
-    name: meta.function.name.ruko
-    match: |-
-      (?x)
-      (?:
-        (?<=
-          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
-          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
-        )
-        # methods
-        #this.repository.define.repository['identifiers'].match
-        (?=
-            [!~*]? \#?[({] # opening macro, destructor, generator or function call
-          | (?:[?!]?\.|[?!:]:|[?!-]>)? < # generics
-        )
-        |
-        (?<= ^ # beginning of line
-          | (?:[,;'"`)\]}\w\s] | \#?[(\[{]) # literal
-          (?: # operators
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
-          )?
-        )
-        #this.repository.define.repository['identifiers'].match
-        (?=
-            [!~*]? \#?[({] # opening macro, destructor, generator or function call
-          | (?:[?!]?\.|[?!:]:|[?!-]>)? < # generics
-        )
-      )
-    captures: &built-in-names
-      1:
-        patterns: &function-names
-          - include: "#type-names"
-          - include: "#css-functions"
-          - include: "#builtin-functions"
-        name: entity.name.tag.directive.ruko
-      2:
-        name: entity.name.function.tagged-template.ruko
-        patterns: *function-names
-      3:
-        name: entity.name.function.method.ruko
-        patterns: *function-names
-      4:
-        name: entity.name.function.member.ruko
-        patterns: *function-names
-      5:
-        name: entity.name.tag.function.ruko
-        patterns: *function-names
-      6:
-        name: entity.name.subroutine.ruko
-        patterns: *function-names
-      7:
-        name: entity.name.instance.ruko
-        patterns: *function-names
-      8:
-        name: entity.name.function.ruko
-        patterns: *function-names
-
   paren-function-calls:
     comment: Function calls with parentheses
     name: meta.function.arguments.ruko
@@ -4929,22 +4893,29 @@ repository:
       - include: "#paren-function-calls"
 
   function-names:
+    define: &function-names
+      patterns:
+        - include: "#builtin-functions"
+        - include: "#css-functions"
+        - include: "#type-names"
+
     patterns:
-      - name: meta.function.name.ruko
-        match: |-
-          (?x)
+      - include: "#accessor-operators"
+      - match: |-
+          (?x) \s*
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+
           (?:
             (?<=
-              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+              (?:^ | [,;'"`>)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
               (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
             )
             # methods
             #this.repository.define.repository['identifiers'].match
-            (?=
-                $ # end of line
-              | (?:<\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
-                (?:[,;'"`)\]}\w\s] | \#?[(\[{])
-            )
             |
             (?<=
               (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
@@ -4957,9 +4928,65 @@ repository:
                 (?:[,;'"`)\]}\w\s] | \#?[(\[{])
             )
           )
-        captures: *built-in-names
+
+          \s*
+        captures: &function-calls
+          1:
+            name: entity.name.tag.directive.ruko
+            <<: *function-names
+          2:
+            name: entity.name.function.tagged-template.ruko
+            <<: *function-names
+          3:
+            name: entity.name.function.method.ruko
+            <<: *function-names
+          4:
+            name: entity.name.function.member.ruko
+            <<: *function-names
+          5:
+            name: entity.name.tag.function.ruko
+            <<: *function-names
+          6:
+            name: entity.name.subroutine.ruko
+            <<: *function-names
+          7:
+            name: entity.name.instance.ruko
+            <<: *function-names
+          8:
+            name: entity.name.function.ruko
+            <<: *function-names
       - include: "#variables"
-      - include: "#accessor-operators"
+
+  embedded-function-calls:
+    comment: Embedded function calls within strings or other embedded code blocks
+    name: meta.function.name.ruko
+    match: |-
+      (?x)
+      (?:
+        (?<=
+          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+        )
+        # methods
+        #this.repository.define.repository['identifiers'].match
+        (?=
+            [!~*]? \#?[({] # opening macro, destructor, generator or function call
+          | (?:[?!]?\.|[?!:]:|[?!-]>)? < # generics
+        )
+        |
+        (?<= ^ # beginning of line
+          | (?:[,;'"`)\]}\w\s] | \#?[(\[{]) # literal
+          (?: # operators
+            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
+          )?
+        )
+        #this.repository.define.repository['identifiers'].match
+        (?=
+            [!~*]? \#?[({] # opening macro, destructor, generator or function call
+          | (?:[?!]?\.|[?!:]:|[?!-]>)? < # generics
+        )
+      )
+    captures: *function-calls
 
   # Function and method calls within Objective-C-style selectors
 
@@ -5116,22 +5143,12 @@ repository:
       2:
         name: entity.name.selector.ruko
         patterns:
-          - match: |-
-              (?x)
-              #this.repository.define.repository['identifiers'].match
+          - match: *identifiers
             captures:
-              1:
-                name: entity.name.tag.directive.ruko
-                patterns: *function-names
-              2:
-                name: entity.name.function.tagged-template.ruko
-                patterns: *function-names
-              3:
-                name: entity.name.function.method.ruko
-                patterns: *function-names
-              4:
-                name: entity.name.function.member.ruko
-                patterns: *function-names
+              1: {name: entity.name.tag.directive.ruko}
+              2: {name: entity.name.function.tagged-template.ruko}
+              3: {name: entity.name.function.method.ruko}
+              4: {name: entity.name.function.member.ruko}
     endCaptures:
       1: {name: punctuation.definition.selector.ruko}
     patterns: [{include: "#brackets"}]
@@ -7027,6 +7044,7 @@ repository:
       - include: "#accessor-operators"
       - include: "#brackets"
       - include: "#literals"
+      - include: "#default-value"
       - match: \s+
         name: meta.block.ruko
 
@@ -9199,8 +9217,13 @@ repository:
     match: \b((a(s(ymp(eq)?|cr|t)|n(d(slope|d|v|and)?|g(s(t|ph)|zarr|e|le|rt(vb(d)?)?|msd(a(h|c|d|e|f|a|g|b))?)?)|c(y|irc|d|ute|E)?|tilde|o(pf|gon)|uml|p(id|os|prox(eq)?|e|E|acir)?|elig|f(r)?|w(conint|int)|l(pha|e(ph|fsym))|acute|ring|grave|m(p|a(cr|lg))|breve)|A(s(sign|cr)|nd|MP|c(y|irc)|tilde|o(pf|gon)|uml|pplyFunction|fr|Elig|lpha|acute|ring|grave|macr|breve))|(B(scr|cy|opf|umpeq|e(cause|ta|rnoullis)|fr|a(ckslash|r(v|wed))|reve)|b(s(cr|im(e)?|ol(hsub|b)?|emi)|n(ot|e(quiv)?)|c(y|ong)|ig(s(tar|qcup)|c(irc|up|ap)|triangle(down|up)|o(times|dot|plus)|uplus|vee|wedge)|o(t(tom)?|pf|wtie|x(h(d|u|D|U)?|times|H(d|u|D|U)?|d(R|l|r|L)|u(R|l|r|L)|plus|D(R|l|r|L)|v(R|h|H|l|r|L)?|U(R|l|r|L)|V(R|h|H|l|r|L)?|minus|box))|Not|dquo|u(ll(et)?|mp(e(q)?|E)?)|prime|e(caus(e)?|t(h|ween|a)|psi|rnou|mptyv)|karow|fr|l(ock|k(1(2|4)|34)|a(nk|ck(square|triangle(down|left|right)?|lozenge)))|a(ck(sim(eq)?|cong|prime|epsilon)|r(vee|wed(ge)?))|r(eve|vbar)|brk(tbrk)?))|(c(s(cr|u(p(e)?|b(e)?))|h(cy|i|eck(mark)?)|ylcty|c(irc|ups(sm)?|edil|a(ps|ron))|tdot|ir(scir|c(eq|le(d(R|circ|S|dash|ast)|arrow(left|right)))?|e|fnint|E|mid)?|o(n(int|g(dot)?)|p(y(sr)?|f|rod)|lon(e(q)?)?|m(p(fn|le(xes|ment))?|ma(t)?))|dot|u(darr(l|r)|p(s|c(up|ap)|or|dot|brcap)?|e(sc|pr)|vee|wed|larr(p)?|r(vearrow(left|right)|ly(eq(succ|prec)|vee|wedge)|arr(m)?|ren))|e(nt(erdot)?|dil|mptyv)|fr|w(conint|int)|lubs(uit)?|a(cute|p(s|c(up|ap)|dot|and|brcup)?|r(on|et))|r(oss|arr))|C(scr|hi|c(irc|onint|edil|aron)|ircle(Minus|Times|Dot|Plus)|Hcy|o(n(tourIntegral|int|gruent)|unterClockwiseContourIntegral|p(f|roduct)|lon(e)?)|dot|up(Cap)?|OPY|e(nterDot|dilla)|fr|lo(seCurly(DoubleQuote|Quote)|ckwiseContourIntegral)|a(yleys|cute|p(italDifferentialD)?)|ross))|(d(s(c(y|r)|trok|ol)|har(l|r)|c(y|aron)|t(dot|ri(f)?)|i(sin|e|v(ide(ontimes)?|onx)?|am(s|ond(suit)?)?|gamma)|Har|z(cy|igrarr)|o(t(square|plus|eq(dot)?|minus)?|ublebarwedge|pf|wn(harpoon(left|right)|downarrows|arrow)|llar)|d(otseq|a(rr|gger))?|u(har|arr)|jcy|e(lta|g|mptyv)|f(isht|r)|wangle|lc(orn|rop)|a(sh(v)?|leth|rr|gger)|r(c(orn|rop)|bkarow)|b(karow|lac)|Arr)|D(s(cr|trok)|c(y|aron)|Scy|i(fferentialD|a(critical(Grave|Tilde|Do(t|ubleAcute)|Acute)|mond))|o(t(Dot|Equal)?|uble(Right(Tee|Arrow)|ContourIntegral|Do(t|wnArrow)|Up(DownArrow|Arrow)|VerticalBar|L(ong(RightArrow|Left(RightArrow|Arrow))|eft(RightArrow|Tee|Arrow)))|pf|wn(Right(TeeVector|Vector(Bar)?)|Breve|Tee(Arrow)?|arrow|Left(RightVector|TeeVector|Vector(Bar)?)|Arrow(Bar|UpArrow)?))|Zcy|el(ta)?|D(otrahd)?|Jcy|fr|a(shv|rr|gger)))|(e(s(cr|im|dot)|n(sp|g)|c(y|ir(c)?|olon|aron)|t(h|a)|o(pf|gon)|dot|u(ro|ml)|p(si(v|lon)?|lus|ar(sl)?)|e|D(ot|Dot)|q(s(im|lant(less|gtr))|c(irc|olon)|u(iv(DD)?|est|als)|vparsl)|f(Dot|r)|l(s(dot)?|inters|l)?|a(ster|cute)|r(Dot|arr)|g(s(dot)?|rave)?|x(cl|ist|p(onentiale|ectation))|m(sp(1(3|4))?|pty(set|v)?|acr))|E(s(cr|im)|c(y|irc|aron)|ta|o(pf|gon)|NG|dot|uml|TH|psilon|qu(ilibrium|al(Tilde)?)|fr|lement|acute|grave|x(ists|ponentialE)|m(pty(SmallSquare|VerySmallSquare)|acr)))|(f(scr|nof|cy|ilig|o(pf|r(k(v)?|all))|jlig|partint|emale|f(ilig|l(ig|lig)|r)|l(tns|lig|at)|allingdotseq|r(own|a(sl|c(1(2|8|3|4|5|6)|78|2(3|5)|3(8|4|5)|45|5(8|6)))))|F(scr|cy|illed(SmallSquare|VerySmallSquare)|o(uriertrf|pf|rAll)|fr))|(G(scr|c(y|irc|edil)|t|opf|dot|T|Jcy|fr|amma(d)?|reater(Greater|SlantEqual|Tilde|Equal(Less)?|FullEqual|Less)|g|breve)|g(s(cr|im(e|l)?)|n(sim|e(q(q)?)?|E|ap(prox)?)|c(y|irc)|t(c(c|ir)|dot|quest|lPar|r(sim|dot|eq(qless|less)|less|a(pprox|rr)))?|imel|opf|dot|jcy|e(s(cc|dot(o(l)?)?|l(es)?)?|q(slant|q)?|l)?|v(nE|ertneqq)|fr|E(l)?|l(j|E|a)?|a(cute|p|mma(d)?)|rave|g(g)?|breve))|(h(s(cr|trok|lash)|y(phen|bull)|circ|o(ok(leftarrow|rightarrow)|pf|arr|rbar|mtht)|e(llip|arts(uit)?|rcon)|ks(earow|warow)|fr|a(irsp|lf|r(dcy|r(cir|w)?)|milt)|bar|Arr)|H(s(cr|trok)|circ|ilbertSpace|o(pf|rizontalLine)|ump(DownHump|Equal)|fr|a(cek|t)|ARDcy))|(i(s(cr|in(s(v)?|dot|v|E)?)|n(care|t(cal|prod|e(rcal|gers)|larhk)?|odot|fin(tie)?)?|c(y|irc)?|t(ilde)?|i(nfin|i(nt|int)|ota)?|o(cy|ta|pf|gon)|u(kcy|ml)|jlig|prod|e(cy|xcl)|quest|f(f|r)|acute|grave|m(of|ped|a(cr|th|g(part|e|line))))|I(scr|n(t(e(rsection|gral))?|visible(Comma|Times))|c(y|irc)|tilde|o(ta|pf|gon)|dot|u(kcy|ml)|Ocy|Jlig|fr|Ecy|acute|grave|m(plies|a(cr|ginaryI))?))|(j(s(cr|ercy)|c(y|irc)|opf|ukcy|fr|math)|J(s(cr|ercy)|c(y|irc)|opf|ukcy|fr))|(k(scr|hcy|c(y|edil)|opf|jcy|fr|appa(v)?|green)|K(scr|c(y|edil)|Hcy|opf|Jcy|fr|appa))|(l(s(h|cr|trok|im(e|g)?|q(uo(r)?|b)|aquo)|h(ar(d|u(l)?)|blk)|n(sim|e(q(q)?)?|E|ap(prox)?)|c(y|ub|e(il|dil)|aron)|Barr|t(hree|c(c|ir)|imes|dot|quest|larr|r(i(e|f)?|Par))?|Har|o(ng(left(arrow|rightarrow)|rightarrow|mapsto)|times|z(enge|f)?|oparrow(left|right)|p(f|lus|ar)|w(ast|bar)|a(ng|rr)|brk)|d(sh|ca|quo(r)?|r(dhar|ushar))|ur(dshar|uhar)|jcy|par(lt)?|e(s(s(sim|dot|eq(qgtr|gtr)|approx|gtr)|cc|dot(o(r)?)?|g(es)?)?|q(slant|q)?|ft(harpoon(down|up)|threetimes|leftarrows|arrow(tail)?|right(squigarrow|harpoons|arrow(s)?))|g)?|v(nE|ertneqq)|f(isht|loor|r)|E(g)?|l(hard|corner|tri|arr)?|a(ng(d|le)?|cute|t(e(s)?|ail)?|p|emptyv|quo|rr(sim|hk|tl|pl|fs|lp|b(fs)?)?|gran|mbda)|r(har(d)?|corner|tri|arr|m)|g(E)?|m(idot|oust(ache)?)|b(arr|r(k(sl(d|u)|e)|ac(e|k))|brk)|A(tail|arr|rr))|L(s(h|cr|trok)|c(y|edil|aron)|t|o(ng(RightArrow|left(arrow|rightarrow)|rightarrow|Left(RightArrow|Arrow))|pf|wer(RightArrow|LeftArrow))|T|e(ss(Greater|SlantEqual|Tilde|EqualGreater|FullEqual|Less)|ft(Right(Vector|Arrow)|Ceiling|T(ee(Vector|Arrow)?|riangle(Bar|Equal)?)|Do(ubleBracket|wn(TeeVector|Vector(Bar)?))|Up(TeeVector|DownVector|Vector(Bar)?)|Vector(Bar)?|arrow|rightarrow|Floor|A(ngleBracket|rrow(RightArrow|Bar)?)))|Jcy|fr|l(eftarrow)?|a(ng|cute|placetrf|rr|mbda)|midot))|(M(scr|cy|inusPlus|opf|u|e(diumSpace|llintrf)|fr|ap)|m(s(cr|tpos)|ho|nplus|c(y|omma)|i(nus(d(u)?|b)?|cro|d(cir|dot|ast)?)|o(dels|pf)|dash|u(ltimap|map)?|p|easuredangle|DDot|fr|l(cp|dr)|a(cr|p(sto(down|up|left)?)?|l(t(ese)?|e)|rker)))|(n(s(hort(parallel|mid)|c(cue|e|r)?|im(e(q)?)?|u(cc(eq)?|p(set(eq(q)?)?|e|E)?|b(set(eq(q)?)?|e|E)?)|par|qsu(pe|be)|mid)|Rightarrow|h(par|arr|Arr)|G(t(v)?|g)|c(y|ong(dot)?|up|edil|a(p|ron))|t(ilde|lg|riangle(left(eq)?|right(eq)?)|gl)|i(s(d)?|v)?|o(t(ni(v(c|a|b))?|in(dot|v(c|a|b)|E)?)?|pf)|dash|u(m(sp|ero)?)?|jcy|p(olint|ar(sl|t|allel)?|r(cue|e(c(eq)?)?)?)|e(s(im|ear)|dot|quiv|ar(hk|r(ow)?)|xist(s)?|Arr)?|v(sim|infin|Harr|dash|Dash|l(t(rie)?|e|Arr)|ap|r(trie|Arr)|g(t|e))|fr|w(near|ar(hk|r(ow)?)|Arr)|V(dash|Dash)|l(sim|t(ri(e)?)?|dr|e(s(s)?|q(slant|q)?|ft(arrow|rightarrow))?|E|arr|Arr)|a(ng|cute|tur(al(s)?)?|p(id|os|prox|E)?|bla)|r(tri(e)?|ightarrow|arr(c|w)?|Arr)|g(sim|t(r)?|e(s|q(slant|q)?)?|E)|mid|L(t(v)?|eft(arrow|rightarrow)|l)|b(sp|ump(e)?))|N(scr|c(y|edil|aron)|tilde|o(nBreakingSpace|Break|t(R(ightTriangle(Bar|Equal)?|everseElement)|Greater(Greater|SlantEqual|Tilde|Equal|FullEqual|Less)?|S(u(cceeds(SlantEqual|Tilde|Equal)?|perset(Equal)?|bset(Equal)?)|quareSu(perset(Equal)?|bset(Equal)?))|Hump(DownHump|Equal)|Nested(GreaterGreater|LessLess)|C(ongruent|upCap)|Tilde(Tilde|Equal|FullEqual)?|DoubleVerticalBar|Precedes(SlantEqual|Equal)?|E(qual(Tilde)?|lement|xists)|VerticalBar|Le(ss(Greater|SlantEqual|Tilde|Equal|Less)?|ftTriangle(Bar|Equal)?))?|pf)|u|e(sted(GreaterGreater|LessLess)|wLine|gative(MediumSpace|Thi(nSpace|ckSpace)|VeryThinSpace))|Jcy|fr|acute))|(o(s(cr|ol|lash)|h(m|bar)|c(y|ir(c)?)|ti(lde|mes(as)?)|S|int|opf|d(sold|iv|ot|ash|blac)|uml|p(erp|lus|ar)|elig|vbar|f(cir|r)|l(c(ir|ross)|t|ine|arr)|a(st|cute)|r(slope|igof|or|d(er(of)?|f|m)?|v|arr)?|g(t|on|rave)|m(i(nus|cron|d)|ega|acr))|O(s(cr|lash)|c(y|irc)|ti(lde|mes)|opf|dblac|uml|penCurly(DoubleQuote|Quote)|ver(B(ar|rac(e|ket))|Parenthesis)|fr|Elig|acute|r|grave|m(icron|ega|acr)))|(p(s(cr|i)|h(i(v)?|one|mmat)|cy|i(tchfork|v)?|o(intint|und|pf)|uncsp|er(cnt|tenk|iod|p|mil)|fr|l(us(sim|cir|two|d(o|u)|e|acir|mn|b)?|an(ck(h)?|kv))|ar(s(im|l)|t|a(llel)?)?|r(sim|n(sim|E|ap)|cue|ime(s)?|o(d|p(to)?|f(surf|line|alar))|urel|e(c(sim|n(sim|eqq|approx)|curlyeq|eq|approx)?)?|E|ap)?|m)|P(s(cr|i)|hi|cy|i|o(incareplane|pf)|fr|lusMinus|artialD|r(ime|o(duct|portion(al)?)|ecedes(SlantEqual|Tilde|Equal)?)?))|(q(scr|int|opf|u(ot|est(eq)?|at(int|ernions))|prime|fr)|Q(scr|opf|UOT|fr))|(R(s(h|cr)|ho|c(y|edil|aron)|Barr|ight(Ceiling|T(ee(Vector|Arrow)?|riangle(Bar|Equal)?)|Do(ubleBracket|wn(TeeVector|Vector(Bar)?))|Up(TeeVector|DownVector|Vector(Bar)?)|Vector(Bar)?|arrow|Floor|A(ngleBracket|rrow(Bar|LeftArrow)?))|o(undImplies|pf)|uleDelayed|e(verse(UpEquilibrium|E(quilibrium|lement)))?|fr|EG|a(ng|cute|rr(tl)?)|rightarrow)|r(s(h|cr|q(uo(r)?|b)|aquo)|h(o(v)?|ar(d|u(l)?))|nmid|c(y|ub|e(il|dil)|aron)|Barr|t(hree|imes|ri(e|f|ltri)?)|i(singdotseq|ng|ght(squigarrow|harpoon(down|up)|threetimes|left(harpoons|arrows)|arrow(tail)?|rightarrows))|Har|o(times|p(f|lus|ar)|a(ng|rr)|brk)|d(sh|ca|quo(r)?|ldhar)|uluhar|p(polint|ar(gt)?)|e(ct|al(s|ine|part)?|g)|f(isht|loor|r)|l(har|arr|m)|a(ng(d|e|le)?|c(ute|e)|t(io(nals)?|ail)|dic|emptyv|quo|rr(sim|hk|c|tl|pl|fs|w|lp|ap|b(fs)?)?)|rarr|x|moust(ache)?|b(arr|r(k(sl(d|u)|e)|ac(e|k))|brk)|A(tail|arr|rr)))|(s(s(cr|tarf|etmn|mile)|h(y|c(hcy|y)|ort(parallel|mid)|arp)|c(sim|y|n(sim|E|ap)|cue|irc|polint|e(dil)?|E|a(p|ron))?|t(ar(f)?|r(ns|aight(phi|epsilon)))|i(gma(v|f)?|m(ne|dot|plus|e(q)?|l(E)?|rarr|g(E)?)?)|zlig|o(pf|ftcy|l(b(ar)?)?)|dot(e|b)?|u(ng|cc(sim|n(sim|eqq|approx)|curlyeq|eq|approx)?|p(s(im|u(p|b)|et(neq(q)?|eq(q)?)?)|hs(ol|ub)|1|n(e|E)|2|d(sub|ot)|3|plus|e(dot)?|E|larr|mult)?|m|b(s(im|u(p|b)|et(neq(q)?|eq(q)?)?)|n(e|E)|dot|plus|e(dot)?|E|rarr|mult)?)|pa(des(uit)?|r)|e(swar|ct|tm(n|inus)|ar(hk|r(ow)?)|xt|mi|Arr)|q(su(p(set(eq)?|e)?|b(set(eq)?|e)?)|c(up(s)?|ap(s)?)|u(f|ar(e|f))?)|fr(own)?|w(nwar|ar(hk|r(ow)?)|Arr)|larr|acute|rarr|m(t(e(s)?)?|i(d|le)|eparsl|a(shp|llsetminus))|bquo)|S(scr|hort(RightArrow|DownArrow|UpArrow|LeftArrow)|c(y|irc|edil|aron)?|tar|igma|H(cy|CHcy)|opf|u(c(hThat|ceeds(SlantEqual|Tilde|Equal)?)|p(set|erset(Equal)?)?|m|b(set(Equal)?)?)|OFTcy|q(uare(Su(perset(Equal)?|bset(Equal)?)|Intersection|Union)?|rt)|fr|acute|mallCircle))|(t(s(hcy|c(y|r)|trok)|h(i(nsp|ck(sim|approx))|orn|e(ta(sym|v)?|re(4|fore))|k(sim|ap))|c(y|edil|aron)|i(nt|lde|mes(d|b(ar)?)?)|o(sa|p(cir|f(ork)?|bot)?|ea)|dot|prime|elrec|fr|w(ixt|ohead(leftarrow|rightarrow))|a(u|rget)|r(i(sb|time|dot|plus|e|angle(down|q|left(eq)?|right(eq)?)?|minus)|pezium|ade)|brk)|T(s(cr|trok)|RADE|h(i(nSpace|ckSpace)|e(ta|refore))|c(y|edil|aron)|S(cy|Hcy)|ilde(Tilde|Equal|FullEqual)?|HORN|opf|fr|a(u|b)|ripleDot))|(u(scr|h(ar(l|r)|blk)|c(y|irc)|t(ilde|dot|ri(f)?)|Har|o(pf|gon)|d(har|arr|blac)|u(arr|ml)|p(si(h|lon)?|harpoon(left|right)|downarrow|uparrows|lus|arrow)|f(isht|r)|wangle|l(c(orn(er)?|rop)|tri)|a(cute|rr)|r(c(orn(er)?|rop)|tri|ing)|grave|m(l|acr)|br(cy|eve)|Arr)|U(scr|n(ion(Plus)?|der(B(ar|rac(e|ket))|Parenthesis))|c(y|irc)|tilde|o(pf|gon)|dblac|uml|p(si(lon)?|downarrow|Tee(Arrow)?|per(RightArrow|LeftArrow)|DownArrow|Equilibrium|arrow|Arrow(Bar|DownArrow)?)|fr|a(cute|rr(ocir)?)|ring|grave|macr|br(cy|eve)))|(v(s(cr|u(pn(e|E)|bn(e|E)))|nsu(p|b)|cy|Bar(v)?|zigzag|opf|dash|prop|e(e(eq|bar)?|llip|r(t|bar))|Dash|fr|ltri|a(ngrt|r(s(igma|u(psetneq(q)?|bsetneq(q)?))|nothing|t(heta|riangle(left|right))|p(hi|i|ropto)|epsilon|kappa|r(ho)?))|rtri|Arr)|V(scr|cy|opf|dash(l)?|e(e|r(yThinSpace|t(ical(Bar|Separator|Tilde|Line))?|bar))|Dash|vdash|fr|bar))|(w(scr|circ|opf|p|e(ierp|d(ge(q)?|bar))|fr|r(eath)?)|W(scr|circ|opf|edge|fr))|(X(scr|i|opf|fr)|x(s(cr|qcup)|h(arr|Arr)|nis|c(irc|up|ap)|i|o(time|dot|p(f|lus))|dtri|u(tri|plus)|vee|fr|wedge|l(arr|Arr)|r(arr|Arr)|map))|(y(scr|c(y|irc)|icy|opf|u(cy|ml)|en|fr|ac(y|ute))|Y(scr|c(y|irc)|opf|uml|Icy|Ucy|fr|acute|Acy))|(z(scr|hcy|c(y|aron)|igrarr|opf|dot|e(ta|etrf)|fr|w(nj|j)|acute)|Z(scr|c(y|aron)|Hcy|opf|dot|e(ta|roWidthSpace)|fr|acute)))\b
     name: support.constant.character.entity.ruko
 
+  dom-api-classes:
+    comment: JavaScript DOM and Web API classes
+    match: \b(AbortController|AbortSignal|AbsoluteOrientationSensor|AbstractRange|AccelerometerExperimental|AesCbcParams|AesCtrParams|AesDerivedKeyParams|AesGcmParams|AesKeyGenParams|AmbientLightSensorExperimental|AnalyserNode|ANGLE_instanced_arrays|Animation|AnimationEffect|AnimationEvent|AnimationPlaybackEvent|AnimationTimeline|Attr|AudioBuffer|AudioBufferSourceNode|AudioContext|AudioData|AudioDecoder|AudioDestinationNode|AudioEncoder|AudioListener|AudioNode|AudioParam|AudioParamDescriptor|AudioParamMap|AudioProcessingEventDeprecated|AudioScheduledSourceNode|AudioSinkInfoExperimental|AudioTrack|AudioTrackList|AudioWorklet|AudioWorkletGlobalScope|AudioWorkletNode|AudioWorkletProcessor|AuthenticatorAssertionResponse|AuthenticatorAttestationResponse|AuthenticatorResponse|BackgroundFetchEventExperimental|BackgroundFetchManagerExperimental|BackgroundFetchRecordExperimental|BackgroundFetchRegistrationExperimental|BackgroundFetchUpdateUIEventExperimental|BarcodeDetectorExperimental|BarProp|BaseAudioContext|BatteryManager|BeforeInstallPromptEventExperimentalNon-standard|BeforeUnloadEvent|BiquadFilterNode|Blob|BlobEvent|BluetoothExperimental|BluetoothCharacteristicPropertiesExperimental|BluetoothDeviceExperimental|BluetoothRemoteGATTCharacteristicExperimental|BluetoothRemoteGATTDescriptorExperimental|BluetoothRemoteGATTServerExperimental|BluetoothRemoteGATTServiceExperimental|BluetoothUUID|BroadcastChannel|BrowserCaptureMediaStreamTrackExperimental|ByteLengthQueuingStrategy|Cache|CacheStorage|CanMakePaymentEventExperimental|CanvasCaptureMediaStreamTrack|CanvasGradient|CanvasPattern|CanvasRenderingContext2D|CaptureControllerExperimental|CaretPosition|CDATASection|ChannelMergerNode|ChannelSplitterNode|ChapterInformationExperimental|CharacterBoundsUpdateEventExperimental|CharacterData|Client|Clients|Clipboard|ClipboardEvent|ClipboardItem|CloseEvent|CloseWatcherExperimental|CommandEvent|Comment|CompositionEvent|CompressionStream|console|ConstantSourceNode|ContactAddressExperimental|ContactsManagerExperimental|ContentIndexExperimental|ContentIndexEventExperimental|ContentVisibilityAutoStateChangeEvent|ConvolverNode|CookieChangeEvent|CookieStore|CookieStoreManager|CountQueuingStrategy|CreateMonitorExperimental|Credential|CredentialsContainer|CropTargetExperimental|Crypto|CryptoKey|CryptoKeyPair|CSPViolationReportBody|CSS|CSSAnimation|CSSConditionRule|CSSContainerRule|CSSCounterStyleRule|CSSFontFaceRule|CSSFontFeatureValuesRule|CSSFontPaletteValuesRule|CSSFunctionDeclarationsExperimental|CSSFunctionDescriptorsExperimental|CSSFunctionRuleExperimental|CSSGroupingRule|CSSImageValue|CSSImportRule|CSSKeyframeRule|CSSKeyframesRule|CSSKeywordValue|CSSLayerBlockRule|CSSLayerStatementRule|CSSMathInvert|CSSMathMax|CSSMathMin|CSSMathNegate|CSSMathProduct|CSSMathSum|CSSMathValue|CSSMatrixComponent|CSSMediaRule|CSSNamespaceRule|CSSNestedDeclarations|CSSNumericArray|CSSNumericValue|CSSPageDescriptors|CSSPageRule|CSSPerspective|CSSPositionTryDescriptors|CSSPositionTryRule|CSSPositionValue|CSSPrimitiveValueDeprecated|CSSPropertyRule|CSSPseudoElementExperimental|CSSRotate|CSSRule|CSSRuleList|CSSScale|CSSScopeRule|CSSSkew|CSSSkewX|CSSSkewY|CSSStartingStyleRule|CSSStyleDeclaration|CSSStyleProperties|CSSStyleRule|CSSStyleSheet|CSSStyleValue|CSSSupportsRule|CSSTransformComponent|CSSTransformValue|CSSTransition|CSSTranslate|CSSUnitValue|CSSUnparsedValue|CSSValueDeprecated|CSSValueListDeprecated|CSSVariableReferenceValue|CSSViewTransitionRule|CustomElementRegistry|CustomEvent|CustomStateSet|DataTransfer|DataTransferItem|DataTransferItemList|DecompressionStream|DedicatedWorkerGlobalScope|DeferredRequestInitExperimental|DelayNode|DelegatedInkTrailPresenterExperimental|DeprecationReportBodyExperimental|DeviceMotionEvent|DeviceMotionEventAcceleration|DeviceMotionEventRotationRate|DeviceOrientationEvent|DevicePostureExperimental|DirectoryEntrySync|DirectoryReaderSync|Document|DocumentFragment|DocumentPictureInPictureExperimental|DocumentPictureInPictureEventExperimental|DocumentTimeline|DocumentType|DOMErrorDeprecated|DOMException|DOMHighResTimeStamp|DOMImplementation|DOMMatrix|DOMMatrixReadOnly|DOMParser|DOMPoint|DOMPointReadOnly|DOMQuad|DOMRect|DOMRectList|DOMRectReadOnly|DOMStringList|DOMStringMap|DOMTokenList|DragEvent|DynamicsCompressorNode|EcdhKeyDeriveParams|EcdsaParams|EcKeyGenParams|EcKeyImportParams|EncodedAudioChunk|EncodedVideoChunk|ErrorEvent|Event|EventCounts|EventSource|EventTarget|ExtendableCookieChangeEvent|ExtendableEvent|ExtendableMessageEvent|EyeDropperExperimental|FeaturePolicyExperimental|FederatedCredentialExperimental|FederatedCredentialInit|FenceExperimental|FencedFrameConfigExperimental|FetchEvent|FetchLaterResultExperimental|File|FileEntrySync|FileList|FileReader|FileReaderSync|FileSystem|FileSystemChangeRecord|FileSystemDirectoryEntry|FileSystemDirectoryHandle|FileSystemEntry|FileSystemFileEntry|FileSystemFileHandle|FileSystemHandle|FileSystemObserverExperimentalNon-standard|FileSystemSync|FileSystemSyncAccessHandle|FileSystemWritableFileStream|FocusEvent|FontDataExperimental|FontFace|FontFaceSet|FontFaceSetLoadEvent|FormData|FormDataEvent|FragmentDirective|GainNode|Gamepad|GamepadButton|GamepadEvent|GamepadHapticActuator|GamepadPoseExperimental|Geolocation|GeolocationCoordinates|GeolocationPosition|GeolocationPositionError|GestureEventNon-standard|GPU|GPUAdapter|GPUAdapterInfo|GPUBindGroup|GPUBindGroupLayout|GPUBuffer|GPUCanvasContext|GPUCommandBuffer|GPUCommandEncoder|GPUCompilationInfo|GPUCompilationMessage|GPUComputePassEncoder|GPUComputePipeline|GPUDevice|GPUDeviceLostInfo|GPUError|GPUExternalTexture|GPUInternalError|GPUOutOfMemoryError|GPUPipelineError|GPUPipelineLayout|GPUQuerySet|GPUQueue|GPURenderBundle|GPURenderBundleEncoder|GPURenderPassEncoder|GPURenderPipeline|GPUSampler|GPUShaderModule|GPUSupportedFeatures|GPUSupportedLimits|GPUTexture|GPUTextureView|GPUUncapturedErrorEvent|GPUValidationError|GravitySensor|Gyroscope|HashChangeEvent|Headers|HIDExperimental|HIDConnectionEventExperimental|HIDDeviceExperimental|HIDInputReportEventExperimental|Highlight|HighlightRegistry|History|HkdfParams|HmacImportParams|HmacKeyGenParams|HMDVRDevice|HTMLAllCollection|HTMLAnchorElement|HTMLAreaElement|HTMLAudioElement|HTMLBaseElement|HTMLBodyElement|HTMLBRElement|HTMLButtonElement|HTMLCanvasElement|HTMLCollection|HTMLDataElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDivElement|HTMLDListElement|HTMLDocument|HTMLElement|HTMLEmbedElement|HTMLFencedFrameElementExperimental|HTMLFieldSetElement|HTMLFontElementDeprecated|HTMLFormControlsCollection|HTMLFormElement|HTMLFrameSetElementDeprecated|HTMLHeadElement|HTMLHeadingElement|HTMLHRElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLInputElement|HTMLLabelElement|HTMLLegendElement|HTMLLIElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElementDeprecated|HTMLMediaElement|HTMLMenuElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLObjectElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOptionsCollection|HTMLOutputElement|HTMLParagraphElement|HTMLParamElementDeprecated|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLSelectedContentElementExperimental|HTMLSelectElement|HTMLSlotElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTimeElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|IDBCursor|IDBCursorWithValue|IDBDatabase|IDBFactory|IDBIndex|IDBKeyRange|IDBObjectStore|IDBOpenDBRequest|IDBRequest|IDBTransaction|IDBVersionChangeEvent|IdentityCredentialExperimental|IdentityCredentialErrorExperimental|IdentityCredentialRequestOptionsExperimental|IdentityProviderExperimental|IdleDeadline|IdleDetectorExperimental|IIRFilterNode|ImageBitmap|ImageBitmapRenderingContext|ImageCapture|ImageData|ImageDecoder|ImageTrack|ImageTrackList|InkExperimental|InputDeviceCapabilitiesExperimental|InputDeviceInfo|InputEvent|InstallEvent|IntegrityViolationReportBody|InterestEventExperimentalNon-standard|IntersectionObserver|IntersectionObserverEntry|InterventionReportBodyExperimental|KeyboardExperimental|KeyboardEvent|KeyboardLayoutMapExperimental|KeyframeEffect|LanguageDetectorExperimental|LargestContentfulPaint|LaunchParamsExperimental|LaunchQueueExperimental|LayoutShiftExperimental|LayoutShiftAttributionExperimental|LinearAccelerationSensor|Location|Lock|LockManager|MagnetometerExperimental|MathMLElement|MediaCapabilities|MediaDeviceInfo|MediaDevices|MediaElementAudioSourceNode|MediaEncryptedEvent|MediaError|MediaKeyMessageEvent|MediaKeys|MediaKeySession|MediaKeyStatusMap|MediaList|MediaMetadata|MediaQueryList|MediaQueryListEvent|MediaRecorder|MediaRecorderErrorEvent|MediaSession|MediaSource|MediaSourceHandle|MediaStream|MediaStreamAudioDestinationNode|MediaStreamAudioSourceNode|MediaStreamEvent|MediaStreamTrack|MediaStreamTrackAudioSourceNode|MediaStreamTrackEvent|MediaStreamTrackGeneratorExperimentalNon-standard|MediaStreamTrackProcessor|MediaTrackConstraints|MediaTrackSettings|MediaTrackSupportedConstraints|MerchantValidationEventDeprecated|MessageChannel|MessageEvent|MessagePort|MetadataExperimentalNon-standard|MIDIAccess|MIDIConnectionEvent|MIDIInput|MIDIInputMap|MIDIMessageEvent|MIDIOutput|MIDIOutputMap|MIDIPort|MimeTypeDeprecated|MimeTypeArrayDeprecated|MouseEvent|MouseScrollEvent|MutationEvent|MutationObserver|MutationRecord|NamedNodeMap|NavigateEvent|Navigation|NavigationActivation|NavigationCurrentEntryChangeEvent|NavigationDestination|NavigationHistoryEntry|NavigationPrecommitController|NavigationPreloadManager|NavigationTransition|Navigator|NavigatorLogin|NavigatorUADataExperimental|NDEFMessageExperimental|NDEFReaderExperimental|NDEFReadingEventExperimental|NDEFRecordExperimental|NetworkInformation|Node|NodeIterator|NodeList|Notification|NotificationEvent|NotRestoredReasonDetailsExperimental|NotRestoredReasonsExperimental|OES_draw_buffers_indexed|OfflineAudioCompletionEvent|OfflineAudioContext|OffscreenCanvas|OffscreenCanvasRenderingContext2D|OrientationSensor|OscillatorNode|OTPCredentialExperimental|OverconstrainedError|PageRevealEvent|PageSwapEvent|PageTransitionEvent|PaintRenderingContext2D|PaintSize|PaintWorkletGlobalScopeExperimental|PannerNode|PasswordCredentialExperimental|PasswordCredentialInit|Path2D|PaymentAddress|PaymentManagerExperimental|PaymentMethodChangeEvent|PaymentRequest|PaymentRequestEventExperimental|PaymentRequestUpdateEvent|PaymentResponse|Pbkdf2Params|Performance|PerformanceElementTimingExperimental|PerformanceEntry|PerformanceEventTiming|PerformanceLongAnimationFrameTimingExperimental|PerformanceLongTaskTimingExperimental|PerformanceMark|PerformanceMeasure|PerformanceNavigationDeprecated|PerformanceNavigationTiming|PerformanceObserver|PerformancePaintTiming|PerformanceResourceTiming|PerformanceScriptTimingExperimental|PerformanceServerTiming|PerformanceTimingDeprecated|PeriodicSyncEventExperimental|PeriodicSyncManagerExperimental|PeriodicWave|Permissions|PermissionStatus|PictureInPictureEvent|PictureInPictureWindow|PluginDeprecated|PluginArrayDeprecated|Point|PointerEvent|PopStateEvent|PositionSensorVRDevice|PresentationExperimental|PresentationAvailabilityExperimental|PresentationConnectionExperimental|PresentationConnectionAvailableEventExperimental|PresentationConnectionCloseEventExperimental|PresentationConnectionListExperimental|PresentationReceiverExperimental|PresentationRequestExperimental|PressureObserverExperimental|PressureRecordExperimental|ProcessingInstruction|ProfilerExperimental|ProgressEvent|PromiseRejectionEvent|PublicKeyCredential|PublicKeyCredentialCreationOptions|PublicKeyCredentialRequestOptions|PushEvent|PushManager|PushMessageData|PushSubscription|PushSubscriptionOptions|QuotaExceededErrorExperimental|RadioNodeList|Range|ReadableByteStreamController|ReadableStream|ReadableStreamBYOBReader|ReadableStreamBYOBRequest|ReadableStreamDefaultController|ReadableStreamDefaultReader|RelativeOrientationSensor|RemotePlayback|Report|ReportBody|ReportingObserver|Request|RequestInit|ResizeObserver|ResizeObserverEntry|ResizeObserverSize|Response|RestrictionTargetExperimental|RsaHashedImportParams|RsaHashedKeyGenParams|RsaOaepParams|RsaPssParams|RTCAudioSourceStats|RTCCertificate|RTCCertificateStats|RTCCodecStats|RTCDataChannel|RTCDataChannelEvent|RTCDataChannelStats|RTCDtlsTransport|RTCDTMFSender|RTCDTMFToneChangeEvent|RTCEncodedAudioFrame|RTCEncodedVideoFrame|RTCError|RTCErrorEvent|RTCIceCandidate|RTCIceCandidatePair|RTCIceCandidatePairStats|RTCIceCandidateStats|RTCIceParameters|RTCIceTransport|RTCIdentityAssertionExperimental|RTCInboundRtpStreamStats|RTCOutboundRtpStreamStats|RTCPeerConnection|RTCPeerConnectionIceErrorEvent|RTCPeerConnectionIceEvent|RTCPeerConnectionStats|RTCRemoteInboundRtpStreamStats|RTCRemoteOutboundRtpStreamStats|RTCRtpReceiver|RTCRtpScriptTransform|RTCRtpScriptTransformer|RTCRtpSender|RTCRtpTransceiver|RTCSctpTransport|RTCSessionDescription|RTCStatsReport|RTCTrackEvent|RTCTransformEvent|RTCTransportStats|RTCVideoSourceStats|SanitizerExperimental|SanitizerConfigExperimental|Scheduler|SchedulingExperimental|Screen|ScreenDetailedExperimental|ScreenDetailsExperimental|ScreenOrientation|ScriptProcessorNodeDeprecated|ScrollTimeline|SecurePaymentConfirmationRequest|SecurityPolicyViolationEvent|Selection|Sensor|SensorErrorEvent|SerialExperimental|SerialPortExperimental|ServiceWorker|ServiceWorkerContainer|ServiceWorkerGlobalScope|ServiceWorkerRegistration|ShadowRoot|SharedStorageDeprecated|SharedStorageOperationDeprecated|SharedStorageRunOperationDeprecated|SharedStorageWorkletDeprecated|SharedStorageWorkletGlobalScopeDeprecated|SharedWorker|SharedWorkerGlobalScope|SnapEventExperimental|SourceBuffer|SourceBufferList|SpeechGrammarDeprecated|SpeechGrammarListDeprecated|SpeechRecognition|SpeechRecognitionAlternative|SpeechRecognitionErrorEvent|SpeechRecognitionEvent|SpeechRecognitionPhraseExperimental|SpeechRecognitionResult|SpeechRecognitionResultList|SpeechSynthesis|SpeechSynthesisErrorEvent|SpeechSynthesisEvent|SpeechSynthesisUtterance|SpeechSynthesisVoice|StaticRange|StereoPannerNode|Storage|StorageAccessHandle|StorageEvent|StorageManager|StylePropertyMap|StylePropertyMapReadOnly|StyleSheet|StyleSheetList|SubmitEvent|SubtleCrypto|SummarizerExperimental|SVGAElement|SVGAngle|SVGAnimateColorElementDeprecated|SVGAnimatedAngle|SVGAnimatedBoolean|SVGAnimatedEnumeration|SVGAnimatedInteger|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedPreserveAspectRatio|SVGAnimatedRect|SVGAnimatedString|SVGAnimatedTransformList|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGDefsElement|SVGDescElement|SVGDiscardElementDeprecated|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGradientElement|SVGGraphicsElement|SVGImageElement|SVGLength|SVGLengthList|SVGLinearGradientElement|SVGLineElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMPathElement|SVGNumber|SVGNumberList|SVGPathElement|SVGPatternElement|SVGPointDeprecated|SVGPointList|SVGPolygonElement|SVGPolylineElement|SVGPreserveAspectRatio|SVGRadialGradientElement|SVGRect|SVGRectElement|SVGRenderingIntentDeprecated|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStringList|SVGStyleElement|SVGSVGElement|SVGSwitchElement|SVGSymbolElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGTransform|SVGTransformList|SVGTSpanElement|SVGUnitTypes|SVGUseElement|SVGViewElement|SyncEvent|SyncManager|TaskAttributionTimingExperimental|TaskController|TaskPriorityChangeEvent|TaskSignal|Text|TextDecoder|TextDecoderStream|TextEncoder|TextEncoderStream|TextEventDeprecated|TextFormatExperimental|TextFormatUpdateEventExperimental|TextMetrics|TextTrack|TextTrackCue|TextTrackCueList|TextTrackList|TextUpdateEventExperimental|TimeEvent|TimeRanges|ToggleEvent|Touch|TouchEvent|TouchList|TrackEvent|TransformStream|TransformStreamDefaultController|TransitionEvent|TranslatorExperimental|TreeWalker|TrustedHTML|TrustedScript|TrustedScriptURL|TrustedTypePolicy|TrustedTypePolicyFactory|UIEvent|URL|URLPattern|URLSearchParams|USBExperimental|USBAlternateInterfaceExperimental|USBConfigurationExperimental|USBConnectionEventExperimental|USBDeviceExperimental|USBEndpointExperimental|USBInterfaceExperimental|USBInTransferResultExperimental|USBIsochronousInTransferPacketExperimental|USBIsochronousInTransferResultExperimental|USBIsochronousOutTransferPacketExperimental|USBIsochronousOutTransferResultExperimental|USBOutTransferResultExperimental|UserActivation|ValidityState|VideoColorSpace|VideoDecoder|VideoEncoder|VideoFrame|VideoPlaybackQuality|VideoTrack|VideoTrackGeneratorExperimental|VideoTrackList|ViewportExperimental|ViewTimeline|ViewTransitionTypeSet|VirtualKeyboardExperimental|VisibilityStateEntryExperimental|VisualViewport|VRDisplay|VRDisplayCapabilities|VRDisplayEvent|VREyeParameters|VRFieldOfView|VRFrameData|VRLayerInit|VRPose|VRStageParameters|VTTCue|VTTRegion|WakeLock|WakeLockSentinel|WaveShaperNode|WebGL2RenderingContext|WebGLActiveInfo|WebGLBuffer|WebGLContextEvent|WebGLFramebuffer|WebGLObjectExperimental|WebGLProgram|WebGLQuery|WebGLRenderbuffer|WebGLRenderingContext|WebGLSampler|WebGLShader|WebGLShaderPrecisionFormat|WebGLSync|WebGLTexture|WebGLTransformFeedback|WebGLUniformLocation|WebGLVertexArrayObject|WebSocket|WebSocketStreamExperimental|WebTransport|WebTransportBidirectionalStream|WebTransportDatagramDuplexStream|WebTransportError|WebTransportReceiveStreamExperimental|WebTransportSendStreamExperimental|WGSLLanguageFeatures|WheelEvent|Window|WindowClient|WindowControlsOverlayExperimental|WindowControlsOverlayGeometryChangeEventExperimental|WindowSharedStorageDeprecated|Worker|WorkerGlobalScope|WorkerLocation|WorkerNavigator|Worklet|WorkletGlobalScope|WorkletSharedStorageDeprecated|WritableStream|WritableStreamDefaultController|WritableStreamDefaultWriter|XMLDocument|XMLHttpRequest|XMLHttpRequestEventTarget|XMLHttpRequestUpload|XMLSerializer|XPathEvaluator|XPathExpression|XPathResult|XRAnchorExperimental|XRAnchorSetExperimental|XRBoundedReferenceSpaceExperimental|XRCompositionLayerExperimental|XRCPUDepthInformationExperimental|XRCubeLayerExperimental|XRCylinderLayerExperimental|XRDepthInformationExperimental|XREquirectLayerExperimental|XRFrameExperimental|XRHand|XRHitTestResultExperimental|XRHitTestSourceExperimental|XRInputSource|XRInputSourceArrayExperimental|XRInputSourceEvent|XRInputSourcesChangeEvent|XRJointPose|XRJointSpace|XRLayerExperimental|XRLayerEventExperimental|XRLightEstimateExperimental|XRLightProbeExperimental|XRMediaBindingExperimental|XRPose|XRProjectionLayerExperimental|XRQuadLayerExperimental|XRRayExperimental|XRReferenceSpace|XRReferenceSpaceEvent|XRRenderStateExperimental|XRRigidTransform|XRSessionExperimental|XRSessionEvent|XRSpace|XRSubImageExperimental|XRSystemExperimental|XRTransientInputHitTestResultExperimental|XRTransientInputHitTestSourceExperimental|XRViewExperimental|XRViewerPose|XRViewport|XRWebGLBindingExperimental|XRWebGLDepthInformationExperimental|XRWebGLLayerExperimental|XRWebGLSubImageExperimental|XSLTProcessor)\b
+    name: support.class.dom.ruko
+
   type-names:
-    comment: Names for built-in types
+    comment: Names for builtin types
     patterns:
       - comment: |-
           Scalar primitive types
@@ -9233,7 +9256,7 @@ repository:
           )\b
         name: support.type.builtin.primitive.ruko
       - comment: |-
-          Composite built-in types
+          Composite builtin types
           array: fixed-size array
           list: dynamic array
           map: associative array (hash table)
@@ -9259,15 +9282,14 @@ repository:
         name: support.class.error.ruko
       - comment: POSIX reserved type names commonly used in C standard library and system programming
         match: \b([\p{L}\p{Nl}\p{Pc}])+\s*_t\b|\b(\p{Lu}[\w&&\P{Lu}]*)+T\b
-        name: support.type.posix-reserved.ruko
-      - match: \b(void|float|double|decimal|s?byte|u?short|u?int|u?long|u?cent|[wd]?char|bool|string|struct|enum|union|register|cbuffer|class|interface|namespace|struct|tbuffer|mixed|any)\b
+        name: support.type.posix.ruko
+      - match: \b(void|float|double|decimal|s?byte|u?short|u?int|u?long|u?cent|[wd]?char|bool|string|struct|enum|union|register|buffer|class|interface|namespace|struct|tbuffer|mixed|any)\b
         name: support.type.builtin.language.ruko
       - match: \b(NS|UI|CG|MK|SK|CA|CI|CK|AV|CF|MD|AB|PC|SC|SK|SKM|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
-        name: support.class.cocoa-framework.ruko
+        name: support.class.cocoa.ruko
       - match: \b(AV|CM|GK|SK|SC|CI|CA|CK|MD|NS|UI|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
-        name: support.class.apple-framework.ruko
-      - comment: Include built-in classes from other languages to improve recognition
-        include: "#support-classes"
+        name: support.class.apple.ruko
+      - include: "#support-types"
 
   builtin-functions:
     comment: Names for general support functions in Ruko standard library organized by naming conventions for maintainability
@@ -9279,22 +9301,18 @@ repository:
         match: \b[gs]et[\p{Lu}\p{Pc}]\w*\b
         name: support.function.accessor.ruko
       - comment: conversion functions
-        match: \b((i|ha)s|to|from)[\p{Lu}\p{Pc}]\w*\b
+        match: \b((i|ha)s|can|to|from)[\p{Lu}\p{Pc}]\w*\b
         name: support.function.type.ruko
       - include: "#support-functions"
 
-  support-classes:
-    comment: Ruko probably won't have a large set of built-in classes, so we include common built-in types from major languages to improve recognition of cross-language codebases
+  support-types:
     patterns:
       # Python
       - include: "source.python#builtin-exceptions"
-
       # PHP
       - include: "source.php#class-builtin"
-
       # Swift
       - include: "source.swift#builtin-types"
-
       # Objective-C
       - include: "source.objc#anonymous_pattern_17"
       - include: "source.objc#anonymous_pattern_18"
@@ -9305,7 +9323,6 @@ repository:
       - include: "source.objc#anonymous_pattern_23"
       - include: "source.objc#anonymous_pattern_24"
       - include: "source.objc#anonymous_pattern_25"
-
       # Objective-C++
       - include: "source.objcpp#anonymous_pattern_17"
       - include: "source.objcpp#anonymous_pattern_18"
@@ -9316,125 +9333,41 @@ repository:
       - include: "source.objcpp#anonymous_pattern_23"
       - include: "source.objcpp#anonymous_pattern_24"
       - include: "source.objcpp#anonymous_pattern_25"
-
-      # JavaScript DOM and Web API classes
-      - match: \b(AbortController|AbortSignal|AbsoluteOrientationSensor|AbstractRange|AccelerometerExperimental|AesCbcParams|AesCtrParams|AesDerivedKeyParams|AesGcmParams|AesKeyGenParams|AmbientLightSensorExperimental|AnalyserNode|ANGLE_instanced_arrays|Animation|AnimationEffect|AnimationEvent|AnimationPlaybackEvent|AnimationTimeline|Attr|AudioBuffer|AudioBufferSourceNode|AudioContext|AudioData|AudioDecoder|AudioDestinationNode|AudioEncoder|AudioListener|AudioNode|AudioParam|AudioParamDescriptor|AudioParamMap|AudioProcessingEventDeprecated|AudioScheduledSourceNode|AudioSinkInfoExperimental|AudioTrack|AudioTrackList|AudioWorklet|AudioWorkletGlobalScope|AudioWorkletNode|AudioWorkletProcessor|AuthenticatorAssertionResponse|AuthenticatorAttestationResponse|AuthenticatorResponse|BackgroundFetchEventExperimental|BackgroundFetchManagerExperimental|BackgroundFetchRecordExperimental|BackgroundFetchRegistrationExperimental|BackgroundFetchUpdateUIEventExperimental|BarcodeDetectorExperimental|BarProp|BaseAudioContext|BatteryManager|BeforeInstallPromptEventExperimentalNon-standard|BeforeUnloadEvent|BiquadFilterNode|Blob|BlobEvent|BluetoothExperimental|BluetoothCharacteristicPropertiesExperimental|BluetoothDeviceExperimental|BluetoothRemoteGATTCharacteristicExperimental|BluetoothRemoteGATTDescriptorExperimental|BluetoothRemoteGATTServerExperimental|BluetoothRemoteGATTServiceExperimental|BluetoothUUID|BroadcastChannel|BrowserCaptureMediaStreamTrackExperimental|ByteLengthQueuingStrategy|Cache|CacheStorage|CanMakePaymentEventExperimental|CanvasCaptureMediaStreamTrack|CanvasGradient|CanvasPattern|CanvasRenderingContext2D|CaptureControllerExperimental|CaretPosition|CDATASection|ChannelMergerNode|ChannelSplitterNode|ChapterInformationExperimental|CharacterBoundsUpdateEventExperimental|CharacterData|Client|Clients|Clipboard|ClipboardEvent|ClipboardItem|CloseEvent|CloseWatcherExperimental|CommandEvent|Comment|CompositionEvent|CompressionStream|console|ConstantSourceNode|ContactAddressExperimental|ContactsManagerExperimental|ContentIndexExperimental|ContentIndexEventExperimental|ContentVisibilityAutoStateChangeEvent|ConvolverNode|CookieChangeEvent|CookieStore|CookieStoreManager|CountQueuingStrategy|CreateMonitorExperimental|Credential|CredentialsContainer|CropTargetExperimental|Crypto|CryptoKey|CryptoKeyPair|CSPViolationReportBody|CSS|CSSAnimation|CSSConditionRule|CSSContainerRule|CSSCounterStyleRule|CSSFontFaceRule|CSSFontFeatureValuesRule|CSSFontPaletteValuesRule|CSSFunctionDeclarationsExperimental|CSSFunctionDescriptorsExperimental|CSSFunctionRuleExperimental|CSSGroupingRule|CSSImageValue|CSSImportRule|CSSKeyframeRule|CSSKeyframesRule|CSSKeywordValue|CSSLayerBlockRule|CSSLayerStatementRule|CSSMathInvert|CSSMathMax|CSSMathMin|CSSMathNegate|CSSMathProduct|CSSMathSum|CSSMathValue|CSSMatrixComponent|CSSMediaRule|CSSNamespaceRule|CSSNestedDeclarations|CSSNumericArray|CSSNumericValue|CSSPageDescriptors|CSSPageRule|CSSPerspective|CSSPositionTryDescriptors|CSSPositionTryRule|CSSPositionValue|CSSPrimitiveValueDeprecated|CSSPropertyRule|CSSPseudoElementExperimental|CSSRotate|CSSRule|CSSRuleList|CSSScale|CSSScopeRule|CSSSkew|CSSSkewX|CSSSkewY|CSSStartingStyleRule|CSSStyleDeclaration|CSSStyleProperties|CSSStyleRule|CSSStyleSheet|CSSStyleValue|CSSSupportsRule|CSSTransformComponent|CSSTransformValue|CSSTransition|CSSTranslate|CSSUnitValue|CSSUnparsedValue|CSSValueDeprecated|CSSValueListDeprecated|CSSVariableReferenceValue|CSSViewTransitionRule|CustomElementRegistry|CustomEvent|CustomStateSet|DataTransfer|DataTransferItem|DataTransferItemList|DecompressionStream|DedicatedWorkerGlobalScope|DeferredRequestInitExperimental|DelayNode|DelegatedInkTrailPresenterExperimental|DeprecationReportBodyExperimental|DeviceMotionEvent|DeviceMotionEventAcceleration|DeviceMotionEventRotationRate|DeviceOrientationEvent|DevicePostureExperimental|DirectoryEntrySync|DirectoryReaderSync|Document|DocumentFragment|DocumentPictureInPictureExperimental|DocumentPictureInPictureEventExperimental|DocumentTimeline|DocumentType|DOMErrorDeprecated|DOMException|DOMHighResTimeStamp|DOMImplementation|DOMMatrix|DOMMatrixReadOnly|DOMParser|DOMPoint|DOMPointReadOnly|DOMQuad|DOMRect|DOMRectList|DOMRectReadOnly|DOMStringList|DOMStringMap|DOMTokenList|DragEvent|DynamicsCompressorNode|EcdhKeyDeriveParams|EcdsaParams|EcKeyGenParams|EcKeyImportParams|EncodedAudioChunk|EncodedVideoChunk|ErrorEvent|Event|EventCounts|EventSource|EventTarget|ExtendableCookieChangeEvent|ExtendableEvent|ExtendableMessageEvent|EyeDropperExperimental|FeaturePolicyExperimental|FederatedCredentialExperimental|FederatedCredentialInit|FenceExperimental|FencedFrameConfigExperimental|FetchEvent|FetchLaterResultExperimental|File|FileEntrySync|FileList|FileReader|FileReaderSync|FileSystem|FileSystemChangeRecord|FileSystemDirectoryEntry|FileSystemDirectoryHandle|FileSystemEntry|FileSystemFileEntry|FileSystemFileHandle|FileSystemHandle|FileSystemObserverExperimentalNon-standard|FileSystemSync|FileSystemSyncAccessHandle|FileSystemWritableFileStream|FocusEvent|FontDataExperimental|FontFace|FontFaceSet|FontFaceSetLoadEvent|FormData|FormDataEvent|FragmentDirective|GainNode|Gamepad|GamepadButton|GamepadEvent|GamepadHapticActuator|GamepadPoseExperimental|Geolocation|GeolocationCoordinates|GeolocationPosition|GeolocationPositionError|GestureEventNon-standard|GPU|GPUAdapter|GPUAdapterInfo|GPUBindGroup|GPUBindGroupLayout|GPUBuffer|GPUCanvasContext|GPUCommandBuffer|GPUCommandEncoder|GPUCompilationInfo|GPUCompilationMessage|GPUComputePassEncoder|GPUComputePipeline|GPUDevice|GPUDeviceLostInfo|GPUError|GPUExternalTexture|GPUInternalError|GPUOutOfMemoryError|GPUPipelineError|GPUPipelineLayout|GPUQuerySet|GPUQueue|GPURenderBundle|GPURenderBundleEncoder|GPURenderPassEncoder|GPURenderPipeline|GPUSampler|GPUShaderModule|GPUSupportedFeatures|GPUSupportedLimits|GPUTexture|GPUTextureView|GPUUncapturedErrorEvent|GPUValidationError|GravitySensor|Gyroscope|HashChangeEvent|Headers|HIDExperimental|HIDConnectionEventExperimental|HIDDeviceExperimental|HIDInputReportEventExperimental|Highlight|HighlightRegistry|History|HkdfParams|HmacImportParams|HmacKeyGenParams|HMDVRDevice|HTMLAllCollection|HTMLAnchorElement|HTMLAreaElement|HTMLAudioElement|HTMLBaseElement|HTMLBodyElement|HTMLBRElement|HTMLButtonElement|HTMLCanvasElement|HTMLCollection|HTMLDataElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDivElement|HTMLDListElement|HTMLDocument|HTMLElement|HTMLEmbedElement|HTMLFencedFrameElementExperimental|HTMLFieldSetElement|HTMLFontElementDeprecated|HTMLFormControlsCollection|HTMLFormElement|HTMLFrameSetElementDeprecated|HTMLHeadElement|HTMLHeadingElement|HTMLHRElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLInputElement|HTMLLabelElement|HTMLLegendElement|HTMLLIElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElementDeprecated|HTMLMediaElement|HTMLMenuElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLObjectElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOptionsCollection|HTMLOutputElement|HTMLParagraphElement|HTMLParamElementDeprecated|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLSelectedContentElementExperimental|HTMLSelectElement|HTMLSlotElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTimeElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|IDBCursor|IDBCursorWithValue|IDBDatabase|IDBFactory|IDBIndex|IDBKeyRange|IDBObjectStore|IDBOpenDBRequest|IDBRequest|IDBTransaction|IDBVersionChangeEvent|IdentityCredentialExperimental|IdentityCredentialErrorExperimental|IdentityCredentialRequestOptionsExperimental|IdentityProviderExperimental|IdleDeadline|IdleDetectorExperimental|IIRFilterNode|ImageBitmap|ImageBitmapRenderingContext|ImageCapture|ImageData|ImageDecoder|ImageTrack|ImageTrackList|InkExperimental|InputDeviceCapabilitiesExperimental|InputDeviceInfo|InputEvent|InstallEvent|IntegrityViolationReportBody|InterestEventExperimentalNon-standard|IntersectionObserver|IntersectionObserverEntry|InterventionReportBodyExperimental|KeyboardExperimental|KeyboardEvent|KeyboardLayoutMapExperimental|KeyframeEffect|LanguageDetectorExperimental|LargestContentfulPaint|LaunchParamsExperimental|LaunchQueueExperimental|LayoutShiftExperimental|LayoutShiftAttributionExperimental|LinearAccelerationSensor|Location|Lock|LockManager|MagnetometerExperimental|MathMLElement|MediaCapabilities|MediaDeviceInfo|MediaDevices|MediaElementAudioSourceNode|MediaEncryptedEvent|MediaError|MediaKeyMessageEvent|MediaKeys|MediaKeySession|MediaKeyStatusMap|MediaList|MediaMetadata|MediaQueryList|MediaQueryListEvent|MediaRecorder|MediaRecorderErrorEvent|MediaSession|MediaSource|MediaSourceHandle|MediaStream|MediaStreamAudioDestinationNode|MediaStreamAudioSourceNode|MediaStreamEvent|MediaStreamTrack|MediaStreamTrackAudioSourceNode|MediaStreamTrackEvent|MediaStreamTrackGeneratorExperimentalNon-standard|MediaStreamTrackProcessor|MediaTrackConstraints|MediaTrackSettings|MediaTrackSupportedConstraints|MerchantValidationEventDeprecated|MessageChannel|MessageEvent|MessagePort|MetadataExperimentalNon-standard|MIDIAccess|MIDIConnectionEvent|MIDIInput|MIDIInputMap|MIDIMessageEvent|MIDIOutput|MIDIOutputMap|MIDIPort|MimeTypeDeprecated|MimeTypeArrayDeprecated|MouseEvent|MouseScrollEvent|MutationEvent|MutationObserver|MutationRecord|NamedNodeMap|NavigateEvent|Navigation|NavigationActivation|NavigationCurrentEntryChangeEvent|NavigationDestination|NavigationHistoryEntry|NavigationPrecommitController|NavigationPreloadManager|NavigationTransition|Navigator|NavigatorLogin|NavigatorUADataExperimental|NDEFMessageExperimental|NDEFReaderExperimental|NDEFReadingEventExperimental|NDEFRecordExperimental|NetworkInformation|Node|NodeIterator|NodeList|Notification|NotificationEvent|NotRestoredReasonDetailsExperimental|NotRestoredReasonsExperimental|OES_draw_buffers_indexed|OfflineAudioCompletionEvent|OfflineAudioContext|OffscreenCanvas|OffscreenCanvasRenderingContext2D|OrientationSensor|OscillatorNode|OTPCredentialExperimental|OverconstrainedError|PageRevealEvent|PageSwapEvent|PageTransitionEvent|PaintRenderingContext2D|PaintSize|PaintWorkletGlobalScopeExperimental|PannerNode|PasswordCredentialExperimental|PasswordCredentialInit|Path2D|PaymentAddress|PaymentManagerExperimental|PaymentMethodChangeEvent|PaymentRequest|PaymentRequestEventExperimental|PaymentRequestUpdateEvent|PaymentResponse|Pbkdf2Params|Performance|PerformanceElementTimingExperimental|PerformanceEntry|PerformanceEventTiming|PerformanceLongAnimationFrameTimingExperimental|PerformanceLongTaskTimingExperimental|PerformanceMark|PerformanceMeasure|PerformanceNavigationDeprecated|PerformanceNavigationTiming|PerformanceObserver|PerformancePaintTiming|PerformanceResourceTiming|PerformanceScriptTimingExperimental|PerformanceServerTiming|PerformanceTimingDeprecated|PeriodicSyncEventExperimental|PeriodicSyncManagerExperimental|PeriodicWave|Permissions|PermissionStatus|PictureInPictureEvent|PictureInPictureWindow|PluginDeprecated|PluginArrayDeprecated|Point|PointerEvent|PopStateEvent|PositionSensorVRDevice|PresentationExperimental|PresentationAvailabilityExperimental|PresentationConnectionExperimental|PresentationConnectionAvailableEventExperimental|PresentationConnectionCloseEventExperimental|PresentationConnectionListExperimental|PresentationReceiverExperimental|PresentationRequestExperimental|PressureObserverExperimental|PressureRecordExperimental|ProcessingInstruction|ProfilerExperimental|ProgressEvent|PromiseRejectionEvent|PublicKeyCredential|PublicKeyCredentialCreationOptions|PublicKeyCredentialRequestOptions|PushEvent|PushManager|PushMessageData|PushSubscription|PushSubscriptionOptions|QuotaExceededErrorExperimental|RadioNodeList|Range|ReadableByteStreamController|ReadableStream|ReadableStreamBYOBReader|ReadableStreamBYOBRequest|ReadableStreamDefaultController|ReadableStreamDefaultReader|RelativeOrientationSensor|RemotePlayback|Report|ReportBody|ReportingObserver|Request|RequestInit|ResizeObserver|ResizeObserverEntry|ResizeObserverSize|Response|RestrictionTargetExperimental|RsaHashedImportParams|RsaHashedKeyGenParams|RsaOaepParams|RsaPssParams|RTCAudioSourceStats|RTCCertificate|RTCCertificateStats|RTCCodecStats|RTCDataChannel|RTCDataChannelEvent|RTCDataChannelStats|RTCDtlsTransport|RTCDTMFSender|RTCDTMFToneChangeEvent|RTCEncodedAudioFrame|RTCEncodedVideoFrame|RTCError|RTCErrorEvent|RTCIceCandidate|RTCIceCandidatePair|RTCIceCandidatePairStats|RTCIceCandidateStats|RTCIceParameters|RTCIceTransport|RTCIdentityAssertionExperimental|RTCInboundRtpStreamStats|RTCOutboundRtpStreamStats|RTCPeerConnection|RTCPeerConnectionIceErrorEvent|RTCPeerConnectionIceEvent|RTCPeerConnectionStats|RTCRemoteInboundRtpStreamStats|RTCRemoteOutboundRtpStreamStats|RTCRtpReceiver|RTCRtpScriptTransform|RTCRtpScriptTransformer|RTCRtpSender|RTCRtpTransceiver|RTCSctpTransport|RTCSessionDescription|RTCStatsReport|RTCTrackEvent|RTCTransformEvent|RTCTransportStats|RTCVideoSourceStats|SanitizerExperimental|SanitizerConfigExperimental|Scheduler|SchedulingExperimental|Screen|ScreenDetailedExperimental|ScreenDetailsExperimental|ScreenOrientation|ScriptProcessorNodeDeprecated|ScrollTimeline|SecurePaymentConfirmationRequest|SecurityPolicyViolationEvent|Selection|Sensor|SensorErrorEvent|SerialExperimental|SerialPortExperimental|ServiceWorker|ServiceWorkerContainer|ServiceWorkerGlobalScope|ServiceWorkerRegistration|ShadowRoot|SharedStorageDeprecated|SharedStorageOperationDeprecated|SharedStorageRunOperationDeprecated|SharedStorageWorkletDeprecated|SharedStorageWorkletGlobalScopeDeprecated|SharedWorker|SharedWorkerGlobalScope|SnapEventExperimental|SourceBuffer|SourceBufferList|SpeechGrammarDeprecated|SpeechGrammarListDeprecated|SpeechRecognition|SpeechRecognitionAlternative|SpeechRecognitionErrorEvent|SpeechRecognitionEvent|SpeechRecognitionPhraseExperimental|SpeechRecognitionResult|SpeechRecognitionResultList|SpeechSynthesis|SpeechSynthesisErrorEvent|SpeechSynthesisEvent|SpeechSynthesisUtterance|SpeechSynthesisVoice|StaticRange|StereoPannerNode|Storage|StorageAccessHandle|StorageEvent|StorageManager|StylePropertyMap|StylePropertyMapReadOnly|StyleSheet|StyleSheetList|SubmitEvent|SubtleCrypto|SummarizerExperimental|SVGAElement|SVGAngle|SVGAnimateColorElementDeprecated|SVGAnimatedAngle|SVGAnimatedBoolean|SVGAnimatedEnumeration|SVGAnimatedInteger|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedPreserveAspectRatio|SVGAnimatedRect|SVGAnimatedString|SVGAnimatedTransformList|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGDefsElement|SVGDescElement|SVGDiscardElementDeprecated|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGradientElement|SVGGraphicsElement|SVGImageElement|SVGLength|SVGLengthList|SVGLinearGradientElement|SVGLineElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMPathElement|SVGNumber|SVGNumberList|SVGPathElement|SVGPatternElement|SVGPointDeprecated|SVGPointList|SVGPolygonElement|SVGPolylineElement|SVGPreserveAspectRatio|SVGRadialGradientElement|SVGRect|SVGRectElement|SVGRenderingIntentDeprecated|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStringList|SVGStyleElement|SVGSVGElement|SVGSwitchElement|SVGSymbolElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGTransform|SVGTransformList|SVGTSpanElement|SVGUnitTypes|SVGUseElement|SVGViewElement|SyncEvent|SyncManager|TaskAttributionTimingExperimental|TaskController|TaskPriorityChangeEvent|TaskSignal|Text|TextDecoder|TextDecoderStream|TextEncoder|TextEncoderStream|TextEventDeprecated|TextFormatExperimental|TextFormatUpdateEventExperimental|TextMetrics|TextTrack|TextTrackCue|TextTrackCueList|TextTrackList|TextUpdateEventExperimental|TimeEvent|TimeRanges|ToggleEvent|Touch|TouchEvent|TouchList|TrackEvent|TransformStream|TransformStreamDefaultController|TransitionEvent|TranslatorExperimental|TreeWalker|TrustedHTML|TrustedScript|TrustedScriptURL|TrustedTypePolicy|TrustedTypePolicyFactory|UIEvent|URL|URLPattern|URLSearchParams|USBExperimental|USBAlternateInterfaceExperimental|USBConfigurationExperimental|USBConnectionEventExperimental|USBDeviceExperimental|USBEndpointExperimental|USBInterfaceExperimental|USBInTransferResultExperimental|USBIsochronousInTransferPacketExperimental|USBIsochronousInTransferResultExperimental|USBIsochronousOutTransferPacketExperimental|USBIsochronousOutTransferResultExperimental|USBOutTransferResultExperimental|UserActivation|ValidityState|VideoColorSpace|VideoDecoder|VideoEncoder|VideoFrame|VideoPlaybackQuality|VideoTrack|VideoTrackGeneratorExperimental|VideoTrackList|ViewportExperimental|ViewTimeline|ViewTransitionTypeSet|VirtualKeyboardExperimental|VisibilityStateEntryExperimental|VisualViewport|VRDisplay|VRDisplayCapabilities|VRDisplayEvent|VREyeParameters|VRFieldOfView|VRFrameData|VRLayerInit|VRPose|VRStageParameters|VTTCue|VTTRegion|WakeLock|WakeLockSentinel|WaveShaperNode|WebGL2RenderingContext|WebGLActiveInfo|WebGLBuffer|WebGLContextEvent|WebGLFramebuffer|WebGLObjectExperimental|WebGLProgram|WebGLQuery|WebGLRenderbuffer|WebGLRenderingContext|WebGLSampler|WebGLShader|WebGLShaderPrecisionFormat|WebGLSync|WebGLTexture|WebGLTransformFeedback|WebGLUniformLocation|WebGLVertexArrayObject|WebSocket|WebSocketStreamExperimental|WebTransport|WebTransportBidirectionalStream|WebTransportDatagramDuplexStream|WebTransportError|WebTransportReceiveStreamExperimental|WebTransportSendStreamExperimental|WGSLLanguageFeatures|WheelEvent|Window|WindowClient|WindowControlsOverlayExperimental|WindowControlsOverlayGeometryChangeEventExperimental|WindowSharedStorageDeprecated|Worker|WorkerGlobalScope|WorkerLocation|WorkerNavigator|Worklet|WorkletGlobalScope|WorkletSharedStorageDeprecated|WritableStream|WritableStreamDefaultController|WritableStreamDefaultWriter|XMLDocument|XMLHttpRequest|XMLHttpRequestEventTarget|XMLHttpRequestUpload|XMLSerializer|XPathEvaluator|XPathExpression|XPathResult|XRAnchorExperimental|XRAnchorSetExperimental|XRBoundedReferenceSpaceExperimental|XRCompositionLayerExperimental|XRCPUDepthInformationExperimental|XRCubeLayerExperimental|XRCylinderLayerExperimental|XRDepthInformationExperimental|XREquirectLayerExperimental|XRFrameExperimental|XRHand|XRHitTestResultExperimental|XRHitTestSourceExperimental|XRInputSource|XRInputSourceArrayExperimental|XRInputSourceEvent|XRInputSourcesChangeEvent|XRJointPose|XRJointSpace|XRLayerExperimental|XRLayerEventExperimental|XRLightEstimateExperimental|XRLightProbeExperimental|XRMediaBindingExperimental|XRPose|XRProjectionLayerExperimental|XRQuadLayerExperimental|XRRayExperimental|XRReferenceSpace|XRReferenceSpaceEvent|XRRenderStateExperimental|XRRigidTransform|XRSessionExperimental|XRSessionEvent|XRSpace|XRSubImageExperimental|XRSystemExperimental|XRTransientInputHitTestResultExperimental|XRTransientInputHitTestSourceExperimental|XRViewExperimental|XRViewerPose|XRViewport|XRWebGLBindingExperimental|XRWebGLDepthInformationExperimental|XRWebGLLayerExperimental|XRWebGLSubImageExperimental|XSLTProcessor)\b
-        name: support.class.dom.ruko
-      # Node.JS built-in types
-      - match: \b(assert|async_hooks|buffer|child_process|cluster|console|crypto|dgram|dns|domain|events|fs|http|http2|https|inspector|module|net|os|path|perf_hooks|process|punycode|querystring|readline|repl|stream|string_decoder|timers|tls|trace_events|tty|url|util|v8|vm|wasi|worker_threads|zlib)\b
-        name: support.type.builtin.nodejs
-      - match: \b(cout|cin|cerr|clog|endl|flush|ws|boolalpha|noboolalpha|showpoint|noshowpoint|scientific|fixed|hex|dec|oct|left|right|internal|skipws|noskipws|unitbuf|nounitbuf)\b
-        name: support.type.object.stdcpp
-      - match: \b(std(_|::))(\p{Lu}[\w&&\P{Lu}]*)+\b
-        name: support.class.stdcpp
-      - match: \b(String|Vec|Option|Result|Box|Rc|Arc|Cell|RefCell|HashMap|HashSet|BTreeMap|BTreeSet|VecDeque|LinkedList|BinaryHeap|Path|PathBuf|OsString|OsStr|CString|CStr|Duration|Instant|SystemTime|SocketAddr|IpAddr|Ipv4Addr|Ipv6Addr)\b
-        name: support.class.rust
-      - match: \b(System|Math|String|Integer|Double|Float|Long|Short|Byte|Character|Boolean|Object|Class|Thread|Runnable|Exception|Error|ArrayList|LinkedList|HashMap|HashSet|TreeMap|TreeSet|Collections|Arrays)\b
-        name: support.class.java
+      # JavaScript DOM and Web API
+      - include: "#dom-api-classes"
+      # Ruko Standard Library
+      - include: "#stdlib-types"
+      - include: "#stdlib-classes"
+      - include: "#stdlib-interfaces"
+      - include: "#stdlib-modules"
+      - include: "#stdlib-namespaces"
+      # C, C++, Objective-C, Objective-C++
+      - include: "source.c.platform"
 
   support-functions:
-    comment: Core built-in functions from major languages because Ruko standard library builds on them
     patterns:
       # Swift
       - include: "source.swift#builtin-functions"
       - include: "source.swift#builtin-global-functions"
-
       # Batch
       - include: "source.bat#commands"
-
       # R
       - include: "source.r#builtin-functions"
-
       # PHP
       - include: "source.php#support"
-
       # C, Objective-C, C++, Objective-C++
       - include: "source.objcpp#c_functions"
       - include: "source.objc#c_functions"
-      - match: \b(strlen|strcpy|strncpy|strcat|strncat|strcmp|strncmp|sprintf|snprintf|vsprintf|vsnprintf|fopen|fclose|fread|fwrite|fprintf|fscanf|printf|scanf|malloc|calloc|realloc|free|memcpy|memmove|memset|memcmp|exit|abort|atoi|atol|atof|strtol|strtoul|strtod|rand|srand|time|clock|difftime|gmtime|localtime|mktime|strftime|perror|remove|rename|tmpfile|tmpnam)\b
-        name: support.function.builtin.c
-      - match: \b(getline|ignore|putback|read|readsome|sync|tellg|tellp|unget|write)\b
-        name: support.function.method.stdcpp
-      - match: \b(printf|scanf|sprintf|fprintf|snprintf|fscanf|sscanf|vprintf|vscanf|vsprintf|vfprintf|vsnprintf|vfscanf|vsscanf|malloc|calloc|realloc|free|memcpy|memmove|memset|memcmp|strlen|strcpy|strncpy|strcat|strncat|strcmp|strncmp|strchr|strrchr|strstr|strtok|atoi|atol|atof|strtol|strtoul|strtod|exit|abort)\b
-        name: support.function.builtin.cpp
-
-      # JavaScript
-      - match: \b(Array|ArrayBuffer|Blob|Boolean|Date|document|Function|Int(8|16|32|64)Array|Math|Map|Number|Object|Proxy|RegExp|Set|String|WeakMap|window|Uint(8|16|32|64)Array|XMLHttpRequest|console)\b
-        name: support.class.coffee
-      - match: \b(console)\b
-        name: entity.name.type.object.coffee
-      - match: \b(debug|warn|info|log|error|time|timeEnd|assert)\b
-        name: support.function.console.coffee
-      - match: \b(apply|call|concat|every|filter|forEach|from|hasOwnProperty|indexOf|isPrototypeOf|join|lastIndexOf|map|of|pop|propertyIsEnumerable|push|reduce(Right)?|reverse|shift|slice|some|sort|splice|to(Locale)?String|unshift|valueOf)\b
-        name: support.function.method.array.coffee
-      - match: \b(isArray)\b
-        name: support.function.static.array.coffee
-      - match: \b(create|definePropert(ies|y)|freeze|getOwnProperty(Descriptors?|Names)|getProperty(Descriptor|Names)|getPrototypeOf|is(Extensible|Frozen|Sealed)?|isnt|keys|preventExtensions|seal)\b-coffee
-        name: support.function.static.object.coffee
-      - match: \b(abs|acos|acosh|asin|asinh|atan|atan2|atanh|ceil|cos|cosh|exp|expm1|floor|hypot|log|log10|log1p|log2|max|min|pow|random|round|sign|sin|sinh|sqrt|tan|tanh|trunc)\b
-        name: support.function.static.math.coffee
-      - match: \b(is(Finite|Integer|NaN)|toInteger)\b
-        name: support.function.static.number.coffee
-
+      - include: "source.c.platform#functions"
+      # Ruko Standard Library
+      - include: "#stdlib-functions"
+      - include: "#stdlib-variables"
+      - include: "#stdlib-constants"
+      - include: "#stdlib-properties"
+      - include: "#stdlib-parameters"
       # Python
-      - match: \b(print|println|input|len|range|type|id|dir|help|isinstance|issubclass|super|eval|exec|open|abs|all|any|bin|bool|bytearray|bytes|callable|chr|classmethod|compile|complex|delattr|dict|divmod|enumerate|filter|float|format|frozenset|getattr|globals|hasattr|hash|hex|int|is|iter|list|locals|map|max|memoryview|min|next|object|oct|ord|pow|property|repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|tuple|type|vars|zip)\b
-        name: support.function.builtin.python
       - include: "source.python#builtin-functions"
-      - include: "source.python#builtin-types"
-      - include: "source.python#magic-function-names"
-
-      # Rust
-      - match: \b(clone|collect|contains|count|drain|extend|filter|find|fold|get|insert|is_empty|len|map|pop|push|remove|retain|sort|split|unwrap|unwrap_or|unwrap_or_else)\b
-        name: support.function.method.rust
-
-      # Java
-      - match: \b(println|print|printf|format|equals|equalsIgnoreCase|compareTo|compareToIgnoreCase|length|charAt|substring|indexOf|lastIndexOf|toUpperCase|toLowerCase|trim|split|replace|replaceAll|replaceFirst|valueOf|isEmpty|contains|startsWith|endsWith|hashCode|getClass|notify|notifyAll|wait|clone|toString)\b
-        name: support.function.method.java
-
-      # SQL
-      - match: \b(abort|abort_after_wait|absent|absolute|accent_sensitivity|acceptable_cursopt|acp|action|activation|add|address|admin|aes_128|aes_192|aes_256|affinity|after|aggregate|algorithm|all_constraints|all_errormsgs|all_indexes|all_levels|all_results|allow_connections|allow_dup_row|allow_encrypted_value_modifications|allow_page_locks|allow_row_locks|allow_snapshot_isolation|alter|altercolumn|always|anonymous|ansi_defaults|ansi_null_default|ansi_null_dflt_off|ansi_null_dflt_on|ansi_nulls|ansi_padding|ansi_warnings|appdomain|append|application|apply|arithabort|arithignore|array|assembly|asymmetric|asynchronous_commit|at|atan2|atomic|attach|attach_force_rebuild_log|attach_rebuild_log|audit|auth_realm|authentication|auto|auto_cleanup|auto_close|auto_create_statistics|auto_drop|auto_shrink|auto_update_statistics|auto_update_statistics_async|automated_backup_preference|automatic|autopilot|availability|availability_mode|backup|backup_priority|base64|basic|batches|batchsize|before|between|bigint|binary|binding|bit|block|blockers|blocksize|bmk|both|break|broker|broker_instance|bucket_count|buffer|buffercount|bulk_logged|by|call|caller|card|case|catalog|catch|cert|certificate|change_retention|change_tracking|change_tracking_context|changes|char|character|character_set|check_expiration|check_policy|checkconstraints|checkindex|checkpoint|checksum|cleanup_policy|clear|clear_port|close|clustered|codepage|collection|column_encryption_key|column_master_key|columnstore|columnstore_archive|colv_80_to_100|colv_100_to_80|commit_differential_base|committed|compatibility_level|compress_all_row_groups|compression|compression_delay|concat_null_yields_null|concatenate|configuration|connect|connection|containment|continue|continue_after_error|contract|contract_name|control|conversation|conversation_group_id|conversation_handle|copy|copy_only|count_rows|counter|create(\\\\s+or\\\\s+alter)?|credential|cross|cryptographic|cryptographic_provider|cube|cursor|cursor_close_on_commit|cursor_default|data|data_compression|data_flush_interval_seconds|data_mirroring|data_purity|data_source|database|database_name|database_snapshot|datafiletype|date_correlation_optimization|date|datefirst|dateformat|date_format|datetime|datetime2|datetimeoffset|day(s)?|db_chaining|dbid|dbidexec|dbo_only|deadlock_priority|deallocate|dec|decimal|declare|decrypt|decrypt_a|decryption|default_database|default_fulltext_language|default_language|default_logon_domain|default_schema|definition|delay|delayed_durability|delimitedtext|density_vector|dependent|des|description|desired_state|desx|differential|digest|disable|disable_broker|disable_def_cnst_chk|disabled|disk|distinct|distributed|distribution|drop|drop_existing|dts_buffers|dump|durability|dynamic|edition|elements|else|emergency|empty|enable|enable_broker|enabled|encoding|encrypted|encrypted_value|encryption|encryption_type|end|endpoint|endpoint_url|enhancedintegrity|entry|error_broker_conversations|errorfile|estimateonly|event|except|exec|executable|execute|exists|expand|expiredate|expiry_date|explicit|external|external_access|failover|failover_mode|failure_condition_level|fast|fast_forward|fastfirstrow|federated_service_account|fetch|field_terminator|fieldterminator|file|filelistonly|filegroup|filegrowth|filename|filestream|filestream_log|filestream_on|filetable|file_format|filter|first_row|fips_flagger|fire_triggers|first|firstrow|float|flush_interval_seconds|fmtonly|following|for|force|force_failover_allow_data_loss|force_service_allow_data_loss|forced|forceplan|formatfile|format_options|format_type|formsof|forward_only|free_cursors|free_exec_context|fullscan|fulltext|fulltextall|fulltextkey|function|generated|get|geography|geometry|global|go|goto|governor|guid|hadoop|hardening|hash|hashed|header_limit|headeronly|health_check_timeout|hidden|hierarchyid|histogram|histogram_steps|hits_cursors|hits_exec_context|hour(s)?|http|identity|identity_value|if|ifnull|ignore|ignore_constraints|ignore_dup_key|ignore_dup_row|ignore_triggers|image|immediate|implicit_transactions|include|include_null_values|incremental|index|inflectional|init|initiator|insensitive|insert|instead|int|integer|integrated|intersect|intermediate|interval_length_minutes|into|inuse_cursors|inuse_exec_context|io|is|isabout|iso_week|isolation|job_tracker_location|json|keep|keep_nulls|keep_replication|keepdefaults|keepfixed|keepidentity|keepnulls|kerberos|key|key_path|key_source|key_store_provider_name|keyset|kill|kilobytes_per_batch|labelonly|langid|language|last|lastrow|leading|legacy_cardinality_estimation|length|level|lifetime|lineage_80_to_100|lineage_100_to_80|listener_ip|listener_port|load|loadhistory|lob_compaction|local|local_service_name|locate|location|lock_escalation|lock_timeout|lockres|log|login|login_type|loop|manual|mark_in_use_for_removal|masked|master|match|matched|max_queue_readers|max_duration|max_outstanding_io_per_volume|maxdop|maxerrors|maxlength|maxtransfersize|max_plans_per_query|max_storage_size_mb|mediadescription|medianame|mediapassword|memogroup|memory_optimized|merge|message|message_forward_size|message_forwarding|microsecond|millisecond|minute(s)?|mirror_address|misses_cursors|misses_exec_context|mixed|modify|money|month|move|multi_user|must_change|name|namespace|nanosecond|native|native_compilation|nchar|ncharacter|nested_triggers|never|new_account|new_broker|newname|next|no|no_browsetable|no_checksum|no_compression|no_infomsgs|no_triggers|no_truncate|nocount|noexec|noexpand|noformat|noinit|nolock|nonatomic|nonclustered|nondurable|none|norecompute|norecovery|noreset|norewind|noskip|not|notification|nounload|now|nowait|ntext|ntlm|nulls|numeric|numeric_roundabort|nvarchar|object|objid|oem|offline|old_account|online|operation_mode|open|openjson|optimistic|option|orc|out|outer|output|over|override|owner|ownership|pad_index|page|page_checksum|page_verify|pagecount|paglock|param|parameter_sniffing|parameter_type_expansion|parameterization|parquet|parseonly|partial|partition|partner|password|path|pause|percentage|permission_set|persisted|period|physical_only|plan_forcing_mode|policy|pool|population|ports|preceding|precision|predicate|presume_abort|primary|primary_role|print|prior|priority |priority_level|private|proc(edure)?|procedure_name|profile|provider|quarter|query_capture_mode|query_governor_cost_limit|query_optimizer_hotfixes|query_store|queue|quoted_identifier|raiserror|range|raw|rcfile|rc2|rc4|rc4_128|rdbms|read_committed_snapshot|read|read_only|read_write|readcommitted|readcommittedlock|readonly|readpast|readuncommitted|readwrite|real|rebuild|receive|recmodel_70backcomp|recompile|reconfigure|recovery|recursive|recursive_triggers|redo_queue|reject_sample_value|reject_type|reject_value|relative|remote|remote_data_archive|remote_proc_transactions|remote_service_name|remove|removed_cursors|removed_exec_context|reorganize|repeat|repeatable|repeatableread|replace|replica|replicated|replnick_100_to_80|replnickarray_80_to_100|replnickarray_100_to_80|required|required_cursopt|resample|reset|resource|resource_manager_location|respect|restart|restore|restricted_user|resume|retaindays|retention|return|revert|rewind|rewindonly|returns|robust|role|rollup|root|round_robin|route|row|rowdump|rowguidcol|rowlock|row_terminator|rows|rows_per_batch|rowsets_only|rowterminator|rowversion|rsa_1024|rsa_2048|rsa_3072|rsa_4096|rsa_512|safe|safety|sample|save|scalar|schema|schemabinding|scoped|scroll|scroll_locks|sddl|second|secexpr|seconds|secondary|secondary_only|secondary_role|secret|security|securityaudit|selective|self|send|sent|sequence|serde_method|serializable|server|service|service_broker|service_name|service_objective|session_timeout|session|sessions|seterror|setopts|sets|shard_map_manager|shard_map_name|sharded|shared_memory|shortest_path|show_statistics|showplan_all|showplan_text|showplan_xml|showplan_xml_with_recompile|shrinkdb|shutdown|sid|signature|simple|single_blob|single_clob|single_nclob|single_user|singleton|site|size|size_based_cleanup_mode|skip|smalldatetime|smallint|smallmoney|snapshot|snapshot_import|snapshotrestorephase|soap|softnuma|sort_in_tempdb|sorted_data|sorted_data_reorg|spatial|sql|sql_bigint|sql_binary|sql_bit|sql_char|sql_date|sql_decimal|sql_double|sql_float|sql_guid|sql_handle|sql_longvarbinary|sql_longvarchar|sql_numeric|sql_real|sql_smallint|sql_time|sql_timestamp|sql_tinyint|sql_tsi_day|sql_tsi_frac_second|sql_tsi_hour|sql_tsi_minute|sql_tsi_month|sql_tsi_quarter|sql_tsi_second|sql_tsi_week|sql_tsi_year|sql_type_date|sql_type_time|sql_type_timestamp|sql_varbinary|sql_varchar|sql_variant|sql_wchar|sql_wlongvarchar|ssl|ssl_port|standard|standby|start|start_date|started|stat_header|state|statement|static|statistics|statistics_incremental|statistics_norecompute|statistics_only|statman|stats|stats_stream|status|stop|stop_on_error|stopat|stopatmark|stopbeforemark|stoplist|stopped|string_delimiter|subject|supplemental_logging|supported|suspend|symmetric|synchronous_commit|synonym|sysname|system|system_time|system_versioning|table|tableresults|tablock|tablockx|take|tape|target|target_index|target_partition|target_recovery_time|tcp|temporal_history_retention|text|textimage_on|then|thesaurus|throw|time|timeout|timestamp|tinyint|to|top|torn_page_detection|track_columns_updated|trailing|tran|transaction|transfer|transform_noise_words|triple_des|triple_des_3key|truncate|trustworthy|try|tsql|two_digit_year_cutoff|type|type_desc|type_warning|tzoffset|uid|unbounded|uncommitted|unique|uniqueidentifier|unlimited|unload|unlock|unsafe|updlock|url|use|useplan|useroptions|use_type_default|using|utcdatetime|valid_xml|validation|value|values|varbinary|varchar|vector|verbose|verifyonly|version|view_metadata|virtual_device|visiblity|wait_at_low_priority|waitfor|webmethod|week|weekday|weight|well_formed_xml|when|while|widechar|widechar_ansi|widenative|window|windows|with|within|within group|witness|without|without_array_wrapper|workload|wsdl|xact_abort|xlock|xml|xmlschema|xquery|xsinil|year|zone)\b
-        name: support.function.builtin.sql
-      - match: \b(approx_count_distinct|approx_percentile_cont|approx_percentile_disc|avg|checksum_agg|count|count_big|group|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b
-        name: support.function.aggregate.sql
-      - match: \b(cume_dist|first_value|lag|last_value|lead|percent_rank|percentile_cont|percentile_disc)\b
-        name: support.function.analytic.sql
-      - match: \b(bit_count|get_bit|left_shift|right_shift|set_bit)\b
-        name: support.function.bitmanipulation.sql
-      - match: \b(cast|convert|parse|try_cast|try_convert|try_parse)\b
-        name: support.function.conversion.sql
-      - match: \b(collationproperty|tertiary_weights)\b
-        name: support.function.collation.sql
-      - match: \b(asymkey_id|asymkeyproperty|certproperty|cert_id|crypt_gen_random|decryptbyasymkey|decryptbycert|decryptbykey|decryptbykeyautoasymkey|decryptbykeyautocert|decryptbypassphrase|encryptbyasymkey|encryptbycert|encryptbykey|encryptbypassphrase|hashbytes|is_objectsigned|key_guid|key_id|key_name|signbyasymkey|signbycert|symkeyproperty|verifysignedbycert|verifysignedbyasymkey)\b
-        name: support.function.cryptographic.sql
-      - match: \b(cursor_status)\b
-        name: support.function.cursor.sql
-      - match: \b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_time(stamp)?|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|datetrunc|eomonth|switchoffset|todatetimeoffset|isdate|date_bucket)\b
-        name: support.function.datetime.sql
-      - match: \b(datalength|ident_current|ident_incr|ident_seed|identity|sql_variant_property)\b
-        name: support.function.datatype.sql
-      - match: \b(coalesce|nullif)\b
-        name: support.function.expression.sql
-      - match: \b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b
-        name: support.function.globalvar.sql
-      - match: \b(json|isjson|json_object|json_array|json_value|json_query|json_modify|json_path_exists)\b
-        name: support.function.json.sql
-      - match: \b(choose|iif|greatest|least)\b
-        name: support.function.logical.sql
-      - match: \b(abs|acos|asin|atan|atn2|ceiling|cos|cot|degrees|exp|floor|log|log10|pi|power|radians|rand|round|sign|sin|sqrt|square|tan)\b
-        name: support.function.mathematical.sql
-      - match: \b(app_name|applock_mode|applock_test|assemblyproperty|col_length|col_name|columnproperty|database_principal_id|databasepropertyex|db_id|db_name|file_id|file_idex|file_name|filegroup_id|filegroup_name|filegroupproperty|fileproperty|fulltextcatalogproperty|fulltextserviceproperty|index_col|indexkey_property|indexproperty|object_definition|object_id|object_name|object_schema_name|objectproperty|objectpropertyex|original_db_name|parsename|schema_id|schema_name|scope_identity|serverproperty|stats_date|type_id|type_name|typeproperty)\b
-        name: support.function.metadata.sql
-      - match: \b(rank|dense_rank|ntile|row_number)\b
-        name: support.function.ranking.sql
-      - match: \b(generate_series|opendatasource|openjson|openrowset|openquery|openxml|predict|string_split)\b
-        name: support.function.rowset.sql
-      - match: \b(certencoded|certprivatekey|current_user|database_principal_id|has_perms_by_name|is_member|is_rolemember|is_srvrolemember|original_login|permissions|pwdcompare|pwdencrypt|schema_id|schema_name|session_user|suser_id|suser_sid|suser_sname|system_user|suser_name|user_id|user_name)\b
-        name: support.function.security.sql
-      - match: \b(ascii|char|charindex|concat|difference|format|left|len|lower|ltrim|nchar|nodes|patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b
-        name: support.function.string.sql
-      - match: \b(binary_checksum|checksum|compress|connectionproperty|context_info|current_request_id|current_transaction_id|decompress|error_line|error_message|error_number|error_procedure|error_severity|error_state|formatmessage|get_filestream_transaction_context|getansinull|host_id|host_name|isnull|isnumeric|min_active_rowversion|newid|newsequentialid|rowcount_big|session_context|session_id|xact_state)\b
-        name: support.function.system.sql
-      - match: \b(patindex|textptr|textvalid)\b
-        name: support.function.textimage.sql
-      - match: \b(vector_distance|vector_norm|vector_normalize)\b
-        name: support.function.vector.sql
+      - include: "source.python#builtin-constants"
+      # CoffeeScript
+      - include: "source.coffee#method_names"
+      - include: "source.coffee#function-names"

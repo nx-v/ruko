@@ -1,16 +1,53 @@
-import fs from "fs";
 import yaml from "js-yaml";
-import prettier from "prettier";
 import {optimize} from "oniguruma-parser/optimizer";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  lstatSync,
+  cpSync,
+  copyFileSync,
+  rmSync,
+  rmdirSync,
+  writeFileSync,
+} from "fs";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
 let {keys, values, fromEntries, entries} = Object;
 
-let file = fs.readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
-let parsed = yaml.load(file);
+let file = readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
+let grammar = yaml.load(file);
 
-parsed.repository.numbers.patterns = (() => {
+// recursively mirror directory from source to destination.
+// may remove files in destination that are not in source.
+// if destination does not exist, it will be created.
+// source and destination should be absolute paths.
+const mirrorDir = (source, destination) => {
+  if (!existsSync(destination)) mkdirSync(destination, {recursive: true});
+
+  let sourceEntries = new Set(readdirSync(source));
+  let destEntries = new Set(readdirSync(destination));
+  for (let entry of sourceEntries) {
+    let sourcePath = `${source}/${entry}`;
+    let destPath = `${destination}/${entry}`;
+    if (lstatSync(sourcePath).isDirectory()) cpSync(sourcePath, destPath, {recursive: true});
+    else copyFileSync(sourcePath, destPath);
+  }
+
+  for (let entry of destEntries) {
+    if (!sourceEntries.has(entry)) {
+      let destPath = `${destination}/${entry}`;
+      if (lstatSync(destPath).isDirectory()) rmSync(destPath, {recursive: true, force: true});
+      else rmdirSync(destPath);
+    }
+  }
+};
+
+// === NUMBERS ===
+
+grammar.repository.numbers.patterns = (() => {
   let bases = [
     {name: "binary", digits: "01", prefix: "0b"},
     {name: "ternary", digits: "012", prefix: "0t"},
@@ -78,7 +115,8 @@ parsed.repository.numbers.patterns = (() => {
   return map;
 })();
 
-parsed.repository.strings = (() => {
+// === STRINGS ===
+grammar.repository.strings = (() => {
   let permutations = arr => {
     if (arr.length == 0) return [[]];
     let result = [];
@@ -176,70 +214,69 @@ let sortKeys = obj =>
     )
   : obj;
 
-// clone parsed object
-let parsed1 = sortKeys(parsed);
+// clone grammar object
+let grammar1 = sortKeys(grammar);
 
 // remove "define" key from repository
-delete parsed.repository.define;
+delete grammar.repository.define;
 
 // remove "comment" and "define" keys from all sub-objects in repository
-parsed = stringify(parsed, (k, value) => {
-  switch (typeof value) {
-    case "object":
-      for (let key of ["comment", "define"]) if (key in value) delete value[key];
-      if (k == "repository" || "repository" in value) return value;
-      break;
+grammar = parse(
+  stringify(grammar, (k, value) => {
+    switch (typeof value) {
+      case "object":
+        for (let key of ["comment", "define"]) if (key in value) delete value[key];
+        if (k == "repository" || "repository" in value) return sortKeys(value);
+        break;
 
-    case "string":
-      if (["begin", "end", "match", "while"].includes(k.trim()))
-        try {
-          if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
-            value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
-              let code = p2.replace(/(?<!\\)#this\./, "parsed1.");
-              return eval(code);
-            });
-          return optimize(value).pattern;
-        } catch (err) {
-          // console.error(err, value)
-          return value;
-        }
-  }
-  return sortKeys(value);
-});
-
-// parsed = await prettier.format(parsed, {parser: "json", tabWidth: 4});
-
-// recursively mirror directory from source to destination.
-// may remove files in destination that are not in source.
-// if destination does not exist, it will be created.
-// source and destination should be absolute paths.
-const mirrorDir = (source, destination) => {
-  if (!fs.existsSync(destination)) fs.mkdirSync(destination, {recursive: true});
-
-  let sourceEntries = new Set(fs.readdirSync(source));
-  let destEntries = new Set(fs.readdirSync(destination));
-  for (let entry of sourceEntries) {
-    let sourcePath = `${source}/${entry}`;
-    let destPath = `${destination}/${entry}`;
-    if (fs.lstatSync(sourcePath).isDirectory()) fs.cpSync(sourcePath, destPath, {recursive: true});
-    else fs.copyFileSync(sourcePath, destPath);
-  }
-
-  for (let entry of destEntries) {
-    if (!sourceEntries.has(entry)) {
-      let destPath = `${destination}/${entry}`;
-      if (fs.lstatSync(destPath).isDirectory()) fs.rmSync(destPath, {recursive: true, force: true});
-      else fs.rmdirSync(destPath);
+      case "string":
+        if (["begin", "end", "match", "while"].includes(k.trim()))
+          try {
+            if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
+              value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
+                let code = p2.replace(/(?<!\\)#this\./, "grammar1.");
+                return eval(code);
+              });
+            return optimize(value, {
+              override: {
+                alternationToClass: true,
+                extractPrefix: true,
+                extractPrefix2: true,
+                extractSuffix: true,
+                optionalize: true,
+                mergeRanges: true,
+                unnestUselessClasses: true,
+                unwrapNegationWrappers: true,
+                unwrapUselessClasses: true,
+                useShorthands: true,
+                useUnicodeAliases: true,
+                useUnicodeProps: true,
+                removeUselessFlags: true,
+                exposeAnchors: true,
+                removeEmptyGroups: true,
+                unwrapUselessGroups: true,
+                preventReDoS: true,
+              },
+            }).pattern;
+          } catch (err) {
+            return value;
+          }
     }
-  }
-};
+    return sortKeys(value);
+  }),
+);
 
-fs.writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", parsed);
-fs.writeFileSync(
-  "C:/Users/Admin/Videos/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json",
-  parsed,
+import stdlib from "file://C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json" with {type: "json"};
+grammar.repository = {...stdlib.repository, ...grammar.repository};
+grammar.information_for_contributors = stdlib.information_for_contributors;
+grammar = stringify(sortKeys(grammar), null, 4);
+
+writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", grammar);
+writeFileSync(
+  "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json",
+  grammar,
 );
 mirrorDir(
-  "C:/Users/Admin/Videos/nexovolta.ruko-language-support-0.0.1",
+  "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1",
   "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
 );
