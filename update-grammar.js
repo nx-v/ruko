@@ -190,10 +190,8 @@ grammar = parse(
   stringify(grammar, (k, value) => {
     switch (typeof value) {
       case "object":
-        for (let key of ["comment", "define"]) if (key in value) delete value[key];
-        if (k == "repository" || "repository" in value) return sortKeys(value);
+        delete value.comment || delete value.define;
         break;
-
       case "string":
         if (["begin", "end", "match", "while"].includes(k.trim()))
           try {
@@ -214,12 +212,6 @@ grammar = parse(
                 unwrapNegationWrappers: true,
                 unwrapUselessClasses: true,
                 useShorthands: true,
-                useUnicodeAliases: true,
-                useUnicodeProps: true,
-                removeUselessFlags: true,
-                exposeAnchors: true,
-                removeEmptyGroups: true,
-                unwrapUselessGroups: true,
               },
             }).pattern;
           } catch (err) {
@@ -233,7 +225,7 @@ grammar = parse(
 import stdlib from "file://C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json" with {type: "json"};
 grammar.repository = {...grammar.repository, ...stdlib.repository};
 grammar.information_for_contributors = stdlib.information_for_contributors;
-grammar = stringify(sortKeys(grammar), null, 4);
+grammar = stringify(sortKeys(grammar));
 
 writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", grammar);
 writeFileSync(
