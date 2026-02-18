@@ -28,39 +28,39 @@ let pluralize = word => {
   );
 };
 
-// Sort the patterns alphabetically for each library and then sort the libraries alphabetically.
-let repositoryKeys = [
-  "function",
-  "type",
-  "class",
-  "interface",
-  "module",
-  "enum",
-  "namespace",
-  "variable",
-  "constant",
-  "property",
-  "parameter",
-];
+// === C/C++ STANDARD LIBRARY ===
 
-//  === C/C++ STANDARD LIBRARY ===
-
-// Recursively traverse the Platform grammar.
-
+let symbolSet = {
+  class: new Set(),
+  interface: new Set(),
+  function: new Set(),
+  type: new Set(),
+  variable: new Set(),
+  constant: new Set(),
+  enum: new Set(),
+  namespace: new Set(),
+  module: new Set(),
+  property: new Set(),
+};
+let repositoryKeys = keys(symbolSet);
 let platforms = [];
 
+// Recursively traverse the Platform grammar.
 let traversePlatform = node => {
   if (node.patterns)
     for (let pattern of node.patterns) {
       if (pattern.match) {
-        if (pattern.captures) pattern.name = pattern.captures["2"]?.name || pattern.name;
+        if (pattern.captures) pattern.name = pattern.captures[2]?.name || pattern.name;
         let name = (
           pattern.name.startsWith("invalid.") ?
             pattern.name.replace(/^.+(?=support)/, "")
           : pattern.name).replace(/\.c$/, ".ruko");
         let key = name.split(".")[1];
-        let match = `\\b(${toRegExp(genex(pattern.match.replace(/^\\b|\\b$/g)).generate()).source})\\b`;
+        let symbols = genex(pattern.match.replace(/^\\b|\\b$/g)).generate();
+        symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
+        let match = `\\b(${toRegExp(symbols).source})\\b`;
         platforms.push({match, name: `support.${key}.c.ruko`, key});
+        symbolSet[key] = symbolSet[key].union(new Set(symbols));
       }
       pattern.patterns && traversePlatform(pattern);
     }
@@ -96,11 +96,9 @@ let libraries = stdlibFiles
     // are multiple libraries in the same file (e.g. "react" and "react-dom" in "react/index.d.ts").
     // Replace any non-alphanumeric characters with a single dash and convert to lowercase to get the library name.
     // For example, "react" and "react-dom" would both become "react", while "node" would remain as "node".
-
     let library = name.match(/^\w+/)[0].replace(/[-_]+/g, "-").toLowerCase();
 
     // Group them according to their declaration type and remove duplicates.
-
     let patterns = {
       class: [...new Set(content.matchAll(/class\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
       interface: [...new Set(content.matchAll(/interface\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
@@ -114,6 +112,7 @@ let libraries = stdlibFiles
       property: [...new Set(content.matchAll(/\s*\b([a-zA-Z_]\w*)(?=\s*[:=])/gm))].map(m => m[1]),
     };
 
+    // Sort the patterns alphabetically for each library and then sort the libraries alphabetically.
     patterns = fromEntries(
       entries(patterns).map(([key, value]) => [
         key,
@@ -126,29 +125,29 @@ let libraries = stdlibFiles
 
   // If library is the same, combine it with the names found in the current file.
   // otherwise, push the current library and start a new one.
-
   .reduce((acc, lib) => {
     let existing = acc.find(l => l.name == lib.name);
     if (existing) {
-      for (let key in lib.patterns)
-        existing.patterns[key] = [
-          ...new Set([...(existing.patterns[key] || []), ...(lib.patterns[key] || [])]),
-        ];
+      for (let key in lib.patterns) {
+        let symbols = lib.patterns[key] || [];
+        existing.patterns[key] = [...new Set(existing.patterns[key] || []).union(new Set(symbols))];
+      }
     } else acc.push(lib);
     return acc;
   }, []);
 
 // Remove any empty patterns and convert the arrays of names into
 // optimized regex patterns using oniguruma-parser/optimizer.
-
-console.log(JSON.stringify(libraries.find(lib => lib.name == "three")?.patterns.class));
+console.log(stringify(libraries.find(({name}) => name == "three")?.patterns.class));
 
 for (let lib of libraries)
   for (let key in lib.patterns) {
     if (lib.patterns[key].length > 0) {
-      let length = lib.patterns[key].length;
+      let symbols = lib.patterns[key] || [];
+      symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
+      let length = symbols.length;
       console.log(`Optimizing ${length} patterns for ${key}.${lib.name}`);
-      let match = `\\b(${toRegExp(lib.patterns[key]).source})\\b`;
+      let match = `\\b(${toRegExp(symbols).source})\\b`;
       lib.patterns[key] = {
         match,
         name: `support.${key}.${lib.name}.ruko`,
@@ -160,7 +159,6 @@ for (let lib of libraries)
 // Transpose patterns so that they are grouped by type instead of by library.
 // For example, all function patterns from all libraries would be grouped
 // together under "stdlib-functions", all class patterns under "stdlib-classes", etc.
-
 libraries = groupBy(
   libraries.flatMap(lib => values(lib.patterns).map(pattern => ({...pattern, library: lib.name}))),
   p => "stdlib-" + pluralize(p.key),
@@ -168,7 +166,6 @@ libraries = groupBy(
 
 // Combine both the C/C++ standard library patterns and the standard library patterns
 // into a single repository object, sorted alphabetically by key and then by pattern name.
-
 let grammar = {
   comment:
     "This file was generated using data from https://github.com/DefinitelyTyped/DefinitelyTyped",
@@ -231,6 +228,6 @@ grammar.information_for_contributors = [
   "The repository field is sorted alphabetically, and the patterns within each repository entry are also sorted alphabetically.",
   "All entries in the repository are sorted alphabetically, and the patterns are also sorted alphabetically. This makes it easier to find and modify specific patterns, and helps maintain a consistent structure in the grammar file.",
 ];
-grammar = stringify(sortKeys(grammar), null, 4);
+grammar = stringify(sortKeys(grammar));
 
 writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json", grammar);
