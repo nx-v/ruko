@@ -60,7 +60,7 @@ export default function toRegExp(input, flags = "") {
 function escapeRegExp(string, flags = "") {
   let isUnicode = flags.includes("u");
   return string
-    .replace(/[.*+?^$\{}()|[\]\\]/g, "\\$&")
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     .replace(/(?:[\uD800-\uDBFF][\uDC00-\uDFFF])|[\u0080-\uFFFF]/g, match => {
       if (match.length == 2) {
         if (isUnicode) {
