@@ -64,7 +64,7 @@ function escapeRegExp(string, flags = "") {
   return string
     .replace(/[.*+?^$\{}()|[\]\\]/g, "\\$&")
     .replace(/(?:[\uD800-\uDBFF][\uDC00-\uDFFF])|[\u0080-\uFFFF]/g, match => {
-      if (match.length === 2) {
+      if (match.length == 2) {
         if (isUnicode) {
           return "\\u{" + match.codePointAt(0).toString(16).toUpperCase() + "}";
         } else {
@@ -175,7 +175,7 @@ function isCartesian(strings) {
     generated.add(str);
   }
   let uniqueStrings = new Set(strings);
-  if (generated.size !== uniqueStrings.size) return false;
+  if (generated.size != uniqueStrings.size) return false;
   for (let s of generated) {
     if (!uniqueStrings.has(s)) return false;
   }
@@ -218,7 +218,7 @@ function buildPattern(strings, flags = "") {
     if (atoms) {
       if (atoms.length == 1) {
         let escaped = escapeRegExp(atoms[0], flags);
-        if (atoms[0].length === 1 || isAtomic(escaped)) {
+        if (atoms[0].length == 1 || isAtomic(escaped)) {
           return escaped + "?";
         } else {
           return "(?:" + escaped + ")?";
@@ -260,7 +260,7 @@ function buildPattern(strings, flags = "") {
   }
 
   function isAtomic(pattern) {
-    if (pattern.length === 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern)) return true;
+    if (pattern.length == 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern)) return true;
     if (pattern.startsWith("\\u{") && pattern.endsWith("}") && !/[|]/.test(pattern)) return true;
     if (/^\\u[0-9A-Fa-f]{4}$/.test(pattern)) return true;
     if (/^\\.$/.test(pattern)) return true;
@@ -269,17 +269,17 @@ function buildPattern(strings, flags = "") {
     if (pattern.startsWith("(?:") || pattern.startsWith("(")) {
       let open = 0;
       for (let i = 0; i < pattern.length; i++) {
-        if (pattern[i] === "\\") {
+        if (pattern[i] == "\\") {
           i++;
           continue;
         }
-        if (pattern[i] === "(") open++;
-        else if (pattern[i] === ")") {
+        if (pattern[i] == "(") open++;
+        else if (pattern[i] == ")") {
           open--;
-          if (open === 0) {
+          if (open == 0) {
             // The closing paren is at i; rest is either empty or "?"
             let rest = pattern.slice(i + 1);
-            return rest === "" || rest === "?";
+            return rest == "" || rest == "?";
           }
         }
       }
@@ -335,13 +335,6 @@ function buildPattern(strings, flags = "") {
     // and end before the suffix length from the end.
     // So slicing by shorter prefix includes MORE characters.
     // Therefore, logic is correct as is: middle = s.slice(prefix.length, s.length - suffix.length);
-    // If we had sliced by the original longer prefix, we would have excluded too many characters from the middle.
-    // Example: strings = ["abcde", "abXde"], original prefix = "ab", suffix = "de", overlap = 1
-    // After overlap reduction: prefix = "a", suffix = "de"
-    // middle should be s.slice(1, s.length - 2) which gives "bcd" and "bXc" respectively, which is correct.
-    // If we had sliced by the original prefix length of 2, we would have done s.slice(2, s.length - 2)
-    // which gives "cd" and "Xc", which is incorrect because it excludes the 'b' that is part of the middle pattern.
-    // Therefore, the current logic correctly accounts for the overlap reduction when calculating the middle part.
   }
 
   let middle = strings.map(s => s.slice(prefix.length, s.length - suffix.length));
@@ -398,7 +391,7 @@ function buildPattern(strings, flags = "") {
       let groups = new Map();
       let charOrder = [];
       for (let s of strings) {
-        if (s.length === 0) continue;
+        if (s.length == 0) continue;
         let char = getChar(s);
         if (!char) continue;
         if (!groups.has(char)) {
@@ -434,23 +427,23 @@ function buildPattern(strings, flags = "") {
           let inClass = false;
           for (let i = 0; i < validPfx.length; i++) {
             let c = validPfx[i];
-            if (c === "\\") {
+            if (c == "\\") {
               i++;
               continue;
             }
-            if (c === "[") {
+            if (c == "[") {
               inClass = true;
               continue;
             }
-            if (c === "]") {
+            if (c == "]") {
               inClass = false;
               continue;
             }
             if (inClass) continue;
-            if (c === "(") open++;
-            else if (c === ")") open--;
+            if (c == "(") open++;
+            else if (c == ")") open--;
           }
-          if (open !== 0 || inClass) {
+          if (open != 0 || inClass) {
             // Trim back to last safe position — for simplicity just skip factoring
             validPfx = "";
           }
@@ -465,15 +458,15 @@ function buildPattern(strings, flags = "") {
           if (validPfx.length > 0) {
             let rests = parts.map(p => p.slice(validPfx.length));
             // If all rests are empty except possibly one, or if rests form a simple optional
-            let nonEmpty = rests.filter(r => r !== "");
-            if (nonEmpty.length === 0) {
+            let nonEmpty = rests.filter(r => r != "");
+            if (nonEmpty.length == 0) {
               return validPfx;
-            } else if (nonEmpty.length === rests.length) {
+            } else if (nonEmpty.length == rests.length) {
               // All rests non-empty: form alternation of rests
               let restAlt = rests.join("|");
               let wrapped = isAtomic(restAlt) ? restAlt : "(?:" + restAlt + ")";
               return validPfx + wrapped;
-            } else if (rests.filter(r => r === "").length > 0 && nonEmpty.length === 1) {
+            } else if (rests.filter(r => r == "").length > 0 && nonEmpty.length == 1) {
               // One rest is empty — the other becomes optional
               let rest = nonEmpty[0];
               return validPfx + (isAtomic(rest) ? rest + "?" : "(?:" + rest + ")?");
@@ -507,13 +500,13 @@ function buildPattern(strings, flags = "") {
         lastResult = buildFromGroups(lastCharGroup.groups, lastOrder);
       }
 
-      if (firstResult !== null && lastResult !== null) {
+      if (firstResult != null && lastResult != null) {
         // Prefer fewer groups; on tie, prefer shorter result
         let firstGroups = firstCharGroup.groups.size;
         let lastGroups = lastCharGroup.groups.size;
         return (
             lastGroups < firstGroups ||
-              (lastGroups === firstGroups && lastResult.length < firstResult.length)
+              (lastGroups == firstGroups && lastResult.length < firstResult.length)
           ) ?
             lastResult
           : firstResult;
@@ -524,7 +517,6 @@ function buildPattern(strings, flags = "") {
 
   // Use iterator to check code point count, not length property
   // Check if all are single characters (handling Unicode code points correctly)
-  // Use iterator to check code point count, not length property
   if (strings.every(s => [...s].length == 1)) {
     let isUnicode = flags.includes("u");
     if (isUnicode || !strings.some(s => s.length > 1)) {

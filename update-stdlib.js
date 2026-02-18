@@ -185,7 +185,7 @@ for (let lib of libraries)
       let match;
       try {
         console.log(`Optimizing pattern for ${key}.${lib.name} with toRegExp`);
-        match = toRegExp(lib.patterns[key]).source.split("(?:").join("(");
+        match = toRegExp(lib.patterns[key]).source;
         match = `\\b(${match})\\b`;
       } catch {
         console.log(`Fallback to default pattern for ${key}.${lib.name}`);
@@ -259,9 +259,14 @@ grammar = parse(
               unnestUselessClasses: true,
               unwrapNegationWrappers: true,
               unwrapUselessClasses: true,
+              exposeAnchors: true,
+              removeEmptyGroups: true,
+              unwrapUselessGroups: true,
               useShorthands: true,
             },
-          }).pattern;
+          })
+            .pattern.split("(?:")
+            .join("(");
         }
     }
     return value;

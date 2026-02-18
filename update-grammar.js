@@ -211,6 +211,9 @@ grammar = parse(
                 unnestUselessClasses: true,
                 unwrapNegationWrappers: true,
                 unwrapUselessClasses: true,
+                exposeAnchors: true,
+                removeEmptyGroups: true,
+                unwrapUselessGroups: true,
                 useShorthands: true,
               },
             }).pattern;
