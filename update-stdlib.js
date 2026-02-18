@@ -66,7 +66,7 @@ let traversePlatform = node => {
 
         platforms.push({
           match,
-          name: `entity.name.${key}.c.ruko`,
+          name: `support.${key}.c.ruko`,
           key,
         });
       }
