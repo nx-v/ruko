@@ -164,6 +164,8 @@ function isCartesian(strings) {
   let minLen = Math.min(...nonEmpty.map(s => s.length));
   let atoms = nonEmpty.filter(s => s.length == minLen);
   let n = atoms.length;
+  // Bail out early if there are too many atoms to feasibly check (2^n would be huge)
+  if (n > 20) return false;
   let generated = new Set();
   for (let mask = 0; mask < 1 << n; mask++) {
     let str = "";

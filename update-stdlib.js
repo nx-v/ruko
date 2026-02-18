@@ -3,6 +3,7 @@ import {globSync} from "glob";
 import {readFileSync, writeFileSync} from "fs";
 import platform from "./src/platform.tmLanguage.json" with {type: "json"};
 import toRegExp from "./to-regex.js";
+import genex from "genex";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
@@ -58,17 +59,8 @@ let traversePlatform = node => {
             pattern.name.replace(/^.+(?=support)/, "")
           : pattern.name).replace(/\.c$/, ".ruko");
         let key = name.split(".")[1];
-
-        // Turn all non-capturing groups into capturing to save some bytes
-        // and make the patterns more readable, since we don't need capturing
-        // groups in this case.
-        let match = pattern.match;
-
-        platforms.push({
-          match,
-          name: `support.${key}.c.ruko`,
-          key,
-        });
+        let match = `\\b(${toRegExp(genex(pattern.match.replace(/^\\b|\\b$/g)).generate()).source})\\b`;
+        platforms.push({match, name: `support.${key}.c.ruko`, key});
       }
       pattern.patterns && traversePlatform(pattern);
     }
@@ -149,21 +141,14 @@ let libraries = stdlibFiles
 // Remove any empty patterns and convert the arrays of names into
 // optimized regex patterns using oniguruma-parser/optimizer.
 
+console.log(JSON.stringify(libraries.find(lib => lib.name == "three")?.patterns.class));
+
 for (let lib of libraries)
   for (let key in lib.patterns) {
     if (lib.patterns[key].length > 0) {
-      let pattern = lib.patterns[key].sort().join("|");
-
-      let match;
-      try {
-        console.log(`Optimizing pattern for ${key}.${lib.name} with toRegExp`);
-        match = toRegExp(lib.patterns[key]).source;
-        match = `\\b(${match})\\b`;
-      } catch {
-        console.log(`Fallback to default pattern for ${key}.${lib.name}`);
-        match = `\\b(${pattern})\\b`;
-      }
-
+      let length = lib.patterns[key].length;
+      console.log(`Optimizing ${length} patterns for ${key}.${lib.name}`);
+      let match = `\\b(${toRegExp(lib.patterns[key]).source})\\b`;
       lib.patterns[key] = {
         match,
         name: `support.${key}.${lib.name}.ruko`,
@@ -194,13 +179,13 @@ let grammar = {
     repositoryKeys.map(key => [
       `stdlib-${pluralize(key)}`,
       {
-        patterns: [
-          ...(libraries[`stdlib-${pluralize(key)}`] || []),
-          ...(platforms[`stdlib-${pluralize(key)}`] || []),
-        ].map(x => {
-          delete x.library;
-          return x;
-        }),
+        patterns: (libraries[`stdlib-${pluralize(key)}`] || [])
+          .concat(platforms[`stdlib-${pluralize(key)}`] || [])
+          .map(x => {
+            delete x.library;
+            return x;
+          })
+          .sort((a, b) => stringify(a).length - stringify(b).length),
       },
     ]),
   ),
@@ -233,9 +218,7 @@ grammar = parse(
               unwrapUselessGroups: true,
               useShorthands: true,
             },
-          })
-            .pattern.split("(?:")
-            .join("(");
+          }).pattern;
         }
     }
     return value;
