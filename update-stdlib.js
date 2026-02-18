@@ -216,6 +216,9 @@ grammar = parse(
               useShorthands: true,
             },
           }).pattern;
+          // Remove non-capturing groups added by the optimizer,
+          // since they are not needed in this context and can make the regex harder to read.
+          return value.split("(?:").join("(");
         }
     }
     return value;
