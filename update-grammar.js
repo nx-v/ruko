@@ -228,7 +228,7 @@ grammar = parse(
 import stdlib from "file://C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json" with {type: "json"};
 grammar.repository = {...grammar.repository, ...stdlib.repository};
 grammar.information_for_contributors = stdlib.information_for_contributors;
-grammar = stringify(sortKeys(grammar));
+grammar = stringify(sortKeys(grammar), null, 4);
 
 writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", grammar);
 writeFileSync(

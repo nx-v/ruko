@@ -25,13 +25,11 @@
  * ```
  *
  * @param {string[]} input - Array of strings to match. Empty arrays or arrays containing
- *                          only empty strings return a non-capturing group (?:).
- * @param {string} [flags=''] - RegExp flags to apply. Supports all standard flags:
- *                              'i' (ignore case), 'g' (global), 'm' (multiline),
- *                              'u' (unicode), 's' (dotall), 'y' (sticky).
- *                              The 'u' flag enables Unicode optimizations.
+ * only empty strings return a non-capturing group (?:).
+ * @param {string} [flags=''] - RegExp flags to apply. Supports only the u flag for Unicode.
+ * Other flags are ignored.
  * @returns {RegExp} An optimized regular expression that matches any input string.
- *                   Returns /(?:)/ for empty or invalid input.
+ * Returns /(?:)/ for empty or invalid input.
  *
  * @throws {TypeError} If input is not an array or contains non-string elements.
  *
