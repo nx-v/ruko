@@ -585,6 +585,12 @@ repository:
       - include: "#space"
 
   type-variables:
+    define: &type-names
+      patterns:
+        - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+          captures:
+            0: {patterns: [{include: "#type-names"}]}
+
     match: |-
       (?x) \s*
 
@@ -613,43 +619,43 @@ repository:
       )
 
       \s*
-    captures: &type-names
+    captures:
       1:
         name: support.type.instance.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       2:
         name: entity.name.interface.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       3:
         name: support.type.interface.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       4:
         name: entity.name.instance.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       5:
         name: support.type.module.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       6:
         name: entity.name.namespace.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       7:
         name: support.type.namespace.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       8:
         name: entity.name.module.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       9:
         name: support.type.type.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       10:
         name: entity.name.class.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       11:
         name: support.type.class.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
       12:
         name: entity.name.type.ruko
-        patterns: [{include: "#type-names"}]
+        <<: *type-names
 
   type-signature:
     applyEndPatternLast: true
@@ -4898,8 +4904,12 @@ repository:
   function-names:
     define: &function-names
       patterns:
-        - include: "#css-functions"
-        - include: "#builtin-functions"
+        - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+          captures:
+            0:
+              patterns:
+                - include: "#css-functions"
+                - include: "#builtin-functions"
 
     patterns:
       - include: "#accessor-operators"
@@ -5319,6 +5329,13 @@ repository:
   # Variables
 
   variables:
+    define: &property-names
+      patterns:
+        - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+          captures:
+            0:
+              patterns: [{include: "#stdlib-properties"}]
+
     match: |-
       (?x)
       (?:
@@ -5342,16 +5359,16 @@ repository:
     captures:
       1:
         name: variable.other.property.dynamic.ruko
-        patterns: [{include: "#stdlib-properties"}]
+        <<: *property-names
       2:
         name: variable.other.constant.property.ruko
-        patterns: [{include: "#stdlib-properties"}]
+        <<: *property-names
       3:
         name: variable.other.property.static.ruko
-        patterns: [{include: "#stdlib-properties"}]
+        <<: *property-names
       4:
         name: variable.other.property.ruko
-        patterns: [{include: "#stdlib-properties"}]
+        <<: *property-names
       5: {name: variable.legacy.builtin.ruko}
       6: {name: variable.other.constant.object.ruko}
       7: {name: variable.other.class.static.ruko}
@@ -7682,9 +7699,13 @@ repository:
           1:
             name: constant.other.object.key.ruko
             patterns:
-              - include: "#stdlib-variables"
-              - include: "#stdlib-constants"
-              - include: "#stdlib-properties"
+              - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b
+                captures:
+                  0:
+                    patterns:
+                      - include: "#stdlib-variables"
+                      - include: "#stdlib-constants"
+                      - include: "#stdlib-properties"
       - include: "#comments"
       - include: "#line-continuation"
       - include: "#space"
@@ -7784,9 +7805,13 @@ repository:
         captures: &binding-pattern-parameter
           0:
             patterns:
-              - include: "#stdlib-constants"
-              - include: "#stdlib-variables"
-              - include: "#stdlib-properties"
+              - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+                captures:
+                  0:
+                    patterns:
+                      - include: "#stdlib-constants"
+                      - include: "#stdlib-variables"
+                      - include: "#stdlib-properties"
       - match: "[,;]"
         name: punctuation.separator.mapping.ruko
       - include: "#lambda-patterns"
@@ -9229,16 +9254,15 @@ repository:
       - match: |-
           (?x)\b(arial|century|comic|courier|garamond|georgia|helvetica|impact|lucida|symbol|system-ui|system|tahoma|times|trebuchet|ui-monospace|ui-rounded|ui-sans-serif|ui-serif|utopia|verdana|webdings|sans-serif|serif|monospace|arial|century|comic|courier|garamond|georgia|helvetica|impact|lucida|symbol|systemUi|system|tahoma|times|trebuchet|uiMonospace|uiRounded|uiSansSerif|uiSerif|utopia|verdana|webdings|sansSerif|serif|monospace)\b
         name: support.constant.font-name.css.ruko
-
-  css-tag-names:
-    patterns:
       - match: (?x)\b(all|print|screen|speech|aural|braille|embossed|handheld|projection|tty|tv)\b
         name: support.constant.media.css.ruko
-      - match: |-
-          (?x)\b(
-            a|abbr|acronym|address|altGlyph|altGlyphDef|altGlyphItem|animate|animateColor|animateMotion|animateTransform|annotation|annotationXml|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|block-quote|body|br|button|canvas|caption|center|circle|cite|clipPath|code|col|colgroup|colorProfile|command|content|cursor|data|datalist|dd|defs|del|desc|details|dfn|dialog|dir|discard|div|dl|dt|elem|ellipse|em|embed|feBlend|feColorMatrix|feComponentTransfer|feComposite|feConvolveMatrix|feDiffuseLighting|feDisplacementMap|feDistantLight|feDropShadow|feFlood|feFuncA|feFuncB|feFuncG|feFuncR|feGaussianBlur|feImage|feMerge|feMergeNode|feMorphology|feOffset|fePointLight|feSpecularLighting|feSpotLight|feTile|feTurbulence|fieldset|figcaption|figure|filter|font|fontFace|fontFaceFormat|fontFaceName|fontFaceSrc|fontFaceUri|footer|foreignObject|form|frame|frameset|g|glyph|glyphRef|hatch|hatchpath|hd|head|header|hgroup|hkern|hr|html|h[1-6]|i|iframe|image|img|input|ins|isindex|kbd|keygen|label|legend|li|line|linearGradient|link|listing|maction|main|maligngroup|malignmark|map|mark|marker|marquee|mask|math|menclose|menu|menuitem|merror|mesh|meshgradient|meshpatch|meshrow|meta|metadata|meter|mfenced|mfrac|mglyph|mi|missingGlyph|mlabeledtr|mlongdiv|mmultiscripts|mn|mo|mover|mpadded|mpath|mphantom|mroot|mrow|ms|mscarries|mscarry|msgroup|msline|mspace|msqrt|msrow|mstack|mstyle|msub|msubsup|msup|mtable|mtd|mtext|mtr|multicol|munder|munderover|nav|nextid|nobr|noembed|noframes|noscript|object|ol|optgroup|option|output|p|param|path|pattern|picture|plaintext|polygon|polyline|pre|progress|q|radialGradient|rb|rect|rp|rt|rtc|ruby|s|samp|script|section|select|semantics|set|shadow|slot|small|solidcolor|source|spacer|span|stop|strike|strong|style|sub|summary|sup|svg|switch|symbol|table|tbody|td|template|text|textarea|textPath|tfoot|th|thead|time|title|tr|track|tref|tspan|tt|u|ul|use|var|video|view|vkern|wbr|xmp
-          )\b
-        name: entity.name.tag.css.ruko
+
+  css-tag-names:
+    match: |-
+      (?x)\b(
+        a|abbr|acronym|address|altGlyph|altGlyphDef|altGlyphItem|animate|animateColor|animateMotion|animateTransform|annotation|annotationXml|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|block-quote|body|br|button|canvas|caption|center|circle|cite|clipPath|code|col|colgroup|colorProfile|command|content|cursor|data|datalist|dd|defs|del|desc|details|dfn|dialog|dir|discard|div|dl|dt|elem|ellipse|em|embed|feBlend|feColorMatrix|feComponentTransfer|feComposite|feConvolveMatrix|feDiffuseLighting|feDisplacementMap|feDistantLight|feDropShadow|feFlood|feFuncA|feFuncB|feFuncG|feFuncR|feGaussianBlur|feImage|feMerge|feMergeNode|feMorphology|feOffset|fePointLight|feSpecularLighting|feSpotLight|feTile|feTurbulence|fieldset|figcaption|figure|filter|font|fontFace|fontFaceFormat|fontFaceName|fontFaceSrc|fontFaceUri|footer|foreignObject|form|frame|frameset|g|glyph|glyphRef|hatch|hatchpath|hd|head|header|hgroup|hkern|hr|html|h[1-6]|i|iframe|image|img|input|ins|isindex|kbd|keygen|label|legend|li|line|linearGradient|link|listing|maction|main|maligngroup|malignmark|map|mark|marker|marquee|mask|math|menclose|menu|menuitem|merror|mesh|meshgradient|meshpatch|meshrow|meta|metadata|meter|mfenced|mfrac|mglyph|mi|missingGlyph|mlabeledtr|mlongdiv|mmultiscripts|mn|mo|mover|mpadded|mpath|mphantom|mroot|mrow|ms|mscarries|mscarry|msgroup|msline|mspace|msqrt|msrow|mstack|mstyle|msub|msubsup|msup|mtable|mtd|mtext|mtr|multicol|munder|munderover|nav|nextid|nobr|noembed|noframes|noscript|object|ol|optgroup|option|output|p|param|path|pattern|picture|plaintext|polygon|polyline|pre|progress|q|radialGradient|rb|rect|rp|rt|rtc|ruby|s|samp|script|section|select|semantics|set|shadow|slot|small|solidcolor|source|spacer|span|stop|strike|strong|style|sub|summary|sup|svg|switch|symbol|table|tbody|td|template|text|textarea|textPath|tfoot|th|thead|time|title|tr|track|tref|tspan|tt|u|ul|use|var|video|view|vkern|wbr|xmp
+      )\b
+    name: entity.name.tag.css.ruko
 
   xml-entity-names:
     comment: Yes this is a bit ridiculous, there are quite a lot of these
@@ -9276,7 +9300,7 @@ repository:
           decimal: arbitrary-precision decimal
           bigint/bignum: arbitrary-size integer
         match: |-
-          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+          (?x)\b(
             [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[bB]uf|[uU]nit
             |[nN]um|[nN]at|[uU]?[iI]nt|[rR]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
             |[dD]ecimal|[bB]ig(?:int|num)
@@ -9301,7 +9325,7 @@ repository:
           func: function type
           chan: channel for concurrent communication
         match: |-
-          (?x)\s*(?<![?!]?\.|[?!:]:|[?!-]>)\b(
+          (?x)\b(
             [aA]rray|[lL]ist|[mM]ap|[sS]et|[tT]uple|[rR]ecord|[uU]nion|[oO]ption|[rR]esult|[vV]oid|[sS]ize|[pP]tr|[rR]ef|[fF]unc|[cC]han
           )\b
         name: support.type.builtin.composite.ruko
@@ -9372,6 +9396,7 @@ repository:
       # Ruko
       - include: "#stdlib-functions"
 
+      # Function naming conventions for Ruko standard library
       - comment: Magic functions like __init__, __str__, etc
         match: \b\p{Pc}+(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)\p{Pc}+\b
         name: support.function.magic.ruko

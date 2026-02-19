@@ -28,8 +28,6 @@ let pluralize = word => {
   );
 };
 
-// === C/C++ STANDARD LIBRARY ===
-
 let symbolSet = {
   class: new Set(),
   interface: new Set(),
@@ -43,6 +41,8 @@ let symbolSet = {
   property: new Set(),
 };
 let repositoryKeys = keys(symbolSet);
+
+// === C/C++ STANDARD LIBRARY ===
 let platforms = [];
 
 // Recursively traverse the Platform grammar.
@@ -196,30 +196,10 @@ grammar = parse(
         delete value.key || delete value.comment || delete value.define || delete value.library;
         break;
       case "string":
-        if (key == "match") {
-          // Optimize the regex pattern using oniguruma-parser/optimizer with all available
-          // optimizations enabled, and expose the anchors to prevent ReDoS attacks.
-          value = optimize(value, {
-            override: {
-              alternationToClass: true,
-              extractPrefix: true,
-              extractPrefix2: true,
-              extractSuffix: true,
-              optionalize: true,
-              mergeRanges: true,
-              unnestUselessClasses: true,
-              unwrapNegationWrappers: true,
-              unwrapUselessClasses: true,
-              exposeAnchors: true,
-              removeEmptyGroups: true,
-              unwrapUselessGroups: true,
-              useShorthands: true,
-            },
-          }).pattern;
+        if (key == "match")
           // Remove non-capturing groups added by the optimizer,
           // since they are not needed in this context and can make the regex harder to read.
           return value.split("(?:").join("(");
-        }
     }
     return value;
   }),
