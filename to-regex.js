@@ -39,13 +39,13 @@
 export default function toRegExp(input, flags = "") {
   // Escape a string for use in a regular expression, handling Unicode properly.
   let hex = code => code.toString(16).toUpperCase();
-  function escapeRegExp(string, flags = "") {
+  let escapeRegExp = (string, flags = "") => {
     let isUnicode = flags.includes("u");
     return string
       .replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")
       .replace(/\\[ftnrv]/g, match => "\\" + match[1]) // preserve common escapes
       .replace(/[\x00-\x1f\x7f-\xff]/g, match => "\\x" + hex(match.charCodeAt(0)).padStart(2, 0))
-      .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\ud7ff\ue000-\uffff]/g, match => {
+      .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
         if (match.length == 2) {
           if (isUnicode) {
             return "\\u{" + hex(match.codePointAt(0)) + "}";
@@ -57,16 +57,16 @@ export default function toRegExp(input, flags = "") {
         let code = match.charCodeAt(0);
         return "\\u" + hex(code).padStart(4, 0);
       });
-  }
+  };
 
   // Escape a single character for use in a character class, handling Unicode properly.
-  function escapeCharClass(char, flags = "") {
+  let escapeCharClass = (char, flags = "") => {
     let isUnicode = flags.includes("u");
     return char
       .replace(/[\\[\]^-]/g, "\\$&")
       .replace(/\\[ftnrv]/g, match => "\\" + match[1]) // preserve common escapes
       .replace(/[\x00-\x1f\x7f-\xff]/g, match => "\\x" + hex(match.charCodeAt(0)).padStart(2, 0))
-      .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\ud7ff\ue000-\uffff]/g, match => {
+      .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
         if (match.length == 2) {
           if (isUnicode) {
             return "\\u{" + hex(match.codePointAt(0)) + "}";
@@ -78,10 +78,10 @@ export default function toRegExp(input, flags = "") {
         let code = match.charCodeAt(0);
         return "\\u" + hex(code).padStart(4, 0);
       });
-  }
+  };
 
   // Find common prefix of an array of strings.
-  function findCommonPrefix(strings) {
+  let findCommonPrefix = strings => {
     if (strings.length == 0) return "";
     let prefix = strings[0];
     for (let s of strings.slice(1)) {
@@ -92,17 +92,17 @@ export default function toRegExp(input, flags = "") {
       if (prefix == "") break;
     }
     return prefix;
-  }
+  };
 
   // Find common suffix by reversing strings and finding common prefix, then reverse back.
-  function findCommonSuffix(strings) {
+  let findCommonSuffix = strings => {
     let reversed = strings.map(s => s.split("").reverse().join(""));
     let reversedPrefix = findCommonPrefix(reversed);
     return reversedPrefix.split("").reverse().join("");
-  }
+  };
 
   // Build a character class from an array of single-character strings, merging consecutive characters into ranges.
-  function makeCharClass(chars, flags = "") {
+  let makeCharClass = (chars, flags = "") => {
     chars = [...new Set(chars)].sort((a, b) => a.codePointAt(0) - b.codePointAt(0));
     let result = "";
     let i = 0;
@@ -123,10 +123,10 @@ export default function toRegExp(input, flags = "") {
     }
 
     return "[" + result + "]";
-  }
+  };
 
   // Check if the strings form a cartesian product of a set of atoms (substrings).
-  function isCartesian(strings) {
+  let isCartesian = strings => {
     if (!strings.includes("")) return false;
     let nonEmpty = strings.filter(s => s);
     if (nonEmpty.length == 0) return false;
@@ -175,10 +175,10 @@ export default function toRegExp(input, flags = "") {
       if (atomSet.has(s) && !orderedAtoms.includes(s)) orderedAtoms.push(s);
 
     return orderedAtoms;
-  }
+  };
 
   // Main function to build the regex pattern from the array of strings
-  function buildPattern(strings, flags = "") {
+  let buildPattern = (strings, flags = "") => {
     if (strings.length == 0) return "";
 
     if (strings.length == 1) {
@@ -244,7 +244,7 @@ export default function toRegExp(input, flags = "") {
     function isAtomic(pattern) {
       if (pattern.length == 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern)) return true;
       if (pattern.startsWith("\\u{") && pattern.endsWith("}") && !/[|]/.test(pattern)) return true;
-      if (/^\\u[0-9A-Fa-f]{4}$/.test(pattern)) return true;
+      if (/^\\u[\dA-Fa-f]{4}$/.test(pattern)) return true;
       if (/^\\.$/.test(pattern)) return true;
       if (/^\[[^\]]+\]$/.test(pattern)) return true;
       // Check for a balanced (?:...) or (?:...)? group
@@ -415,9 +415,7 @@ export default function toRegExp(input, flags = "") {
           let commonPfx = findCommonPrefix(parts);
           // Only factor if prefix is non-empty and doesn't end mid-escape or mid-group
           // Also reject if prefix ends mid-escape: \uXX, \u{..., \xX, etc.
-          let midEscape = /\\(?:u\{[0-9A-Fa-f]*|u[0-9A-Fa-f]{0,3}|x[0-9A-Fa-f]{0,1})$/.test(
-            commonPfx,
-          );
+          let midEscape = /\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]{0,1})$/.test(commonPfx);
           if (
             commonPfx.length > 0 &&
             !commonPfx.endsWith("\\") &&
@@ -536,7 +534,7 @@ export default function toRegExp(input, flags = "") {
 
     // Alternation
     return strings.map(s => escapeRegExp(s, flags)).join("|");
-  }
+  };
 
   // Input validation
   if (!Array.isArray(input)) {

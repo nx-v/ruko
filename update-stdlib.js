@@ -1,4 +1,3 @@
-import {optimize} from "oniguruma-parser/optimizer";
 import {globSync} from "glob";
 import {readFileSync, writeFileSync} from "fs";
 import platform from "./src/platform.tmLanguage.json" with {type: "json"};
@@ -59,7 +58,7 @@ let traversePlatform = node => {
         let key = name.split(".")[1];
         let symbols = genex(pattern.match.replace(/^\\b|\\b$/g)).generate();
 
-        console.log(`Compressing ${symbols.length} patterns of ${key} from C platform grammar`);
+        console.log(`Compressing ${symbols.length} patterns from c/${key}`);
         symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
         let match = `\\b(${toRegExp(symbols).source})\\b`;
         platforms.push({match, name: `support.${key}.c.ruko`, key});
@@ -83,7 +82,7 @@ platforms = fromEntries(
 
 // === STANDARD LIBRARY ===
 
-let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.d.ts";
+let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts";
 let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .filter(path => !/\/node_modules\//.test(path))
   .reverse();
@@ -93,33 +92,35 @@ let libraries = stdlibFiles
   .map(path => {
     // Read the file content and find all declared names
     let content = readFileSync(path, "utf8");
-    let name = path.match(/(?<=types[\\/])(.+?)(?=[\\/]|\.d\.ts$)/)[1];
+    let name = path.match(/(?<=types[\\/])(.+?)(?=[\\/]|\.ts$)/)[1];
 
     // Look for first word in name, which is usually the library name, but may be more specific if there
-    // are multiple libraries in the same file (e.g. "react" and "react-dom" in "react/index.d.ts").
+    // are multiple libraries in the same file (e.g. "react" and "react-dom" in "react/index.ts").
     // Replace any non-alphanumeric characters with a single dash and convert to lowercase to get the library name.
     // For example, "react" and "react-dom" would both become "react", while "node" would remain as "node".
     let library = name.match(/^\w+/)[0].replace(/[-_]+/g, "-").toLowerCase();
 
     // Group them according to their declaration type and remove duplicates.
     let patterns = {
-      class: [...new Set(content.matchAll(/class\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      interface: [...new Set(content.matchAll(/interface\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      function: [...new Set(content.matchAll(/function\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      type: [...new Set(content.matchAll(/type\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      variable: [...new Set(content.matchAll(/(?:var|let)\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      constant: [...new Set(content.matchAll(/const\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      enum: [...new Set(content.matchAll(/enum\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      namespace: [...new Set(content.matchAll(/namespace\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      module: [...new Set(content.matchAll(/module\s+([a-zA-Z_]\w*)/gm))].map(m => m[1]),
-      property: [...new Set(content.matchAll(/\s*\b([a-zA-Z_]\w*)(?=\s*[:=])/gm))].map(m => m[1]),
+      class: /class\s+([a-zA-Z_]\w*)/gm,
+      interface: /interface\s+([a-zA-Z_]\w*)/gm,
+      function: /function\s+([a-zA-Z_]\w*)/gm,
+      type: /type\s+([a-zA-Z_]\w*)/gm,
+      variable: /(?:var|let)\s+([a-zA-Z_]\w*)/gm,
+      constant: /const\s+([a-zA-Z_]\w*)/gm,
+      enum: /enum\s+([a-zA-Z_]\w*)/gm,
+      namespace: /namespace\s+([a-zA-Z_]\w*)/gm,
+      module: /module\s+([a-zA-Z_]\w*)/gm,
+      property: /\s*\b([a-zA-Z_]\w*)(?=\s*[:=])/gm,
     };
 
     // Sort the patterns alphabetically for each library and then sort the libraries alphabetically.
     patterns = fromEntries(
       entries(patterns).map(([key, value]) => [
         key,
-        [...new Set(value)].map(name => name.match(/\w+/)?.[0]).filter(Boolean),
+        [...new Set(content.matchAll(value))]
+          .map(([, name]) => name.match(/\w+/)?.[0])
+          .filter(Boolean),
       ]),
     );
 
@@ -141,15 +142,17 @@ let libraries = stdlibFiles
 
 // Remove any empty patterns and convert the arrays of names into
 // optimized regex patterns using oniguruma-parser/optimizer.
-console.log(stringify(libraries.find(({name}) => name == "three")?.patterns.class));
+
+// to query the patterns for debugging, you can use the following code:
+void libraries.find(({name}) => name == "three")?.patterns;
 
 for (let lib of libraries)
-  for (let key in lib.patterns) {
+  for (let key in lib.patterns)
     if (lib.patterns[key].length > 0) {
       let symbols = lib.patterns[key] || [];
       symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
       let length = symbols.length;
-      console.log(`Compressing ${length} patterns of ${key}.${lib.name}`);
+      console.log(`Compressing ${length} patterns from ${lib.name}/${key}`);
       let match = `\\b(${toRegExp(symbols).source})\\b`;
       lib.patterns[key] = {
         match,
@@ -157,7 +160,6 @@ for (let lib of libraries)
         key,
       };
     } else delete lib.patterns[key];
-  }
 
 // Transpose patterns so that they are grouped by type instead of by library.
 // For example, all function patterns from all libraries would be grouped
@@ -199,10 +201,9 @@ grammar = parse(
         delete value.key || delete value.comment || delete value.define || delete value.library;
         break;
       case "string":
-        if (key == "match")
-          // Remove non-capturing groups added by the optimizer,
-          // since they are not needed in this context and can make the regex harder to read.
-          return value.split("(?:").join("(");
+        // Remove non-capturing groups added by the optimizer,
+        // since they are not needed in this context and can make the regex harder to read.
+        if (key == "match") return value.split("(?:").join("(");
     }
     return value;
   }),
