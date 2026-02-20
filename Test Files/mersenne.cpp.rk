@@ -200,7 +200,7 @@ show class MTRand = %cpp
   inline void MTRand::MTRand(const uint32 oneSeed) { seed(oneSeed); }
 
   inline void MTRand::MTRand(uint32 *const bigSeed, uint32 const seedLength) {
-    seed(bigSeed,seedLength); 
+    seed(bigSeed,seedLength);
   }
 
   inline void MTRand::MTRand() { seed(); }
@@ -531,3 +531,289 @@ show class MTRand = %cs
     }
   }
 cs%
+
+show class MTRand = %rs
+  use std::fs::File;
+  use std::io::{Read, Write};
+  use std::time::{SystemTime, UNIX_EPOCH};
+
+  const N: usize = 624;
+  const M: usize = 397;
+  const SAVE: usize = N + 1;
+
+  pub struct MTRand {
+    state: [u32; N],
+    left: usize,
+    p_next: usize,
+  }
+
+  impl MTRand {
+    /// simple constructor, seed with single `u32`
+    pub fn new(seed: u32) -> Self {
+      let mut mt = MTRand {
+        state: [0; N],
+        left: 0,
+        p_next: 0,
+      };
+      mt.seed(seed);
+      mt
+    }
+
+    /// seed from array
+    pub fn from_slice(seed: &[u32]) -> Self {
+      let mut mt = MTRand {
+        state: [0; N],
+        left: 0,
+        p_next: 0,
+      };
+      mt.seed_slice(seed);
+      mt
+    }
+
+    /// auto‑seed from `/dev/urandom` or time/clock
+    pub fn auto() -> Self {
+      let mut mt = MTRand {
+        state: [0; N],
+        left: 0,
+        p_next: 0,
+      };
+      mt.seed();
+      mt
+    }
+
+    // ---- public API ----
+
+    pub fn rand_int(&mut self) -> u32 {
+      if self.left == 0 {
+        self.reload();
+      }
+      self.left -= 1;
+      let mut s1 = self.state[self.p_next];
+      self.p_next += 1;
+      s1 ^= s1 >> 11;
+      s1 ^= (s1 << 7) & 0x9d2c5680;
+      s1 ^= (s1 << 15) & 0xefc60000;
+      s1 ^ (s1 >> 18)
+    }
+
+    pub fn rand_int_n(&mut self, n: u32) -> u32 {
+      let mut used = n;
+      used |= used >> 1;
+      used |= used >> 2;
+      used |= used >> 4;
+      used |= used >> 8;
+      used |= used >> 16;
+
+      loop {
+        let i = self.rand_int() & used;
+        if i <= n {
+          return i;
+        }
+      }
+    }
+
+    pub fn rand(&mut self) -> f64 {
+      (self.rand_int() as f64) * (1.0 / 4294967295.0)
+    }
+
+    pub fn rand_n(&mut self, n: f64) -> f64 {
+      self.rand() * n
+    }
+
+    pub fn rand_exc(&mut self) -> f64 {
+      (self.rand_int() as f64) * (1.0 / 4294967296.0)
+    }
+
+    pub fn rand_exc_n(&mut self, n: f64) -> f64 {
+      self.rand_exc() * n
+    }
+
+    pub fn rand_dbl_exc(&mut self) -> f64 {
+      ((self.rand_int() as f64) + 0.5) * (1.0 / 4294967296.0)
+    }
+
+    pub fn rand_dbl_exc_n(&mut self, n: f64) -> f64 {
+      self.rand_dbl_exc() * n
+    }
+
+    pub fn rand53(&mut self) -> f64 {
+      let a = self.rand_int() >> 5;
+      let b = self.rand_int() >> 6;
+      (a as f64 * 67108864.0 + b as f64) * (1.0 / 9007199254740992.0)
+    }
+
+    pub fn rand_norm(&mut self, mean: f64, stddev: f64) -> f64 {
+      let (x, y, r);
+      loop {
+        x = 2.0 * self.rand() - 1.0;
+        y = 2.0 * self.rand() - 1.0;
+        r = x * x + y * y;
+        if r < 1.0 && r != 0.0 {
+          break;
+        }
+      }
+      let s = (-2.0 * r.ln() / r).sqrt();
+      mean + x * s * stddev
+    }
+
+    pub fn save(&self) -> [u32; SAVE] {
+      let mut out = [0u32; SAVE];
+      out[..N].copy_from_slice(&self.state);
+      out[N] = self.left as u32;
+      out
+    }
+
+    pub fn load(&mut self, data: &[u32; SAVE]) {
+      self.state.copy_from_slice(&data[..N]);
+      self.left = data[N] as usize;
+      self.p_next = N - self.left;
+    }
+
+    // ---- seeding ----
+
+    pub fn seed(&mut self) {
+      // try /dev/urandom
+      let mut buf = [0u8; 4 * N];
+      if let Ok(mut f) = File::open("/dev/urandom") {
+        if f.read_exact(&mut buf).is_ok() {
+          let mut words = [0u32; N];
+          for (i, chunk) in buf.chunks_exact(4).enumerate() {
+              words[i] = u32::from_ne_bytes(chunk.try_into().unwrap());
+          }
+          self.seed_slice(&words);
+          return;
+        }
+      }
+
+      // fallback
+      let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos() as u64;
+      let ticks = unsafe { libc::clock() } as u64;
+      let h = Self::hash(now, ticks);
+      self.seed_one(h);
+    }
+
+    pub fn seed_one(&mut self, seed: u32) {
+      self.initialize(seed);
+      self.reload();
+    }
+
+    pub fn seed_slice(&mut self, big_seed: &[u32]) {
+      self.initialize(19650218);
+      let mut i = 1usize;
+      let mut j = 0usize;
+      let k = N.max(big_seed.len());
+
+      for _ in 0..k {
+        self.state[i] = self.state[i]
+          ^ ((self.state[i - 1] ^ (self.state[i - 1] >> 30)).wrapping_mul(1664525));
+        self.state[i] = self.state[i]
+          .wrapping_add(big_seed[j])
+          .wrapping_add(j as u32);
+        i += 1;
+        j += 1;
+        if i >= N {
+          self.state[0] = self.state[N - 1];
+          i = 1;
+        }
+        if j >= big_seed.len() {
+          j = 0;
+        }
+      }
+
+      for _ in 0..(N - 1) {
+        self.state[i] = self.state[i]
+          ^ ((self.state[i - 1] ^ (self.state[i - 1] >> 30))
+            .wrapping_mul(1566083941));
+        self.state[i] = self.state[i].wrapping_sub(i as u32);
+        i += 1;
+        if i >= N {
+          self.state[0] = self.state[N - 1];
+          i = 1;
+        }
+      }
+      self.state[0] = 0x8000_0000;
+      self.reload();
+    }
+
+    // ---- internal helpers ----
+
+    fn initialize(&mut self, seed: u32) {
+      self.state[0] = seed;
+      for i in 1..N {
+        self.state[i] = 1812433253u32
+        .wrapping_mul(self.state[i - 1] ^ (self.state[i - 1] >> 30))
+        .wrapping_add(i as u32);
+      }
+    }
+
+    fn reload(&mut self) {
+      for i in 0..(N - M) {
+        self.state[i] =
+          Self::twist(self.state[i + M], self.state[i], self.state[i + 1]);
+      }
+      for i in (N - M)..(N - 1) {
+        self.state[i] = Self::twist(
+          self.state[i + M - N],
+          self.state[i],
+          self.state[i + 1],
+        );
+      }
+      self.state[N - 1] =
+        Self::twist(self.state[M - 1], self.state[N - 1], self.state[0]);
+
+      self.left = N;
+      self.p_next = 0;
+    }
+
+    #[inline]
+    fn hi_bit(u: u32) -> u32 {
+      u & 0x8000_0000
+    }
+
+    #[inline]
+    fn lo_bit(u: u32) -> u32 {
+      u & 0x0000_0001
+    }
+
+    #[inline]
+    fn lo_bits(u: u32) -> u32 {
+      u & 0x7fff_ffff
+    }
+
+    #[inline]
+    fn mix_bits(u: u32, v: u32) -> u32 {
+      Self::hi_bit(u) | Self::lo_bits(v)
+    }
+
+    #[inline]
+    fn magic(u: u32) -> u32 {
+      if Self::lo_bit(u) != 0 {
+        0x9908_b0df
+      } else {
+        0
+      }
+    }
+
+    #[inline]
+    fn twist(m: u32, s0: u32, s1: u32) -> u32 {
+      m ^ (Self::mix_bits(s0, s1) >> 1) ^ Self::magic(s1)
+    }
+
+    fn hash(t: u64, c: u64) -> u32 {
+      let mut h1 = 0u32;
+      for byte in t.to_ne_bytes() {
+        h1 = h1.wrapping_mul(u8::MAX as u32 + 2);
+        h1 = h1.wrapping_add(u32::from(byte));
+      }
+      let mut h2 = 0u32;
+      for byte in c.to_ne_bytes() {
+        h2 = h2.wrapping_mul(u8::MAX as u32 + 2);
+        h2 = h2.wrapping_add(u32::from(byte));
+      }
+      h1 ^ h2
+    }
+  }
+rs%

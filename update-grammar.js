@@ -181,7 +181,7 @@ let sortKeys = obj =>
 
 // clone grammar object
 let grammar1 = sortKeys(grammar);
-delete grammar1.repository.define;
+delete grammar.repository.define;
 
 // remove "comment" and "define" keys from all sub-objects in repository
 grammar = parse(
