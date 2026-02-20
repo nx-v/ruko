@@ -37,45 +37,47 @@
  */
 
 export default function toRegExp(input, flags = "") {
-  const gcd = (a, b) => (b == 0 ? a : gcd(b, a % b));
-  const hex = code => code.toString(16).toUpperCase();
-
   // Escape a string for use in a regular expression, handling Unicode properly.
+  let hex = code => code.toString(16).toUpperCase();
   function escapeRegExp(string, flags = "") {
     let isUnicode = flags.includes("u");
     return string
-      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/(?:[\uD800-\uDBFF][\uDC00-\uDFFF])|[\u0080-\uFFFF]/g, match => {
+      .replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")
+      .replace(/\\[ftnrv]/g, match => "\\" + match[1]) // preserve common escapes
+      .replace(/[\x00-\x1f\x7f-\xff]/g, match => "\\x" + hex(match.charCodeAt(0)).padStart(2, 0))
+      .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\ud7ff\ue000-\uffff]/g, match => {
         if (match.length == 2) {
           if (isUnicode) {
             return "\\u{" + hex(match.codePointAt(0)) + "}";
           } else {
             let [high, low] = [match.charCodeAt(0), match.charCodeAt(1)];
-            return "\\u" + hex(high).padStart(4, "0") + "\\u" + hex(low).padStart(4, "0");
+            return "\\u" + hex(high).padStart(4, 0) + "\\u" + hex(low).padStart(4, 0);
           }
         }
         let code = match.charCodeAt(0);
-        return "\\u" + hex(code).padStart(4, "0");
+        return "\\u" + hex(code).padStart(4, 0);
       });
   }
 
   // Escape a single character for use in a character class, handling Unicode properly.
   function escapeCharClass(char, flags = "") {
     let isUnicode = flags.includes("u");
-    let code = char.codePointAt(0);
-    if (code > 127) {
-      if (code > 0xffff) {
-        if (isUnicode) {
-          return "\\u{" + hex(code) + "}";
-        } else {
-          let [high, low] = [char.charCodeAt(0), char.charCodeAt(1)];
-          return "\\u" + hex(high).padStart(4, "0") + "\\u" + hex(low).padStart(4, "0");
+    return char
+      .replace(/[\\[\]^-]/g, "\\$&")
+      .replace(/\\[ftnrv]/g, match => "\\" + match[1]) // preserve common escapes
+      .replace(/[\x00-\x1f\x7f-\xff]/g, match => "\\x" + hex(match.charCodeAt(0)).padStart(2, 0))
+      .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\ud7ff\ue000-\uffff]/g, match => {
+        if (match.length == 2) {
+          if (isUnicode) {
+            return "\\u{" + hex(match.codePointAt(0)) + "}";
+          } else {
+            let [high, low] = [match.charCodeAt(0), match.charCodeAt(1)];
+            return "\\u" + hex(high).padStart(4, 0) + "\\u" + hex(low).padStart(4, 0);
+          }
         }
-      }
-      return "\\u" + hex(code).padStart(4, "0");
-    } else {
-      return char.replace(/[\\[\]\^]/g, "\\$&");
-    }
+        let code = match.charCodeAt(0);
+        return "\\u" + hex(code).padStart(4, 0);
+      });
   }
 
   // Find common prefix of an array of strings.
@@ -219,6 +221,7 @@ export default function toRegExp(input, flags = "") {
     let nonEmptyStrings = strings.filter(s => s.length > 0);
     if (nonEmptyStrings.length > 0) {
       let lens = nonEmptyStrings.map(s => s.length);
+      let gcd = (a, b) => (b == 0 ? a : gcd(b, a % b));
       let g = lens.reduce((a, b) => gcd(a, b), lens[0]);
 
       if (g > 0) {
@@ -319,7 +322,7 @@ export default function toRegExp(input, flags = "") {
 
     if (prefix || suffix) {
       // Helper: build a candidate pattern given a specific prefix/suffix split.
-      const buildWithSplit = (pfx, sfx) => {
+      let buildWithSplit = (pfx, sfx) => {
         let mid = strings.map(s => s.slice(pfx.length, s.length - sfx.length || undefined));
         let mp = buildPattern(mid, flags);
         if (mp.includes("|") && (pfx || sfx) && !isAtomic(mp)) mp = "(?:" + mp + ")";
@@ -388,7 +391,7 @@ export default function toRegExp(input, flags = "") {
 
     // Try to group by common prefix or suffix if no global prefix/suffix found
     if (!prefix && !suffix && strings.length > 1) {
-      const tryGroup = getChar => {
+      let tryGroup = getChar => {
         let groups = new Map();
         let charOrder = [];
         for (let s of strings) {
@@ -405,14 +408,14 @@ export default function toRegExp(input, flags = "") {
       };
 
       // Build alternation from groups, then try to factor a common textual prefix from the parts
-      const buildFromGroups = (groups, charOrder) => {
+      let buildFromGroups = (groups, charOrder) => {
         let parts = charOrder.map(char => buildPattern(groups.get(char), flags));
         // Try to factor common text prefix from the pattern strings
         if (parts.length >= 2) {
           let commonPfx = findCommonPrefix(parts);
           // Only factor if prefix is non-empty and doesn't end mid-escape or mid-group
           // Also reject if prefix ends mid-escape: \uXX, \u{..., \xX, etc.
-          const midEscape = /\\(?:u\{[0-9A-Fa-f]*|u[0-9A-Fa-f]{0,3}|x[0-9A-Fa-f]{0,1})$/.test(
+          let midEscape = /\\(?:u\{[0-9A-Fa-f]*|u[0-9A-Fa-f]{0,3}|x[0-9A-Fa-f]{0,1})$/.test(
             commonPfx,
           );
           if (
