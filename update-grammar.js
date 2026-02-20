@@ -181,16 +181,17 @@ let sortKeys = obj =>
 
 // clone grammar object
 let grammar1 = sortKeys(grammar);
+delete grammar1.repository.define;
 
 // remove "comment" and "define" keys from all sub-objects in repository
 grammar = parse(
-  stringify(grammar, (k, value) => {
+  stringify(grammar, (key, value) => {
     switch (typeof value) {
       case "object":
         delete value.comment || delete value.define;
         break;
       case "string":
-        if (["begin", "end", "match", "while"].includes(k.trim()))
+        if (["begin", "end", "match", "while"].includes(key.trim()))
           try {
             if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
               value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {

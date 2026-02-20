@@ -37,6 +37,9 @@
  */
 
 export default function toRegExp(input, flags = "") {
+  const gcd = (a, b) => (b == 0 ? a : gcd(b, a % b));
+  const hex = code => code.toString(16).toUpperCase();
+
   // Escape a string for use in a regular expression, handling Unicode properly.
   function escapeRegExp(string, flags = "") {
     let isUnicode = flags.includes("u");
@@ -45,20 +48,14 @@ export default function toRegExp(input, flags = "") {
       .replace(/(?:[\uD800-\uDBFF][\uDC00-\uDFFF])|[\u0080-\uFFFF]/g, match => {
         if (match.length == 2) {
           if (isUnicode) {
-            return "\\u{" + match.codePointAt(0).toString(16).toUpperCase() + "}";
+            return "\\u{" + hex(match.codePointAt(0)) + "}";
           } else {
-            let high = match.charCodeAt(0);
-            let low = match.charCodeAt(1);
-            return (
-              "\\u" +
-              high.toString(16).toUpperCase().padStart(4, "0") +
-              "\\u" +
-              low.toString(16).toUpperCase().padStart(4, "0")
-            );
+            let [high, low] = [match.charCodeAt(0), match.charCodeAt(1)];
+            return "\\u" + hex(high).padStart(4, "0") + "\\u" + hex(low).padStart(4, "0");
           }
         }
         let code = match.charCodeAt(0);
-        return "\\u" + code.toString(16).toUpperCase().padStart(4, "0");
+        return "\\u" + hex(code).padStart(4, "0");
       });
   }
 
@@ -69,26 +66,16 @@ export default function toRegExp(input, flags = "") {
     if (code > 127) {
       if (code > 0xffff) {
         if (isUnicode) {
-          return "\\u{" + code.toString(16).toUpperCase() + "}";
+          return "\\u{" + hex(code) + "}";
         } else {
-          let high = char.charCodeAt(0);
-          let low = char.charCodeAt(1);
-          return (
-            "\\u" +
-            high.toString(16).toUpperCase().padStart(4, "0") +
-            "\\u" +
-            low.toString(16).toUpperCase().padStart(4, "0")
-          );
+          let [high, low] = [char.charCodeAt(0), char.charCodeAt(1)];
+          return "\\u" + hex(high).padStart(4, "0") + "\\u" + hex(low).padStart(4, "0");
         }
       }
-      return "\\u" + code.toString(16).toUpperCase().padStart(4, "0");
+      return "\\u" + hex(code).padStart(4, "0");
     } else {
       return char.replace(/[\\[\]\^]/g, "\\$&");
     }
-  }
-
-  function gcd(a, b) {
-    return b == 0 ? a : gcd(b, a % b);
   }
 
   // Find common prefix of an array of strings.

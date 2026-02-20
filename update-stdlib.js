@@ -55,8 +55,11 @@ let traversePlatform = node => {
           pattern.name.startsWith("invalid.") ?
             pattern.name.replace(/^.+(?=support)/, "")
           : pattern.name).replace(/\.c$/, ".ruko");
+
         let key = name.split(".")[1];
         let symbols = genex(pattern.match.replace(/^\\b|\\b$/g)).generate();
+
+        console.log(`Compressing ${symbols.length} patterns of ${key} from C platform grammar`);
         symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
         let match = `\\b(${toRegExp(symbols).source})\\b`;
         platforms.push({match, name: `support.${key}.c.ruko`, key});
@@ -146,7 +149,7 @@ for (let lib of libraries)
       let symbols = lib.patterns[key] || [];
       symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
       let length = symbols.length;
-      console.log(`Optimizing ${length} patterns for ${key}.${lib.name}`);
+      console.log(`Compressing ${length} patterns of ${key}.${lib.name}`);
       let match = `\\b(${toRegExp(symbols).source})\\b`;
       lib.patterns[key] = {
         match,
