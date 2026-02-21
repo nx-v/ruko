@@ -484,8 +484,7 @@ impl BlockingClient {
   }
 }
 
-// The user hasn't been constructed yet, so we need
-// to use 'as' here
+// the user hasn't been constructed yet, so we need to use 'as' here
 let userToBeBuilt = {} as User;
 
 struct User {
@@ -500,12 +499,12 @@ let defaultUser = {
   name: "Matt",
 } by User;
 
-// Assigning to a dynamic key
+// assigning to a dynamic key
 (const["name", "id"]).forEach(proc(str key) {
   userToBeBuilt[key] = "default"
 });
 
-// Style DSL example
+// style DSL example
 style `style` {
   x: 100px;
   y: 100px;
@@ -549,7 +548,7 @@ style `style` {
   animation: slideIn 3s :easeInOut :infinite :alternate;
 }
 
-// Markdown literals (with embedded code)
+// markdown literals (with embedded code)
 <div>
   \\ # Generic Heading 1
   \\ ## Generic Heading 2
@@ -594,27 +593,29 @@ style `style` {
   )/>
 </div>;
 
-// LaTeX example
-%latex
-\documentclass{article}
-\usepackage{amsmath}
-\begin{document}
-Here is an inline equation: \(E = mc^2\).
-And here is a displayed equation:
-\[
-  \int_{a}^{b} f(x) \, dx = F(b) - F(a)
-\]
-\end{document}
-latex%
-
-%re
-[\p{L}]+ # match sequences of Unicode letters
-[\p{Script=Han}]+ # match sequences of Han characters
-[\p{Emoji_Presentation}]+ # match sequences of emoji
-(?[\p{Thai}|\p{Lao}]) # match characters that are either Thai or Lao
-(?[\p{Digit}&(\p{Thai}|\p{Lao})]) # match characters that are digits and either Thai or Lao
-(?[^\P{L}\p{M}]) # match sequences of characters that are letters or marks (e.g. accents)
-re%
+// advanced type mapping example
+show type MappedParameterTypes<T : Parameter[]> = {
+  prop[P in T[num] as P["name"]]: (P of {var any `enum`}
+    ? E of str 
+      ? P.'required' of false
+        ? E | null
+        : E 
+      : never 
+    : P of {prop('object') `type`, infer Attributes attributes?}
+      ? Attributes of Parameter[]
+        ? MappedParameterTypes<Attributes> 
+        : never
+    : P of {prop('object[]') `type`, never attributes}
+      ? any[]
+    : P of {prop('object') `type`, infer Attributes attributes}
+      ? Attributes of Parameter[]
+        ? MappedParameterTypes<Attributes>[]
+        : any[]
+    : P.'required' of false
+      ? TypeMap[P.'type' of keyof TypeMap ? P.'type' : 'string'] | null
+      : TypeMap[P.'type' of keyof TypeMap ? P.'type' : 'string']
+  );
+};
 
 // SQL query example
 from users
@@ -625,144 +626,6 @@ having post_count > 10
 order desc by post_count
 limit 50
 select users.id, users.name, count posts.id as post_count;
-
-%sql
-select users.id, users.name, count(posts.id) as post_count
-from users
-left join posts on users.id = posts.user_id
-where users.active = 1
-group by users.id, users.name
-having post_count > 10
-order by post_count desc
-limit 50;
-sql%
-
-// Rust codegen example
-%rs
-fn main() {
-  use std::collections::HashMap;
-  use serde::{Serialize, Deserialize};
-  use tokio::sync::broadcast;
-  use warp::Filter;
-
-  #[derive(Serialize, Deserialize, Clone)]
-  struct Post {
-    id: u32,
-    title: String,
-    content: String,
-  }
-
-  #[tokio::main]
-  async fn main() {
-    let (tx, _rx) = broadcast::channel(100);
-    let tx_filter = warp::any().map(move || tx.clone());
-
-    let post_route = warp::post()
-      .and(warp::path("posts"))
-      .and(warp::body::json())
-      .and(tx_filter.clone())
-      .and_then(handle_create_post);
-
-    warp::serve(post_route).run(([127, 0, 0, 1], 6001)).await;
-  }
-
-  async fn handle_create_post(new_post: Post, tx: broadcast::Sender<Post>) -> Result<impl warp::Reply, warp::Rejection> {
-    tx.send(new_post.clone()).unwrap();
-    Ok(warp::reply::json(&new_post))
-  }
-}
-rs%
-
-// PHP & Laravel broadcasting example
-%php
-use x\y;
-
-class PostCreated implements ShouldBroadcast {
-  use Dispatchable, SerializesModels;
-  public $post;
-  public function __construct(Post $post) {
-    $this->post = $post;
-  }
-}
-
-class PostController extends Controller {
-  public function store(Request $request) {
-    $post = Post::create($request->all());
-    broadcast(new PostCreated($post))->toOthers();
-    return response()->json($post, 201);
-  }
-}
-
-class Post extends Model {
-  protected $fillable = ['title', 'content'];
-}
-
-class BroadcastServiceProvider extends ServiceProvider {
-  public function boot() {
-    Broadcast::routes();
-    require base_path('routes/channels.php');
-  }
-}
-
-class UserChannel {
-  public function join(User $user) {
-    return Auth::check();
-  }
-}
-
-class PostChannel {
-  public function join(User $user) {
-    return Auth::check();
-  }
-}
-
-channel('user.{id}', UserChannel::class);
-channel('post.{id}', PostChannel::class);
-php%
-
-// JavaScript codegen example
-%js
-import React, { useEffect, useState } from 'react';
-import { io } from "socket.io-client";
-
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-}
-
-const socket = io("http://localhost:6001");
-
-const App: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-
-  useEffect(() => {
-    socket.on("PostCreated", (data: Post) => {
-      setPosts((prevPosts) => [...prevPosts, data]);
-    });
-
-    return () => {
-      socket.off("PostCreated");
-    };
-  }, []);
-
-  return (
-    <div>
-      <h1>Posts</h1>
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id}>
-            <h2>{post.title}</h2>
-            <p>{post.content}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-export default App;
-js%
 
 // string literals with interpolation and raw strings.
 // unlike in other languages, function and method calls can be used inside interpolations.
@@ -791,30 +654,3 @@ let templateString = @"""
   or @{mut varName = expression}.
   The value of x doubled is: @{mut x = x * 2}
 """;
-
-// regex with inline comments and whitespace
-print (/(&) // HTML entity start
-    (?:
-      (\# 0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])) // decimal
-    | (\#b0*(?:[01]|1[01]{1,19}|10000[01]{16})) // binary
-    | (\#t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01])) // ternary
-    | (\#q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8})) // quaternary
-    | (\#s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01])) // senary
-    | (\#o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5})) // octal
-    | (\#z0*(?:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7])) // duodecimal
-    | (\#x0*(?:\h|[1-f]\h{1,4}|10\h{4})) // hexadecimal
-    | (\b[\p{Pd}\w]+\b) // named
-    | ([^;\s]++) // invalid
-  )
-  (;) // HTML entity end
-/xi.test('&#x1F600;
-  &#128512;
-  &#b110000001010100000000000000000;
-  &#t1002202000000;
-  &#q10023020000;
-  &#s1003200;
-  &#o1405000;
-  &#z468a0;
-  &#x1F600;
-  &#invalid;')
-);

@@ -591,7 +591,7 @@ repository:
           - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
             captures:
               0: {patterns: [{include: "#type-names"}]}
-      namespace-names: &namespace-names
+      module-names: &module-names
         patterns:
           - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
             captures:
@@ -643,16 +643,16 @@ repository:
         <<: *type-names
       5:
         name: support.type.module.ruko
-        <<: *namespace-names
+        <<: *module-names
       6:
         name: entity.name.namespace.ruko
-        <<: *namespace-names
+        <<: *module-names
       7:
         name: support.type.namespace.ruko
-        <<: *namespace-names
+        <<: *module-names
       8:
         name: entity.name.module.ruko
-        <<: *namespace-names
+        <<: *module-names
       9:
         name: support.type.type.ruko
         <<: *type-names
@@ -6355,11 +6355,19 @@ repository:
       - include: "#type-modifiers"
       - include: "#comma"
       - include: "#line-continuation"
+      - include: "#accessor-operators"
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=(?:[?!:]:|[?!]?\.|[?!-]>)=?)
+        name: entity.name.module.ruko
+        captures:
+          0: *module-names
       - match: *entity-name
-        name: string.unquoted.module.ruko
+        name: entity.name.type.ruko
+        captures:
+          0: *type-names
 
   validation-expression:
-    comment: In validation expressions, consecutive identifiers are highlighted as keywords
+    comment: In validation expressions, the first of every consecutive sequence
+      of identifiers and keywords is a control keyword, and the rest are treated as labels.
     begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
     beginCaptures:
       1: {name: keyword.control.validate.ruko}
@@ -7705,7 +7713,11 @@ repository:
           )
         captures:
           1: {name: entity.other.attribute-name.key.ruko}
-      - match: (?<=^|[,;]|\#?[(\[{])\s*((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s*(?=[,;)\]}:]|$)
+      - match: |-
+          (?x)
+          (?<=^|[,;]|\#?[(\[{]) \s*
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) \s*
+          (?=[,;)\]}:]|$)
         captures:
           1:
             name: constant.other.object.key.ruko

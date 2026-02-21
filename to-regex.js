@@ -153,7 +153,7 @@ export default function toRegExp(input, flags = "") {
           pos += atom.length;
         }
       }
-      if (pos !== s.length) return false; // string has leftover characters not covered by atoms
+      if (pos != s.length) return false; // string has leftover characters not covered by atoms
     }
 
     let generated = new Set();
@@ -180,9 +180,9 @@ export default function toRegExp(input, flags = "") {
   // Check if a pattern string represents exactly one literal character.
   // Returns the actual character string (for use in makeCharClass), or null.
   let getSingleCharFromPattern = p => {
-    if (p.length === 0) return null;
+    if (p.length == 0) return null;
     // Unescaped single non-special char
-    if (p.length === 1 && !/[|.*+?^${}()\[\]\\]/.test(p)) return p;
+    if (p.length == 1 && !/[|.*+?^${}()\[\]\\]/.test(p)) return p;
     // \xNN
     let m;
     if ((m = p.match(/^\\x([\dA-Fa-f]{2})$/))) return String.fromCharCode(parseInt(m[1], 16));
@@ -191,7 +191,7 @@ export default function toRegExp(input, flags = "") {
     // \u{N+} (unicode mode)
     if ((m = p.match(/^\\u\{([\dA-Fa-f]+)\}$/))) return String.fromCodePoint(parseInt(m[1], 16));
     // \<special> (escaped metacharacter)
-    if (p.length === 2 && p[0] === "\\") return p[1];
+    if (p.length == 2 && p[0] == "\\") return p[1];
     return null;
   };
 
@@ -212,7 +212,7 @@ export default function toRegExp(input, flags = "") {
     // Need at least 2 distinct middles and all must be single literal chars
     if (new Set(middles).size < 2) return null;
     let chars = middles.map(m => getSingleCharFromPattern(m));
-    if (!chars.every(c => c !== null)) return null;
+    if (!chars.every(c => c != null)) return null;
     return pfx + makeCharClass(chars, flags) + sfx;
   };
 
@@ -320,7 +320,7 @@ export default function toRegExp(input, flags = "") {
       let singleChars = [];
       for (let i = 0; i < parts.length; i++) {
         let c = getSingleCharFromPattern(parts[i]);
-        if (c !== null) {
+        if (c != null) {
           singleCharIndices.add(i);
           singleChars.push(c);
         }
@@ -581,7 +581,7 @@ export default function toRegExp(input, flags = "") {
               } else {
                 // Mixed: some empty, some not — if non-empties condense to a char class use [x]?
                 let condensedNonEmpty = condenseAlternationParts(nonEmpty, flags);
-                if (condensedNonEmpty !== null) {
+                if (condensedNonEmpty != null) {
                   return (
                     validPfx +
                     (isAtomic(condensedNonEmpty) ?
