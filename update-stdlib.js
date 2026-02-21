@@ -8,6 +8,13 @@ let {parse, stringify} = JSON;
 let {isArray} = Array;
 let {keys, values, fromEntries, entries, groupBy} = Object;
 
+let chunk = (array, size) =>
+  array.reduce((result, item, index) => {
+    if (index % size === 0) result.push([]);
+    result[result.length - 1].push(item);
+    return result;
+  }, []);
+
 let sortKeys = obj =>
   isArray(obj) ? obj.map(sortKeys)
   : obj && typeof obj == "object" ?
@@ -40,6 +47,7 @@ let symbolSet = {
   property: new Set(),
 };
 let repositoryKeys = keys(symbolSet);
+let LIMIT = 8192; // Maximum number of symbols per regex pattern to avoid performance issues.
 
 // === C/C++ STANDARD LIBRARY ===
 
@@ -55,16 +63,14 @@ let traversePlatform = node => {
           pattern.name.startsWith("invalid.") ?
             pattern.name.replace(/^.+(?=support)/, "")
           : pattern.name).replace(/\.c$/, ".ruko");
-
         let key = name.split(".")[1];
-        let symbols = genex(pattern.match.replace(/^\\b|\\b$/g)).generate();
-
-        console.log(`Compressing ${symbols.length} C ${pluralize(key)}.`);
+        let symbols = genex(pattern.match.replace(/^\\b|\\b$/g, "")).generate();
         symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
-
-        let match = `\\b(${toRegExp(symbols).source})\\b`;
-        platforms.push({match, name: `support.${key}.c.ruko`, key});
-
+        chunk(symbols, LIMIT).forEach(chunk => {
+          console.log(`Compressing ${chunk.length} C ${pluralize(key)} for pattern ${name}.`);
+          let match = `\\b(${toRegExp(chunk).source})\\b`;
+          platforms.push({match, name, key});
+        });
         symbolSet[key] = symbolSet[key].union(new Set(symbols));
       }
       pattern.patterns && traversePlatform(pattern);
@@ -96,13 +102,13 @@ platforms = fromEntries(
   ]),
 );
 
-// === STANDARD LIBRARY ===
+// === NODE.JS STANDARD LIBRARY ===
 
 let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts";
 let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .filter(path => !/\/node_modules\//.test(path))
   .reverse();
-console.log(`Found ${stdlibFiles.length} standard library files.`);
+console.log(`Found ${stdlibFiles.length} Node.js standard library files.`);
 
 let libraries = stdlibFiles
   .map(path => {
@@ -154,64 +160,44 @@ let libraries = stdlibFiles
   // otherwise, push the current library and start a new one.
   .reduce((acc, lib) => {
     let existing = acc.find(l => l.name == lib.name);
-    if (existing) {
+    if (existing)
       for (let key in lib.patterns) {
         let symbols = lib.patterns[key] || [];
         existing.patterns[key] = [...new Set(existing.patterns[key] || []).union(new Set(symbols))];
-
         if (symbols.length > 0)
           console.log(
             `Merged ${symbols.length} ${pluralize(key)} from ${lib.name} with existing ${pluralize(key)} (${existing.patterns[key].length} total).`,
           );
       }
-    } else acc.push(lib);
+    else acc.push(lib);
     return acc;
   }, []);
 
-// Remove any empty patterns and convert the arrays of names into
-// optimized regex patterns using oniguruma-parser/optimizer.
-
-// to query the patterns for debugging, you can use the following code:
-void libraries.find(({name}) => name == "three")?.patterns;
-
+// Remove any empty patterns and aggregate all symbols by type across all libraries.
+let allSymbols = fromEntries(repositoryKeys.map(key => [key, new Set()]));
 for (let lib of libraries)
   for (let key in lib.patterns)
-    if (lib.patterns[key].length > 0) {
-      let symbols = lib.patterns[key] || [];
-      symbols = [...new Set(symbols).difference(symbolSet[key] || new Set())];
-      let length = symbols.length;
-      console.log(`Aggregating ${length} ${pluralize(key)} from ${lib.name}.`);
-      let match = symbols; // don't merge yet
-      lib.patterns[key] = {
-        match,
-        name: `support.${key}.${lib.name}.ruko`,
-        key,
-      };
-    } else delete lib.patterns[key];
+    if (lib.patterns[key].length > 0)
+      allSymbols[key] = allSymbols[key].union(new Set(lib.patterns[key]));
 
-// Transpose patterns so that they are grouped by type instead of by library.
-// For example, all function patterns from all libraries would be grouped
-// together under "stdlib-functions", all class patterns under "stdlib-classes", etc.
-libraries = groupBy(
-  libraries.flatMap(lib =>
-    values(lib.patterns)
-      .map(pattern => {
-        console.log(`Processing pattern for ${pattern.name} with ${pattern.match.length} symbols.`);
-        let symbols = pattern.match;
-        // Split the patterns into smaller groups by first letter to avoid creating
-        // huge regex patterns that can be inefficient to match against.
-        let groups = groupBy(symbols, sym => sym[0].toLowerCase());
-        return entries(groups).map(([letter, symbols]) => {
-          console.log(
-            `Compressing ${symbols.length} symbols starting with "${letter}" for ${pattern.name}.`,
-          );
-          let match = `\\b(${toRegExp(symbols).source})\\b`;
-          return {...pattern, match};
+// Group by type, then aggregate by letter.
+libraries = fromEntries(
+  repositoryKeys.map(key => {
+    let symbols = [...allSymbols[key].difference(symbolSet[key] || new Set())];
+    symbolSet[key] = symbolSet[key].union(new Set(symbols));
+    console.log(`Aggregating ${symbols.length} ${pluralize(key)} from all Node.js libraries.`);
+    let groups = groupBy(symbols, sym => sym[0].toLowerCase());
+    let patterns = entries(groups)
+      .map(([letter, syms]) => {
+        console.log(`Compressing ${syms.length} ${pluralize(key)} starting with "${letter}".`);
+        return chunk(syms, LIMIT).map(syms => {
+          let match = `\\b(${toRegExp(syms).source})\\b`;
+          return {match, name: `support.${key}.node.ruko`};
         });
       })
-      .flat(),
-  ),
-  p => "stdlib-" + pluralize(p.key),
+      .flat();
+    return [`stdlib-${pluralize(key)}`, patterns];
+  }),
 );
 
 // Combine both the C/C++ standard library patterns and the standard library patterns
