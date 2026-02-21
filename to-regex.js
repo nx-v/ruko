@@ -177,6 +177,45 @@ export default function toRegExp(input, flags = "") {
     return orderedAtoms;
   };
 
+  // Check if a pattern string represents exactly one literal character.
+  // Returns the actual character string (for use in makeCharClass), or null.
+  let getSingleCharFromPattern = p => {
+    if (p.length === 0) return null;
+    // Unescaped single non-special char
+    if (p.length === 1 && !/[|.*+?^${}()\[\]\\]/.test(p)) return p;
+    // \xNN
+    let m;
+    if ((m = p.match(/^\\x([\dA-Fa-f]{2})$/))) return String.fromCharCode(parseInt(m[1], 16));
+    // \uNNNN
+    if ((m = p.match(/^\\u([\dA-Fa-f]{4})$/))) return String.fromCharCode(parseInt(m[1], 16));
+    // \u{N+} (unicode mode)
+    if ((m = p.match(/^\\u\{([\dA-Fa-f]+)\}$/))) return String.fromCodePoint(parseInt(m[1], 16));
+    // \<special> (escaped metacharacter)
+    if (p.length === 2 && p[0] === "\\") return p[1];
+    return null;
+  };
+
+  // Given an array of alternation-branch pattern strings, try to find a common prefix/suffix
+  // such that the middles are all single literal characters, and condense into a char class.
+  // Returns the condensed pattern string, or null if not applicable.
+  let condenseAlternationParts = (parts, flags) => {
+    if (parts.length < 2) return null;
+    let pfx = findCommonPrefix(parts);
+    let sfx = findCommonSuffix(parts);
+    let minLen = Math.min(...parts.map(p => p.length));
+    if (pfx.length + sfx.length > minLen) sfx = sfx.slice(pfx.length + sfx.length - minLen);
+    // Guard: prefix must not end mid-escape sequence
+    if (/\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(pfx)) return null;
+    let middles = parts.map(p =>
+      sfx.length > 0 ? p.slice(pfx.length, p.length - sfx.length) : p.slice(pfx.length),
+    );
+    // Need at least 2 distinct middles and all must be single literal chars
+    if (new Set(middles).size < 2) return null;
+    let chars = middles.map(m => getSingleCharFromPattern(m));
+    if (!chars.every(c => c !== null)) return null;
+    return pfx + makeCharClass(chars, flags) + sfx;
+  };
+
   // Main function to build the regex pattern from the array of strings
   let buildPattern = (strings, flags = "") => {
     if (strings.length == 0) return "";
@@ -269,6 +308,72 @@ export default function toRegExp(input, flags = "") {
       return false;
     }
 
+    // Group single-char pattern parts into a char class, then factor any common atomic suffix.
+    // Handles cases like ['1','2','3','4','bservable[1-4]'] → '(?:bservable)?[1-4]'
+    // and ['U','V','computed'] → '[UV]|computed'.
+    // Returns a condensed pattern string, or null if no improvement is possible.
+    let condensePartsAdvanced = (parts, flags) => {
+      if (parts.length < 2) return null;
+
+      // Step 1: group single-char pattern parts into a char class
+      let singleCharIndices = new Set();
+      let singleChars = [];
+      for (let i = 0; i < parts.length; i++) {
+        let c = getSingleCharFromPattern(parts[i]);
+        if (c !== null) {
+          singleCharIndices.add(i);
+          singleChars.push(c);
+        }
+      }
+
+      let newParts;
+      let didGroup = singleChars.length >= 2;
+      if (didGroup) {
+        let charClass = makeCharClass(singleChars, flags);
+        newParts = [charClass, ...parts.filter((_, i) => !singleCharIndices.has(i))];
+      } else {
+        newParts = parts;
+      }
+
+      if (newParts.length == 1) return newParts[0];
+
+      // Step 2: factor a common atomic suffix from newParts
+      let textSuffix = findCommonSuffix(newParts);
+      if (
+        textSuffix.length > 0 &&
+        isAtomic(textSuffix) &&
+        !newParts.some(p =>
+          /\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(
+            p.slice(0, p.length - textSuffix.length),
+          ),
+        )
+      ) {
+        let rests = newParts.map(p => p.slice(0, p.length - textSuffix.length));
+        let nonEmpty = rests.filter(r => r != "");
+        if (nonEmpty.length < rests.length) {
+          // Some rests empty → the suffix absorbs those branches as optional
+          let restPart;
+          if (nonEmpty.length == 0) {
+            restPart = "";
+          } else if (nonEmpty.length == 1) {
+            let r = nonEmpty[0];
+            restPart = isAtomic(r) ? r + "?" : "(?:" + r + ")?";
+          } else {
+            let inner = condenseAlternationParts(nonEmpty, flags) ?? nonEmpty.join("|");
+            restPart = isAtomic(inner) ? inner + "?" : "(?:" + inner + ")?";
+          }
+          return restPart + textSuffix;
+        } else if (newParts.length > 1) {
+          // All rests non-empty: wrap them and append the common suffix
+          let inner = condenseAlternationParts(rests, flags) ?? rests.join("|");
+          return (isAtomic(inner) ? inner : "(?:" + inner + ")") + textSuffix;
+        }
+      }
+
+      if (!didGroup) return null;
+      return condenseAlternationParts(newParts, flags) ?? newParts.join("|");
+    };
+
     // Fallback for empty string if not handled by cartesian
     if (strings.includes("")) {
       let nonEmpty = strings.filter(s => s);
@@ -339,8 +444,7 @@ export default function toRegExp(input, flags = "") {
           let reps = quant.split(",").map(Number);
           let newMin = reps[0] + 1;
           let newMax = reps[1] ? reps[1] + 1 : newMin;
-          let newQuant =
-            newMin == newMax ? "{" + "newMin" + "}" : "{" + "newMin" + "," + "newMax" + "}";
+          let newQuant = newMin == newMax ? "{" + newMin + "}" : "{" + newMin + "," + newMax + "}";
           return "(?:" + escapeRegExp(prefix, flags) + ")" + newQuant + escapeRegExp(suffix, flags);
         }
       }
@@ -467,7 +571,7 @@ export default function toRegExp(input, flags = "") {
                 return validPfx;
               } else if (nonEmpty.length == rests.length) {
                 // All rests non-empty: form alternation of rests
-                let restAlt = rests.join("|");
+                let restAlt = condenseAlternationParts(rests, flags) ?? rests.join("|");
                 let wrapped = isAtomic(restAlt) ? restAlt : "(?:" + restAlt + ")";
                 return validPfx + wrapped;
               } else if (rests.filter(r => r == "").length > 0 && nonEmpty.length == 1) {
@@ -475,7 +579,16 @@ export default function toRegExp(input, flags = "") {
                 let rest = nonEmpty[0];
                 return validPfx + (isAtomic(rest) ? rest + "?" : "(?:" + rest + ")?");
               } else {
-                // Mixed: some empty, some not — treat empties + non-empties as optional group
+                // Mixed: some empty, some not — if non-empties condense to a char class use [x]?
+                let condensedNonEmpty = condenseAlternationParts(nonEmpty, flags);
+                if (condensedNonEmpty !== null) {
+                  return (
+                    validPfx +
+                    (isAtomic(condensedNonEmpty) ?
+                      condensedNonEmpty + "?"
+                    : "(?:" + condensedNonEmpty + ")?")
+                  );
+                }
                 let restAlt = rests.join("|");
                 let wrapped = isAtomic(restAlt) ? restAlt : "(?:" + restAlt + ")";
                 return validPfx + wrapped;
@@ -484,7 +597,11 @@ export default function toRegExp(input, flags = "") {
           }
         }
 
-        return parts.join("|");
+        return (
+          condensePartsAdvanced(parts, flags) ??
+          condenseAlternationParts(parts, flags) ??
+          parts.join("|")
+        );
       };
 
       let firstCharGroup = tryGroup(s => [...s][0]);
@@ -533,7 +650,12 @@ export default function toRegExp(input, flags = "") {
     }
 
     // Alternation
-    return strings.map(s => escapeRegExp(s, flags)).join("|");
+    let escapedParts = strings.map(s => escapeRegExp(s, flags));
+    return (
+      condensePartsAdvanced(escapedParts, flags) ??
+      condenseAlternationParts(escapedParts, flags) ??
+      escapedParts.join("|")
+    );
   };
 
   // Input validation
@@ -542,10 +664,7 @@ export default function toRegExp(input, flags = "") {
     throw new TypeError("Input must be an array");
   }
   if (input.some(s => typeof s != "string")) throw new TypeError("All elements must be strings");
-
-  if (!input || input.length == 0 || (input.length == 1 && input[0] == "")) {
-    return new RegExp("(?:)", flags);
-  }
+  if (!input || input.length == 0 || String(input[0]).length == 0) return new RegExp("(?:)", flags);
 
   // Remove duplicates, sort by code unit order
   input = [...new Set(input)].sort();
