@@ -3,7 +3,7 @@ scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
-# Last updated: February 18, 2026
+# Last updated: February 22, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -305,7 +305,6 @@ repository:
       - include: "#variable-declarations"
       - include: "#modifier-keywords"
       - include: "#clauses"
-      - include: "#labels"
       - include: "#typed-bindings"
       - include: "#keywords"
       - include: "#constants"
@@ -391,72 +390,100 @@ repository:
       prefix-type-annotation:
         match: |-
           (?x)
-          (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-
           (?:
-            (?:
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-            )*
-            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
 
             (?:
-              < # generics
-                (?>
-                    \g<t> # either recurse or match balanced generics
-                  | '(?>\\.|[^\\'])*' # char literals
-                  | "(?>\\.|[^\\"])*" # string literals
-                  | `(?>``|[^`])+` # identifier with backticks
-                  | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                        (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                      )\s # infix type operators with spaces
-                  | [^'"`<>()\[\]{}]+ # other characters
+                '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+
+              | (?:
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
                 )*
-              >
-            )? |
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
 
-            (?:
+                (?:
+                  < # generics
+                    (?>
+                        \g<t> # either recurse or match balanced generics
+                      | '(?>\\.|[^\\'])*' # char literals
+                      | "(?>\\.|[^\\"])*" # string literals
+                      | `(?>``|[^`])+` # identifier with backticks
+                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                            (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
+                          )\s # infix type operators with spaces
+                      | [^'"`<>()\[\]{}]+ # delimiter characters
+                    )*
+                  >
+                )?
+
+              | (?:
+                  (?:
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                  )*
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                )?
+
+                \#? # optional sharp for splice invocation
+
+                (?:
+                  \( # round brackets
+                    (?>
+                        \g<t> # either recurse or match balanced brackets
+                      | '(?>\\.|[^\\'])*' # char literals
+                      | "(?>\\.|[^\\"])*" # string literals
+                      | `(?>``|[^`])+` # identifier with backticks
+                      | [^'"`()\[\]{}]* # delimiter characters
+                    )*
+                  \) |
+                  \[ # square brackets
+                    (?>
+                        \g<t> # either recurse or match balanced brackets
+                      | '(?>\\.|[^\\'])*' # char literals
+                      | "(?>\\.|[^\\"])*" # string literals
+                      | `(?>``|[^`])+` # identifier with backticks
+                      | [^'"`()\[\]{}]* # delimiter characters
+                    )*
+                  \] |
+                  { # curly brackets
+                    (?>
+                        \g<t> # either recurse or match balanced brackets
+                      | '(?>\\.|[^\\'])*' # char literals
+                      | "(?>\\.|[^\\"])*" # string literals
+                      | `(?>``|[^`])+` # identifier with backticks
+                      | [^'"`()\[\]{}]* # delimiter characters
+                    )*
+                  }
+                )+ # allow chaining
+            )+
+
+            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+
+            | # infix type operator with spaces on both sides
+              (?<=[,;'"`()\[\]{}\w]) 
+              \s+
+              (?![?:]?=\s+)
               (?:
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-              )*
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-            )?
-
-            \#? # optional sharp for splice invocation
-
-            (?:
-              \( # round brackets
-                (?>
-                    \g<t> # either recurse or match balanced brackets
-                  | '(?>\\.|[^\\'])*' # char literals
-                  | "(?>\\.|[^\\"])*" # string literals
-                  | `(?>``|[^`])+` # identifier with backticks
-                  | [^'"`()\[\]{}]*
-                )*
-              \) |
-              \[ # square brackets
-                (?>
-                    \g<t> # either recurse or match balanced brackets
-                  | '(?>\\.|[^\\'])*' # char literals
-                  | "(?>\\.|[^\\"])*" # string literals
-                  | `(?>``|[^`])+` # identifier with backticks
-                  | [^'"`()\[\]{}]*
-                )*
-              \] |
-              { # curly brackets
-                (?>
-                    \g<t> # either recurse or match balanced brackets
-                  | '(?>\\.|[^\\'])*' # char literals
-                  | "(?>\\.|[^\\"])*" # string literals
-                  | `(?>``|[^`])+` # identifier with backticks
-                  | [^'"`()\[\]{}]*
-                )*
-              }
-            )+ # allow chaining
-          )+
-
-          (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) 
+              \s+
+              (?=[,;'"`()\[\]{}\w])
+            | # interfix type operator with no spaces on either side
+              (?<=[,;'"`()\[\]{}\w]) 
+              (?![?:]?=[,;'"`()\[\]{}\w])
+              (?:
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                )?
+              )
+              (?=[,;'"`()\[\]{}\w])
+          )
 
   # Directives
 
@@ -591,14 +618,16 @@ repository:
           - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
             captures:
               0: {patterns: [{include: "#type-names"}]}
+      namespace-names: &namespace-names
+        patterns:
+          - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+            captures:
+              0: {patterns: [{include: "#stdlib-namespaces"}]}
       module-names: &module-names
         patterns:
           - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
             captures:
-              0:
-                patterns:
-                  - include: "#stdlib-modules"
-                  - include: "#stdlib-namespaces"
+              0: {patterns: [{include: "#stdlib-modules"}]}
 
     match: |-
       (?x) \s*
@@ -643,16 +672,16 @@ repository:
         <<: *type-names
       5:
         name: support.type.module.ruko
-        <<: *module-names
+        <<: *namespace-names
       6:
         name: entity.name.namespace.ruko
-        <<: *module-names
+        <<: *namespace-names
       7:
         name: support.type.namespace.ruko
-        <<: *module-names
+        <<: *namespace-names
       8:
         name: entity.name.module.ruko
-        <<: *module-names
+        <<: *namespace-names
       9:
         name: support.type.type.ruko
         <<: *type-names
@@ -4247,7 +4276,7 @@ repository:
       (
         (?:
           (?: # key
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
+            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operators
 
             (?:
               (?:
@@ -4270,7 +4299,7 @@ repository:
                         | '(?>\\.|[^\\'])*' # char literals
                         | "(?>\\.|[^\\"])*" # string literals
                         | `(?>``|[^`])+` # identifier with backticks
-                        | [^'"`()\[\]{}]*
+                        | [^'"`()\[\]{}]* # delimiter characters
                       )*
                     \) |
                     \[ # square brackets
@@ -4279,7 +4308,7 @@ repository:
                         | '(?>\\.|[^\\'])*' # char literals
                         | "(?>\\.|[^\\"])*" # string literals
                         | `(?>``|[^`])+` # identifier with backticks
-                        | [^'"`()\[\]{}]*
+                        | [^'"`()\[\]{}]* # delimiter characters
                       )*
                     \] |
                     { # curly brackets
@@ -4288,7 +4317,7 @@ repository:
                         | '(?>\\.|[^\\'])*' # char literals
                         | "(?>\\.|[^\\"])*" # string literals
                         | `(?>``|[^`])+` # identifier with backticks
-                        | [^'"`()\[\]{}]*
+                        | [^'"`()\[\]{}]* # delimiter characters
                       )*
                     }
                   )+ # allow chaining
@@ -4309,7 +4338,7 @@ repository:
                         | '(?>\\.|[^\\'])*' # char literals
                         | "(?>\\.|[^\\"])*" # string literals
                         | `(?>``|[^`])+` # identifier with backticks
-                        | [^'"`()\[\]{}]*
+                        | [^'"`()\[\]{}]* # delimiter characters
                       )*
                     \) |
                     \[ # square brackets
@@ -4318,7 +4347,7 @@ repository:
                         | '(?>\\.|[^\\'])*' # char literals
                         | "(?>\\.|[^\\"])*" # string literals
                         | `(?>``|[^`])+` # identifier with backticks
-                        | [^'"`()\[\]{}]*
+                        | [^'"`()\[\]{}]* # delimiter characters
                       )*
                     \] |
                     { # curly brackets
@@ -4327,7 +4356,7 @@ repository:
                         | '(?>\\.|[^\\'])*' # char literals
                         | "(?>\\.|[^\\"])*" # string literals
                         | `(?>``|[^`])+` # identifier with backticks
-                        | [^'"`()\[\]{}]*
+                        | [^'"`()\[\]{}]* # delimiter characters
                       )*
                     }
                   )+ # allow chaining
@@ -4335,17 +4364,23 @@ repository:
               )*
             )
 
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix operators
 
-            | # infix operator
-              \s+ (?:
+            | # infix type operator with spaces on both sides
+              (?<=[,;'"`()\[\]{}\w]) 
+              \s+
+              (?![?:]?=\s+)
+              (?:
                 [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                 (?:[\p{P}\p{S}]*
                   [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                 )?
-              ) \s+
-            | # primary operator that isn't an accessor or assignment
-              (?<=[,;'"`()\[\]{}\w])
+              ) 
+              \s+
+              (?=[,;'"`()\[\]{}\w])
+            | # interfix type operator with no spaces on either side
+              (?<=[,;'"`()\[\]{}\w]) 
+              (?![?:]?=[,;'"`()\[\]{}\w])
               (?:
                 [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
                 (?:[\p{P}\p{S}]*
@@ -6479,7 +6514,7 @@ repository:
       - include: $self
 
   query-expression:
-    comment: "RINQ (Ruko INtegrated Query) expression mini-language TODO: unify the query clauses to reduce redundancy, since they are mostly similar in structure."
+    comment: RINQ (Ruko INtegrated Query) expression mini-language
     begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
     beginCaptures:
       1: {name: keyword.control.query.ruko}
@@ -6654,7 +6689,7 @@ repository:
         < # generics
         | \s* [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* (?:
             \#?[(\[{] # opening brackets
-          | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          | ['"`\w] # literals and identifiers
         )
       )
     end: $|
@@ -8103,7 +8138,9 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.class.ruko}
-        patterns: [{include: $self}]
+        patterns:
+          - include: "#labels"
+          - include: $self
       - begin: |-
           (?x)
           (?<= # beside postfix operators
@@ -8116,7 +8153,9 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [{include: $self}]
+        patterns:
+          - include: "#labels"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8138,7 +8177,9 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.class.ruko}
-        patterns: [{include: $self}]
+        patterns:
+          - include: "#labels"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8160,7 +8201,9 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [{include: $self}]
+        patterns:
+          - include: "#labels"
+          - include: $self
       - begin: |-
           (?x)
           (?<=
@@ -8285,13 +8328,17 @@ repository:
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.class.ruko}
-        patterns: [{include: $self}]
+        patterns:
+          - include: "#labels"
+          - include: $self
       - begin: ({)\s*
         end: \s*(})
         name: meta.brace.curly.ruko
         captures:
           1: {name: punctuation.definition.block.ruko}
-        patterns: [{include: $self}]
+        patterns:
+          - include: "#labels"
+          - include: $self
 
   round-brackets:
     repository:

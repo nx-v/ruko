@@ -44,26 +44,26 @@ let conventions = {
     name => /^([a-z][a-z\d]*_+)*[a-z\d]+$/.test(name),
     name => name.split(/_+/).filter(Boolean),
   ],
-  kebab: [
-    name => /^([a-z][a-z\d]*-+)*[a-z\d]+\b$/.test(name),
-    name => name.split(/-+/).filter(Boolean),
-  ],
+  // kebab: [
+  //   name => /^([a-z][a-z\d]*-+)*[a-z\d]+\b$/.test(name),
+  //   name => name.split(/-+/).filter(Boolean),
+  // ],
   screamingSnake: [
     name => /^([A-Z][A-Z\d]*_+)*[A-Z\d]+$/.test(name),
     name => name.split(/_+/).filter(Boolean),
   ],
-  screamingKebab: [
-    name => /^([A-Z][A-Z\d]*-+)*[A-Z\d]+\b$/.test(name),
-    name => name.split(/-+/).filter(Boolean),
-  ],
+  // screamingKebab: [
+  //   name => /^([A-Z][A-Z\d]*-+)*[A-Z\d]+\b$/.test(name),
+  //   name => name.split(/-+/).filter(Boolean),
+  // ],
   pascalSnake: [
     name => /^([A-Z][a-z\d]*_+)*[A-Z\d][a-z\d]*$/.test(name),
     name => name.split(/_+/).filter(Boolean),
   ],
-  pascalKebab: [
-    name => /^([A-Z][a-z\d]*-+)*[A-Z\d][a-z\d]*\b$/.test(name),
-    name => name.split(/-+/).filter(Boolean),
-  ],
+  // pascalKebab: [
+  //   name => /^([A-Z][a-z\d]*-+)*[A-Z\d][a-z\d]*\b$/.test(name),
+  //   name => name.split(/-+/).filter(Boolean),
+  // ],
   upper: [name => /^[A-Z][A-Z\d]*$/.test(name), name => [name]],
   lower: [name => /^[a-z][a-z\d]*$/.test(name), name => [name]],
 };
@@ -115,9 +115,9 @@ let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts";
 let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .filter(path => !/\/node_modules\//.test(path))
   .reverse();
+
 stdlibFiles.forEach(path => {
   let content = readFileSync(path, "utf8");
-  let name = path.match(/(?<=types[\\/])(.+?)(?=[\\/]|\.ts$)/)[1];
 
   let patterns = {
     class: /\bclass\b\s+\b([a-zA-Z_]\w*)\b/gm, // classes
@@ -156,7 +156,7 @@ let repository = (() => {
     // collect normalized word groups for this symbol type
     let groups = new Set();
 
-    for (let [convention, [validator, splitter]] of entries(conventions)) {
+    for (let [validator, splitter] of values(conventions)) {
       for (let symbol of symbols) {
         if (!validator(symbol)) continue;
 
@@ -167,26 +167,27 @@ let repository = (() => {
           .map(word => word.toLowerCase())
           .join(" ")
           .replace(/\b((?:[a-z]\b\s*){2,}|(?:\d\b\s*){2,})\b/g, match => match.replace(/\s/g, ""))
+          .replace(/\d+/g, "")
           .replace(/\s+/g, " ")
           .trim()
           .split(" ");
 
-        for (let w of words) groups.add(w);
+        groups = groups.union(new Set(words));
       }
     }
 
     let groupList = [...groups]
-      .sort((a, b) => a.length - b.length)
       // leave out single-letter/digit groups since they can cause false positives
-      .filter(x => x.length >= 2);
+      .filter(x => x.length >= 2 && !/\d/.test(x))
+      .sort((a, b) => a.length - b.length);
 
     repo[`stdlib-${pluralize(type)}`] = {
       match:
-        "\\b((?i:" +
+        "\\b(?!\\d+)((?i:" +
         values(groupBy(groupList, g => g.length))
           .map(g => toRegExp(g).source)
           .join("|") +
-        ")\\p{Pc}*)*\\g<1>\\b",
+        "|\\d+)\\p{Pc}*)*\\g<1>\\b",
       name: `support.${type}.ruko`,
     };
   }

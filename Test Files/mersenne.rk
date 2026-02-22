@@ -19,7 +19,7 @@ show class MTRand : Io.Serializer {
   prot:
     const prop i32 M = 397;
 
-    prop u32[N] state,
+    prop [N]u32 state,
       &u32 p_next,
       i32 left,
       bool has_gauss = false,
@@ -246,7 +246,7 @@ show class MTRand : Io.Serializer {
     }
 
     override static proc deserialize(str s) {
-      let str[] parts = s / '\t'; // split by tab
+      let []str parts = s / '\t'; // split by tab
       for let i32 i in 0 ..< N: #state->[i] := (u32) parts[i];
       #left := (i32) parts[N];
       #p_next := if #left == 0: &#state->0 else &#state->[N - #left];
@@ -254,7 +254,7 @@ show class MTRand : Io.Serializer {
 
     static proc u32 hash(str s) {
       mut u32 h = 0;
-      let u8[] bytes = s.to_bytes();
+      let []u8 bytes = s.to_bytes();
       for let i32 i in 0 ..< bytes::len {
         h *= u8::max_value + 2;
         h += (u32) bytes[i];
