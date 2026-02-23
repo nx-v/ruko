@@ -26,14 +26,16 @@ export const mirrorDir = (source, destination) => {
   for (let entry of sourceEntries) {
     let sourcePath = `${source}/${entry}`;
     let destPath = `${destination}/${entry}`;
-    if (lstatSync(sourcePath).isDirectory()) cpSync(sourcePath, destPath, {recursive: true});
+    if (lstatSync(sourcePath).isDirectory())
+      cpSync(sourcePath, destPath, {recursive: true});
     else copyFileSync(sourcePath, destPath);
   }
 
   for (let entry of destEntries) {
     if (!sourceEntries.has(entry)) {
       let destPath = `${destination}/${entry}`;
-      if (lstatSync(destPath).isDirectory()) rmSync(destPath, {recursive: true, force: true});
+      if (lstatSync(destPath).isDirectory())
+        rmSync(destPath, {recursive: true, force: true});
       else rmdirSync(destPath);
     }
   }

@@ -2,12 +2,17 @@ import yaml from "js-yaml";
 import {optimize} from "oniguruma-parser/optimizer";
 import {mirrorDir} from "./utils.js";
 import {readFileSync, writeFileSync} from "fs";
+import toRegExp from "./to-regex.js";
+import genex from "genex";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
 let {keys, values, fromEntries, entries} = Object;
 
-let file = readFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml", "utf8");
+let file = readFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml",
+  "utf8",
+);
 let grammar = yaml.load(file);
 
 // === NUMBERS ===
@@ -29,7 +34,8 @@ grammar.repository.numbers.patterns = (() => {
     applyEndPatternLast: true,
     comment: "$name ($prefix prefix)",
     name: "constant.numeric.$name.ruko",
-    begin: "(?ix)\\b($prefix) # no prefix\n([$digits](?:[$digits_]*[$digits])?) # integer part",
+    begin:
+      "(?ix)\\b($prefix) # no prefix\n([$digits](?:[$digits_]*[$digits])?) # integer part",
     end: "$|",
     captures: {
       1: {name: "storage.type.numeric.ruko"},
@@ -51,7 +57,8 @@ grammar.repository.numbers.patterns = (() => {
         },
       },
       {
-        match: "(?ix)(/) # rational delimiter\n([$digits](?:[$digits_]*[$digits])?) # denominator",
+        match:
+          "(?ix)(/) # rational delimiter\n([$digits](?:[$digits_]*[$digits])?) # denominator",
         captures: {
           1: {name: "punctuation.separator.rational.ruko"},
           2: {name: "constant.numeric.$name.denominator.ruko"},
@@ -106,7 +113,11 @@ grammar.repository.strings = (() => {
     let escapes = [];
 
     let map = {
-      $: ["verbatim", {match: escapes, name: "constant.character.escape.ruko"}, quote],
+      $: [
+        "verbatim",
+        {match: escapes, name: "constant.character.escape.ruko"},
+        quote,
+      ],
       "%": ["format", {include: "#embedded-formatting"}],
       "@": ["template", {include: "#embedded-arguments"}],
       "#": ["interpolated", {include: "#embedded-expressions"}],
@@ -129,20 +140,28 @@ grammar.repository.strings = (() => {
         results.push(map[key][0]);
       }
 
-    let desc = ["plain", results[0]][results.length] || new Intl.ListFormat("en").format(results);
+    let desc =
+      ["plain", results[0]][results.length] ||
+      new Intl.ListFormat("en").format(results);
 
     let hasMulti = multi ? "multi " : "";
-    `${hasMulti}${delimiter}-quoted ${desc} string`.trim().replace(/\s{2,}/g, ([match]) => match);
+    `${hasMulti}${delimiter}-quoted ${desc} string`
+      .trim()
+      .replace(/\s{2,}/g, ([match]) => match);
 
-    let flagCombis = permutations([...flags]).map(x => x.map(y => escapeSym(y) + "+").join``)
-      .join`|`;
+    let flagCombis = permutations([...flags]).map(
+      x => x.map(y => escapeSym(y) + "+").join``,
+    ).join`|`;
 
     return {
       comment: `${hasMulti} ${delimiter}-quoted ${desc} string`
         .trim()
         .replace(/\s{2,}/g, match => match[0]),
       begin: `\\s*(${flagCombis})(${multiQuote})\\s*`,
-      contentName: /@/.test(flags) ? "string.template.ruko" : `string.quoted.${delimiter}.ruko`,
+      contentName:
+        /@/.test(flags) ?
+          "string.template.ruko"
+        : `string.quoted.${delimiter}.ruko`,
       end: `\\s*((\\2)(?!${quote}+))`,
       captures: {
         1: {name: "storage.type.string.ruko"},
@@ -189,6 +208,23 @@ grammar = parse(
     switch (typeof value) {
       case "object":
         delete value.comment || delete value.define;
+        if (/^stdlib-(css|unicode)/.test(key))
+          if (value.match) {
+            console.log(value.match, key);
+            value.match = optimize(value.match).pattern.replace(
+              /(?<=\\b)\((.+)\)(?=\\b)/,
+              match => "(" + toRegExp(genex(match).generate()).source + ")",
+            );
+            return value;
+          } else if (value.patterns)
+            value.patterns = value.patterns.map(v => {
+              if (v.match)
+                v.match = optimize(v.match).pattern.replace(
+                  /(?<=\\b)\((.+)\)(?=\\b)/,
+                  match => "(" + toRegExp(genex(match).generate()).source + ")",
+                );
+              return v;
+            });
         break;
       case "string":
         if (["begin", "end", "match", "while"].includes(key.trim()))
@@ -223,12 +259,23 @@ grammar = parse(
   }),
 );
 
-import stdlib from "file://C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json" with {type: "json"};
-grammar.repository = {...grammar.repository, ...stdlib.repository};
+let stdlib = parse(
+  readFileSync(
+    "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
+    "utf8",
+  ),
+);
 grammar.information_for_contributors = stdlib.information_for_contributors;
-grammar = stringify(sortKeys(grammar), null, 2);
+grammar.repository = {
+  ...sortKeys(grammar.repository),
+  ...sortKeys(stdlib.repository),
+};
+grammar = stringify(grammar);
 
-writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json", grammar);
+writeFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json",
+  grammar,
+);
 writeFileSync(
   "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json",
   grammar,

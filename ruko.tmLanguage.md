@@ -1,0 +1,9413 @@
+```yaml
+name: Ruko
+scopeName: source.rk
+fileTypes: [ruko, rk]
+patterns: [{include: "#core"}]
+
+# Last updated: February 18, 2026
+# This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
+# language. If you want to contribute, please open an issue or a pull request
+# on the official GitHub repository:
+# https://github.com/nx-v/ruko
+# Note that this grammar is incomplete as part of it requires a build step to
+# generate the full grammar with all the patterns, so if you want to contribute,
+# please open an issue or a pull request on the repository above.
+
+# === TODOs ===
+# - [/] Fix bugs with prefix type annotations in function parameters,
+#   variable declarations, bindings, and type casts to use a recursive
+#   pattern with subroutines rather than a single greedy .*+ match.
+#   Uses atomic groups and recursion for proper nesting up to 20 layers deep.
+#   (?>...) and \g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"
+# - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
+#   ASCIIDoc and other lightweight markup languages for inspiration.
+#   Use "while" regex matches to avoid conflicts with existing syntax.
+#   Current planned features:
+#   - [x] Headings and subheadings
+#   - [x] Deleted and inserted text ~~deleted~~ ++inserted++
+#   - [x] Definition blocks :::
+#   - [x] Superscript ^super^
+#   - [x] Subscript ~sub~
+#   - [x] Highlighted text ==highlight==
+#   - [x] Redacted text ||redacted||
+#   - [x] Block-quotes
+#   - [x] Inline math $math$ via Typst/LaTeX hybrid syntax
+#   - [x] Citations
+#   - [x] Footnotes
+#   - [x] Spans !!.custom.classes span!!
+#   - [ ] Selectors and anchors #anchor .class
+#   - [ ] Code blocks
+#   - [ ] Tables | Header 1 | Header 2 |
+#   - [ ] Checklists - [x] Task 1 - [ ] Task 2
+#   - [x] Links and images ![alt text](url)
+#   - [x] Lists (ordered and unordered)
+#   - References and further reading for inline Markdown syntax:
+#     https://docs.asciidoctor.org/asciidoc/latest/
+#     https://typst.app/docs/reference/
+#     https://texy.nette.org/en/
+#     https://textile-lang.com/
+# - [ ] Add more DSLs (domain-specific languages) with the %directive syntax.
+# - [ ] Add standard library based on the JavaScript, Node and Deno
+#   standard libraries, based on this link.
+#   https://developer.mozilla.org/en-US/docs/Web/API
+#   https://nodejs.org/api/
+#   https://deno.land/std@0.224.0
+#   More libraries will be added later on, drawing from popular JavaScript
+#   frameworks and libraries when appropriate.
+# - [ ] Add inline assembly syntax for WebAssembly with a syntax similar to
+#   Rust's asm! macro and Solidity's inline assembly.
+#   https://doc.rust-lang.org/nightly/std/arch/wasm32/asm/index.html
+# - More patterns should have `applyEndPatternLast: true` where appropriate
+#   to make patterns more modular and easier to maintain, rather than
+#   having everything in one big pattern.
+# - Duplicate patterns using the alias/merge feature in YAML (&,*,<<)
+#   to reduce redundancy and make maintenance easier.
+#   - Each section in the grammar has a builtin repository for this purpose.
+# - All patterns should have better comments explaining what they do.
+# - Add support for s-expressions (Lisp-style syntax) as an alternative
+#   syntax for function calls and expressions. This will require a massive
+#   refactor of the grammar to implement properly.
+# - Add full support for significant whitespace (like Python, Haskell, etc.)
+#   as an alternative to curly braces for blocks. A massive refactor will
+#   be needed to implement this properly.
+# - Add support for reflection and meta-programming syntax, used for
+#   compile-time code generation, type introspection, etc. on the level
+#   of the language itself rather than relying on external tools.
+#   Refer to the "Safe C++" and "Reflection" propsals for the C++26 standard
+#   for inspiration.
+#   https://safecpp.org/draft.html
+#   https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2996r0.html
+# - [ ] Plan and implement all the builtin modules, classes, objects, constants
+#   functions and properties for Ruko's standard library.
+#   This would all be done in a separate PR and once the grammar is completely
+#   finished.
+# - [ ] Multi-base numeric literals (up to base 64). Digits will be \d, a-z,
+#   lowercase Icelandic thorn, lowercase eth, A-Z, uppercase Icelandic thorn.
+# - [/] Add new parameter binding/destructuring syntax for:
+#   - [ ] Strings (yes, strings are meant to be destructured)
+#   - [ ] Regular expressions (yes, regex captures should be destructured)
+#   - [x] Arrays
+#   - [x] Sets
+#   - [x] Maps and objects
+#   - [x] Tuples
+#   - [x] Function arguments
+#   - [ ] Variables
+# - [x] Fix and expand regex syntax and highlighting:
+#   - [x] Add support for fuzzy matching (edits, insertions, deletions, etc.)
+#   - [x] Improve highlighting for regexes with flags
+#   - [x] Add and expand quantifiers and range highlighting
+
+# === CHANGELOG ===
+# - Overall syntax has been reworked to be terser and more consistent.
+#   Inspired by Rust, Zig, Flix, Jai, Odin, D, Reason/ReScript and Motoko.
+#   Keywords may be changed at short notice to better fit the new syntax.
+# - Identifiers can now be encased inside backticks, of which the content
+#   can be anything that matches the pattern `(?>``|[^`])+`.
+#   For example: `my-variable`, `ClassName!`, `func123?`, etc.
+#   Identifiers with backticks are NOT canonized, meaning that `My-Var` and
+#   `my-var` are treated as different identifiers.
+# - Added infix function call syntax using backslashes, similar to Haskell's
+#   backtick function call syntax.
+#   For example: a \x\ b is equivalent to x(a, b).
+# - Added prefix type-cast operators using parentheses, similar to C-style casts.
+#   Spaces can be allowed between the closing parenthesis and the operand.
+#   For example: (int)x, (float)y, (MyType)z.
+#   If the operand also contains a prefix operator, the space is required for
+#   disambiguation. For example: (int) -x, (MyType) !y.
+# - Lambda functions can now have typed parameters. Return types can be placed to
+#   the left or right of the lambda pipes. For example: float|int x, int y| x + y
+#   or |x: int, y: int|: float = x + y.
+# - Lambda functions cannot have modifiers or return types IF the lambda is beside
+#   an identifier, to avoid ambiguity with function calls, in which case, the lambda
+#   must be bracketed. For example: `let func = |x: int| x * 2;` is valid,
+#   but `let func = push float|int x| x * 2;` is not, as 'push' is consumed
+#   as a modifier for the lambda rather than a function call. In this case,
+#   the lambda must be bracketed like so: `let func = push (float|int x| x * 2);`
+# - Brought back parentheses-less function calls from earlier versions of Ruko,
+#   where multiple literals in a row with or without commas are treated as
+#   function calls. Both can be used together: f a g(b, c) d.
+# - Added C-style prefix modifier/type declarations for bindings and casts
+#   with the only limitation being that the whole type expression must be
+#   in a single line due to TextMate grammar limitations. Recursion depth is 20.
+# - Custom modifiers can now be placed before any declaration or binding, including
+#   in lambda functions, for example: async inplace func sort(x: []int) { ... }
+#   This includes within map declarations and function parameters, though the
+#   contextual keyword 'fn' is required in order to use those modifiers.
+# - Reworked function parameter binding/destructuring syntax. For example:
+#   func f(const (a, b), let {c, d}, mut [e, f], dyn g) { ... }
+# - Function calls trigger beside ( and { only, and in s-expressions right
+#   after an opening (. When a function call is assigned to a variable,
+#   or used in an expression, the call is highlighted more consistently
+#   and the function call must be bracketed.
+# - Named arguments are supported using postfix round or curly brackets.
+#   If curly brackets are used, all arguments must be labeled or else it is punned.
+#   For example:
+#     func f(x: i32, y: i32, z: i32) { ... }
+#     f{x: 10, y: 20, z: 30}
+#     f(10, y: 20, z: 30)
+#     f{x, y, z} // will be punned to x: x, y: y, z: z
+# - Allowed parenless calls to be highlighted as keywords in query ('from')
+#   and validation ('where') expressions.
+# - Operators now cannot start or end with |, <, >, / or \ characters when used
+#   prefix/postfix. These are used for lambdas, generics/tags, regexes and infix calls.
+#   . and : are not allowed at the start or end of prefix/postfix operators either.
+#   This prevents ambiguity with accessors, method calls, labels and type annotations.
+# - Added syntax for macro x!(), destructor x~() and generator x*() calls. These are placed
+#   AFTER the generics if any. For example: Vec<int>!(), MyType~(), gen*().
+# - Fixed generics not highlighting properly in calls when followed by
+#   !, * or ~ macro/destructor/generator calls. For example: Vec<int>!(), MyType~(), gen*().
+# - Added !, * and ~ postfix operators in calls for macros, generators and destructors.
+# - Empty generics is a syntax error. This is by design.
+# - Fixed generics before curly braces. T<C> { x } does not trigger another type
+#   annotation and highlights a regular block.
+# - Added x->y syntax for C++-style pointer dereferencing.
+#   object->method(arg1, arg2); object->property
+# - Refactored syntax highlighting for operators:
+#   - Infix operators at the end of lines continue to the next line.
+#   - Interfix operators (without spaces on both sides) have a higher precedence
+#     than normal infix operators (with spaces on both sides).
+#   - Fixed function call syntax around operators. Anchors include open brackets,
+#     commas, semicolons, colons, newlines, and spaces, regardless of whether
+#     they are surrounded by prefix or postfix operators.
+#   - Fixed prefix and postfix operators beside function calls.
+#   - Removed ternary operators (?:and ?:) in favor of a more consistent
+#     syntax using if-then-else expressions.
+# - Brought back train-case for CSS properties and HTML attributes.
+#   For example: background-color, font-size, border-radius, my-component, etc.
+# - Add \* *\ and \\ syntax for Markdown literals, which follow the same rules
+#   as comments, but cannot be nested. To nest, use a code block.
+# - Add ternary, senary and duodecimal bases for numeric literals.
+# - Fixed lambdas to only close after a postfix | to allow for
+#   lambda functions as the last argument without needing extra brackets.
+# - Reworked escape sequences for UTF-8, UTF-16, UTF-32, and all numeric bases.
+# - Add regexp patterns for Unicode character properties, scripts, blocks,
+#   categories, etc. Refer to: https://www.unicode.org/reports/tr18/
+# - Reworked number syntax highighting to be more consistent and stricter.
+# - Add dynamic JSX/XML literals <(expr)/>, <[expr]>, and <{expr}>
+#   for dynamic tag names, attributes and content respectively.
+# - Add operator definition syntax for user-defined operators.
+#     oper param <postfix>: return_type { ... }
+#     oper <prefix> param: return_type { ... }
+#     oper param1 <infix> param2: return_type { ... }
+#     oper param1 <ternary_1> param2 <ternary_2> param3: return_type { ... }
+#   Example: oper x ** y: f64 = pow(x, y)
+# - Added Python slicing syntax for arrays, strings, tuples, etc.:
+#   array[start:end:step]
+#   string[start:end:step]
+#   tuple[start:end:step]
+#   Negative indices and arbitrary expressions are supported.
+# - Added Objective C method call syntax using square brackets:
+#   [object method: arg1, arg2]. Note that the colon (:) is required after
+#   each method name.
+# - Added operators immediately after brackets to be parsed as infix, and all
+#   tokens to the right of the operator are considered part of the call,
+#   just like in Lisp. For example: (* x y) is a call to the * operator with
+#   arguments x and y.
+# - Added support for C directives using % instead of #:
+#   include, define, ifdef, ifndef, else, elif, endif, pragma, region,
+#   endregion, once, error, warning.
+#   These can be placed anywhere in the code, and will be processed
+#   before compilation.
+#   A change to %define directives is that they can support regex
+#   replacements as well as normal text replacements. This is dangerous,
+#   so use with caution.
+# - Import/export/module syntax inspired by JavaScript/TypeScript, Rust and Python:
+#   - glob file path matching: import path/**/*.ruko
+#   - named imports/exports: import module{a,b,c}
+#   - default imports/exports: import module)
+#   - renaming imports/exports: import module{a:x,b:y}
+#   - show/hide mechanism: import module{a,b-c,d}
+#   - glob-style pattern matching: import module{a*,b?,c{1,2}}
+# - Module syntax should be more consistent with other languages.
+#     module my.module.name { ... }
+# - Fixed many JSX/XML bugs with tags and attributes:
+#   - Fixed attributes not highlighting properly in self-closing tags.
+#     <MyComponent prop="value"/>
+#   - Fixed attributes with no values not highlighting properly.
+#     <MyComponent disabled/>
+#   - Fixed nested tags not highlighting properly.
+#     <Parent><Child></Child></Parent>
+#   - Fixed the final '>' in an implicit closing tag '</>' not being highlighted properly.
+#     <MyComponent></> now highlights the final > properly.
+#   - Fixed comments within tags not highlighting properly.
+# - Fixed style k-v pairs in style blocks which highlight until a semicolon, comma
+#   or closing brace.
+# - All control structures do not need to be bracketed. If the body of a control
+#   structure is a single statement and a colon is used after the condition, the
+#   brackets can be omitted. For example:
+#     if condition: do_something()
+#     while condition: do_something()
+# - Fixed syntax highlighting of code blocks beside lambda pipes.
+# - Most keywords should have a max of 6 characters. Longer keywords have been
+#   shortened or removed. For example, 'function' is 'func', 'property' is 'prop',
+#   'template' is 'temp', 'iterator' is 'iter', etc.
+# - Range keywords to, till and by have been removed in favor of Swift-like
+#   range operators '>..', '...', '..<' and '>.<', and the step operator '..'.
+# - Generics now capture properly before and after function and type names.
+#   For example, T.<x>, T?.<x>, T!.<x>, T::<x>, T?:<x>, T!:<x>.
+#   They can even be curried: x<1><U>(y), x<1><U><V>(y).
+# - Generic type parameters now work for prefix operators as well. "i.e". T<&x>, etc.
+# - Fixed a bug where escape sequences for literals would accept integers bigger than
+#   decimal 1114111 which now are highlighted as an error.
+# - Bases 3, 4, 6 and 12 literals are added: 0t, 0q, 0s and 0z respectively.
+#   Escape sequences for these bases have also been added: \t, \q, \s, and \z.
+#   Duodecimal (base 12) uses digits 0-9 and letters A and B.
+# - Numbers and escape sequences have been reworked, and will no longer accept
+#   invalid digits for their respective bases beyond 0x10FFFF, or decimal 1114111.
+# - Interpolation and formatting syntax have been reworked and fixed, and can now
+#   span multiple lines and beyond 20 nested layers thanks to applyEndPatternLast.
+#   Because of this, spacing around most of the patterns here have also been removed.
+# - Added prefixes to strings, with those prefixes being the symbols used to
+#   enable those features.
+#   - Prefix \ makes a string raw (i.e. no escape sequences),
+#   - Prefix % makes a string formatted (i.e. with interpolation and format specifiers),
+#   - Prefix # allows interpolation without formatting (i.e. simple variable/expression
+#     substitution).
+#   - Prefix @ makes a string a template string, which supports all features
+#     and is used specifically to mark arguments inside template strings.
+#   These prefixes can be combined in any order, including multiple times.
+#   These will be added to regular expressions later on.
+# - Added Python negation syntax: is not, if not, not in, not of.
+# - Removed unless/until keywords. Replaced by if!/if not and while!/while not.
+# - Fixed some bugs with regular expressions:
+#   - Added and expanded quantifiers and range highlighting
+#   - Add support for fuzzy matching (edits, insertions, deletions, etc.)
+#   - Improved highlighting for regexes with flags
+# - Two (or more) regular expressions in a row on the same line without a comma
+#   triggers a replacement string instead of a normal regular expression literal.
+# - Changed up syntax highlighting of switch and match statements to be more
+#   consistent with JavaScript.
+# - Function calls now trigger beside '(' and '{'.
+# - Dashes will no longer be allowed in identifiers EXCEPT in train-case syntax
+#   for style properties and tag names/attributes in.
+# - Fixed XML highlighting and attributes, inspired by Svelte, Angular (TS), HAML
+#   - @directive
+#   - #id and .class
+#   - :event and |pipe (both from Svelte)
+#   - %directive
+#   - &reference and *spread
+#   - ?boolean and @property (from Lit)
+# - Added script blocks for injection of raw JS, C++, Rust, Zig, etc.
+#   If no language is specified, C++ is assumed, because of Ruko's compiler target.
+# - Fixed keys in literal objects. They will now highlight until a colon, comma
+#   or closing brace.
+# - Fixed modifier keywords beside lambda functions. Modifiers can now be placed
+#   before lambda functions in addition to normal function declarations.
+# - Slightly changed attribute selectors to allow for regexp matches.
+
+repository:
+  core:
+    patterns:
+      - include: "#ignore-long-lines"
+      - include: "#punctuation"
+      - include: "#directives"
+      - include: "#function-clause"
+      - include: "#declarations"
+      - include: "#variable-declarations"
+      - include: "#modifier-keywords"
+      - include: "#clauses"
+      - include: "#labels"
+      - include: "#typed-bindings"
+      - include: "#keywords"
+      - include: "#constants"
+      - include: "#comments"
+      - include: "#type-signature"
+      - include: "#lambdas"
+      - include: "#function-calls"
+      - include: "#xml-tags"
+      - include: "#angle-brackets"
+      - include: "#literals"
+      - include: "#accessor-operators"
+      - include: "#type-cast-operators"
+      - include: "#brackets"
+      - include: "#operators"
+      - include: "#variables"
+      - include: "#illegal"
+      - include: "#space"
+
+  # Ignored / illegal patterns
+
+  ignore-long-lines:
+    comment: avoid parsing files with long lines of code
+    match: ^\N{4097,}$
+
+  space:
+    match: \s+
+    name: meta.space.ruko
+
+  illegal:
+    patterns:
+      - match: \p{N}
+        name: invalid.illegal.number.ruko
+      - match: \w
+        name: invalid.illegal.variable.ruko
+      - match: '[()\[\]{}]'
+        name: invalid.illegal.missing-bracket.ruko
+      - match: '[\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]'
+        name: invalid.illegal.operator.ruko
+      - match: \S
+        name: invalid.illegal.uncaught.ruko
+
+  define:
+    repository:
+      ignore-keywords:
+        match: |-
+          (?x)
+          \b
+          (?: # ignore keywords
+            # wordlike operators
+            [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+            |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+
+            # declaration keywords
+            |va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+
+            # control flow keywords
+            |if|elif|else|[tw]hen|guard|with
+            |for|while|loop|break|skip|redo
+            |try|retry|switch|[cm]atch|case|def|throw
+            |return|yield|await|goto|pass|defer|race|join
+            |raise|error|final|copy|move|drop|sink
+            |[gd]o|from|where|use|show|hide
+
+            # miscellaneous keywords
+            |debug|assert|check|decl|ignore
+            |use|echo|eval|exec|scope|safe|unsafe
+            |begin|end
+          ) \b
+
+      identifiers:
+        match: &identifiers |-
+          (?x)
+          (?: # identifiers
+              ((?>`\p{Pc}(?:``|[^`])*`|\b\p{Pc}+\w*(?!\p{Pc}+)\b)) # leading underscore
+            | ((?>`[^`\p{Ll}](?:``|[^`\p{Ll}])*`|\b[\p{L}\p{Nl}&&\P{Ll}][\w&&\P{Ll}]*\b)) # screaming snake case
+            | ((?>`[\p{L}\p{Nl}\p{Pc}&&\P{Ll}](?:``|[^`])*`|\b(?:[\p{L}\p{Nl}\p{Pc}&&\P{Ll}][\w&&\P{Lu}]*)+\b)) # pascal case
+            | ((?>`(?:``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # camel or snake case
+          )
+
+      prefix-type-annotation:
+        match: |-
+          (?x)
+          (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
+
+          (?:
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+
+            (?:
+              < # generics
+                (?>
+                    \g<t> # either recurse or match balanced generics
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                        (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
+                      )\s # infix type operators with spaces
+                  | [^'"`<>()\[\]{}]+ # other characters
+                )*
+              >
+            )? |
+
+            (?:
+              (?:
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+              )*
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            )?
+
+            \#? # optional sharp for splice invocation
+
+            (?:
+              \( # round brackets
+                (?>
+                    \g<t> # either recurse or match balanced brackets
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | [^'"`()\[\]{}]*
+                )*
+              \) |
+              \[ # square brackets
+                (?>
+                    \g<t> # either recurse or match balanced brackets
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | [^'"`()\[\]{}]*
+                )*
+              \] |
+              { # curly brackets
+                (?>
+                    \g<t> # either recurse or match balanced brackets
+                  | '(?>\\.|[^\\'])*' # char literals
+                  | "(?>\\.|[^\\"])*" # string literals
+                  | `(?>``|[^`])+` # identifier with backticks
+                  | [^'"`()\[\]{}]*
+                )*
+              }
+            )+ # allow chaining
+          )+
+
+          (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+
+  # Directives
+
+  directives:
+    comment: "These are just straight-up copied from C/C++ but with % instead of #"
+    patterns:
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(if|else|elif|end|ifdef|ifndef)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(define|undef)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns:
+          - include: "#regexp-patterns"
+          - begin: (:)\s*
+            end: \s*([,;])|$
+            name: string.regexp.replace.ruko
+            captures:
+              1: {name: punctuation.definition.regexp.ruko}
+            patterns:
+              - include: "#back-references"
+              - include: "#escapes-embedded"
+              - begin: \s*({)
+                end: (\})\s*
+                name: meta.interpolation.regexp.ruko
+                captures:
+                  1: {name: punctuation.definition.variable.ruko}
+                patterns:
+                  - include: "#back-references"
+                  - include: "#escapes-embedded"
+                  - include: $self
+          - match: .+
+            name: meta.directive.definition.ruko
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(include|exclude|import|export|extern|intern)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: "#module-content"}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(pragma|region|endregion|once)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(error|warning)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns:
+          - match: .+
+            name: string.raw.ruko
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(debug|assert|check)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(eval|expr|exec)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(scope|begin|end)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns: [{include: $self}]
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(ignore|decl)\b
+        end: $
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns:
+          - match: .+
+            name: string.raw.ruko
+      - comment: null directive
+        match: ^\s*(%)\s*$
+        name: meta.directive.ruko
+        captures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: text.whitespace.ruko}
+        patterns: [{include: $self}]
+
+  # Types
+
+  types:
+    patterns:
+      - include: "#comments"
+      - include: "#type-brackets"
+      - include: "#embedded-expressions"
+      - include: "#embedded-formatting"
+      - include: "#embedded-arguments"
+      - include: "#angle-brackets"
+      - include: "#type-keywords"
+      - include: "#type-modifiers"
+      - include: "#literals"
+      - include: "#type-variables"
+      - include: "#type-operators"
+      - include: "#space"
+
+  type-variables:
+    define: &type-names
+      patterns:
+        - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+          captures:
+            0: {patterns: [{include: "#type-names"}]}
+
+    match: |-
+      (?x) \s*
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
+      )
+
+      (?:
+        (?<=
+          (?:^ | [,;'"`>)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+        )
+        # methods
+        #this.repository.define.repository['identifiers'].match
+        |
+        #this.repository.define.repository['identifiers'].match
+        (?! [?!]?\.\.+ ) # not a range operator
+        (?=
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+            (?!\s|$) # not followed by space or end of line
+          | \#?\[ # or array access
+        )
+        |
+        #this.repository.define.repository['identifiers'].match
+      )
+
+      \s*
+    captures:
+      1:
+        name: support.type.instance.ruko
+        <<: *type-names
+      2:
+        name: entity.name.interface.ruko
+        <<: *type-names
+      3:
+        name: support.type.interface.ruko
+        <<: *type-names
+      4:
+        name: entity.name.instance.ruko
+        <<: *type-names
+      5:
+        name: support.type.module.ruko
+        <<: *type-names
+      6:
+        name: entity.name.namespace.ruko
+        <<: *type-names
+      7:
+        name: support.type.namespace.ruko
+        <<: *type-names
+      8:
+        name: entity.name.module.ruko
+        <<: *type-names
+      9:
+        name: support.type.type.ruko
+        <<: *type-names
+      10:
+        name: entity.name.class.ruko
+        <<: *type-names
+      11:
+        name: support.type.class.ruko
+        <<: *type-names
+      12:
+        name: entity.name.type.ruko
+        <<: *type-names
+
+  type-signature:
+    applyEndPatternLast: true
+    name: meta.type.ruko
+    begin: (?<=['"`)\]}\w][!?]?>*\|?|^\|?)(:)(?=$|\s+<*(?:[-*&%@^!~?\\+$#<]|\.\.)*(?:['"`\w\s]|\#?[(\[{]))
+    end: $|
+    captures:
+      1: {name: punctuation.definition.annotation.ruko}
+    patterns:
+      - include: "#declarations"
+      - include: "#types"
+
+  type-brackets:
+    patterns:
+      - include: "#type-curly-brackets"
+      - include: "#type-square-brackets"
+      - include: "#type-round-brackets"
+
+  type-curly-brackets:
+    repository:
+      punctuation:
+        patterns:
+          - match: ","
+            name: punctuation.separator.mapping.ruko
+          - match: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*):(?=(?:['"`\w\s]|\#?[(\[{])|$)
+            name: punctuation.separator.key-value.ruko
+
+    patterns:
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                va[rl]|let|mut|const
+                |case
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            >* # after generics
+            \s*
+          )
+          (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.binding-pattern.object.ruko}
+        patterns:
+          - include: "#object-keys"
+          - include: "#punctuation"
+          - include: "#as-keyword"
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            >* # after generics
+            \s*
+          )
+          (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.mapping.ruko}
+        patterns:
+          - include: "#object-keys"
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            >* # after generics
+            \s*
+          )
+          ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.dictionary.ruko}
+        patterns:
+          - include: "#object-keys"
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:
+                ^ # beginning of line
+              | [,;(\[{] # separator or opening bracket
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # label or key
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
+            )
+            \s*
+          )
+          (?<! ['"`)\]}\w] [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* >* \s* ) # not after generics
+          (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.mapping.ruko}
+        patterns:
+          - include: "#object-keys"
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:
+                ^ # beginning of line
+              | [,;(\[{] # separator or opening bracket
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # label or key
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # operator
+            )
+            \s*
+          )
+          (?<! ['"`)\]}\w] [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* >* \s* ) # not after generics
+          ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.dictionary.ruko}
+        patterns:
+          - include: "#object-keys"
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+              ['"`)\]}\w] # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.template.ruko}
+        patterns:
+          - include: "#call-parameters"
+          - include: "#types"
+          - include: $self
+
+  type-round-brackets:
+    repository:
+      punctuation:
+        patterns:
+          - match: ","
+            name: punctuation.definition.function.ruko
+          - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+            name: keyword.operator.expression.as.ruko
+          - match: (?<=[\w\s][(|])\.
+            name: punctuation.definition.metadata.ruko
+
+    patterns:
+      - begin: |-
+          (?x)
+          (?<=
+              ['"`)\]}\w] # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.parameters.ruko}
+        patterns:
+          - include: "#binding-parameters"
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                va[rl]|let|mut|const
+                |case
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\#?\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.binding-pattern.tuple.ruko}
+        patterns:
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: (\#\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.tuple.ruko}
+        patterns:
+          - include: "#types"
+          - include: $self
+      - begin: (\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.expression.ruko}
+        patterns:
+          - include: "#types"
+          - include: $self
+
+  type-square-brackets:
+    repository:
+      punctuation:
+        patterns:
+          - match: ","
+            name: punctuation.separator.sequence.ruko
+
+    patterns:
+      - begin: |-
+          (?x)
+          (?<=
+              ['"`)\]}\w] # literal
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.selector.ruko}
+        patterns:
+          - include: "#types"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                va[rl]|let|mut|const
+                |case
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\#?\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.binding-pattern.array.ruko}
+        patterns:
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: (\#\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.sequence.ruko}
+        patterns:
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+      - begin: (\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.array.ruko}
+        patterns:
+          - include: "#punctuation"
+          - include: "#types"
+          - include: $self
+
+  types-inherited:
+    patterns:
+      - include: "#type-operators"
+      - include: "#type-modifiers"
+      - match: &entity-name |-
+          (?x)
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+
+          # identifier
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: entity.other.inherited-class.ruko
+
+  type-keywords:
+    patterns:
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(ext|of)\b\s*
+        end: $|
+        captures:
+          1: {name: storage.type.extends.ruko}
+        patterns:
+          - include: "#type-operators"
+          - include: "#types-inherited"
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(impl|for)\b\s*
+        end: $|
+        name: storage.type.implements.ruko
+        patterns:
+          - include: "#type-operators"
+          - include: "#types-inherited"
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(infer|as)\b\s*
+        name: keyword.operator.expression.$1.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((value|field|entry|type|name|size|key|addr|ptr|id)of)\b\s*
+        name: keyword.operator.expression.$1.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(instof)\b\s*
+        name: keyword.operator.expression.instanceof.ruko
+      - &in-of-expression
+        match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(?:(not)\s+)?([io]n|of)\b\s*
+        captures:
+          1: {name: keyword.operator.expression.logical.ruko}
+          2: {name: keyword.operator.expression.$2.ruko}
+      - &is-has-expression
+        match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(is|has|can)(?:\s+(not))?\b\s*
+        captures:
+          1: {name: keyword.operator.expression.$1.ruko}
+          2: {name: keyword.operator.expression.logical.ruko}
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(by)\b\s*
+        name: keyword.operator.expression.satisfies.ruko # note, "satisfies" is "by"
+
+  type-operators:
+    patterns:
+      - &qualified-name-separators
+        comment: accessors
+        match: (?<=[)\]}\w])(?:(\?[.:>]=?)|(![.:>]=?)|((?:::|->|\.)=?))(?=[(\[{\w])
+        captures:
+          1: {name: keyword.operator.optional.ruko}
+          2: {name: keyword.operator.unwrap.ruko}
+          3: {name: keyword.operator.accessor.ruko}
+      - match: \s*(--?>|~~?>|==?>)
+        name: keyword.operator.type.function.ruko
+      - match: \s*(<--?|<~~?|<==?)
+        name: keyword.operator.type.channel.ruko
+      - comment: Prefix type operators
+        match: |-
+          (?x)
+          \s*
+          (?:
+            (\*) # pointer
+            |(\&) # reference
+            |(\%) # format
+            |(\@) # decorator
+            |(\^) # borrow
+            |(\!) # negation
+            |(\~) # destructor
+            |(\?) # existential
+            |(\\) # lifetime
+            |(\-) # negation
+            |(\+) # arithmetic
+            |(\$) # variable
+            |(\#) # private
+            |(\.\.) # spread
+          )
+          (?=(?:[*&%@^!~?\\+$#<-]|\.\.)*(?:['"`\w]|\#?[(\[{<]))
+        captures: &prefix-type-operator-captures
+          1: {name: keyword.operator.pointer.ruko}
+          2: {name: keyword.operator.reference.ruko}
+          3: {name: keyword.operator.private.ruko}
+          4: {name: keyword.operator.decorator.ruko}
+          5: {name: keyword.operator.borrow.ruko}
+          6: {name: keyword.operator.logical.ruko}
+          7: {name: keyword.operator.destructor.ruko}
+          8: {name: keyword.operator.existential.ruko}
+          9: {name: keyword.operator.lifetime.ruko}
+          10: {name: keyword.operator.negation.ruko}
+          11: {name: keyword.operator.arithmetic.ruko}
+          12: {name: keyword.operator.variable.ruko}
+          13: {name: keyword.operator.private.ruko}
+          14: {name: keyword.operator.spread.ruko}
+      - comment: Infix type operators
+        match: |-
+          (?x)
+          (?<=^|[\s(\[{])
+            (?:
+              (\+)        # sum (left union)
+              |(\-)       # difference
+              |(\*)       # pointer
+              |(\|)       # union
+              |(\&)       # intersection
+              |(\^)       # exclusion
+              |([<>][:=]) # strict super-/subtype
+              |(=[:!])    # equality/inequality
+              |(:[<>])    # variance (i.e. covariant/contravariant)
+              |([=!]~)    # pattern match/non-pattern match
+              |(::?)      # extends/implements
+              |(\?)|(!)   # conditionals
+              |(\+>|<\+)  # composition
+            )
+          (?=$|[)\]}\s])
+        captures:
+          1: {name: keyword.operator.sum.ruko}
+          2: {name: keyword.operator.difference.ruko}
+          3: {name: keyword.operator.pointer.ruko}
+          4: {name: keyword.operator.union.ruko}
+          5: {name: keyword.operator.intersection.ruko}
+          6: {name: keyword.operator.exclusion.ruko}
+          7: {name: keyword.operator.relational.ruko}
+          8: {name: keyword.operator.equality.ruko}
+          9: {name: keyword.operator.prototype.ruko}
+          10: {name: keyword.operator.pattern.ruko}
+          11: {name: keyword.operator.extends.ruko}
+          12: {name: keyword.operator.conditional.ruko}
+          13: {name: keyword.operator.ternary.ruko}
+          14: {name: keyword.operator.composition.ruko}
+      - comment: Interfix type operators
+        match: |-
+          (?x)
+          (?<=['"`)\]}\w])
+            (?:
+              (\+)        # sum (left union)
+              |(\-)       # difference
+              |(\*)       # pointer
+              |(\|)       # union
+              |(\&)       # intersection
+              |(\^)       # exclusion
+              |([<>][:=]) # strict super-/subtype
+              |(=[:!])    # equality/inequality
+              |(:[<>])    # variance (i.e. covariant/contravariant)
+              |([=!]~)    # pattern match/non-pattern match
+              |(::?)      # extends/implements
+              |(\?)|(!)   # conditionals
+              |(\+>|<\+)  # composition
+            )
+          (?=['"`\w]|\#?[(\[{])
+        captures:
+          1: {name: keyword.operator.sum.ruko}
+          2: {name: keyword.operator.difference.ruko}
+          3: {name: keyword.operator.pointer.ruko}
+          4: {name: keyword.operator.union.ruko}
+          5: {name: keyword.operator.intersection.ruko}
+          6: {name: keyword.operator.exclusion.ruko}
+          7: {name: keyword.operator.relational.ruko}
+          8: {name: keyword.operator.equality.ruko}
+          9: {name: keyword.operator.prototype.ruko}
+          10: {name: keyword.operator.pattern.ruko}
+          11: {name: keyword.operator.extends.ruko}
+          12: {name: keyword.operator.conditional.ruko}
+          13: {name: keyword.operator.ternary.ruko}
+          14: {name: keyword.operator.composition.ruko}
+      - comment: postfix type operators
+        match: |-
+          (?x)
+          (?<=['"`)\]}\w>][!?*&*]*)
+          (?:
+            (\!) # result type
+            |(\?) # option type
+            |(\*) # pointer type
+            |(\&) # reference type
+          )
+        captures: &postfix-type-operator-captures
+          1: {name: keyword.operator.unwrap.ruko}
+          2: {name: keyword.operator.optional.ruko}
+          3: {name: keyword.operator.pointer.ruko}
+          4: {name: keyword.operator.reference.ruko}
+
+  type-parameter-operators:
+    patterns:
+      - comment: Prefix type operators
+        match: |-
+          (?x)
+          (?:
+            (\*) # pointer
+            |(\&) # reference
+            |(\%) # format
+            |(\@) # decorator
+            |(\^) # borrow
+            |(\!) # negation
+            |(\~) # destructor
+            |(\?) # optional
+            |(\\) # lifetime
+            |(\-) # negation
+            |(\+) # arithmetic
+            |(\$) # variable
+            |(\#) # private
+            |(\.\.) # spread
+          )
+        captures: *prefix-type-operator-captures
+      - comment: postfix type operators
+        match: |-
+          (?x)
+          (?:
+            (\!) # result type
+            |(\?) # option type
+            |(\*) # pointer type
+            |(\&) # reference type
+          )
+        captures: *postfix-type-operator-captures
+
+  # Literals and Constants
+
+  literals:
+    patterns:
+      - include: "#percent-literals"
+      - include: "#markdown"
+      - include: "#regexps"
+      - include: "#strings"
+      - include: "#strings-bracketed"
+      - include: "#symbols"
+      - include: "#numbers"
+      - include: "#symbols"
+      - include: "#decorators"
+
+  constants:
+    patterns:
+      - match: |-
+          (?x)
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+          (?:
+            (true|false) # boolean
+            |(null|nan) # null and not-a-number
+            |(undef) # undefined
+            |(infty) # infinity
+            |(it|this|super|self) # special arguments
+            |(args) # arguments
+            |(ctor) # constructor
+            |(dtor) # destructor
+            |(proto) # prototype
+            |(_[+-]?\d+) # index variable
+            |(\p{Pc}+) # underscore variable
+          )
+          \b
+        captures:
+          1: {name: constant.language.boolean.$1.ruko}
+          2: {name: constant.language.$2.ruko}
+          3: {name: constant.language.undefined.ruko}
+          4: {name: constant.language.infinity.ruko}
+          5: {name: variable.language.$5.ruko}
+          6: {name: variable.language.arguments.ruko}
+          7: {name: variable.language.constructor.ruko}
+          8: {name: variable.language.destructor.ruko}
+          9: {name: variable.language.prototype.ruko}
+          10:
+            name: variable.language.index.ruko
+            patterns:
+              - match: "[+-]"
+                name: keyword.operator.sign.ruko
+          11: {name: variable.language.underscore.ruko}
+      - match: |-
+          (?x)
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+          (
+            console|document|window|global|process|require|module|exports
+            |navigator|location|history|localStorage|sessionStorage
+          )
+          \b
+        captures:
+          1: {name: support.variable.builtin.ruko}
+
+  # Numbers
+
+  numbers:
+    applyEndPatternLast: true
+    begin: (?=\d)
+    end: $|
+    name: meta.number.ruko
+    patterns: [] # processed in update-grammar
+
+  unit-suffix:
+    match: (?<=['"`)\]}\w])(`?[\p{L}\p{Nl}\p{Pc}]\w*)\b
+    name: keyword.other.unit.ruko
+
+  byte-shift-suffix:
+    match: |-
+      (?ix)(\\?p) # power of two
+      ([+-])? # sign
+      ([\d_]+) # exponent
+    captures:
+      1: {name: keyword.operator.expression.exponent.ruko}
+      2: {name: keyword.operator.sign.exponent.ruko}
+      3: {name: constant.numeric.decimal.exponent.ruko}
+
+  # Symbols
+
+  decorators:
+    applyEndPatternLast: true
+    begin: (@)(?=[`\p{L}\p{Nl}\p{Pc}])
+    end: $|
+    name: entity.name.decorator.ruko
+    captures:
+      1: {name: punctuation.definition.decorator.ruko}
+      2: {name: entity.name.decorator.ruko}
+    patterns:
+      - include: "#function-calls"
+      - include: "#accessor-operators"
+      - include: "#brackets"
+      - include: "#strings"
+      - include: "#variables"
+
+  symbols:
+    patterns:
+      - comment: quoted symbol
+        applyEndPatternLast: true
+        begin: (:)(?=[@#$%]*['"])
+        end: $|
+        name: constant.language.symbol-type.ruko
+        captures:
+          1: {name: punctuation.definition.symbol.ruko}
+        patterns: [{include: "#strings"}]
+      - match: (:)((?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b))
+        name: constant.other.symbol.ruko
+        captures:
+          1: {name: punctuation.definition.symbol.ruko}
+          2:
+            name: constant.other.symbol.ruko
+            patterns:
+              - match: (?<=:)\d\w*
+                patterns: [{include: "#numbers"}]
+              - include: "#constants"
+              - include: "#css-property-values"
+              - include: "#unicode-property-values"
+
+  # Strings
+
+  strings: {} # processed in update-grammar
+
+  string-escapes:
+    patterns:
+      - begin: (\\)(?=\s*$)
+        end: ^\s*(?=\S)
+        captures:
+          1: {name: constant.character.escape.newline.ruko}
+      - include: "#unicode-escapes"
+      - match: (?i)\\c(?-i:[@-_])
+        name: constant.character.control.ruko
+      - match: \\[abefprnstv\\'"`(){}\[\]]
+        name: constant.character.escape.ruko
+      - include: "#named-escapes"
+      - comment: These sequences are interpreted literally.
+        match: \\.
+
+  named-escapes:
+    patterns:
+      - applyEndPatternLast: true
+        comment: More [] () {} can be chained for nested named escapes.
+        name: keyword.function.ruko
+        begin: \\&(?:((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)([:.](?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))*))?\b(?=[(\[{])
+        beginCaptures:
+          1: {patterns: [{include: "#function-namespace"}]}
+        end: $|
+        patterns: [{include: "#named-escape-brackets"}]
+      - match: (\\&)((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)([:.](?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))*)\b([,;]|(?=\W))
+        name: constant.character.escape.ruko
+        captures:
+          1: {name: punctuation.terminator.entity.ruko}
+          2: {patterns: [{include: "#character-namespace"}]}
+          3: {name: punctuation.terminator.entity.ruko}
+
+  named-escape-brackets:
+    patterns:
+      - begin: (\()\s*
+        end: \s*(\))
+        captures:
+          1: {name: punctuation.definition.group.ruko}
+        patterns: [{include: "#named-escape-content"}]
+      - begin: (\[)\s*
+        end: \s*(\])
+        captures:
+          1: {name: punctuation.definition.sequence.ruko}
+        patterns: [{include: "#named-escape-content"}]
+      - begin: ({)\s*
+        end: \s*(})
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns: [{include: "#named-escape-content"}]
+
+  named-escape-content:
+    name: string.unquoted.plain.ruko
+    patterns:
+      - applyEndPatternLast: true
+        name: constant.other.function.ruko
+        begin: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)([:.](?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))*)\b(?=[(\[{])
+        beginCaptures:
+          1: {patterns: [{include: "#function-namespace"}]}
+        end: $|
+        patterns: [{include: "#named-escape-brackets"}]
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)([:.](?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))*)\b
+        name: constant.character.escape.ruko
+        captures:
+          1: {patterns: [{include: "#character-namespace"}]}
+      - match: \b[:.](?=(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)|[(\[{]|$)
+        name: punctuation.separator.namespace.ruko
+      - include: "#literals"
+      - include: "#escapes-embedded"
+      - include: "#operators"
+      - include: "#punctuation"
+
+  function-namespace:
+    patterns:
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=[.:])
+        name: support.ruko entity.name.tag.namespace.ruko
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: support.ruko entity.name.tag.function.ruko
+
+  character-namespace:
+    patterns:
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=[.:])
+        name: constant.other.character-class.ruko
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: constant.character.escape.unicode.ruko
+
+  unicode-escapes:
+    patterns:
+      - comment: standard \x escapes
+        match: \\x(\h|[0-7]\h)
+        name: constant.character.escape.ascii.ruko
+      - comment: ASCII control character escapes. u8\df are mapped to \C rather than \c
+        match: \\[cC][@-_]
+        name: constant.character.escape.control.ruko
+      - comment: Null character escape
+        match: \\0+|\\x0{1,2}|\\u0{1,4}|\\U0{1,8}
+        name: constant.character.escape.null.ruko
+      - comment: |
+          - Private Use Area - U+E000-F8FF
+          - Supplementary Private Use Area-A - U+F0000-FFFFD
+          - Supplementary Private Use Area-B - U+100000-10FFFD
+        match: \\u0*(?i:e\h{3}|f[0-8]\h{2}|(?!f{4}[ef])f\h{4}|(?!10fff[ef])10\h{4})
+        name: constant.character.escape.private-use.ruko
+      - comment: Reserved non-characters U+FDD0-FDEF
+        match: \\u0*(?i:fd[de]\h)
+        name: constant.character.escape.noncharacter.ruko
+      - comment: Little-endian surrogate pairs
+        match: \\u(0*(?i:d[c-f]\h{2}))\\u(0*(?i:d[89ab]\h{2}))
+        name: constant.character.escape.utf16.little-endian.ruko
+        captures:
+          1: {name: constant.character.escape.surrogate.low.ruko}
+          2: {name: constant.character.escape.surrogate.high.ruko}
+      - comment: Big-endian surrogate pairs
+        match: \\u(0*(?i:d[89ab]\h{2}))\\u(0*(?i:d[c-f]\h{2}))
+        name: constant.character.escape.utf16.big-endian.ruko
+        captures:
+          1: {name: constant.character.escape.surrogate.high.ruko}
+          2: {name: constant.character.escape.surrogate.low.ruko}
+      - comment: UTF-8 2-byte sequence
+        match: (\\x0*(?i:[cd]\h))(\\x0*(?i:[89ab]\h))
+        name: constant.character.escape.utf8.two.ruko
+        captures:
+          1: {name: constant.character.escape.leading.two.ruko}
+          2: {name: constant.character.escape.trailing.ruko}
+      - comment: UTF-8 3-byte sequence
+        match: (\\x0*(?i:e\h))(\\x0*(?i:[89ab]\h))(\\x0*(?i:[89ab]\h))
+        name: constant.character.escape.utf8.three.ruko
+        captures:
+          1: {name: constant.character.escape.leading.three.ruko}
+          2: {name: constant.character.escape.trailing.ruko}
+          3: {name: constant.character.escape.trailing.ruko}
+      - comment: UTF-8 4-byte sequence
+        match: \\x0*[fF][0-4](\\x0*(?i:[89ab]\h))(\\x0*(?i:[89ab]\h))(\\x0*(?i:[89ab]\h))
+        name: constant.character.escape.utf8.four.ruko
+        captures:
+          1: {name: constant.character.escape.leading.four.ruko}
+          2: {name: constant.character.escape.trailing.ruko}
+          3: {name: constant.character.escape.trailing.ruko}
+          4: {name: constant.character.escape.trailing.ruko}
+      - comment: Hexadecimal escape sequences
+        match: \\u0*\h{1,4}
+        name: constant.character.escape.unicode.ruko
+      - comment: UTF-32 escape sequences
+        match: \\U0*\h{1,8}
+        name: constant.character.escape.utf32.ruko
+      - comment: Binary escape sequences
+        match: \\b0*(?:[01]|1[01]{1,19}|10000[01]{16})
+        name: constant.character.escape.binary.ruko
+      - comment: Ternary escape sequences
+        match: \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01])
+        name: constant.character.escape.ternary.ruko
+      - comment: Quaternary escape sequences
+        match: \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8})
+        name: constant.character.escape.quaternary.ruko
+      - comment: Senary escape sequences
+        match: \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01])
+        name: constant.character.escape.senary.ruko
+      - comment: Octal escape sequences
+        match: \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5})
+        name: constant.character.escape.octal.ruko
+      - comment: Decimal escape sequences
+        match: \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])
+        name: constant.character.escape.decimal.ruko
+      - comment: Duodecimal escape sequences
+        match: \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7])
+        name: constant.character.escape.duodecimal.ruko
+      - comment: Hexadecimal escape sequences
+        match: \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4})
+        name: constant.character.escape.hexadecimal.ruko
+
+  # Embedded expressions
+
+  embedded:
+    patterns:
+      - include: "#embedded-expressions"
+      - include: "#embedded-formatting"
+      - include: "#embedded-arguments"
+
+  embedded-verbatim:
+    patterns:
+      - match: "##|@@|%%"
+        name: constant.character.escape.ruko
+      - include: "#embedded-expressions"
+      - include: "#embedded-formatting"
+      - include: "#embedded-arguments"
+
+  embedded-expressions:
+    patterns:
+      - comment: Interpolated expression
+        begin: (\#{)\s*
+        end: \s*(})
+        name: meta.embedded.expression.ruko
+        captures:
+          1: {name: punctuation.definition.variable.ruko}
+        patterns: [{include: $self}]
+      - comment: Interpolated expression
+        applyEndPatternLast: true
+        name: meta.embedded.expression.ruko
+        begin: |-
+          (?x)
+          (\#) # beginning of identifier
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          (?=[`\p{L}\p{Nl}\p{Pc}]) # next to a word
+        end: $|
+        captures:
+          1: {name: punctuation.definition.variable.ruko}
+        patterns:
+          - include: "#constants"
+          - include: "#angle-brackets"
+          - include: "#brackets"
+          - include: "#embedded-function-calls"
+          - match: (?<=>|\w)(!)(?=\#?[({])
+            captures:
+              1: {name: keyword.operator.macro.ruko}
+          - match: (?<=>|\w)(~)(?=\#?[({])
+            captures:
+              1: {name: keyword.operator.destructor.ruko}
+          - match: (?<=>|\w)(\*)(?=\#?[({])
+            captures:
+              1: {name: keyword.generator.asterisk.ruko}
+          - include: "#variables"
+          - include: "#numbers"
+          - *qualified-name-separators
+
+  embedded-arguments:
+    patterns:
+      - name: meta.embedded.placeholder.ruko
+        match: |-
+          (?x)
+          (\@) # sigil
+          ([+-]?) (\d+) # start of range
+          (?:
+            (?:
+              ([>.]\.[.<]) # range operator
+              ([+-]?) (\d+) # to
+              (?:
+                (\.\.) # step operator
+                ([+-]?) (\d+) # by
+              )?
+            )?
+          )?
+        captures:
+          1: {name: punctuation.definition.anchor.ruko}
+          2: {name: keyword.operator.arithmetic.sign.ruko}
+          3: {name: constant.numeric.range.start.ruko}
+          4: {name: keyword.operator.range.ruko}
+          5: {name: keyword.operator.arithmetic.sign.ruko}
+          6: {name: constant.numeric.range.end.ruko}
+          7: {name: keyword.operator.range.ruko}
+          8: {name: keyword.operator.arithmetic.sign.ruko}
+          9: {name: constant.numeric.range.step.ruko}
+      - name: meta.embedded.placeholder.ruko
+        match: |-
+          (?x)
+          (\@) # sigil
+          (?:
+            ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+            ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+          )
+        captures:
+          1: {name: punctuation.definition.anchor.ruko}
+          2: &type-operators
+            name: keyword.operator.type.modifier.ruko
+            patterns:
+              - include: "#type-operators"
+              - include: "#type-parameter-operators"
+              - include: "#operators"
+          3: &parameter-variable
+            name: variable.parameter.ruko
+            patterns:
+              - include: "#constants"
+              - include: "#stdlib-variables"
+              - include: "#stdlib-constants"
+              - include: "#stdlib-properties"
+          4: *type-operators
+      - name: meta.embedded.placeholder.ruko
+        begin: (\@{)\s*
+        end: \s*(})
+        captures:
+          1: {name: punctuation.definition.anchor.ruko}
+        patterns:
+          - include: "#lambda-content"
+          - include: $self
+
+  # Format and flag specifiers
+
+  embedded-formatting:
+    comment: Oniguruma supports only 20 levels of recursion
+    applyEndPatternLast: true
+    name: meta.embedded.formatting.ruko
+    begin: (?<!%)(%)(?=[`\p{L}\p{Nl}\p{Pc}])
+    end: $|
+    captures:
+      1: {name: punctuation.definition.directive.ruko}
+    patterns: [{include: "#format-syntax"}]
+
+  format-syntax:
+    comment: Format specifier language, inspired by MS-DOS, Bash and Python's f-strings.
+    patterns:
+      - comment: with optional value
+        applyEndPatternLast: true
+        begin: (?:(?<=%)|(\|))((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(:)
+        end: $|
+        name: storage.type.format.ruko
+        captures:
+          1: {name: punctuation.separator.mapping.ruko}
+          2: {name: storage.type.format.ruko}
+          3: {name: punctuation.separator.key-value.ruko}
+        patterns:
+          - include: "#constants"
+          - include: "#angle-brackets"
+          - include: "#brackets"
+          - include: "#embedded-function-calls"
+          - match: (?<=>|\w)(!)(?=\#?[({])
+            captures:
+              1: {name: keyword.operator.macro.ruko}
+          - match: (?<=>|\w)(~)(?=\#?[({])
+            captures:
+              1: {name: keyword.operator.destructor.ruko}
+          - match: (?<=>|\w)(\*)(?=\#?[({])
+            captures:
+              1: {name: keyword.generator.asterisk.ruko}
+          - include: "#variables"
+          - include: "#numbers"
+          - include: "#regexps"
+          - include: "#symbols"
+          - *qualified-name-separators
+      - comment: type specifier
+        match: (?:(?<=%)|(\|))((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: storage.type.format.ruko
+        captures:
+          1: {name: punctuation.separator.mapping.ruko}
+          2: {name: storage.type.format.ruko}
+      - comment: // for multiple flags at once with single-letter aliases
+        match: (?:(?<=%)|(//))((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: storage.type.format.ruko
+        captures:
+          1: {name: punctuation.definition.flag.ruko}
+          2: {name: storage.type.format.ruko}
+      - comment: / for a single flag, with optional arguments
+        match: (?:(?<=%)|(/))((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: storage.type.format.ruko
+        captures:
+          1: {name: punctuation.definition.flag.ruko}
+          2: {name: storage.type.format.ruko}
+      - include: "#format-switch-clause"
+
+  format-switch-clause:
+    patterns:
+      - comment: // for multiple flags at once with single-character aliases
+        applyEndPatternLast: true
+        begin: (?:(?<=%)|(//))((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        end: $|
+        captures:
+          1: {name: punctuation.definition.flag.ruko}
+          2: {name: storage.type.format.ruko}
+        patterns:
+          - comment: Format switch without value
+            match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+            captures:
+              1: {name: keyword.other.flag.ruko}
+      - comment: / for a single flag, with optional arguments
+        applyEndPatternLast: true
+        begin: (?:(?<=%)|(/))((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        end: $|
+        captures:
+          1: {name: punctuation.definition.flag.ruko}
+          2: {name: storage.type.format.ruko}
+        patterns:
+          - comment: Format switch without value
+            match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+            captures:
+              1: {name: keyword.modifier.ruko}
+
+  # Regular expressions
+
+  regexps:
+    applyEndPatternLast: true
+    begin: |-
+      (?x) (?<=
+        (?:
+            ^ # beginning of line
+          | [,;] # separator
+          | \#? [(\[{] # opening bracket
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # operator
+          | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            \s
+        ) \s*
+      ) \s*
+      (?=/[^/*\s]) # a slash followed by something that can't start a comment or be part of an operator
+    end: $|
+    name: meta.regexp.ruko
+    patterns:
+      - applyEndPatternLast: true
+        comment: Single-line pattern section
+        begin: (/)(?![/*])\s*
+        end: \s*(/)(\p{L}*)
+        contentName: string.regexp.pattern.ruko
+        captures:
+          1: {name: punctuation.definition.regexp.ruko}
+          2: {name: keyword.other.flag.ruko}
+        patterns:
+          - include: "#regexp-patterns"
+          - comment: Single-line replacement section
+            begin: (:)\s*
+            end: \s*(\|)|\s*(?=/)
+            name: string.regexp.replace.ruko
+            captures:
+              1: {name: punctuation.definition.regexp.ruko}
+            patterns:
+              - include: "#back-references"
+              - include: "#escapes-embedded"
+
+  regexp-comment:
+    comment: Block comment
+    begin: (\()(\?#)
+    contentName: comment.block.regexp.ruko
+    end: \s*(\))
+    name: comment.block.regexp.ruko
+    captures:
+      1: {name: punctuation.definition.comment.ruko}
+    patterns: &bracketed-patterns
+      - include: "#embedded-verbatim"
+      - comment: capture line continuations first
+        begin: (\\)\s*$
+        end: ^\s*(?=\S)
+        captures:
+          1: {name: constant.character.escape.newline.ruko}
+      - comment: match but don't capture escaped characters
+        match: \\.|[^'"(){}\[\]\\]+
+        name: constant.character.escape.ruko
+      - comment: allow nesting of brackets but don't capture
+        begin: \(
+        end: \)
+        patterns: [{include: "#bracketed-patterns"}]
+      - begin: \[
+        end: \]
+        patterns: [{include: "#bracketed-patterns"}]
+      - begin: \{
+        end: \}
+        patterns: [{include: "#bracketed-patterns"}]
+
+  fuzzy-expression:
+    patterns:
+      - include: "#punctuation"
+      - include: "#comments"
+      - include: "#function-calls"
+      - include: "#literals"
+      - include: "#embedded"
+      - include: "#operators"
+      - include: "#clauses"
+      - include: "#declarations"
+      - include: "#keywords"
+      - include: "#fuzzy-brackets"
+      - match: '\b[\p{L}\p{Nl}\p{Pc}]\w*\b|`[^''"].*?`'
+        name: keyword.other.unit.ruko
+      - include: "#space"
+
+  fuzzy-brackets:
+    patterns:
+      - begin: ({)\s*
+        end: \s*(})
+        captures:
+          1: {name: punctuation.definition.mapping.ruko}
+        patterns:
+          - match: ","
+            name: punctuation.separator.mapping.ruko
+          - include: "#object-labels"
+          - include: "#fuzzy-expression"
+          - include: $self
+      - begin: (\[)\s*
+        end: \s*(\])
+        captures:
+          1: {name: punctuation.definition.array.ruko}
+        patterns:
+          - match: ","
+            name: punctuation.separator.sequence.ruko
+          - include: "#fuzzy-expression"
+          - include: $self
+      - begin: (\()\s*
+        end: \s*(\))
+        captures:
+          1: {name: punctuation.definition.expression.ruko}
+        patterns:
+          - match: ","
+            name: punctuation.definition.function.ruko
+          - include: "#fuzzy-expression"
+          - include: $self
+
+  back-references:
+    patterns:
+      - match: \$(\d+[+-]?|[+-]\d*)
+        name: keyword.other.back-reference.ruko
+      - begin: (\$<)\s*
+        end: \s*(>)
+        name: keyword.other.back-reference.ruko
+        captures:
+          1: {name: keyword.other.back-reference.ruko}
+        patterns: &regex-back-references
+          - match: '\b[\p{L}\p{Nl}\p{Pc}]\w*\b|`[^''"].*?`'
+            name: constant.other.back-reference.name.ruko
+          - match: ([+-])?(\d+)
+            captures:
+              1: {name: keyword.operator.arithmetic.sign.ruko}
+              2: {name: constant.numeric.back-reference.ruko}
+      - begin: (\$(['"]))\s*
+        end: \s*(\2)
+        name: keyword.other.back-reference.ruko
+        captures:
+          1: {name: keyword.other.back-reference.ruko}
+        patterns: *regex-back-references
+
+  regexp-patterns:
+    comment: |-
+      See https://gist.github.com/CMCDragonkai/6c933f4a7d713ef712145c5eb94a1816
+      and https://www.regular-expressions.info/
+    patterns:
+      - include: "#comments"
+      - include: "#embedded"
+      - include: "#strings"
+      - include: "#unicode-escapes"
+      - match: \|
+        name: keyword.operator.alternation.ruko
+      - match: \&
+        name: keyword.operator.succession.ruko
+      - match: \.
+        name: constant.character.all.ruko
+      - match: (?i)\\[by](?:{(?:[^\\{}]|\\.)+})?
+        name: keyword.control.anchor.ruko
+      - match: (\\[aAm<]|\^+)(?:{(?:[^\\{}]|\\.)+})?
+        name: keyword.control.begin.ruko
+      - match: (\\[zZM>]|\$+)(?:{(?:[^\\{}]|\\.)+})?
+        name: keyword.control.end.ruko
+      - match: \\K
+        name: keyword.control.keep-out.ruko
+      - match: \\G
+        name: keyword.control.search.ruko
+      - match: \\R
+        name: constant.character.control.ruko
+      - match: \\[XO]
+        name: constant.character.unicode.ruko
+      - match: \\\d+
+        name: keyword.other.back-reference.ruko
+      - match: \{\s*(?:(\d+\s*)(,))\s*(?:(\d+\s*)(,))?\s*(?:(\d+\s*))?\s*\}(?:(\?)|(\+)|(\*))?
+        captures:
+          0: {name: keyword.operator.quantifier.ruko}
+          1: {name: constant.numeric.quantifier.min.ruko}
+          2: {name: punctuation.separator.range.ruko}
+          3: {name: constant.numeric.quantifier.max.ruko}
+          4: {name: punctuation.separator.range.ruko}
+          5: {name: constant.numeric.quantifier.step.ruko}
+          6: {name: keyword.operator.quantifier.lazy.ruko}
+          7: {name: keyword.operator.modifier.eager.ruko}
+          8: {name: keyword.operator.modifier.greedy.ruko}
+      - match: (?:(\?)|(\+)|(\*))\s*(?:(\?)|(\+)|(\*))?
+        captures:
+          1: {name: keyword.operator.quantifier.lazy.ruko}
+          2: {name: keyword.operator.quantifier.eager.ruko}
+          3: {name: keyword.operator.quantifier.greedy.ruko}
+          4: {name: keyword.operator.modifier.lazy.ruko}
+          5: {name: keyword.operator.modifier.eager.ruko}
+          6: {name: keyword.operator.modifier.greedy.ruko}
+      - begin: (\\k<)
+        end: (>)
+        contentName: constant.other.back-reference.ruko
+        captures:
+          1: {name: keyword.other.back-reference.ruko}
+        patterns: *regex-back-references
+      - begin: (\\g<)
+        end: (>)
+        contentName: constant.other.subroutine.ruko
+        captures:
+          1: {name: keyword.other.subroutine.ruko}
+        patterns: *regex-back-references
+      - begin: (\\k(?:'+|"+))
+        end: (\2)
+        contentName: constant.other.back-reference.ruko
+        captures:
+          1: {name: keyword.other.back-reference.ruko}
+        patterns: *regex-back-references
+      - begin: (\\g(?:'+|"+))
+        end: (\2)
+        contentName: constant.other.subroutine.ruko
+        captures:
+          1: {name: keyword.other.subroutine.ruko}
+        patterns: *regex-back-references
+      - begin: ({)
+        end: (})
+        contentName: meta.fuzzy.ruko
+        captures:
+          1: {name: punctuation.definition.fuzzy.ruko}
+        patterns:
+          - applyEndPatternLast: true
+            begin: (?<=^|\\.|\#?[(\[{]|[,;'"`)\]}\w\s])(:)
+            beginCaptures:
+              1: {name: punctuation.separator.key-value.ruko}
+            end: (?=[,;}]|)|$
+            patterns: [{include: "#regexp-patterns"}]
+          - include: "#fuzzy-expression"
+      - match: \\[abefrntv]
+        name: constant.character.escape.ruko
+      - comment: |-
+          Character classes (uppercase negated):
+          - \d: digit
+          - \s: whitespace
+          - \w: word character
+          - \h: hexadecimal digit
+          - \u: uppercase
+          - \l: lowercase
+          - \i: identifier start
+          - \c: identifier continue
+        match: \\[wsdhulic]
+        name: constant.other.character-class.ruko
+      - match: \\[WSDHULIC]
+        name: constant.other.character-class.negated.ruko
+      - &regexp-quote-lower
+        begin: (\\q{)
+        end: (})
+        contentName: string.quoted.regexp.ruko
+        captures:
+          1: {name: punctuation.definition.quote.ruko}
+        patterns:
+          - match: \|
+            name: keyword.operator.or.ruko
+      - &regexp-quote-upper
+        begin: (\\Q)
+        end: (\\E)
+        contentName: string.quoted.regexp.ruko
+        captures:
+          1: {name: punctuation.definition.quote.ruko}
+        patterns:
+          - match: \|
+            name: keyword.operator.or.ruko
+      - include: "#regexp-groups"
+      - include: "#regexp-character-set"
+      - include: "#regexp-character-class"
+      - match: \\. # fallback for any other escaped character
+        name: constant.character.escape.other.ruko
+      - include: "#space"
+
+  regexp-groups:
+    patterns:
+      - comment: Backtracking control verb
+        begin: (\(\*((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))?(:)?)
+        end: (\))
+        contentName: meta.group.backtrack.ruko
+        captures:
+          1: {name: punctuation.section.expression.ruko}
+          2: {name: keyword.control.ruko}
+          3: {name: punctuation.separator.colon.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - include: "#regexp-comment"
+      - comment: Lookahead assertion
+        begin: (\(\?=)
+        end: (\))
+        contentName: meta.group.look-ahead.ruko
+        captures:
+          1: {name: punctuation.definition.group.look-ahead.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Lookbehind assertion
+        begin: (\(\?<=)
+        end: (\))
+        contentName: meta.group.look-behind.ruko
+        captures:
+          1: {name: punctuation.definition.group.look-behind.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Negative lookahead assertion
+        begin: (\(\?!)
+        end: (\))
+        contentName: meta.group.negative-look-ahead.ruko
+        captures:
+          1: {name: punctuation.definition.group.negative-look-ahead.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Negative lookbehind assertion
+        begin: (\(\?<!)
+        end: (\))
+        contentName: meta.group.negative-look-behind.ruko
+        captures:
+          1: {name: punctuation.definition.group.negative-look-behind.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Directive group
+        begin: (\(\?)(?=%)
+        captures:
+          1: {name: punctuation.definition.group.directive.ruko}
+        end: (\))
+        contentName: meta.group.directive.ruko
+        patterns:
+          - include: "#format-syntax"
+          - include: "#regexp-patterns"
+      - comment: Longest match
+        begin: (\(\?/=?)
+        end: (\))
+        contentName: meta.group.longest.ruko
+        captures:
+          1: {name: punctuation.definition.group.longest.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Back-reference groups
+        begin: (\(\?&(?:([+-]?\d+)|((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)))(:)?)
+        end: (\))
+        contentName: meta.group.back-reference.ruko
+        captures:
+          1: {name: punctuation.definition.group.back-reference.ruko}
+          2: {name: constant.numeric.index.ruko}
+          3: {patterns: [{include: "#variables"}]}
+          4: {name: punctuation.separator.colon.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Back-reference groups
+        begin: (\(\?&)
+        end: (\))
+        contentName: meta.group.back-reference.ruko
+        captures:
+          1: {name: punctuation.definition.group.back-reference.ruko}
+        patterns:
+          - begin: (?<=\(\?&)('''+|"""+|['"])
+            end: (\1)
+            name: entity.name.group.ruko
+            captures:
+              1: {name: punctuation.definition.group.back-reference.ruko}
+            patterns: *regex-back-references
+          - include: "#regexp-patterns"
+      - comment: Flag modifier group
+        begin: (\(\?\^?(?:([+-]?\d+?)|((?:[+-]\p{Lu}+)+|\p{Lu}+(?:[+-]\p{Lu}+)*)|((?:[+-]\p{Ll}+)+|\p{Ll}+(?:[+-]\p{Ll}+)*)))\s*(:)?
+        end: \s*(\))
+        contentName: meta.group.flag.ruko
+        captures:
+          0: {name: punctuation.definition.group.flag.ruko}
+          1: {name: punctuation.definition.group.flag.ruko}
+          2: {name: constant.numeric.index.ruko}
+          3: {name: keyword.control.recursion.ruko}
+          4: {name: keyword.other.flag.ruko}
+          5: {name: punctuation.separator.colon.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Call-outs
+        begin: (\(\?)(?={)
+        end: (\))
+        contentName: meta.group.call-out.ruko
+        captures:
+          1: {name: punctuation.definition.group.call-out.ruko}
+        patterns:
+          - begin: (?<=\(\?)({)
+            end: \s*(})\s*([<*>])?(?:(\[)(.*?)(\]))?
+            name: punctuation.definition.group.call-out.ruko
+            captures:
+              1: {name: punctuation.definition.group.call-out.ruko}
+              2: {name: keyword.operator.range.ruko}
+              3: {name: punctuation.definition.tag.ruko}
+              4: {patterns: [{include: "#function-names"}]}
+              5: {name: punctuation.definition.tag.ruko}
+            patterns: [{include: $self}]
+          - include: "#regexp-patterns"
+      - comment: Atomic groups
+        begin: (\(\?>)
+        end: (\))
+        contentName: meta.group.atomic.ruko
+        captures:
+          1: {name: punctuation.definition.group.atomic.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Non-capturing groups
+        begin: (\(\?:)
+        end: (\))
+        contentName: meta.group.non-capturing.ruko
+        captures:
+          1: {name: punctuation.definition.group.non-capturing.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Branch groups
+        begin: (\(\?)(?=[(|])
+        end: (\))
+        contentName: meta.group.branch.ruko
+        captures:
+          1: {name: punctuation.definition.group.branch.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+      - comment: Absent groups
+        begin: (\(\?~(\|))
+        end: (\))
+        contentName: meta.group.absent.ruko
+        captures:
+          1: {name: punctuation.definition.group.absent.ruko}
+          2: {name: punctuation.definition.group.absent.stopper.ruko}
+        patterns:
+          - match: \|
+            name: punctuation.definition.group.absent.stopper.ruko
+          - include: "#regexp-patterns"
+      - comment: Extended character classes (negated)
+        begin: (\(\?\[\^)
+        end: (\]\))
+        contentName: meta.group.extended-character-class.negated.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.negated.ruko}
+        patterns: [{include: "#regexp-character-group"}]
+      - comment: Extended character classes (non-negated)
+        begin: (\(\?\[)
+        end: (\]\))
+        contentName: meta.group.extended-character-class.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
+        patterns: [{include: "#regexp-character-group"}]
+      - comment: Named groups (angle brackets)
+        begin: (\(\?(?=<(?![!=])))
+        end: (\))
+        contentName: meta.group.named.ruko
+        captures:
+          1: {name: punctuation.definition.group.named.ruko}
+        patterns:
+          - begin: (?<=\(\?)(<)
+            end: (>)
+            name: entity.name.group.ruko
+            captures:
+              1: {name: punctuation.definition.group.named.ruko}
+            patterns: *regex-back-references
+          - include: "#regexp-patterns"
+      - comment: Named groups (single or double-quotes)
+        begin: (\(\?(?=['"]))
+        end: (\))
+        contentName: meta.group.named.ruko
+        captures:
+          1: {name: punctuation.definition.group.named.ruko}
+        patterns:
+          - begin: (?<=\(\?)('''+|"""+|['"])
+            end: (\1)
+            name: entity.name.group.ruko
+            captures:
+              1: {name: punctuation.definition.group.named.ruko}
+            patterns: *regex-back-references
+          - include: "#regexp-patterns"
+      - comment: Unnamed groups
+        begin: (\()
+        end: (\))
+        contentName: meta.group.ruko
+        captures:
+          1: {name: punctuation.definition.group.ruko}
+        patterns: [{include: "#regexp-patterns"}]
+
+  regexp-character-group:
+    patterns:
+      - match: (-)|(&)|(\|)|(\^)|(\+)|([~!])
+        name: keyword.operator.character-class.ruko
+        captures:
+          1: {name: keyword.operator.difference.ruko}
+          2: {name: keyword.operator.intersection.ruko}
+          3: {name: keyword.operator.union.ruko}
+          4: {name: keyword.operator.exclusion.ruko}
+          5: {name: keyword.operator.sum.ruko}
+          6: {name: keyword.operator.negation.ruko}
+      - include: "#comments"
+      - include: "#style-selectors"
+      - include: "#punctuation"
+      - include: "#embedded"
+      - include: "#regexp-patterns"
+      - include: "#strings"
+      - include: "#space"
+
+  regexp-character-class:
+    patterns:
+      - include: "#embedded"
+      - begin: (\\)(?=\s*$)
+        end: ^\s*(?=\S)
+        captures:
+          1: {name: constant.character.escape.newline.ruko}
+      - include: "#named-escapes"
+      - include: "#unicode-escapes"
+      - begin: (\\p{)
+        end: (})
+        contentName: constant.other.character-class.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
+        patterns: [{include: "#selectors"}]
+      - begin: (\\P{)
+        end: (})
+        contentName: constant.other.character-class.negated.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.negated.ruko}
+        patterns: [{include: "#selectors"}]
+      - match: (\\p)(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
+        name: constant.other.character-class.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
+          2: {name: constant.other.character-class.ruko}
+      - match: (\\P)(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)
+        name: constant.other.character-class.negated.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.negated.ruko}
+          2: {name: constant.other.character-class.negated.ruko}
+      - *regexp-quote-lower
+      - *regexp-quote-upper
+      - comment: \c for U+00-1F, \C for U+80-FF control characters
+        match: \\[cC][@-_]
+        name: constant.character.control.ruko
+      - match: \\[ci]({(?:[^\\{}]|\\.)+})?
+        name: constant.other.character-class.xml.ruko
+        captures:
+          0: {name: constant.other.character-class.ruko}
+          1: {name: constant.other.character-class.xml.name.ruko}
+      - match: (?i)\\n({(?:[^\\{}]|\\.)+})
+        name: constant.character.escape.unicode.name.ruko
+      - match: \\[abefprntv]
+        name: constant.character.escape.ruko
+      - match: \\[a-z]
+        name: constant.other.character-class.ruko
+      - match: \\[A-Z]
+        name: constant.other.character-class.negated.ruko
+      - match: \\\p{S}
+        name: constant.character.escape.symbol.ruko
+      - match: \\\p{P}
+        name: constant.character.escape.punctuation.ruko
+      - match: \\\p{N}
+        name: constant.character.escape.number.ruko
+      - match: \\\p{Z}
+        name: constant.character.escape.space.ruko
+      - match: \\\p{L}
+        name: constant.character.escape.letter.ruko
+      - match: \\\p{C}
+        name: invalid.illegal.escape.ruko
+      - match: \\\N
+        name: constant.character.escape.other.ruko
+
+  regexp-character-operators:
+    patterns:
+      - match: |-
+          (?x)
+          ( # from
+              \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01]) # decimal escape
+            | \\u\h{1,4} | \\U\h{1,8} # hex escape
+            | \\b0*(?:[01]|1[01]{1,19}|10000[01]{16}) # binary escape
+            | \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]) # ternary escape
+            | \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}) # quaternary escape
+            | \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]) # senary escape
+            | \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}) # octal escape
+            | \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7]) # duodecimal escape
+            | \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4}) # hexadecimal escape
+            | \\[cC][@-_] # control character
+            | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
+            | \\(?:[abefprntv[^a-zA-Z]]) # any escape character
+            | [^\-\\\[\]] # any unescaped character
+          )
+            \s*(>?->?)\s* # range
+          ( # to
+              \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01]) # decimal escape
+            | \\u\h{1,4} | \\U\h{1,8} # hex escape
+            | \\b0*(?:[01]|1[01]{1,19}|10000[01]{16}) # binary escape
+            | \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]) # ternary escape
+            | \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}) # quaternary escape
+            | \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]) # senary escape
+            | \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}) # octal escape
+            | \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7]) # duodecimal escape
+            | \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4}) # hexadecimal escape
+            | \\[cC][@-_] # control character
+            | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
+            | \\(?:[abefprntv[^a-zA-Z]]) # any escape character
+            | [^\-\\\[\]] # any unescaped character
+          ) (?:
+              \s*(:)\s*
+            ( # by
+              [+-]? (?# sign) (?:
+                  \d+ # decimal
+                | 0o[0-7]+ # octal
+                | 0b[01]+ # binary
+                | 0t[012] # ternary
+                | 0q[0-3]+ # quaternary
+                | 0s[0-5]+ # senary
+                | 0z(?i:[\dab]+) # duodecimal
+                | 0x\h+ # hexadecimal
+              )
+            )
+          )?
+        captures:
+          1:
+            name: constant.other.character-class.range.from.ruko
+            patterns:
+              - include: "#regexp-character-class"
+              - include: "#regexp-character-operators"
+          2: {name: keyword.operator.range.ruko}
+          3:
+            name: constant.other.character-class.range.to.ruko
+            patterns:
+              - include: "#regexp-character-class"
+              - include: "#regexp-character-operators"
+          4: {name: keyword.operator.range.ruko}
+          5:
+            name: constant.other.character-class.range.by.ruko
+            patterns:
+              - include: "#numbers"
+              - include: "#regexp-character-class"
+              - include: "#regexp-character-operators"
+      - match: (\|\|)|(&&)|(\^\^)|(--)
+        name: keyword.operator.set.ruko
+        captures:
+          1: {name: keyword.operator.union.ruko}
+          2: {name: keyword.operator.intersection.ruko}
+          3: {name: keyword.operator.exclusion.ruko}
+          4: {name: keyword.operator.difference.ruko}
+
+  regexp-character-set:
+    patterns:
+      - begin: (\[:)
+        end: (:\])
+        contentName: constant.other.character-class.posix.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.posix.ruko}
+        patterns: [{include: "#selectors"}]
+      - begin: (\[\^)
+        end: (\])
+        contentName: constant.other.character-class.negated.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.negated.ruko}
+        patterns:
+          - include: "#comments"
+          - include: "#regexp-character-operators"
+          - include: "#regexp-character-class"
+          - include: "#regexp-character-set"
+      - begin: (\[)
+        end: (\])
+        contentName: constant.other.character-class.ruko
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
+        patterns:
+          - include: "#comments"
+          - include: "#regexp-character-operators"
+          - include: "#regexp-character-class"
+          - include: "#regexp-character-set"
+
+  selectors:
+    name: meta.selector.ruko
+    patterns:
+      - include: "#comments"
+      - include: "#numbers"
+      - comment: Unicode character category selectors
+        match: \b(L[ultmo]?|M[nce]?|N[dlo]?|P[cdseifo]?|S[mcko]?|Z[pls]?|C[cfnos]?)\b
+        name: support.type.character-class.unicode.ruko
+      - applyEndPatternLast: true
+        begin: |-
+          (?x)
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # property name
+          \s*(?: # operators
+              (=|[!=]==?) # equality
+            | (~[=!]) # matches
+            | ([<>]=?) # relational
+            | ([$^%*]=) # pattern
+          )\s*
+        end: $|
+        captures:
+          1:
+            name: entity.other.attribute-name.key.ruko
+            patterns: [{include: "#unicode-property-keys"}]
+          2: {name: keyword.operator.comparison.ruko}
+          3: {name: keyword.operator.similarity.ruko}
+          4: {name: keyword.operator.relational.ruko}
+          5: {name: keyword.operator.pattern.ruko}
+        name: string.unquoted.attribute-value.ruko
+        patterns:
+          - include: "#comments"
+          - include: "#strings"
+          - comment: Regular expression patterns
+            begin: (/)(?![/*])
+            end: (/)(\p{L}*)
+            name: string.unquoted.attribute-value.ruko
+            captures:
+              1: {name: punctuation.definition.regexp.begin.ruko}
+              2: {name: punctuation.definition.regexp.end.ruko}
+              3: {name: keyword.other.flag.ruko}
+            patterns: [{include: "#regexp-patterns"}]
+          - include: "#constants"
+          - include: "#numbers"
+          - include: "#unicode-property-values"
+          - include: "#css-property-values"
+          - &attribute-identifier
+            match: (?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b)
+            name: constant.other.attribute-value.ruko
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        name: entity.other.attribute-name.key.ruko
+      - match: '&&|\|\||\^\^|!'
+        name: keyword.operator.logical.ruko
+      - match: \b(n?and|x?n?or|(?:co)?n?imply|not)\b
+        name: keyword.operator.expression.logical.ruko
+      - match: ","
+        name: punctuation.separator.sequence.ruko
+      - match: \b(\b(is|has|can)\b\s*\b(not)?)\b
+        name: keyword.operator.expression.is.ruko
+      - match: \b(not)?\s*\b([io]n|of)\b
+        name: keyword.operator.expression.$2.ruko
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=&&|\|\||\^\^|!|[\s,:;'"`)\]}]|\\.)
+        name: storage.modifier.ignore-when.ruko
+      - include: "#string-escapes"
+      - comment: Attribute names
+        match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+        captures:
+          1: {name: entity.other.attribute-name.ruko}
+          2: {name: keyword.operator.pattern.ruko}
+      - include: "#space"
+
+  # XML (JSX)
+
+  xml-tags:
+    applyEndPatternLast: true
+    comment: Only captured when next to opening brackets, commas, semicolons, keywords, and operators. XML also supports functional components.
+    begin: |-
+      (?x) (?<=
+        (?:
+            ^ # beginning of line
+          | [,;] # separator
+          | \#? [(\[{] # opening bracket
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # operator
+          | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            \s
+        ) \s*
+      ) \s*
+      (?=<(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)))
+    end: $|
+    name: meta.tag.top.ruko
+    patterns: [{include: "#tag-component-name"}]
+
+  tag-component-name:
+    define: &bracket-tag-content
+      end: |
+        (?x) \s*
+        (?:
+            (/>) # Tags implicitly closed.
+          | ((?<=</).*?)(>)
+        ) \s*
+      beginCaptures:
+        0: {name: meta.tag.ruko}
+        1: {name: punctuation.definition.tag.ruko}
+      endCaptures:
+        0: {name: meta.tag.ruko}
+        1: {name: punctuation.definition.tag.ruko}
+        2: {name: invalid.illegal.termination.ruko}
+        3: {name: punctuation.definition.tag.ruko}
+
+    patterns:
+      - comment: Expression tags like <( ... )>.
+        contentName: meta.xml.ruko
+        begin: (<)(?=\()
+        <<: *bracket-tag-content
+        patterns:
+          - begin: (?<=<)(\()\s*
+            end: \s*(\))
+            name: meta.expression.tag.ruko
+            captures:
+              1: {name: punctuation.definition.group.ruko}
+            patterns: [{include: $self}]
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
+      - comment: Array tags like <[ ... ]>.
+        contentName: meta.xml.ruko
+        begin: (<)(?=\[)
+        <<: *bracket-tag-content
+        patterns:
+          - begin: (?<=<)(\[)\s*
+            end: \s*(\])
+            name: meta.expression.tag.ruko
+            captures:
+              1: {name: punctuation.definition.selector.ruko}
+            patterns: [{include: $self}]
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
+      - comment: Object tags like <{ ... }>.
+        contentName: meta.xml.ruko
+        begin: (<)(?={)
+        <<: *bracket-tag-content
+        patterns:
+          - begin: (?<=<)({)\s*
+            end: \s*(})
+            name: meta.expression.tag.ruko
+            captures:
+              1: {name: punctuation.definition.block.ruko}
+            patterns: [{include: $self}]
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
+      - comment: Standard tags like <div>.
+        contentName: meta.xml.ruko
+        begin: |-
+          (?x)
+          (<) # start tag begin
+          (
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          )?
+          (?=[,;'"()\[\]{}/>\s])
+        end: \s*(?:(?<=</)(\2)?(>)|(/>)|((?<=</).*?)(>))\s*
+        beginCaptures:
+          0: {name: meta.tag.ruko}
+          1: {name: punctuation.definition.tag.ruko}
+          2:
+            name: entity.name.tag.ruko
+            patterns: [{include: "#html-tag-names"}]
+        endCaptures:
+          0: {name: meta.tag.ruko}
+          1:
+            name: entity.name.tag.ruko
+            patterns: [{include: "#html-tag-names"}]
+          2: {name: punctuation.definition.tag.ruko}
+          3: {name: punctuation.definition.tag.ruko}
+          4: {name: invalid.illegal.termination.ruko}
+          5: {name: punctuation.definition.tag.ruko}
+        patterns:
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
+
+  html-tag-names:
+    patterns:
+      - include: "#accessor-operators"
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=(?:[?!:]:|[?!]?\.|[?!-]>)=?)
+        name: entity.name.tag.namespace.ruko
+      - match: '`[\p{L}\p{Nl}\p{Pc}&&\P{Ll}][^`]*`|\b((?:[\p{L}\p{Nl}\p{Pc}&&\P{Ll}][\w&&\P{Lu}]*)+)\b'
+        name: support.class.component.ruko
+      - include: "#clauses"
+      - include: "#declarations"
+      - include: "#keywords"
+      - include: "#css-tag-names"
+
+  xml-comments:
+    begin: (<!--)
+    end: (-->)
+    captures:
+      1: {name: punctuation.definition.comment.ruko}
+    name: comment.block.xml.ruko
+    patterns: [{include: "#xml-comments"}]
+
+  tag-termination:
+    comment: uses non consuming search for </ in </tag>
+    contentName: meta.xml.children.ruko
+    begin: (>)
+    end: (</(?=>|(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)))
+    captures:
+      1: {name: punctuation.definition.tag.ruko}
+    patterns:
+      - include: "#comments"
+      - include: "#xml-comments"
+      - include: "#tag-component-name"
+      - include: $self
+
+  tag-attributes:
+    patterns:
+      - include: "#style-selectors"
+      - match: \s*([@#&*|%.:~^?]|::)(?=[\w$'"`])
+        name: punctuation.definition.entity.ruko
+      - include: "#spread-attribute"
+      - include: "#style-attribute"
+      - include: "#attribute-assignment"
+      - applyEndPatternLast: true
+        begin: \s*(\b[\p{L}\p{Nl}\p{Pc}][\p{Pd}\w]*)\b
+        end: $|
+        name: entity.other.attribute-name.ruko
+        patterns:
+          - match: '[\w&&[^\d\p{No}]][\p{Pd}\w]*'
+            patterns: [{include: "#css-property-keys"}]
+          - include: "#brackets"
+      - include: "#literals"
+      - include: "#embedded"
+      - include: "#brackets"
+      - include: "#comments"
+      - include: "#punctuation"
+      - include: "#space"
+
+  style-attribute:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(style)\b\s*(=)\s*({)\s*
+    beginCaptures:
+      1: {name: storage.type.style.ruko}
+      2: {name: punctuation.separator.key-value.ruko}
+      3: {name: punctuation.definition.block.ruko}
+    end: \s*(})\s*
+    endCaptures:
+      1: {name: punctuation.definition.block.ruko}
+    name: meta.attribute.style.ruko
+    patterns: [{include: "#style-content"}]
+
+  attribute-assignment:
+    applyEndPatternLast: true
+    begin: \s*(=)
+    beginCaptures:
+      1: {name: punctuation.separator.key-value.ruko}
+    end: $|
+    name: meta.attribute.assignment.ruko
+    patterns: [{include: "#attribute-values"}]
+
+  attribute-values:
+    patterns:
+      - include: "#literals"
+      - include: "#embedded"
+      - &primary-expression
+        comment: Plain identifiers
+        applyEndPatternLast: true
+        name: meta.embedded.expression.ruko
+        begin: |-
+          (?x)
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+
+          (?=[`\p{L}\p{Nl}\p{Pc}]) # next to a word
+        end: $|
+        patterns:
+          - include: "#constants"
+          - include: "#angle-brackets"
+          - include: "#brackets"
+          - include: "#embedded-function-calls"
+          - match: (?<=>|\w)(!)(?=\#?[({])
+            captures:
+              1: {name: keyword.operator.macro.ruko}
+          - match: (?<=>|\w)(~)(?=\#?[({])
+            captures:
+              1: {name: keyword.operator.destructor.ruko}
+          - match: (?<=>|\w)(\*)(?=\#?[({])
+            captures:
+              1: {name: keyword.generator.asterisk.ruko}
+          - include: "#variables"
+          - include: "#numbers"
+          - *qualified-name-separators
+      - *attribute-identifier
+      - include: "#operators"
+
+  spread-attribute:
+    comment: Spread ..attribute
+    match: \s*(?<!\.)(\.\.)(?=[\p{L}\p{Nl}\p{Pc}($])
+    captures:
+      1: {name: punctuation.definition.spread.ruko}
+
+  xml-entities:
+    patterns:
+      - match: |-
+          (?xi)
+          (&)(?:
+              (\# 0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])) # decimal
+            | (\#b0*(?:[01]|1[01]{1,19}|10000[01]{16})) # binary
+            | (\#t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01])) # ternary
+            | (\#q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8})) # quaternary
+            | (\#s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01])) # senary
+            | (\#o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5})) # octal
+            | (\#z0*(?:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7])) # duodecimal
+            | (\#x0*(?:\h|[1-f]\h{1,4}|10\h{4})) # hexadecimal
+            | ((?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b)) # named
+            | ([^;\s]++) # invalid
+          )(;)
+        name: constant.other.entity.ruko
+        captures: &xml-entities
+          1: {name: punctuation.definition.entity.ruko}
+          2: {name: constant.character.escape.decimal.ruko}
+          3: {name: constant.character.escape.binary.ruko}
+          4: {name: constant.character.escape.ternary.ruko}
+          5: {name: constant.character.escape.quaternary.ruko}
+          6: {name: constant.character.escape.senary.ruko}
+          7: {name: constant.character.escape.octal.ruko}
+          8: {name: constant.character.escape.duodecimal.ruko}
+          9: {name: constant.character.escape.hexadecimal.ruko}
+          10:
+            name: constant.character.entity.named.ruko
+            patterns: [{include: "#xml-entity-names"}]
+          11: {name: invalid.illegal.entity.ruko}
+          12: {name: punctuation.definition.entity.ruko}
+      - comment: Ambiguous & not part of an entity
+        match: '&(?=\N*;)|&\s*+;'
+        name: invalid.illegal.ambiguous-ampersand.ruko
+
+  # Ruko Markdown
+
+  markdown:
+    patterns:
+      - comment: block-style markdown
+        begin: \s*(\\\*)(?=\s|$)
+        end: \s*(\*\\)
+        name: string.markdown
+        captures:
+          1: {name: punctuation.section.markdown.ruko}
+        patterns: [{include: "#markdown-content"}]
+      - comment: line-break markdown
+        begin: \s*(\\\\)(?=\s|$)
+        while: ^\s*(\\\\)(?=\s|$)
+        name: string.markdown
+        captures:
+          1: {name: punctuation.definition.markdown.ruko}
+        patterns: [{include: "#markdown-content"}]
+
+  markdown-content:
+    patterns:
+      - include: "#definition-list"
+      - include: "#unordered-list"
+      - include: "#ordered-list"
+      - include: "#block-quote"
+      - include: "#footnote-definition"
+      - include: "#headings"
+      - include: "#xml-entities"
+      - include: "#tag-component-name"
+      - include: "#inline-styles"
+      - include: "#inline-markdown"
+      - include: "#comments"
+      - include: "#escapes-embedded"
+
+  headings:
+    define: &heading
+      captures:
+        1: {name: punctuation.definition.heading.markdown}
+      patterns: [{include: "#markdown-content"}]
+
+    patterns:
+      - begin: &heading-6 (?<=^|\s)(\#{6}\s*)(?!\#)(?=\s|$)
+        while: *heading-6
+        <<: *heading
+        name: heading.6.markdown entity.name.section.markdown
+      - begin: &heading-5 (?<=^|\s)(\#{5}\s*)(?!\#)(?=\s|$)
+        while: *heading-5
+        <<: *heading
+        name: heading.5.markdown entity.name.section.markdown
+      - begin: &heading-4 (?<=^|\s)(\#{4}\s*)(?!\#)(?=\s|$)
+        while: *heading-4
+        <<: *heading
+        name: heading.4.markdown entity.name.section.markdown
+      - begin: &heading-3 (?<=^|\s)(\#{3}\s*)(?!\#)(?=\s|$)
+        while: *heading-3
+        <<: *heading
+        name: heading.3.markdown entity.name.section.markdown
+      - begin: &heading-2 (?<=^|\s)(\#{2}\s*)(?!\#)(?=\s|$)
+        while: *heading-2
+        <<: *heading
+        name: heading.2.markdown entity.name.section.markdown
+      - begin: &heading-1 (?<=^|\s)(\#{1}\s*)(?!\#)(?=\s|$)
+        while: *heading-1
+        <<: *heading
+        name: heading.1.markdown entity.name.section.markdown
+
+  block-quote:
+    comment: "> block-quote"
+    begin: &block-quote (?<=^|\s)(>)(?=\s|$)
+    while: *block-quote
+    captures:
+      1: {name: punctuation.definition.quote.markdown}
+    name: markup.quote.markdown
+    patterns: [{include: "#markdown-content"}]
+
+  unordered-list:
+    comment: "- unordered list"
+    begin: &unordered-list (?<=^|\s)(-)(?=\s|$)
+    while: *unordered-list
+    captures:
+      1: {name: punctuation.definition.list.unnumbered.markdown}
+    name: markup.list.unnumbered.markdown
+    patterns: [{include: "#markdown-content"}]
+
+  ordered-list:
+    comment: "+ ordered list"
+    begin: &ordered-list (?<=^|\s)(\+)(?=\s|$)
+    while: *ordered-list
+    captures:
+      1: {name: punctuation.definition.list.numbered.markdown}
+    name: markup.list.numbered.markdown
+    patterns: [{include: "#markdown-content"}]
+
+  definition-list:
+    comment: "+ definition list"
+    begin: &definition-list (?<=^|\s)(:)(?=\s|$)
+    while: *definition-list
+    captures:
+      1: {name: punctuation.definition.list.definition.markdown}
+    name: markup.list.definition.markdown
+    patterns: [{include: "#markdown-content"}]
+
+  inline-styles:
+    begin: (!{)\s*
+    end: \s*(})
+    captures:
+      1: {name: punctuation.definition.directive.ruko}
+    name: meta.inline.styles.ruko
+    patterns:
+      - include: "#style-content"
+      - include: $self
+
+  inline-markdown:
+    patterns:
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#underline"
+      - include: "#strikethrough"
+      - include: "#superscript"
+      - include: "#subscript"
+      - include: "#redacted"
+      - include: "#highlight"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  math-inline:
+    comment: Inline math delimited by $ ... $
+    begin: (\$+)
+    end: (\1)
+    name: meta.embedded.math.markdown
+    captures:
+      1: {name: punctuation.definition.math.markdown}
+    patterns: &math-inline
+      - include: "#comments"
+      - include: "#math-commands"
+      - include: "#math-entities"
+      - include: "#numbers"
+      - match: '[\p{P}\p{S}&&[^$\\()\[\]{}]]+'
+        name: keyword.operator.math.markdown
+        captures:
+          0: {patterns: [{include: "#operators"}]}
+      - include: "#escapes-embedded"
+      - include: "#strings"
+      - include: "#punctuation"
+      - include: "#space"
+
+  math-entities:
+    match: (\\)((?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b))(;?)
+    captures:
+      1: {name: punctuation.definition.entity.math.markdown}
+      2:
+        name: constant.character.math.markdown
+        patterns: [{include: text.tex#math-content}]
+      3: {name: punctuation.definition.entity.math.markdown}
+
+  math-commands:
+    applyEndPatternLast: true
+    begin: (\\)((?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b))(?=[(\[{])
+    beginCaptures:
+      1: {name: punctuation.definition.command.math.markdown}
+      2:
+        name: entity.name.tag.function.markdown
+        patterns: [{include: text.tex#math-content}]
+    end: $|
+    patterns:
+      - comment: for commands like \sum( ... )
+        begin: ({)
+        end: (})
+        name: meta.brace.curly.math.markdown
+        captures:
+          1: {name: punctuation.definition.block.markdown}
+          2: {name: punctuation.definition.block.markdown}
+        patterns: *math-inline
+      - comment: for special commands like \sqrt[]{}
+        begin: (\[)
+        end: (\])
+        name: meta.brace.square.math.markdown
+        captures:
+          1: {name: punctuation.definition.selector.markdown}
+          2: {name: punctuation.definition.selector.markdown}
+        patterns: *math-inline
+      - comment: for special commands like \frac{}{}
+        begin: (\()
+        end: (\))
+        name: meta.brace.round.math.markdown
+        captures:
+          1: {name: punctuation.definition.expression.markdown}
+          2: {name: punctuation.definition.expression.markdown}
+        patterns: *math-inline
+
+  evaluated-code:
+    begin: ({)
+    end: (})
+    name: meta.inline.code.markdown
+    captures:
+      1: {name: punctuation.definition.block.markdown}
+    patterns: [{include: $self}]
+
+  ampersand:
+    comment: Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.
+    match: '&(?!([a-zA-Z\d]+|#[\d]+|#x\h+);)'
+    name: meta.other.valid-ampersand.markdown
+
+  bold:
+    patterns:
+      - begin: (\*\*)(?=\S)
+        captures:
+          1: {name: punctuation.definition.bold.markdown}
+        end: (?<=\S)(\*\*)
+        name: markup.bold.markdown
+        patterns:
+          # everything except bold
+          &bold
+          - include: "#ampersand"
+          - include: "#bracket"
+          - include: "#evaluated-code"
+          - include: "#italic"
+          - include: "#underline"
+          - include: "#strikethrough"
+          - include: "#superscript"
+          - include: "#subscript"
+          - include: "#redacted"
+          - include: "#highlight"
+          - include: "#math-inline"
+          - include: "#string-escapes"
+          - include: "#prerendered"
+          - include: "#span"
+          - include: "#escape"
+          - include: "#image-inline"
+          - include: "#footnote"
+          - include: "#citation"
+          - include: "#link-email"
+          - include: "#link-inet"
+          - include: "#link-inline"
+          - include: "#link-ref"
+          - include: "#link-ref-shortcut"
+      - begin: (\b__)(?=\S)
+        captures:
+          1: {name: punctuation.definition.bold.markdown}
+        end: (?<=\S)(__\b)
+        name: markup.bold.markdown
+        patterns: *bold
+
+  italic:
+    patterns:
+      - begin: (\*)(?=\S)
+        captures:
+          1: {name: punctuation.definition.italic.markdown}
+        end: (?<=\S)(\1)((?!\1)|(?=\1\1))
+        name: markup.italic.markdown
+        patterns:
+          # everything except italic
+          &italic
+          - include: "#ampersand"
+          - include: "#bracket"
+          - include: "#evaluated-code"
+          - include: "#bold"
+          - include: "#underline"
+          - include: "#strikethrough"
+          - include: "#superscript"
+          - include: "#subscript"
+          - include: "#redacted"
+          - include: "#highlight"
+          - include: "#math-inline"
+          - include: "#string-escapes"
+          - include: "#prerendered"
+          - include: "#span"
+          - include: "#escape"
+          - include: "#image-inline"
+          - include: "#footnote"
+          - include: "#citation"
+          - include: "#link-email"
+          - include: "#link-inet"
+          - include: "#link-inline"
+          - include: "#link-ref"
+          - include: "#link-ref-shortcut"
+      - begin: (\b_)(?=\S)
+        captures:
+          1: {name: punctuation.definition.italic.markdown}
+        end: (?<=\S)(\1\b)((?!\1)|(?=\1\1))
+        name: markup.italic.markdown
+        patterns: *italic
+
+  strikethrough:
+    begin: (~~)(?=\S)
+    captures:
+      1: {name: punctuation.definition.strikethrough.markdown}
+    end: (?<=\S)(~~)
+    name: markup.strikethrough.markdown
+    patterns:
+      # everything except strikethrough
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#underline"
+      - include: "#superscript"
+      - include: "#subscript"
+      - include: "#redacted"
+      - include: "#highlight"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  underline:
+    begin: (\+\+)(?=\S)
+    captures:
+      1: {name: punctuation.definition.underline.markdown}
+    end: (?<=\S)(\+\+)
+    name: markup.underline.markdown
+    patterns:
+      # everything except underline
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#strikethrough"
+      - include: "#superscript"
+      - include: "#subscript"
+      - include: "#redacted"
+      - include: "#highlight"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  redacted:
+    begin: (\|\|)(?=\S)
+    captures:
+      1: {name: punctuation.definition.redacted.markdown}
+    end: (?<=\S)(\|\|)
+    name: markup.redacted.markdown
+    patterns:
+      # everything except redacted
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#underline"
+      - include: "#strikethrough"
+      - include: "#superscript"
+      - include: "#subscript"
+      - include: "#highlight"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  highlight:
+    begin: (==)(?=\S)
+    captures:
+      1: {name: punctuation.definition.highlight.markdown}
+    end: (?<=\S)(==)
+    name: markup.highlight.markdown
+    patterns:
+      # everything except highlight
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#underline"
+      - include: "#strikethrough"
+      - include: "#superscript"
+      - include: "#subscript"
+      - include: "#redacted"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  superscript:
+    begin: (\^)(?=\S)
+    captures:
+      1: {name: punctuation.definition.superscript.markdown}
+    end: (?<=\S)(\^)
+    name: markup.superscript.markdown
+    patterns:
+      # everything except superscript
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#underline"
+      - include: "#strikethrough"
+      - include: "#subscript"
+      - include: "#redacted"
+      - include: "#highlight"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  subscript:
+    begin: (~)(?=\S)
+    captures:
+      1: {name: punctuation.definition.subscript.markdown}
+    end: (?<=\S)(~)
+    name: markup.subscript.markdown
+    patterns:
+      # everything except subscript
+      - include: "#ampersand"
+      - include: "#bracket"
+      - include: "#evaluated-code"
+      - include: "#bold"
+      - include: "#italic"
+      - include: "#underline"
+      - include: "#strikethrough"
+      - include: "#superscript"
+      - include: "#redacted"
+      - include: "#highlight"
+      - include: "#math-inline"
+      - include: "#string-escapes"
+      - include: "#prerendered"
+      - include: "#span"
+      - include: "#escape"
+      - include: "#image-inline"
+      - include: "#footnote"
+      - include: "#citation"
+      - include: "#link-email"
+      - include: "#link-inet"
+      - include: "#link-inline"
+      - include: "#link-ref"
+      - include: "#link-ref-shortcut"
+
+  bracket:
+    comment: Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.
+    match: <(?![a-zA-Z/?\$!])
+    name: meta.other.valid-bracket.markdown
+
+  escape:
+    comment: Escape characters in Markdown
+    match: \\[-`*_#+.!()\[\]{}\\>~|=]
+    name: constant.character.escape.markdown
+
+  span:
+    begin: (!\()
+    end: (\))
+    captures:
+      1: {name: punctuation.definition.span.markdown}
+    name: markup.span.markdown
+    patterns:
+      - applyEndPatternLast: true
+        comment: markup inside span !!...!!
+        begin: (?<=!\()
+        end: $|
+        name: meta.tag.span.markdown
+        patterns:
+          - comment: tag attributes inside span !!...!!
+            begin: \s*(\()\s*
+            end: \s*(\))
+            name: meta.brace.round.markdown
+            captures:
+              1: {name: punctuation.definition.tag.ruko}
+            patterns: [{include: "#tag-attributes"}]
+          - comment: attribute selector inside span !!...!!
+            begin: \s*(\[)\s*
+            end: \s*(\])
+            name: meta.brace.square.markdown
+            captures:
+              1: {name: punctuation.definition.selector.ruko}
+            patterns:
+              - include: "#selectors"
+              - include: $self
+          - comment: style block inside span !!...!!
+            begin: \s*({)\s*
+            end: \s*(})
+            name: meta.brace.curly.markdown
+            captures:
+              1: {name: punctuation.definition.block.ruko}
+            patterns:
+              - include: "#style-content"
+              - include: "#style-list"
+              - include: $self
+          - comment: tag name inside span !!...!!
+            match: |-
+              (?x)
+              (?<=!\()(
+                (?:
+                  (?>`(?>``|[^`])+`|\b[\w\p{Pd}]+\b) # identifier
+                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                )*
+                (?>`(?>``|[^`])+`|\b[\w\p{Pd}]+\b) # last identifier
+              )
+            captures:
+              1:
+                name: entity.name.tag.markdown
+                patterns: [{include: "#html-tag-names"}]
+          - include: "#style-selectors"
+      - include: "#markdown-content"
+
+  prerendered:
+    begin: (`+)
+    end: (\1)
+    captures:
+      1: {name: punctuation.definition.raw.markdown}
+    name: markup.inline.raw.string.markdown
+
+  link-email:
+    match: ((?:mailto:)?[a-zA-Z\d.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z\d-]+(?:\.[a-zA-Z\d-]+)*)
+    name: meta.link.email.lt-gt.markdown
+    patterns: [{include: "#string-escapes"}]
+    captures:
+      1: {name: punctuation.definition.link.markdown}
+      2: {name: markup.underline.link.markdown}
+      4: {name: punctuation.definition.link.markdown}
+
+  link-inet:
+    match: ((?:https?|ftp)://.*?)
+    name: meta.link.inet.markdown
+    patterns: [{include: "#string-escapes"}]
+    captures:
+      1: {name: punctuation.definition.link.markdown}
+      2: {name: markup.underline.link.markdown}
+      3: {name: punctuation.definition.link.markdown}
+
+  image-inline:
+    applyEndPatternLast: true
+    begin: (?=!\[)
+    end: $|
+    patterns:
+      - begin: (!\[)
+        end: (\])
+        name: string.other.link.description.markdown
+        captures:
+          1: {name: punctuation.definition.link.markdown}
+        patterns: [{include: "#markdown-content"}]
+      - begin: (?<=\]\s*)(\() # Opening paren for url
+        end: (\))
+        name: markup.underline.link.image.markdown
+        captures:
+          1: {name: punctuation.definition.metadata.markdown}
+        patterns:
+          - include: "#link-inet"
+          - include: "#link-email"
+          - include: "#strings"
+          - include: "#string-escapes"
+      - begin: (?<=\]\s*)(\[)
+        end: (\])
+        name: constant.other.reference.link.markdown
+        captures:
+          1: {name: punctuation.definition.constant.markdown}
+        patterns: [{include: "#string-escapes"}]
+      - include: "#space"
+
+  link-inline:
+    applyEndPatternLast: true
+    begin: (?=\[)
+    end: $|
+    name: meta.link.inline.markdown
+    patterns:
+      - begin: (\[)
+        end: (\])
+        name: string.other.link.title.markdown
+        captures:
+          1: {name: punctuation.definition.link.markdown}
+        patterns: [{include: "#markdown-content"}]
+      - begin: (?<=\]\s*)(\() # Opening paren for url
+        end: (\))
+        name: markup.underline.link.markdown
+        captures:
+          1: {name: punctuation.definition.link.markdown}
+        patterns:
+          - include: "#link-inet"
+          - include: "#link-email"
+          - include: "#string-escapes"
+      - begin: (?<=\]\s*)(\[)
+        end: (\])
+        name: constant.other.reference.link.markdown
+        captures:
+          1: {name: punctuation.definition.constant.markdown}
+        patterns: [{include: "#string-escapes"}]
+      - include: "#space"
+
+  link-ref-shortcut:
+    begin: (\[)
+    end: (\])
+    name: string.other.link.title.markdown
+    captures:
+      1: {name: punctuation.definition.string.begin.markdown}
+    patterns: [{include: "#markdown-content"}]
+
+  footnote:
+    begin: (\[\^)
+    end: (\])
+    name: constant.other.reference.link.markdown
+    captures:
+      1: {name: punctuation.definition.footnote.markdown}
+    patterns: [{include: "#markdown-content"}]
+
+  footnote-definition:
+    begin: ^(\[\^)
+    end: (\]:)(\s*)
+    name: constant.other.reference.link.markdown
+    captures:
+      1: {name: punctuation.definition.footnote.markdown}
+    patterns: [{include: "#markdown-content"}]
+
+  citation:
+    begin: (\[@)([^\]\s]+)
+    end: (\])
+    name: constant.other.reference.link.markdown
+    captures:
+      1: {name: punctuation.definition.citation.markdown}
+
+  escapes-embedded:
+    patterns:
+      - include: "#string-escapes"
+      - include: "#embedded-verbatim"
+
+  # Percent literals
+
+  percent-literals:
+    patterns:
+      - include: "#colors"
+      - include: "#base64"
+      - include: "#path-drawing"
+      - include: "#timestamps"
+      - include: "#urls"
+      - include: "#word-arrays"
+      - include: "#file-paths"
+      - include: "#script-literals"
+
+  glob-syntax:
+    patterns:
+      - match: (\*)(\*)
+        captures:
+          1: {name: keyword.operator.quantifier.ruko}
+          2: {name: keyword.operator.quantifier.ruko}
+      - match: \?
+        name: keyword.operator.quantifier.ruko
+      - begin: (\{)
+        end: (\})
+        captures:
+          1: {name: punctuation.definition.group.ruko}
+          2: {name: punctuation.definition.group.ruko}
+        name: meta.group.glob-syntax.ruko
+        patterns:
+          - match: ","
+            name: punctuation.separator.group.ruko
+          - match: '\d+(-\d+)?'
+            name: constant.numeric.range.glob-syntax.ruko
+      - begin: (\[)(!?)
+        end: (\])
+        captures:
+          1: {name: punctuation.definition.character-class.ruko}
+          2: {name: keyword.operator.negation.ruko}
+          3: {name: punctuation.definition.character-class.ruko}
+        name: meta.character-class.glob-syntax.ruko
+        patterns:
+          - match: "-"
+            name: keyword.operator.range.glob-syntax.ruko
+
+  file-paths:
+    comment: File path literals
+    begin: \s*(%)(file|dir|path)\s*(")\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.link.ruko}
+    end: \s*(")\s*
+    endCaptures:
+      1: {name: punctuation.definition.link.ruko}
+    name: meta.literal.file-paths.ruko
+    patterns:
+      - comment: relative paths
+        match: (\.\.?)
+        captures:
+          1: {name: keyword.operator.wildcard.ruko}
+          2: {name: punctuation.separator.directory.ruko}
+      - match: ([\\/])
+        name: punctuation.separator.directory.ruko
+      - comment: directory names
+        match: ([^\n\\/:"<>\|]+?)(?=[\\/])
+        captures:
+          1:
+            name: entity.name.directory.ruko
+            patterns: [{include: "#glob-syntax"}]
+      - comment: file names & extensions
+        match: ([^\n\\/:"<>\|]+?)(\.)([^\n?\\/:"<>\|]+)?
+        captures:
+          1:
+            name: variable.language.filename.ruko
+            patterns: [{include: "#glob-syntax"}]
+          2: {name: punctuation.type.ruko}
+          3:
+            name: support.type.extension.ruko
+            patterns: [{include: "#glob-syntax"}]
+      - include: "#embedded"
+      - include: "#space"
+      - include: "#illegal"
+
+  timestamps:
+    comment: Timestamp literals
+    begin: \s*(%)(date|time|datetime|timestamp)\s*(['"])\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.constant.ruko}
+    end: \s*(\3)\s*
+    endCaptures:
+      1: {name: punctuation.definition.constant.ruko}
+    name: meta.literal.timestamp.ruko
+    patterns:
+      - match: \d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])
+        name: constant.other.date.ruko
+      - match: (?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?
+        name: constant.other.time.ruko
+      - match: 'Z|[+-](?:[01]\d|2[0-3]):?[0-5]\d'
+        name: constant.other.timezone.ruko
+      - match: '[-+](?=\d)'
+        name: keyword.operator.sign.ruko
+      - match: T
+        name: keyword.operator.timestamp.ruko
+      - include: "#embedded"
+      - include: "#space"
+      - include: "#illegal"
+
+  path-drawing:
+    begin: \s*(%(draw))\s*(\()\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.quote.ruko}
+    name: meta.literal.vector-path.ruko
+    end: \s*(\))\s*
+    endCaptures:
+      1: {name: punctuation.definition.quote.ruko}
+    patterns:
+      - match: (?i)[mlhvcsqtaz](?=[\s,)])
+        name: keyword.operator.path.ruko
+      - match: '[-+](?=\d)'
+        name: keyword.operator.sign.ruko
+      - include: "#embedded"
+      - include: "#punctuation"
+      - include: "#numbers"
+      - include: "#constants"
+      - include: "#space"
+      - include: "#illegal"
+
+  urls:
+    comment: URL literals
+    begin: \s*(%)(url)\s*(")\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.link.ruko}
+    end: \s*(")\s*
+    endCaptures:
+      1: {name: punctuation.definition.link.ruko}
+    name: meta.literal.url.ruko
+    patterns:
+      - match: '%\h{2}'
+        name: constant.character.escape.url.ruko
+      - match: '(?i)(https?|ftp|file)(://[^\s"]+)'
+        captures:
+          1: {name: constant.other.url.scheme.ruko}
+          2: {name: string.quoted.url.ruko}
+      - match: '(www)(\.[^\s)]+)'
+        captures:
+          1: {name: constant.other.url.scheme.ruko}
+          2: {name: string.quoted.url.ruko}
+      - match: '[a-zA-Z\d.-]+\.[a-zA-Z]{2,}(/[^\s"]*)?'
+        name: string.quoted.url.ruko
+      - include: "#embedded"
+      - include: "#space"
+      - include: "#illegal"
+
+  strings-bracketed:
+    comment: Array of strings
+    begin: \s*(%)(quote)\s*(\()\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.string.ruko}
+    end: \s*(\))\s*
+    endCaptures:
+      1: {name: punctuation.definition.string.ruko}
+    name: string.unquoted.ruko
+    patterns: *bracketed-patterns
+
+  bracketed-patterns:
+    patterns: *bracketed-patterns
+
+  word-arrays:
+    comment: Array of strings
+    begin: \s*(%)(words)\s*(\()\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.sequence.ruko}
+    end: \s*(\))\s*
+    endCaptures:
+      1: {name: punctuation.definition.sequence.ruko}
+    name: meta.literal.word-arrays.ruko
+    patterns:
+      - include: "#embedded"
+      - match: \S++
+        name: string.unquoted.word-array.ruko
+      - include: "#strings"
+      - include: "#space"
+
+  base64:
+    comment: Byte array, base64 encoded
+    begin: \s*(%)(b(?:ase)?64)\s*(['"])\s*
+    beginCaptures:
+      1: {name: punctuation.definition.directive.ruko}
+      2: {name: support.function.misc.ruko}
+      3: {name: punctuation.definition.constant.ruko}
+    end: \s*(\3)\s*
+    endCaptures:
+      1: {name: punctuation.definition.constant.ruko}
+    name: meta.literal.byte-array.ruko
+    patterns:
+      - match: (?i)([\da-z+/]{4})*+([\da-z+/]{2}==|[\da-z+/]{3}=)?
+        name: string.encoded.base64.ruko
+      - include: "#space"
+      - include: "#illegal"
+
+  colors:
+    patterns:
+      - comment: RGBA color values
+        name: meta.literal.color.rgb.ruko
+        begin: \s*(%)(rgba?)\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x)
+              (\d+%?)(\s*,\s*) # red
+              (\d+%?)(\s*,\s*) # green
+              (\d+%?) # blue
+              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.red-value.rgb.css}
+              2: {name: punctuation.separator.comma.css}
+              3: {name: constant.other.color.green-value.rgb.css}
+              4: {name: punctuation.separator.comma.css}
+              5: {name: constant.other.color.blue-value.rgb.css}
+              6: {name: punctuation.separator.comma.css}
+              7: {name: constant.other.color.alpha-value.rgb.css}
+          - include: $self
+      - comment: CMYK color values
+        name: meta.literal.color.rgb.ruko
+        begin: \s*(%)(rgba?)\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x)
+              (\d+%?)(?:\s*(,)\s*) # cyan
+              (\d+%?)(?:\s*(,)\s*) # magenta
+              (\d+%?)(?:\s*(,)\s*) # yellow
+              (\d+%?) # black
+              (?:\s*(,)\s*(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.cyan-value.cmyk.css}
+              2: {name: punctuation.separator.comma.css}
+              3: {name: constant.other.color.magenta-value.cmyk.css}
+              4: {name: punctuation.separator.comma.css}
+              5: {name: constant.other.color.yellow-value.cmyk.css}
+              6: {name: punctuation.separator.comma.css}
+              7: {name: constant.other.color.black-value.cmyk.css}
+              8: {name: punctuation.separator.comma.css}
+              9: {name: constant.other.color.alpha-value.cmyk.css}
+          - include: $self
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+      - comment: HSL/HSV/OKLCH color values
+        name: meta.literal.color.hsl.ruko
+        begin: \s*(%)((?:ok)h(?:s[lv]|cl)a?)\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x) (?<=\(\s*)
+              ([+-]?)(\d+(?:\.\d+)?)(deg|g?rad|turn)?\s*(,)\s* # H
+              ([+-]?)(\d+(?:\.\d+)?%?)\s*(,)\s* # S
+              ([+-]?)(\d+(?:\.\d+)?%?) # L/V/C
+              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.hue-sign.hsl.css}
+              2: {name: constant.other.color.hue-value.hsl.css}
+              3: {name: keyword.other.unit.angle.css}
+              4: {name: punctuation.separator.comma.css}
+              5: {name: constant.other.color.saturation-sign.hsl.css}
+              6: {name: constant.other.color.saturation-value.hsl.css}
+              7: {name: punctuation.separator.comma.css}
+              8: {name: constant.other.color.lightness-value.hsl.css}
+              9: {name: punctuation.separator.comma.css}
+              10: {name: constant.other.color.alpha-value.hsl.css}
+          - include: $self
+      - comment: LAB color values
+        name: meta.literal.color.lab.ruko
+        begin: \s*(%)(lab)\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x) (?<=\(\s*)
+              ([+-]?)(\d+(\.\d+)?)\s*(,)\s* # L*
+              ([+-]?)(\d+(\.\d+)?)\s*(,)\s* # a*
+              ([+-]?)(\d+(\.\d+)?) # b*
+              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.lightness-sign.lab.css}
+              2: {name: constant.other.color.lightness-value.lab.css}
+              4: {name: punctuation.separator.comma.css}
+              5: {name: constant.other.color.a-sign.lab.css}
+              6: {name: constant.other.color.a-value.lab.css}
+              8: {name: punctuation.separator.comma.css}
+              9: {name: constant.other.color.b-sign.lab.css}
+              10: {name: constant.other.color.b-value.lab.css}
+              12: {name: punctuation.separator.comma.css}
+              13: {name: constant.other.color.alpha-value.lab.css}
+          - include: $self
+      - comment: Hex color values
+        name: meta.literal.color.hex.ruko
+        match: \s*(%)(\#)\b(\h{3,4}|\h{6}|\h{8})\b\s*
+        captures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: punctuation.definition.constant.css}
+          3:
+            name: constant.other.color.rgb-value.hex.css
+            patterns:
+              - match: (\h{2})(\h{2})(\h{2})(\h{2})?
+                captures:
+                  1: {name: constant.other.color.red-value.hex.css}
+                  2: {name: constant.other.color.green-value.hex.css}
+                  3: {name: constant.other.color.blue-value.hex.css}
+                  4: {name: constant.other.color.alpha-value.hex.css}
+              - match: (\h)(\h)(\h)(\h)?
+                captures:
+                  1: {name: constant.other.color.red-value.hex.css}
+                  2: {name: constant.other.color.green-value.hex.css}
+                  3: {name: constant.other.color.blue-value.hex.css}
+                  4: {name: constant.other.color.alpha-value.hex.css}
+
+  # Script blocks
+
+  script-literals:
+    define: &script-literals
+      end: \s*(\2)(%)\s*
+      name: meta.brace.script.ruko
+      beginCaptures:
+        1: {name: punctuation.definition.script.ruko}
+        2: {name: support.function.misc.ruko}
+      endCaptures:
+        1: {name: support.function.misc.ruko}
+        2: {name: punctuation.definition.script.ruko}
+
+    patterns:
+      - begin: \s*(%)\b((?i:js))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.js"}]
+      - begin: \s*(%)\b((?i:jsx))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.jsx"}]
+      - begin: \s*(%)\b((?i:ts))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.ts"}]
+      - begin: \s*(%)\b((?i:tsx))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.tsx"}]
+      - begin: \s*(%)\b((?i:glsl))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.glsl"}]
+      - begin: \s*(%)\b((?i:wgsl))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.wgsl"}]
+      - begin: \s*(%)\b((?i:py))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.python"}]
+      - begin: \s*(%)\b((?i:rb))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.ruby"}]
+      - begin: \s*(%)\b((?i:php))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.php"}]
+      - begin: \s*(%)\b((?i:java))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.java"}]
+      - begin: \s*(%)\b((?i:c))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.c"}]
+      - begin: \s*(%)\b((?i:cpp))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.cpp"}]
+      - begin: \s*(%)\b((?i:cs))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.cs"}]
+      - begin: \s*(%)\b((?i:go))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.go"}]
+      - begin: \s*(%)\b((?i:rs))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.rust"}]
+      - begin: \s*(%)\b((?i:swift))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.swift"}]
+      - begin: \s*(%)\b((?i:kt))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.kotlin"}]
+      - begin: \s*(%)\b((?i:scala))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.scala"}]
+      - begin: \s*(%)\b((?i:hs))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.haskell"}]
+      - begin: \s*(%)\b((?i:lua))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.lua"}]
+      - begin: \s*(%)\b((?i:dart))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.dart"}]
+      - begin: \s*(%)\b((?i:objc))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.objc"}]
+      - begin: \s*(%)\b((?i:objcpp))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.objcpp"}]
+      - begin: \s*(%)\b((?i:perl))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.perl"}]
+      - begin: \s*(%)\b((?i:r))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.r"}]
+      - begin: \s*(%)\b((?i:sh))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.shell"}]
+      - begin: \s*(%)\b((?i:sql))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.sql"}]
+      - begin: \s*(%)\b((?i:html))\b\s*
+        <<: *script-literals
+        patterns: [{include: "text.html.basic"}]
+      - begin: \s*(%)\b((?i:xml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "text.xml"}]
+      - begin: \s*(%)\b((?i:css))\b\s*({)\s
+        <<: *script-literals
+        patterns: [{include: "source.css"}]
+      - begin: \s*(%)\b((?i:scss))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.scss"}]
+      - begin: \s*(%)\b((?i:less))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.less"}]
+      - begin: \s*(%)\b((?i:sass))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.sass"}]
+      - begin: \s*(%)\b((?i:gql))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.graphql"}]
+      - begin: \s*(%)\b((?i:css))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.css"}]
+      - begin: \s*(%)\b((?i:json))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.json"}]
+      - begin: \s*(%)\b((?i:xml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "text.xml"}]
+      - begin: \s*(%)\b((?i:yaml|yml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.yaml"}]
+      - begin: \s*(%)\b((?i:markdown|md))\b\s*
+        <<: *script-literals
+        patterns: [{include: "text.html.markdown"}]
+      - begin: \s*(%)\b((?i:latex|tex))\b\s*
+        <<: *script-literals
+        patterns: [{include: "text.tex.latex"}]
+      - begin: \s*(%)\b((?i:wa(?:s[im]|t)))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.wat"}]
+      - begin: \s*(%)\b((?i:cljs?))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.clojure"}]
+      - begin: \s*(%)\b((?i:make(?:file)?))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.makefile"}]
+      - begin: \s*(%)\b((?i:hs))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.haskell"}]
+      - begin: \s*(%)\b((?i:ml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.ml"}]
+      - begin: \s*(%)\b((?i:ocaml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.ocaml"}]
+      - begin: \s*(%)\b((?i:fs))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.fsharp"}]
+      - begin: \s*(%)\b((?i:mo))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.motoko"}]
+      - begin: \s*(%)\b((?i:sol))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.solidity"}]
+      - begin: \s*(%)\b((?i:groovy))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.groovy"}]
+      - begin: \s*(%)\b((?i:vb))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.vbnet"}]
+      - begin: \s*(%)\b((?i:jl))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.julia"}]
+      - begin: \s*(%)\b((?i:elm))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.elm"}]
+      - begin: \s*(%)\b((?i:exs?))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.elixir"}]
+      - begin: \s*(%)\b((?i:sh))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.shell"}]
+      - begin: \s*(%)\b((?i:ps1?))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.powershell"}]
+      - begin: \s*(%)\b((?i:yaml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.yaml"}]
+      - begin: \s*(%)\b((?i:toml))\b\s*
+        <<: *script-literals
+        patterns: [{include: "source.toml"}]
+      - begin: \s*(%)\b((?i:re))\b\s*
+        <<: *script-literals
+        patterns:
+          - include: "source.regexp.python"
+          - include: "source.python#comments"
+
+  script-blocks:
+    define: &script-blocks
+      end: \s*(})\s*
+      name: meta.brace.script.ruko
+      beginCaptures:
+        1: {name: storage.type.language.ruko}
+        2: {name: punctuation.definition.block.script.ruko}
+      endCaptures:
+        1: {name: punctuation.definition.block.script.ruko}
+
+    patterns:
+      - begin: \b((?i:js))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.js"}]
+      - begin: \b((?i:jsx))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.jsx"}]
+      - begin: \b((?i:ts))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.ts"}]
+      - begin: \b((?i:tsx))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.tsx"}]
+      - begin: \b((?i:glsl))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.glsl"}]
+      - begin: \b((?i:wgsl))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.wgsl"}]
+      - begin: \b((?i:py))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.python"}]
+      - begin: \b((?i:rb))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.ruby"}]
+      - begin: \b((?i:php))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.php"}]
+      - begin: \b((?i:java))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.java"}]
+      - begin: \b((?i:c))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.c"}]
+      - begin: \b((?i:cpp))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.cpp"}]
+      - begin: \b((?i:cs))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.cs"}]
+      - begin: \b((?i:go))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.go"}]
+      - begin: \b((?i:rs))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.rust"}]
+      - begin: \b((?i:swift))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.swift"}]
+      - begin: \b((?i:kt))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.kotlin"}]
+      - begin: \b((?i:scala))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.scala"}]
+      - begin: \b((?i:hs))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.haskell"}]
+      - begin: \b((?i:lua))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.lua"}]
+      - begin: \b((?i:dart))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.dart"}]
+      - begin: \b((?i:objc))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.objc"}]
+      - begin: \b((?i:objcpp))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.objcpp"}]
+      - begin: \b((?i:perl))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.perl"}]
+      - begin: \b((?i:r))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.r"}]
+      - begin: \b((?i:sh))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.shell"}]
+      - begin: \b((?i:sql))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.sql"}]
+      - begin: \b((?i:html))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "text.html.basic"}]
+      - begin: \b((?i:xml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "text.xml"}]
+      - begin: \b((?i:css))\b\s*({)\s
+        <<: *script-blocks
+        patterns: [{include: "source.css"}]
+      - begin: \b((?i:scss))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.scss"}]
+      - begin: \b((?i:less))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.less"}]
+      - begin: \b((?i:sass))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.sass"}]
+      - begin: \b((?i:gql))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.graphql"}]
+      - begin: \b((?i:css))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.css"}]
+      - begin: \b((?i:json))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.json"}]
+      - begin: \b((?i:xml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "text.xml"}]
+      - begin: \b((?i:yaml|yml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.yaml"}]
+      - begin: \b((?i:markdown|md))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "text.html.markdown"}]
+      - begin: \b((?i:latex|tex))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "text.tex.latex"}]
+      - begin: \b((?i:wa(?:s[im]|t)))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.wat"}]
+      - begin: \b((?i:cljs?))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.clojure"}]
+      - begin: \b((?i:make(?:file)?))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.makefile"}]
+      - begin: \b((?i:hs))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.haskell"}]
+      - begin: \b((?i:ml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.ml"}]
+      - begin: \b((?i:ocaml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.ocaml"}]
+      - begin: \b((?i:fs))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.fsharp"}]
+      - begin: \b((?i:mo))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.motoko"}]
+      - begin: \b((?i:sol))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.solidity"}]
+      - begin: \b((?i:groovy))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.groovy"}]
+      - begin: \b((?i:vb))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.vbnet"}]
+      - begin: \b((?i:jl))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.julia"}]
+      - begin: \b((?i:elm))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.elm"}]
+      - begin: \b((?i:exs?))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.elixir"}]
+      - begin: \b((?i:sh))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.shell"}]
+      - begin: \b((?i:ps1?))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.powershell"}]
+      - begin: \b((?i:yaml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.yaml"}]
+      - begin: \b((?i:toml))\b\s*({)\s*
+        <<: *script-blocks
+        patterns: [{include: "source.toml"}]
+      - begin: \b((?i:re))\b\s*({)\s*
+        <<: *script-blocks
+        patterns:
+          - include: "source.regexp.python"
+          - include: "source.python#comments"
+
+  # Operators
+
+  operator-declarations:
+    comment: "Operator declarations. Format: <prec> <associativity> <fixity> <operator> : <return type>. Return types must be postfix since there may not be brackets in operator declarations."
+    patterns:
+      - include: "#type-cast-operators"
+      - applyEndPatternLast: true
+        begin: (?<=(?:(?:['"`)\]}\w]|\\.))[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]*)(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+        end: $|
+        beginCaptures:
+          1: {name: punctuation.definition.annotation.ruko}
+        name: meta.type.ruko
+        patterns: [{include: "#types"}]
+      - match: |-
+          (?x)
+
+          (
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+              )
+              \s*
+            )+
+          )
+
+          \s*
+          ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+          \s*
+        name: meta.binding-pattern.ruko
+        captures:
+          1: &prefix-type-annotation
+            name: storage.type.ruko
+            patterns:
+              - include: "#modifiers"
+              - include: "#declarations"
+              - include: "#types"
+              - include: $self
+          2: *type-operators
+          3: *parameter-variable
+          4: *type-operators
+      - include: "#comments"
+      - include: "#numbers"
+      - include: "#strings"
+      - include: "#comma"
+      - include: "#line-continuation-comma"
+      - include: "#line-continuation"
+      - include: "#infix-operators"
+      - include: "#interfix-operators"
+      - include: "#prefix-operators"
+      - include: "#postfix-operators"
+
+  style-block:
+    begin: \s*({)\s*
+    end: \s*(})\s*
+    name: meta.brace.style.ruko
+    captures:
+      1: {name: punctuation.section.property-list.ruko}
+    patterns:
+      - include: "#style-content"
+      - include: "#style-list"
+      - include: $self
+
+  style-selectors:
+    define: &selectors
+      applyEndPatternLast: true
+      end: $|
+      patterns:
+        - match: '[\w&&[^\d\p{No}]][\p{Pd}\w]*'
+          patterns: [{include: "#css-property-keys"}]
+        - include: "#brackets"
+
+    patterns:
+      - begin: (?<=^|\s+)\b
+        <<: *selectors
+        name: entity.name.tag.ruko
+        patterns:
+          - match: '[\w&&[^\d\p{No}]][\p{Pd}\w]*'
+            patterns: [{include: "#html-tag-names"}]
+          - include: "#brackets"
+      - match: \s*(::?|[.#~&*%$|^@?])(?=[\w'"`])
+        name: punctuation.definition.entity.ruko
+      - begin: \s*(?<=~)\b
+        <<: *selectors
+        name: entity.other.attribute-name.key.ruko
+      - begin: \s*(?<=#)\b
+        <<: *selectors
+        name: entity.other.attribute-name.id.ruko
+      - begin: \s*(?<=\.)\b
+        <<: *selectors
+        name: entity.other.attribute-name.class.ruko
+      - begin: \s*(?<=:)\b
+        <<: *selectors
+        name: entity.other.attribute-name.pseudo-class.ruko
+      - begin: \s*(?<=::)\b
+        <<: *selectors
+        name: entity.other.attribute-name.pseudo-element.ruko
+      - begin: \s*(?<=&)\b
+        <<: *selectors
+        name: entity.name.type.anchor.ruko
+      - begin: \s*(?<=\*)\b
+        <<: *selectors
+        name: entity.name.type.alias.ruko
+      - begin: \s*(?<=%)\b
+        <<: *selectors
+        name: entity.name.template.ruko
+      - begin: \s*(?<=\$)\b
+        <<: *selectors
+        name: entity.name.function.ruko
+      - begin: \s*(?<=\.)\b
+        <<: *selectors
+        name: entity.name.method.ruko
+      - begin: \s*(?<=\|)\b
+        <<: *selectors
+        name: entity.name.procedure.ruko
+      - begin: \s*(?<=\^)\b
+        <<: *selectors
+        name: entity.name.property.ruko
+      - begin: \s*(?<=~)\b
+        <<: *selectors
+        name: entity.name.trait.ruko
+      - begin: \s*(?<=@)\b
+        <<: *selectors
+        name: entity.name.decorator.ruko
+      - begin: \s*(?<=\?)\b
+        <<: *selectors
+        name: entity.name.schema.ruko
+
+  style-entries:
+    comment: "Style property entries. Format: <property>: <value>;"
+    begin: |-
+      (?x)
+      (?<=(?:^|;|\#?[(\[{])\s*)
+      (
+        (?:
+          (?: # key
+            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
+
+            (?:
+              (?:
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+              )*
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+
+              (?:
+                  '(?>\\.|[^\\'])*' # char literals
+                | "(?>\\.|[^\\"])*" # string literals
+                | `(?>``|[^`])+` # identifier with backticks
+                | (?:
+                  \#? # optional sharp for splice invocation
+
+                  (?:
+                    \( # round brackets
+                      (?>
+                          \g<1> # either recurse or match balanced brackets
+                        | '(?>\\.|[^\\'])*' # char literals
+                        | "(?>\\.|[^\\"])*" # string literals
+                        | `(?>``|[^`])+` # identifier with backticks
+                        | [^'"`()\[\]{}]*
+                      )*
+                    \) |
+                    \[ # square brackets
+                      (?>
+                          \g<1> # either recurse or match balanced brackets
+                        | '(?>\\.|[^\\'])*' # char literals
+                        | "(?>\\.|[^\\"])*" # string literals
+                        | `(?>``|[^`])+` # identifier with backticks
+                        | [^'"`()\[\]{}]*
+                      )*
+                    \] |
+                    { # curly brackets
+                      (?>
+                          \g<1> # either recurse or match balanced brackets
+                        | '(?>\\.|[^\\'])*' # char literals
+                        | "(?>\\.|[^\\"])*" # string literals
+                        | `(?>``|[^`])+` # identifier with backticks
+                        | [^'"`()\[\]{}]*
+                      )*
+                    }
+                  )+ # allow chaining
+                )
+              )*
+
+              | (?:
+                  '(?>\\.|[^\\'])*' # char literals
+                | "(?>\\.|[^\\"])*" # string literals
+                | `(?>``|[^`])+` # identifier with backticks
+                | (?:
+                  \#? # optional sharp for splice invocation
+
+                  (?:
+                    \( # round brackets
+                      (?>
+                          \g<1> # either recurse or match balanced brackets
+                        | '(?>\\.|[^\\'])*' # char literals
+                        | "(?>\\.|[^\\"])*" # string literals
+                        | `(?>``|[^`])+` # identifier with backticks
+                        | [^'"`()\[\]{}]*
+                      )*
+                    \) |
+                    \[ # square brackets
+                      (?>
+                          \g<1> # either recurse or match balanced brackets
+                        | '(?>\\.|[^\\'])*' # char literals
+                        | "(?>\\.|[^\\"])*" # string literals
+                        | `(?>``|[^`])+` # identifier with backticks
+                        | [^'"`()\[\]{}]*
+                      )*
+                    \] |
+                    { # curly brackets
+                      (?>
+                          \g<1> # either recurse or match balanced brackets
+                        | '(?>\\.|[^\\'])*' # char literals
+                        | "(?>\\.|[^\\"])*" # string literals
+                        | `(?>``|[^`])+` # identifier with backticks
+                        | [^'"`()\[\]{}]*
+                      )*
+                    }
+                  )+ # allow chaining
+                )
+              )*
+            )
+
+            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
+
+            | # infix operator
+              \s+ (?:
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) \s+
+            | # primary operator that isn't an accessor or assignment
+              (?<=[,;'"`()\[\]{}\w])
+              (?:
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                )?
+              )
+              (?=[,;'"`()\[\]{}\w])
+          )+
+          \s*
+        )+
+      )
+      \s*
+      (:)(?=\s+|$)
+    end: (?=[;}\])])|$
+    name: meta.property.css.ruko
+    beginCaptures:
+      1:
+        name: support.type.property-name.ruko
+        patterns:
+          - include: "#css-property-keys"
+          - include: "#literals"
+          - include: "#operators"
+          - include: "#brackets"
+      2: {name: punctuation.separator.key-value.ruko}
+    patterns:
+      - include: "#style-property-values"
+      - include: "#space"
+
+  style-content:
+    patterns:
+      - include: "#comments"
+      - include: "#clauses"
+      - include: "#embedded"
+      - include: "#keywords"
+      - include: "#declarations"
+      - include: "#style-entries"
+      - include: "#style-selectors"
+      - include: "#style-rules"
+      - include: "#style-block"
+      - include: "#space"
+      - include: $self
+
+  style-rules:
+    patterns:
+      - include: "#type-operators"
+      - begin: \s*(\()\s*
+        end: \s*(\))\s*
+        captures:
+          1: {name: punctuation.definition.parameters.ruko}
+        patterns:
+          - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+            name: keyword.operator.expression.as.ruko
+          - include: "#declarations"
+          - include: "#clauses"
+          - include: "#style-content"
+      - begin: \s*(\[)\s*
+        end: \s*(\])\s*
+        captures:
+          1: {name: punctuation.definition.selector.ruko}
+        patterns:
+          - include: "#selectors"
+          - include: "#style-entries"
+          - include: $self
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from|to|except|only|as)\b\s*
+        name: keyword.operator.expression.ruko
+      - include: "#format-syntax"
+
+  style-list:
+    begin: \s*(\[)\s*
+    end: \s*(\])\s*
+    name: meta.brace.square.ruko
+    captures:
+      1: {name: punctuation.definition.expression.ruko}
+    patterns:
+      - include: "#punctuation"
+      - include: "#style-entries"
+      - include: $self
+
+  style-property-values:
+    patterns:
+      - include: "#function-calls"
+      - include: "#literals"
+      - include: "#embedded"
+      - *primary-expression
+      - include: $self
+
+  # Comments
+
+  comments:
+    patterns:
+      - include: "#block-comments"
+      - include: "#line-comments"
+
+  block-comments:
+    patterns:
+      - begin: \s*(/\*\*)(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)
+        end: \s*(\*/)
+        name: comment.block.documentation.ruko
+        captures:
+          1: {name: punctuation.definition.comment.ruko}
+        patterns:
+          - include: "#jsdoc"
+          - include: "text.html.markdown#inline"
+          - include: "#nested-jsdoc-comment"
+      - begin: \s*(/\*)(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)
+        end: \s*(\*/)
+        name: comment.block.ruko
+        captures:
+          1: {name: punctuation.definition.comment.ruko}
+        patterns:
+          - include: "text.html.markdown#inline"
+          - include: "#nested-block-comment"
+
+  line-comments:
+    patterns:
+      - begin: \s*(///)(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)
+        end: \s*$
+        name: comment.line.documentation.ruko
+        captures:
+          1: {name: punctuation.definition.comment.ruko}
+        patterns:
+          - include: "#jsdoc"
+          - include: "text.html.markdown#inline"
+      - begin: \s*(//)(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)
+        end: \s*$
+        name: comment.line.number-sign.ruko
+        captures:
+          1: {name: punctuation.definition.comment.ruko}
+        patterns:
+          - include: "text.html.markdown#inline"
+
+  nested-jsdoc-comment:
+    begin: (/\*\*?)(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)
+    end: \s*(\*/)
+    name: comment.block.documentation.nested.ruko
+    captures:
+      1: {name: punctuation.definition.comment.ruko}
+    patterns:
+      - include: "#jsdoc"
+      - include: "text.html.markdown#inline"
+      - include: "#nested-jsdoc-comment"
+
+  nested-block-comment:
+    begin: (/\*)(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)
+    end: \s*(\*/)
+    name: comment.block.nested.ruko
+    captures:
+      1: {name: punctuation.definition.comment.ruko}
+    patterns:
+      - include: "text.html.markdown#inline"
+      - include: "#nested-block-comment"
+
+  # JSDoc
+
+  jsdoc:
+    patterns:
+      - include: "#jsdoc-inline-tags"
+      - include: "#jsdoc-access"
+      - include: "#jsdoc-as-name-path"
+      - include: "#jsdoc-simple"
+      - include: "#jsdoc-simple-name-path"
+      - include: "#jsdoc-module"
+      - include: "#jsdoc-type-name"
+      - include: "#jsdoc-type-no-name"
+      - comment: additional jsdoc V2 keywords
+        match: (?<!\w)@(add|api|body|codeend|codestart|demo|download|group|hide|iframe|image|inherits|option|outline|page|parent|signature|tag)\b
+        name: storage.type.class.jsdoc
+      - comment: additional jsdoc keywords
+        match: (?<!\w)@(accessor|alternateClassName|aside|cfg|chainable|docauthor|evented|experimental|ftype|hide|inheritable|localdoc|markdown|mixins|new|override|preventable|ptype|removed|scss mixin|object|template|uses|xtype)\b
+        name: storage.type.class.jsdoc
+
+  jsdoc-access:
+    comment: "@tag protected...."
+    match: (@(access))\s*(private|protected|public)?(?=\s|$)
+    captures:
+      1: {name: storage.type.class.jsdoc}
+      3: {name: storage.modifier.jsdoc}
+
+  jsdoc-module:
+    comment: "@tag {optional type} module:file"
+    begin: (@(exports|module|listens|requires)\b)\s*(?=({(?:(?>(?:[^\\{}]|\\.)+)|\g<-1>)*\})?\s*(\S*)([\S\s]*))
+    end: ^|(?=\*/)|(?=\5$)
+    beginCaptures:
+      1: {name: storage.type.class.jsdoc}
+    patterns:
+      - include: "#jsdoc-typedef-scopes"
+      - match: (?:(module)(:))?(((?!\*/)\S)+)
+        captures:
+          1: {name: keyword.module.jsdoc}
+          2: {name: punctuation.jsdoc}
+          3: {name: string.modulename.jsdoc}
+
+  jsdoc-as-name-path:
+    comment: to terminate the block
+    begin: (@(borrows|lends)\b)\s*(?=(?!\*/)\S+(?:(?:\s*\bas\b\s*(?!\*/)\S+)?)?([\S\s]*))
+    end: ^|(?=\*/)|(?=\3$)
+    beginCaptures:
+      1: {name: storage.type.class.jsdoc}
+    patterns: [{include: "#jsdoc-name-path-scopes"}]
+
+  jsdoc-simple:
+    comment: "@tag"
+    match: (@(abs|author|classdesc|copyright|default|defaultvalue|deprecated|description|desc|example|external|fileoverview|file|global|host|ignore|inheritdoc|inner|instance|license|override|overview|readonly|see|since|stat|summary|todo|tutorial|virtual|variation|version)\b)(?=$|\s)
+    captures:
+      1: {name: storage.type.class.jsdoc}
+
+  jsdoc-simple-name-path:
+    comment: "@tag {opt type} Class#xxx or Class#Event:aaaa etc"
+    begin: (@(alias|augments|callback|extends|emits|event|fires|inter|memberof|mixes|name|property|property|this|typedef)\b)\s*(?=({(?:(?>(?:[^\\{}]|\\.)+)|\g<-1>)*\})?\s*\S*([\S*\s]*))
+    end: ^|(?=\*/)|(?=\4$)
+    beginCaptures:
+      1: {name: storage.type.class.jsdoc}
+    patterns:
+      - include: "#jsdoc-typedef-scopes"
+      - include: "#jsdoc-name-path-scopes"
+
+  jsdoc-type-name:
+    comment: "@tag {optional type} name"
+    begin: (@(arg|argument|class|constant|constructor|constructs|const|function|fn|kind|member|method|mixin|actor|param|var)\b)\s*(?=({(?:(?>(?:[^\\{}]|\\.)+)|\g<-1>)*\})?\s*(((\[(?:[^'"\[\]]+|\g<-1>)*\])|\S)+)?([\S\s]*))
+    end: ^|(?=\*/)|(?=\7$)
+    beginCaptures:
+      1: {name: storage.type.class.jsdoc}
+    patterns:
+      - include: "#jsdoc-typedef-scopes"
+      - include: "#jsdoc-name-scopes"
+
+  jsdoc-type-no-name:
+    comment: "@tag {types}"
+    begin: (@(enum|exception|implements|private|protected|public|returns|return|throws|type)\b)\s*(?=({(?:(?>(?:[^\\{}]|\\.)+)|\g<-1>)*\})?\s*([\S\s]*))
+    end: ^|(?=\*/)|(?=\4$)
+    beginCaptures:
+      1: {name: storage.type.class.jsdoc}
+    patterns: [{include: "#jsdoc-typedef-scopes"}]
+
+  jsdoc-inline-tags:
+    name: meta.tag.inline.jsdoc
+    begin: (\[(?:[^'"\[\]]+|\g<-1>)*\])?({)(?=@)
+    end: \s*(})
+    beginCaptures:
+      1: {name: string.linktext.jsdoc}
+      2: {name: meta.brace.curly.jsdoc}
+    endCaptures:
+      1: {name: meta.brace.curly.jsdoc}
+    patterns:
+      - match: (@(link|tutorial))\b([^}]*)
+        captures:
+          1: {name: storage.type.class.jsdoc}
+          3: {name: string.jsdoc}
+
+  jsdoc-typedef-scopes:
+    name: entity.name.type.instance.jsdoc
+    begin: "{"
+    end: "}|^"
+    captures:
+      0: {name: meta.brace.curly.jsdoc}
+    patterns:
+      - include: "#jsdoc-typedef-primitives"
+      - include: "#jsdoc-name-path-scopes"
+      - include: "#jsdoc-typedef-obj"
+
+  jsdoc-typedef-primitives:
+    match: \b(null|undefined|boolean|string|number)\b
+    captures:
+      1: {name: support.type.builtin.primitive.jsdoc}
+
+  jsdoc-typedef-obj:
+    comment: typedef object
+    begin: "{"
+    end: "}|^"
+    captures:
+      0: {name: meta.brace.curly.jsdoc}
+    patterns:
+      - include: "#jsdoc-typedef-primitives"
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s*(:)
+        captures:
+          1: {name: variable.other.readwrite.jsdoc}
+      - include: "#jsdoc-name-path-scopes"
+      - include: "#jsdoc-typedef-obj"
+
+  jsdoc-name-scopes:
+    patterns:
+      - match: ((?!\*/)[\S&&[^\[\]"']])+
+        captures:
+          0: {name: variable.other.jsdoc}
+      - name: variable.other.jsdoc
+        begin: \[
+        end: \]|^
+        patterns:
+          - include: "#jsdoc-string"
+          - include: "#jsdoc-name-scopes"
+
+  jsdoc-name-path-scopes:
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*(?=[`\p{L}\p{Nl}\p{Pc}])
+        captures:
+          1: {name: keyword.as.jsdoc}
+      - match: \s*(?:([\p{L}\p{Nl}\p{Pc}&&\P{Ll}]+\w*)|((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)))(?=[\s\-~.#]|$)
+        captures:
+          1: {name: entity.name.class.jsdoc}
+          2: {name: entity.name.function.jsdoc}
+      - match: (\.)((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=\s|$|\")
+        captures:
+          1: {name: keyword.operator.accessor.jsdoc}
+          2: {name: entity.name.function.method.static.jsdoc}
+      - match: (\#)((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=\s|$|\")
+        captures:
+          1: {name: keyword.operator.accessor.jsdoc}
+          2: {name: entity.name.function.method.instance.jsdoc}
+      - match: (~|-)((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=\s|$|\")
+        captures:
+          1: {name: keyword.operator.accessor.jsdoc}
+          2: {name: entity.name.function.method.inner.jsdoc}
+      - match: (\#)(event)(:)
+        captures:
+          1: {name: keyword.operator.accessor.jsdoc}
+          2: {name: keyword.event.jsdoc}
+          3: {name: keyword.operator.jsdoc}
+      - name: string.method.jsdoc
+        begin: \.(?="|')
+        end: (?=.)
+        applyEndPatternLast: true
+        patterns: [{include: "#jsdoc-string"}]
+
+  jsdoc-string:
+    name: string.jsdoc
+    match: '"(\\"|[^"])*"|''(\\''|[^''])*'
+
+  # Function and method calls
+
+  paren-function-calls:
+    comment: Function calls with parentheses
+    name: meta.function.arguments.ruko
+    match: |-
+      (?x)
+      \b
+
+      (
+          ^ \s* [)\]}]* \s* # start of line with possible closing brackets
+        | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          (?:
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          )*
+      )
+
+      (?=
+        (?:
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | [!~*] \#?[({] # macro, destructor and generator calls
+        )
+      )
+    captures:
+      1: {patterns: [{include: "#function-names"}]}
+
+  piped-function-calls:
+    patterns:
+      - comment: Backward piped function calls
+        name: meta.function.arguments.ruko
+        match: |-
+          (?x)
+          (?<=
+            (?:
+                (?:
+                  ^ # start of line
+                  | [,;] # terminator / separator
+                  | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+                  | \#? [(\[{] # opening bracket
+                ) \s*
+              | # infix operator
+                \s+ (?:
+                  [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                  )?
+                ) \s+
+              | # primary operator that isn't an accessor or assignment
+                (?:^|[,;'"`()\[\]{}\w]) (?:
+                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  )?
+                )
+              | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+              | (?:
+                (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+                #this.repository.define.repository['ignore-keywords'].match
+              ) \s*
+            )
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+          )
+          (?<! # accessor or assignment
+            (?:^|[,;'"`()\[\]{}\w]) (?:
+              (?:[?!]?\.|[?!:]:|[?!-]>)=?
+            )
+          )
+
+          (
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+            (?:
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            )*
+          )
+
+          (?=
+              \s+ (?:<[|+*$]>?|[.·°$]) (\s+|$) # infix operator
+            | (?:<[|+*$]>?|[·°]) # primary operator
+          )
+        captures:
+          1:
+            name: meta.function.name.ruko
+            patterns: [{include: "#function-names"}]
+      - comment: Piped function calls
+        name: meta.function.arguments.ruko
+        match: |-
+          (?x)
+          (?<=
+              (?:^|\s+) (?:<?[|+*$]>|[.·°#]) \s+ # infix operator
+            | (?:<?[|+*$]>|[·°]) # primary operator
+          )
+          \b
+          (
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          )
+        captures:
+          1:
+            name: meta.function.name.ruko
+            patterns: [{include: "#function-names"}]
+
+  parenless-function-calls:
+    comment: Normal (bracketed or bracketless) function calls
+    name: meta.function.arguments.ruko
+    match: |-
+      (?x)
+      (?<=
+        (?:
+            (?:
+              ^ # start of line
+              | [,;] # terminator / separator
+              | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+              | \#? [(\[{] # opening bracket
+            ) \s*
+          | # infix operator
+            \s+ (?:
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \s+
+          | # primary operator that isn't an accessor or assignment
+            (?:^|[,;'"`()\[\]{}\w]) (?:
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+              )?
+            )
+          | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+          | (?:
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            #this.repository.define.repository['ignore-keywords'].match
+          ) \s*
+        )
+        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+      )
+      (?<! # accessor or assignment
+        (?:^|[,;'"`()\[\]{}\w]) (?:
+          (?:[?!]?\.|[?!:]:|[?!-]>)=?
+        )
+      )
+
+      (
+        (?!
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
+        )
+        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+        (?:
+          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+        )*
+      )
+      (?:(!)|(~)|(\*))? # macro, destructor, or generator call
+
+      (?!
+          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+      )
+      (?=
+            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | [!~*] \#?[({] # macro, destructor and generator calls
+          | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+        (?:
+            :?[@#$%]*['"] # strings and symbols
+          | \b\d # numbers
+          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
+          | \#? [(\[] # opening brackets
+          | /[^/*\s] # regexp literal
+          | \\[\\*](?:\s|$) # markdown literal
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          | \| ( # start of lambda literal
+              (?:[,;] \s*)* # optional separators
+              (?:
+                (?:
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                )
+                \s*
+              )+
+            )
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+            (?: # identifier
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
+              )
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+              )*
+            )
+            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+        )
+      )
+    captures:
+      1:
+        name: meta.function.name.ruko
+        patterns: [{include: "#function-names"}]
+      2: {name: keyword.operator.macro.ruko}
+      3: {name: keyword.operator.destructor.ruko}
+      4: {name: keyword.generator.asterisk.ruko}
+
+  function-calls:
+    patterns:
+      - include: "#piped-function-calls"
+      - include: "#parenless-function-calls"
+      - include: "#paren-function-calls"
+
+  function-names:
+    define: &function-names
+      patterns:
+        - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+          captures:
+            0:
+              patterns:
+                - include: "#css-functions"
+                - include: "#builtin-functions"
+
+    patterns:
+      - include: "#accessor-operators"
+      - match: |-
+          (?x)
+          (?:
+            (?<=
+              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+              (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+            )
+            # methods
+            #this.repository.define.repository['identifiers'].match
+            (?=
+                $ # end of line
+              | (?:<\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
+                (?:[,;'"`)\]}\w\s] | \#?[(\[{])
+            )
+            |
+            (?<=
+              (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+              [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # operators
+            )
+            #this.repository.define.repository['identifiers'].match
+            (?=
+                $ # end of line
+              | (?:<\|{1,3} | <[-+] | \|{1,3}> | \+> )? # operators
+                (?:[,;'"`)\]}\w\s] | \#?[(\[{])
+            )
+          )
+        captures: &function-calls
+          1:
+            name: entity.name.tag.directive.ruko
+            <<: *function-names
+          2:
+            name: entity.name.function.tagged-template.ruko
+            <<: *function-names
+          3:
+            name: entity.name.function.method.ruko
+            <<: *function-names
+          4:
+            name: entity.name.function.member.ruko
+            <<: *function-names
+          5:
+            name: entity.name.tag.function.ruko
+            <<: *function-names
+          6:
+            name: entity.name.subroutine.ruko
+            <<: *function-names
+          7:
+            name: entity.name.instance.ruko
+            <<: *function-names
+          8:
+            name: entity.name.function.ruko
+            <<: *function-names
+      - include: "#variables"
+
+  embedded-function-calls:
+    comment: Embedded function calls within strings or other embedded code blocks
+    name: meta.function.name.ruko
+    match: |-
+      (?x)
+      (?:
+        (?<=
+          (?:^ | [,;'"`)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+        )
+        # methods
+        #this.repository.define.repository['identifiers'].match
+        (?=
+            [!~*]? \#?[({] # opening macro, destructor, generator or function call
+          | (?:[?!]?\.|[?!:]:|[?!-]>)? < # generics
+        )
+        |
+        (?<= ^ # beginning of line
+          | (?:[,;'"`)\]}\w\s] | \#?[(\[{]) # literal
+          (?: # operators
+            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+
+          )?
+        )
+        #this.repository.define.repository['identifiers'].match
+        (?=
+            [!~*]? \#?[({] # opening macro, destructor, generator or function call
+          | (?:[?!]?\.|[?!:]:|[?!-]>)? < # generics
+        )
+      )
+    captures: *function-calls
+
+  # Function and method calls within Objective-C-style selectors
+
+  selector-function-calls:
+    comment: Normal (bracketed or bracketless) function calls within selectors
+    name: meta.function.arguments.ruko
+    match: |-
+      (?x) (?<=
+        (?:
+            (?:
+              ^ # start of line
+              | [,;] # terminator / separator
+              | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+              | \#? [(\[{] # opening bracket
+            ) \s*
+          | # infix operator
+            \s+ (?:
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \s+
+          | # primary operator that isn't an accessor or assignment
+            (?:^|[,;'"`()\[\]{}\w]) (?:
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+              )?
+            )
+          | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+          | (?:
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            #this.repository.define.repository['ignore-keywords'].match
+          ) \s*
+        )
+        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+      )
+      (?<! # accessor or assignment
+        (?:^|[,;'"`()\[\]{}\w]) (?:
+          (?:[?!]?\.|[?!:]:|[?!-]>)=?
+        )
+      )
+
+      (
+        (?!
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
+        )
+        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+        (?:
+          (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+        )*
+      )
+
+      (?!
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+        | # function name
+          \s*
+          (?:\s(?:[?!]?\.?|[?!:]:|[?!-]>)=?)? # accessor
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+      )
+      (?=
+            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+          | [!~*] \#?[({] # macro, destructor and generator calls
+          | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+        (?:
+            :?[@#$%]*['"] # strings and symbols
+          | \b\d # numbers
+          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
+          | \#? [(\[] # opening brackets
+          | /[^/*\s] # regexp literal
+          | \\[\\*](?:\s|$) # markdown literal
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          | \| ( # start of lambda literal
+              (?:[,;] \s*)* # optional separators
+              (?:
+                (?:
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                )
+                \s*
+              )+
+            )
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+            (?: # identifier
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
+              )
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+              )*
+            )
+            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+        )
+      )
+    captures:
+      1:
+        name: meta.function.name.ruko
+        patterns: [{include: "#function-names"}]
+
+  selector-method-calls:
+    begin: |-
+      (?x) (?<= # literal
+        (?:
+            ^ # start of line
+          | ['"`)\]}\w] # literals and closing brackets
+          | \\. # escape sequences
+          | (?:[?!]|[?!:]:|[?!-]>)?=?
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b):? # static members
+        )
+        \s*
+      )
+
+      ((?:[?!]?\.?|[?!:]:|[?!-]>)=?) # accessor
+      ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # selector name
+      (?=:(?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$))
+    end: (:)(?=\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$)||$
+    name: meta.message.ruko
+    beginCaptures:
+      1:
+        name: keyword.operator.accessor.ruko
+        patterns:
+          - include: "#accessor-operators"
+          - match: "!"
+            name: keyword.operator.unwrap.ruko
+          - match: \?
+            name: keyword.operator.optional.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+      2:
+        name: entity.name.selector.ruko
+        patterns:
+          - match: *identifiers
+            captures:
+              1:
+                name: entity.name.tag.directive.ruko
+                <<: *function-names
+              2:
+                name: entity.name.function.tagged-template.ruko
+                <<: *function-names
+              3:
+                name: entity.name.function.method.ruko
+                <<: *function-names
+              4:
+                name: entity.name.function.member.ruko
+                <<: *function-names
+    endCaptures:
+      1: {name: punctuation.definition.selector.ruko}
+    patterns: [{include: "#brackets"}]
+
+  # Call arguments
+
+  binding-parameters:
+    patterns:
+      - match: |-
+          (?x) (?<=
+            (?:
+              ^ # start of line
+              | (?:^ | [^|]) \| # open pipe
+              | \#?[(\[{] # open bracket
+              | [,;] # separator
+            ) \s*
+          ) \s*
+
+          (
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+              )
+              \s*
+            )+
+          )?
+
+          \s*
+          ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+          \s*
+
+          (?=
+            $ | # end of line
+            \s* (?:
+              | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword
+              | [)\]}] # close bracket
+              | [,;] # separator
+              | \s (?:[?:]?=) \s+ (?:[-*&%@^!~?\\+$#]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
+              | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]) # pipe
+            )
+          )
+        name: meta.binding-pattern.ruko
+        captures:
+          1: *prefix-type-annotation
+          2: *type-operators
+          3: &assignment-variable
+            name: variable.other.assignment.ruko
+            patterns: [{include: "#constants"}]
+          4: *type-operators
+      - &binding-annotation
+        applyEndPatternLast: true
+        begin: (?<=(?:(?:['"`)\]}\w]|\\.)[!?]?>*))(:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+        end: $|
+        beginCaptures:
+          1: {name: punctuation.definition.annotation.ruko}
+        name: meta.type.ruko
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+
+  lambda-parameters:
+    patterns:
+      - match: |-
+          (?x) (?<=
+            (?:
+              ^ # start of line
+              | (?:^ | [^|]) \| # open pipe
+              | \#?[(\[{] # open bracket
+              | [,;] # separator
+            ) \s*
+          ) \s*
+
+          (
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+              )
+              \s*
+            )+
+          )?
+
+          \s*
+          ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+          \s*
+
+          (?=
+            $ | # end of line
+            \s* (?:
+              | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b # as keyword
+              | [)\]}] # close bracket
+              | [,;] # separator
+              | \s (?:[?:]?=) \s+ (?:[-*&%@^!~?\\+$#]*) (?:['"`\w]|\#?[(\[{]) # type specifier and assignment
+              | \|:? (?:$|['"`<\w\s)\]}]|\#?[(\[{]) # pipe
+            )
+          )
+        name: meta.argument.ruko
+        captures:
+          1: *prefix-type-annotation
+          2: *type-operators
+          3: *parameter-variable
+          4: *type-operators
+      - *binding-annotation
+
+  call-parameters:
+    match: |-
+      (?x) (?<=
+        (?:
+          ^ # start of line
+          | (?:^ | [^|]) \| # open pipe
+          | \#?[(\[{] # open bracket
+          | [,;] # separator
+        ) \s*
+      ) \s*
+
+      (
+        (?:
+          (?:
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+          )
+          \s*
+        )+
+      )?
+
+      \s*
+      ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
+      )
+      ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+      \s*
+
+      (:)(?=$|<*(?:['"`\w\s]|\#?[(\[{]))
+    name: meta.parameter-list.item.ruko
+    captures:
+      1: *prefix-type-annotation
+      2: *type-operators
+      3: *parameter-variable
+      4: *type-operators
+      5: {name: punctuation.definition.key-value.ruko}
+
+  # Variables
+
+  variables:
+    define: &property-names
+      patterns:
+        - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+          captures:
+            0:
+              patterns: [{include: "#stdlib-properties"}]
+
+    match: |-
+      (?x)
+      (?:
+        (?<=
+          (?:^ | [,;'"`>)\]}\w\s] | \#?[(\[{]) # literal, bracket or space
+          (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+        )
+        # methods
+        #this.repository.define.repository['identifiers'].match
+        |
+        #this.repository.define.repository['identifiers'].match
+        (?! [?!]?\.\.+ ) # not a range operator
+        (?=
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # accessor or accessor
+            (?!\s|$) # not followed by space or end of line
+          | \#?\[ # or array access
+        )
+        |
+        #this.repository.define.repository['identifiers'].match
+      )
+    captures:
+      1:
+        name: variable.other.property.dynamic.ruko
+        <<: *property-names
+      2:
+        name: variable.other.constant.property.ruko
+        <<: *property-names
+      3:
+        name: variable.other.property.static.ruko
+        <<: *property-names
+      4:
+        name: variable.other.property.ruko
+        <<: *property-names
+      5: {name: variable.legacy.builtin.ruko}
+      6: {name: variable.other.constant.object.ruko}
+      7: {name: variable.other.class.static.ruko}
+      8: {name: variable.other.object.ruko}
+      9: {name: variable.other.global.ruko}
+      10: {name: variable.other.constant.ruko}
+      11: {name: variable.other.class.ruko}
+      12: {name: variable.other.readwrite.ruko}
+    name: meta.variable.ruko
+
+  # Operators
+
+  operators:
+    patterns:
+      - include: "#type-cast-operators"
+      - include: "#named-infix-operators"
+      - include: "#infix-operators"
+      - include: "#accessor-operators"
+      - include: "#special-operators"
+      - include: "#interfix-operators"
+      - include: "#postfix-operators"
+      - include: "#prefix-operators"
+
+  special-operators:
+    patterns:
+      - match: (?<=(?:^|[,;]|\#?[(\[{])\s*)(\.\.)(?=[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+        captures:
+          1: {name: keyword.operator.spread.ruko}
+      - match: (?<=>|\w)(!)(?=\#?[({])
+        captures:
+          1: {name: keyword.operator.macro.ruko}
+      - match: (?<=>|\w)(~)(?=\#?[({])
+        captures:
+          1: {name: keyword.operator.destructor.ruko}
+      - match: (?<=>|\w)(\*)(?=\#?[({])
+        captures:
+          1: {name: keyword.generator.asterisk.ruko}
+
+  type-cast-operators:
+    comment: (named) type-cast operators. Highlighted as prefix.
+    name: keyword.operator.cast.ruko
+    match: |-
+      (?x)
+      (?<=
+        (?:
+            (?:
+              ^ # start of line
+              | [,;] # terminator / separator
+              | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+              | \#? [(\[{] # opening bracket
+            ) \s*
+          | # infix operator
+            \s+ (?:
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+            ) \s+
+          | # primary operator that isn't an accessor or assignment
+            (?:^|[,;'"`()\[\]{}\w]) (?:
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+              )?
+            )
+          | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+          | (?:
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            #this.repository.define.repository['ignore-keywords'].match
+          ) \s*
+        )
+        [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+      )
+      (?<! # accessor or assignment
+        (?:^|[,;'"`()\[\]{}\w]) (?:
+          (?:[?!]?\.|[?!:]:|[?!-]>)=?
+        )
+      )
+
+      (
+        (?:
+          \#? # optional sharp for splice invocation
+          \( # round brackets
+            (?>
+                \g<1> # either recurse or match balanced brackets
+              | '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+              | `(?>``|[^`])+` # identifier with backticks
+              | [^'"`()\[\]{}]*
+            )*
+          \) |
+          \[ # square brackets
+            (?>
+                \g<1> # either recurse or match balanced brackets
+              | '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+              | `(?>``|[^`])+` # identifier with backticks
+              | [^'"`()\[\]{}]*
+            )*
+          \] |
+          { # curly brackets
+            (?>
+                \g<1> # either recurse or match balanced brackets
+              | '(?>\\.|[^\\'])*' # char literals
+              | "(?>\\.|[^\\"])*" # string literals
+              | `(?>``|[^`])+` # identifier with backticks
+              | [^'"`()\[\]{}]*
+            )*
+          }
+        )+ # allow chaining
+      )
+
+      (?! # accessor or assignment
+          (?:
+            (?:[?!]?\.|[?!:]:|[?!-]>)=?
+          ) (?:$|[,;'"`()\[\]{}\w])
+        | # followed by another operator
+          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+          : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+      )
+      (?=
+        (?: # identifier
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          (?:
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          )*
+        ) |
+          \s+ # space before literal
+        (?:
+            :?[@#$%]*['"] # strings and symbols
+          | \b\d # numbers
+          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
+          | \#? [(\[] # opening brackets
+          | /[^/*\s] # regexp literal
+          | \\[\\*](?:\s|$) # markdown literal
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          | \| ( # start of lambda literal
+              (?:[,;] \s*)* # optional separators
+              (?:
+                (?:
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                )
+                \s*
+              )+
+            )
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+            (?: # identifier
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
+              )
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+              )*
+            )
+            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+        )
+      )
+    captures:
+      1: *prefix-type-annotation
+
+  named-infix-operators:
+    comment: 'Named infix operators: x \fn\ y'
+    contentName: keyword.operator.infix.named.ruko
+    begin: (?<=^|['"`)\]}\w\s])(\\)\s*
+    end: \s*(\\)(?=$|['"`\w\s]|\#?[(\[{])
+    captures:
+      1: {name: punctuation.definition.operator.ruko}
+    patterns:
+      - match: (?<=\\?)([?!:]:|[?!]?\.|[?!-]>)((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?!(?:[?!:]:|[?!]?\.|[?!-]>))
+        captures:
+          1:
+            name: punctuation.separator.accessor.ruko
+            patterns: [{include: "#accessor-operators"}]
+          2:
+            name: entity.name.function.member.ruko
+            patterns: [{include: "#function-names"}]
+      - match: |-
+          (?x)
+          (?<=\\?)
+          ( # function name
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          )
+          (?=\\)
+        captures:
+          1:
+            name: entity.name.function.ruko
+            patterns: [{include: "#function-names"}]
+      - include: "#operators"
+      - include: $self
+
+  infix-operators:
+    patterns:
+      - comment: Infix operators at the end of line
+        begin: |-
+          (?x)
+          (?<=^|[\s(\[{,;])
+          (?:
+              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+            | ( \?[.:>] ) # optional
+            | ( ![.:>] ) # mandatory
+            | ( (?:\.|::|->) ) # accessors
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
+            | ( <<[<>]?|[<>]?>> ) # bitwise shift
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( [|+*$]>|<[|+*$] ) # pipeline
+            | ( <[|+*$]>|[$#] ) # application
+            | ( <\+|\+>|[.·°] ) # composition
+            | ( [<>][:!]|[:!][<>] ) # class
+            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+            | ( [<>]=?|<=?> ) # relational
+            | ( \.\.+|··+|°°+ ) # dots
+            | ( [!=]==? ) # comparison
+            | ( ~[=!]|[=!]~ ) # similarity
+            | ( \?\?\??|¿¿ ) # null-coalescing
+            | ( !!!?|¡¡ ) # coalescing
+            | ( \?:?|¿: ) # conditional
+            | ( !:?|¡: ) # ternary
+            | ( \$|:?:?: ) # macro
+            | ( [?:]?= ) # assignment
+            | ( ==?>|<== ) # fat arrow
+            | ( --?>|<--? ) # skinny arrow
+            | ( ~~?>|<~~? ) # wavy arrow
+            | ( \p{Sm}+ ) # math symbols
+            | ( \p{Sc}+ ) # currency symbols
+            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[!-ÿ&&[\p{S}\p{P}]]*
+                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                )?
+              )
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              )
+          )
+          (?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
+        beginCaptures: &infix-operator-captures
+          1: {name: keyword.operator.assignment.augmented.ruko}
+          2: {name: keyword.operator.optional.ruko}
+          3: {name: keyword.operator.unwrap.ruko}
+          4: {name: keyword.operator.accessor.ruko}
+          5: {name: keyword.operator.logical.ruko}
+          6: {name: keyword.operator.bitwise.ruko}
+          7: {name: keyword.operator.bitwise.shift.ruko}
+          8: {name: keyword.operator.string.ruko}
+          9: {name: keyword.operator.arithmetic.ruko}
+          10: {name: keyword.operator.pipeline.ruko}
+          11: {name: keyword.operator.application.ruko}
+          12: {name: keyword.operator.composition.ruko}
+          13: {name: keyword.operator.class.ruko}
+          14: {name: keyword.operator.range.ruko}
+          15: {name: keyword.operator.relational.ruko}
+          16: {name: keyword.operator.dots.ruko}
+          17: {name: keyword.operator.comparison.ruko}
+          18: {name: keyword.operator.similarity.ruko}
+          19: {name: keyword.operator.null-coalescing.ruko}
+          20: {name: keyword.operator.coalescing.ruko}
+          21: {name: keyword.operator.conditional.ruko}
+          22: {name: keyword.operator.ternary.ruko}
+          23: {name: keyword.operator.macro.ruko}
+          24: {name: keyword.operator.assignment.ruko}
+          25: {name: keyword.operator.arrow.fat.ruko}
+          26: {name: keyword.operator.arrow.skinny.ruko}
+          27: {name: keyword.operator.arrow.wavy.ruko}
+          28: {name: keyword.operator.math.custom.ruko}
+          29: {name: keyword.operator.currency.custom.ruko}
+          30: {name: keyword.operator.arrow.ruko}
+          31: {name: keyword.operator.ascii.ruko}
+          32: {name: keyword.operator.infix.ruko}
+        end: ^\s*(?=\S)
+        patterns:
+          - include: "#line-continuation"
+          - include: "#comments"
+      - comment: Infix operators - "e.g"., x + y
+        match: |-
+          (?x)
+          (?<=^|[\s(\[{,;])
+          (?:
+              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+            | ( \?[.:>] ) # optional
+            | ( ![.:>] ) # mandatory
+            | ( (?:\.|::|->) ) # accessors
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
+            | ( <<[<>]?|[<>]?>> ) # bitwise shift
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( [|+*$]>|<[|+*$] ) # pipeline
+            | ( <[|+*$]>|[$#] ) # application
+            | ( <\+|\+>|[.·°] ) # composition
+            | ( [<>][:!]|[:!][<>] ) # class
+            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+            | ( [<>]=?|<=?> ) # relational
+            | ( \.\.+|··+|°°+ ) # dots
+            | ( [!=]==? ) # comparison
+            | ( ~[=!]|[=!]~ ) # similarity
+            | ( \?\?\??|¿¿ ) # null-coalescing
+            | ( !!!?|¡¡ ) # coalescing
+            | ( \?:?|¿: ) # conditional
+            | ( !:?|¡: ) # ternary
+            | ( \$|:?:?: ) # macro
+            | ( [?:]?= ) # assignment
+            | ( ==?>|<== ) # fat arrow
+            | ( --?>|<--? ) # skinny arrow
+            | ( ~~?>|<~~? ) # wavy arrow
+            | ( \p{Sm}+ ) # math symbols
+            | ( \p{Sc}+ ) # currency symbols
+            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[!-ÿ&&[\p{S}\p{P}]]*
+                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                )?
+              )
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              )
+          )
+          (?=$|[)\]}\s])
+        captures: *infix-operator-captures
+
+  interfix-operators:
+    comment: Interfix operators - x+y (without spaces)
+    match: |-
+      (?x)
+      (?<=['"`)\]}\w])
+      (?:
+          ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+        | ( \?[.:>] ) # optional
+        | ( ![.:>] ) # mandatory
+        | ( (?:\.|::|->) ) # accessors
+        | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
+        | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
+        | ( <<[<>]?|[<>]?>> ) # bitwise shift
+        | ( \+\+|--|××|÷÷|±±|%% ) # string
+        | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+        | ( [|+*$]>|<[|+*$] ) # pipeline
+        | ( <[|+*$]>|[$#] ) # application
+        | ( <\+|\+>|[.·°] ) # composition
+        | ( [<>][:!]|[:!][<>] ) # class
+        | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+        | ( [<>]=?|<=?> ) # relational
+        | ( \.\.+|··+|°°+ ) # dots
+        | ( [!=]==? ) # comparison
+        | ( ~[=!]|[=!]~ ) # similarity
+        | ( \?\?\??|¿¿ ) # null-coalescing
+        | ( !!!?|¡¡ ) # coalescing
+        | ( \?:?|¿: ) # conditional
+        | ( !:?|¡: ) # ternary
+        | ( \$|:?:?: ) # macro
+        | ( [?:]?= ) # assignment
+        | ( ==?>|<== ) # fat arrow
+        | ( --?>|<--? ) # skinny arrow
+        | ( ~~?>|<~~? ) # wavy arrow
+        | ( \p{Sm}+ ) # math symbols
+        | ( \p{Sc}+ ) # currency symbols
+        | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+        | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+            (?:[!-ÿ&&[\p{S}\p{P}]]*
+              [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+            )?
+          )
+        | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          )
+      )
+      (?=['"`\w]|\#?[(\[{])
+    captures:
+      <<: *infix-operator-captures
+      32: {name: keyword.operator.interfix.ruko}
+
+  prefix-operators:
+    comment: Prefix operators
+    match: ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]])(?=[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+    name: keyword.operator.prefix.ruko
+    captures:
+      1:
+        patterns:
+          - match: \*
+            name: keyword.operator.pointer.ruko
+          - match: /
+            name: keyword.operator.spread.ruko # not captured, begins regexp
+          - match: \+
+            name: keyword.operator.increment.ruko
+          - match: "-"
+            name: keyword.operator.decrement.ruko
+          - match: "&"
+            name: keyword.operator.reference.ruko
+          - match: \|
+            name: keyword.operator.union.ruko # not captured, begins lambda
+          - match: \^
+            name: keyword.operator.borrow.ruko
+          - match: "!"
+            name: keyword.operator.logical.ruko
+          - match: \$\b
+            name: punctuation.definition.variable.ruko # sigil
+          - match: \$
+            name: keyword.operator.variable.ruko
+          - match: '@\b'
+            name: punctuation.definition.decorator.ruko # sigil
+          - match: "@"
+            name: keyword.operator.decorator.ruko
+          - match: "~"
+            name: keyword.operator.bitwise.ruko
+          - match: \?
+            name: keyword.operator.existential.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+          - match: \#\b
+            name: punctuation.definition.anchor.ruko # sigil
+          - match: \#
+            name: keyword.operator.anchor.ruko
+          - match: '%\b'
+            name: punctuation.definition.private.ruko # sigil
+          - match: "%"
+            name: keyword.operator.private.ruko
+          - match: \.
+            name: keyword.operator.accessor.ruko
+          - match: \\
+            name: keyword.operator.lifetime.ruko # not captured, begins named infix operator
+
+  postfix-operators:
+    comment: postfix operators
+    match: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*)([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]])
+    name: keyword.operator.postfix.ruko
+    captures:
+      1:
+        patterns:
+          - match: \*
+            name: keyword.operator.pointer.ruko
+          - match: /
+            name: keyword.operator.spread.ruko
+          - match: \+
+            name: keyword.operator.increment.ruko
+          - match: "-"
+            name: keyword.operator.decrement.ruko
+          - match: "&"
+            name: keyword.operator.reference.ruko
+          - match: \|
+            name: keyword.operator.union.ruko
+          - match: \^
+            name: keyword.operator.borrow.ruko
+          - match: "!"
+            name: keyword.operator.unwrap.ruko
+          - match: \$
+            name: keyword.operator.variable.ruko
+          - match: "@"
+            name: keyword.operator.decorator.ruko
+          - match: "~"
+            name: keyword.operator.bitwise.ruko
+          - match: \?
+            name: keyword.operator.optional.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+          - match: \#
+            name: keyword.operator.anchor.ruko
+          - match: "%"
+            name: keyword.operator.private.ruko
+          - match: \.
+            name: keyword.operator.accessor.ruko
+          - match: \\
+            name: keyword.operator.lifetime.ruko
+
+  namespace-separators:
+    patterns:
+      - include: "#accessor-operators"
+      - match: (?<!\\)\\(?!\\)
+        name: punctuation.separator.namespace.ruko
+
+  # Clauses and Keywords
+
+  modifier-keywords:
+    name: meta.modifier.ruko
+    match: |-
+      (?x)
+
+      (
+        (?!
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
+        )
+        (?:
+          (?:
+            (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+            (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+          )*
+          (?>`[^`]+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          (?:<(?>\g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"|`[^`]+`
+            |\s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+(?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?)\s
+            |[^'"`<>()\[\]{}]+)*>)? # generics
+          \s* # whitespace
+        )+
+      )
+
+      (?=
+        \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+        (?: # declaration keywords
+          va[rl]|let|mut|const
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+          |module|schema|struct|record|object|union|macro|space
+          |query|quote|style|script|shader|compo|temp|oper|realm
+        )
+        \b\s*
+      )
+    captures:
+      1:
+        name: storage.modifier.ruko
+        patterns:
+          - include: "#type-brackets"
+          - include: "#angle-brackets"
+          - include: "#type-operators"
+          - include: "#type-parameter-operators"
+          - include: "#modifiers"
+
+  type-modifiers:
+    name: meta.modifier.type.ruko
+    match: |-
+      (?x)
+
+      \s*
+      (
+        (?!
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
+        )
+        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+      )
+
+      (?!
+          [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+          [:>] (?:\s* (?:[,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
+        | # infix operator not beginning with /
+          \s+
+          [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+          (?:[\p{P}\p{S}]*
+            [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+          )?
+          (?=\s|$)
+        | # function name
+          \s+ \\ # infix function operator
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+      )
+      (?=
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+        (?:
+            :?[@#$%]*['"] # strings and symbols
+          | \b\d # numbers
+          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
+          | \#? [(\[] # opening brackets
+          | /[^/*\s] # regexp literal
+          | \\[\\*](?:\s|$) # markdown literal
+          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+            (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          | \| ( # start of lambda literal
+              (?:[,;] \s*)* # optional separators
+              (?:
+                (?:
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                )
+                \s*
+              )+
+            )
+          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+            (?: # identifier
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
+              )
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:
+                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+              )*
+            )
+            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+        )
+      )
+    captures:
+      1:
+        name: storage.modifier.ruko
+        patterns: [{include: "#modifiers"}]
+
+  modifiers:
+    patterns:
+      - comment: Access modifiers
+        match: |-
+          (?x)\b(?:
+            pub|priv|prot
+            |intern|extern
+            |local|global|glocal
+            |open|closed
+            |final|sealed
+            |read|write|readwrite
+            |get|set
+            |mut|immut|shared|unique
+            |static|instance
+            |stat|dyn|inst
+            |dynamic|virtual
+            |override|overrides
+            |abstract|concrete
+            |partial|complete
+            |export|import
+            |inline|outline
+            |inlineable|noinline
+            |intrinsic|builtin
+            |native|foreign
+          )\b
+        name: storage.modifier.specifier.ruko
+      - comment: Mutability and ownership
+        match: |-
+          (?x)\b(?:
+            mut|mutable
+            |immut|immutable
+            |shared
+            |unique
+            |owned
+            |borrow|borrowed
+            |lend|lended
+            |alias
+          )\b
+        name: storage.modifier.mutability.ruko
+      - comment: Storage and lifetime
+        match: |-
+          (?x)\b(?:
+            static|const
+            |thread
+            |atomic
+            |volatile
+            |persistent
+            |temp|temporary
+            |trans|transient
+            |live|lived
+            |ephem|ephemeral
+            |auto|automatic
+            |manual
+            |stack|heap
+            |inline|outline
+            |global|local
+            |forever|eternal
+            |scoped?
+            |region|arena
+            |weak|soft
+            |strong
+            |uniform
+            |lowp?|mediump?|highp?|strictp?
+          )\b
+        name: storage.modifier.declaration.ruko
+      - comment: Function modifiers
+        match: |-
+          (?x)\b(?:
+            rec|recursive
+            |gen|generic
+            |async|sync
+            |coro|coroutine
+            |inline|noinline
+            |tail|tailcall
+            |ctor|constructor
+            |dtor|destructor
+            |getter|setter
+            |propc|property
+            |event|listener
+            |lambda|closure
+            |overload|callback
+            |macro|template
+            |oper|operator
+            |vararg|variadic
+            |opt|optional
+            |nullable
+          )\b
+        name: storage.modifier.function.ruko
+      - comment: Behavioral modifiers
+        match: |-
+          (?x)\b(?:
+            pure|impure
+            |det|deterministic
+            |nondet|nondeterministic
+            |idem|idempotent
+            |trans|transactional
+            |atomic|nonatomic
+            |suspend|resumable
+            |yielding
+            |blocking|nonblocking
+            |para|parallel
+            |conc|concurrent
+            |deferred|immediate
+            |safe|unsafe
+            |late|early|strict
+            |eager|lazy
+            |checked|unchecked
+            |debug|nodebug
+            |trace|notrace
+            |log|nolog
+            |monitor|synchronized
+            |eventual
+            |reactive
+            |observable
+            |immutable|mutable
+            |serial|serializable
+            |nonserial|nonserializable
+            |cloneable|noncloneable
+            |comparable|noncomparable
+            |hashable|nonhashable
+            |copyable|noncopyable
+            |movable|nonmovable
+            |droppable|nondroppable
+          )\b
+        name: storage.modifier.behavior.ruko
+      - comment: Type modifiers
+        match: |-
+          (?x)\b(?:
+            abstract|abst
+            |final
+            |interface|inter
+            |concrete
+            |primitive
+            |composite
+            |structured|unstructured
+            |dynamic|dyn
+            |static|stat
+            |nullable|nonnull
+            |covar|covariant
+            |contravar|contravariant
+            |invar|invariant
+            |union
+          )\b
+        name: storage.modifier.type.ruko
+      - comment: Inheritance modifiers
+        match: |-
+          (?x)\b(?:
+            extends
+            |implements
+            |overrides
+            |mixin
+            |compose|composes
+            |requires
+            |provides
+            |conforms
+            |specializes
+            |derives
+            |inherits
+            |super
+            |base
+            |sub
+            |parent
+            |child
+            |ancestor
+            |descendant
+            |proto
+            |adapter
+          )\b
+        name: storage.modifier.inheritance.ruko
+      - comment: Platform modifiers
+        match: |-
+          (?x)\b(?:
+            native
+            |host
+            |target
+            |embed
+            |cross
+            |cpu|arch
+            |os|platform
+            |win|windows
+            |linux|unix
+            |mac|macos|osx
+            |android
+            |ios|iphone|ipad
+            |web|wasm
+            |webgl|webgpu
+            |gpu|cuda|opencl
+            |simd|vector
+            |rtdl|realtime
+            |dbg|debug
+          )\b
+        name: storage.modifier.platform.ruko
+      - comment: Annotation modifiers
+        match: |-
+          (?x)\b(?:
+            deprecated|depr
+            |experimental|exper
+            |test
+            |benchmark|bench
+            |todo
+            |fixme
+            |since
+            |auth|author
+            |version|ver
+            |see|seealso
+            |note|remark
+            |impt|important
+            |sensitive|hidden
+            |param|parameter
+            |retval|returnvalue
+          )\b
+        name: storage.modifier.annotation.ruko
+
+  declaration-keywords:
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
+        name: storage.type.ruko
+      - match: |-
+          (?x)
+          \s*
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+          (?: # declaration keywords
+            va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
+          )\b
+          \s*
+        name: storage.type.$1.ruko
+
+  general-keywords:
+    comment: general keywords
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:el)?if(?:\s+not)?|else)\b\s*
+        name: keyword.control.conditional.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(for|while|loop|break|skip|redo)\b\s*
+        name: keyword.control.loop.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(try|retry|throw|catch|then|raise|error|final)\b\s*
+        name: keyword.control.error.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(match|case)\b\s*
+        name: keyword.control.match.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(switch|case)\b\s*
+        name: keyword.control.switch.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(return|yield|await|goto|pass|defer|race|join)\b\s*
+        name: keyword.control.flow.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(copy|move|drop|sink)\b\s*
+        name: keyword.control.movement.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(use|show|hide)\b\s*
+        name: keyword.control.module.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([gd]o|defer|ref|begin|end)\b\s*
+        name: keyword.control.$1.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(when|guard)\b\s*
+        name: keyword.control.signal.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|def)\b\s*
+        name: keyword.other.declare.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(safe|unsafe)\b\s*
+        name: keyword.other.safety.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(debug|assert|check|echo|eval|exec|ignore)\b\s*
+        name: keyword.other.$1.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
+        name: keyword.control.validate.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
+        name: keyword.control.query.ruko
+
+  expression-keywords:
+    comment: expression keywords
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([io]n|out|inout|off?|[ai]s|has|new|old|to|by|ref|[iou]nto|void|[gs]et)\b\s*
+        name: keyword.operator.expression.$1.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(del)\b\s*
+        name: keyword.operator.expression.delete.ruko
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(n?and|x?n?or|(?:co)?n?imply|not)\b\s*
+        name: keyword.operator.expression.logical.ruko
+      - *in-of-expression
+      - *is-has-expression
+
+  keywords:
+    patterns:
+      - include: "#module-expression"
+      - include: "#loop-expression"
+      - include: "#flow-expression"
+      - include: "#error-expression"
+      - include: "#query-expression"
+      - include: "#validation-expression"
+      - include: "#modifier-keywords"
+      - include: "#declaration-keywords"
+      - include: "#expression-keywords"
+      - include: "#general-keywords"
+
+  loop-expression:
+    applyEndPatternLast: true
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(break|skip|redo)\b\s*
+    end: $|
+    beginCaptures:
+      1: {name: keyword.control.loop.ruko}
+    patterns: &label-name
+      - match: *entity-name
+        name: constant.other.label.ruko
+
+  error-expression:
+    applyEndPatternLast: true
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(retry)\b\s*
+    end: $|
+    beginCaptures:
+      1: {name: keyword.control.error.ruko}
+    patterns: *label-name
+
+  flow-expression:
+    applyEndPatternLast: true
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(goto|pass|scope)\b\s*
+    end: $|
+    beginCaptures:
+      1: {name: keyword.control.flow.ruko}
+    patterns: *label-name
+
+  module-expression:
+    patterns:
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(use)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.control.module.ruko}
+        patterns: [{include: "#module-content"}]
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(show|hide)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.control.module.ruko}
+        patterns: *label-name
+
+  module-content:
+    patterns:
+      - match: \s*(?<!:):(?!:)\s*
+        name: keyword.operator.alias.ruko
+      - include: "#line-continuation-comma"
+      - include: "#extern-expression"
+      - begin: ({)\s*
+        end: \s*(})
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns:
+          - include: "#module-content"
+          - include: "#extern-expression"
+          - include: $self
+      - include: "#strings"
+      - include: "#regexps"
+      - include: "#symbols"
+      - include: "#comments"
+      - include: "#type-operators"
+      - include: "#accessor-operators"
+      - include: "#regexp-patterns"
+      - include: "#type-keywords"
+      - match: \s*(?<!\*)\*(?!\*)\s*
+        name: keyword.generator.asterisk.ruko
+      - include: "#type-modifiers"
+      - include: "#comma"
+      - include: "#line-continuation"
+      - match: *entity-name
+        name: string.unquoted.module.ruko
+
+  validation-expression:
+    comment: In validation expressions, consecutive identifiers are highlighted as keywords
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(where)\b\s*
+    beginCaptures:
+      1: {name: keyword.control.validate.ruko}
+    end: (?=[,;)\]}]) # doesn't terminate at EOL
+    patterns:
+      - match: &parenless-call |-
+          (?x)
+          (?<=
+            (?:
+                (?:
+                  ^ # start of line
+                  | [,;] # terminator / separator
+                  | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+                  | \#? [(\[{] # opening bracket
+                ) \s*
+              | # infix operator
+                \s+ (?:
+                  [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                  )?
+                ) \s+
+              | # primary operator that isn't an accessor or assignment
+                (?:^|[,;'"`()\[\]{}\w]) (?:
+                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  )?
+                )
+              | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
+              | (?:
+                (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+                #this.repository.define.repository['ignore-keywords'].match
+              ) \s*
+            )
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operator except slashes
+          )
+          (?<! # accessor or assignment
+            (?:^|[,;'"`()\[\]{}\w]) (?:
+              (?:[?!]?\.|[?!:]:|[?!-]>)=?
+            )
+          )
+
+          (
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          )
+
+          (?!
+              [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+              : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+            | # infix operator not beginning with /
+              \s+
+              [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+              (?:[\p{P}\p{S}]*
+                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+              )?
+              (?=\s|$)
+            | # function name
+              \s+ \\ # infix function operator
+                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
+                (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+          )
+          (?=
+                (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+              | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+              | [!~*] \#?[({] # macro, destructor and generator calls
+              | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
+              | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+            (?:
+                :?[@#$%]*['"] # strings and symbols
+              | \b\d # numbers
+              | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
+              | \#? [(\[] # opening brackets
+              | /[^/*\s] # regexp literal
+              | \\[\\*](?:\s|$) # markdown literal
+              | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+              | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
+                [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+                (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+              | \| ( # start of lambda literal
+                  (?:[,;] \s*)* # optional separators
+                  (?:
+                    (?:
+                      #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                    )
+                    \s*
+                  )+
+                )
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+                (?: # identifier
+                  (?!
+                    (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                    #this.repository.define.repository['ignore-keywords'].match
+                  )
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                  (?:
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                  )*
+                )
+                \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # followed by other operators
+            )
+          )
+        name: keyword.control.validate.ruko
+      - include: $self
+
+  query-expression:
+    comment: "RINQ (Ruko INtegrated Query) expression mini-language TODO: unify the query clauses to reduce redundancy, since they are mostly similar in structure."
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(from)\b\s*
+    beginCaptures:
+      1: {name: keyword.control.query.ruko}
+    end: (?=[;)\]}]) # doesn't terminate at EOL
+    patterns:
+      - match: |-
+          (?x)
+          \s*
+          (
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # ignore keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |begin|end
+            ) \b
+          )
+        captures:
+          1: {name: keyword.control.query.ruko}
+      - match: |-
+          (?x)
+          (
+            # highlight everything before the identifier as type
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+          )
+
+          (?=
+            \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(join|by)\b\s*
+          )
+        captures:
+          1: {name: keyword.control.query.ruko}
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([ai]s)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.control.query.ruko}
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(is|has|can)(?:\s+(not))?\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.control.query.ruko}
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([iou]nto|[io]n|off?|where|any|all|some|every|asc|desc|unique|take|drop|first|last|limit|offset|top|bottom|first|last|count|sum|avg|min|max|mean|median|mode)\b\s*
+        captures:
+          1: {name: keyword.control.query.ruko}
+      - match: *parenless-call
+        name: keyword.control.query.ruko
+      - include: $self
+
+  # Type annotations
+
+  typed-bindings:
+    comment: Prefix (C-style) type annotation in bindings.
+    match: |-
+      (?x) (?<=
+        (?:
+          ^ # start of line
+          | [,;] # terminator / separator
+          | \#? [(\[{] # opening bracket
+          | (?:
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            #this.repository.define.repository['ignore-keywords'].match
+          ) \s*
+        ) \s*
+      ) \s*
+
+      (
+        (?:
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          (?:
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+          )
+          \s*
+        )+
+      )
+
+      \s*
+      ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
+      )
+      ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+      \s*
+
+      (?=
+          \s[?:]?=(?:\s|$) # assignment
+        | :\s # type annotations
+        | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+          (?: # ignore keywords
+            # wordlike operators
+            [io]n|of|to|by
+          ) \b
+      )
+    name: meta.binding.typed.ruko
+    captures:
+      1: *prefix-type-annotation
+      2: *type-operators
+      3: *assignment-variable
+      4: *type-operators
+
+  typed-declarations:
+    comment: Prefix (C-style) type annotation in declarations.
+    match: |-
+      (?x)
+
+      (
+        (?!
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['ignore-keywords'].match
+        )
+        (?:
+          (?:
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+          )
+          \s*
+        )+
+      )
+
+      (?=
+        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+      )
+    captures:
+      1: *prefix-type-annotation
+    name: meta.declaration.typed.ruko
+
+  variable-declarations:
+    comment: Variable declaration with optional postfix type annotation
+    applyEndPatternLast: true
+    begin: |-
+      (?x)
+      \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
+
+      (?!
+          $ | [,;] # end of declaration
+        | :\s # type annotation after identifier
+        | [)\]}] # closing brackets
+        | \s(?:[?:]?=|\#?{)(?:\s|$) # type annotation before initialization or block
+        | \s(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+          (?: # ignore keywords
+            # wordlike operators
+            [io]n|of|to|by
+          ) \b
+      )
+
+      (?=
+        < # generics
+        | \s* [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* (?:
+            \#?[(\[{] # opening brackets
+          | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+        )
+      )
+    end: $|
+    beginCaptures:
+      1: {name: storage.type.variable.ruko}
+      2: *prefix-type-annotation
+    name: meta.variable.declaration.ruko
+    patterns:
+      - &variable-declaration
+        match: |-
+          (?x)
+          (?<=
+            (?:
+                ^ # start of line
+              | [,;] # terminator / separator
+              | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+              | > # closing generic
+              | \#? [(\[{] # opening bracket
+              | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+                \b
+                  (?:va[rl]|let|mut|const) # declaration keywords
+                \b
+                \s*
+            ) \s*
+          ) \s*
+
+          (
+            (?:
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository['ignore-keywords'].match
+              )
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+              )
+              \s*
+            )+
+          )?
+
+          \s*
+          ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+            (?: # ignore keywords
+              # wordlike operators
+              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+              |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+
+              # declaration keywords
+              |va[rl]|let|mut|const
+              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+
+              # control flow keywords
+              |if|elif|else|[tw]hen|guard|with
+              |for|while|loop|break|skip|redo
+              |try|retry|switch|[cm]atch|case|def|throw
+              |return|yield|await|goto|pass|defer|race|join
+              |raise|error|final|copy|move|drop|sink
+              |[gd]o|from|where|use|show|hide
+
+              # miscellaneous keywords
+              |debug|assert|check|decl|ignore
+              |use|echo|eval|exec|scope|safe|unsafe
+              |begin|end
+            ) \b
+          )
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+          ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+          \s*
+
+          (?=
+              $ | [,;] # end of declaration
+            | :\s # type annotation after identifier
+            | [)\]}] # closing brackets
+            | \s(?:[?:]?=|\#?{)(?:\s|$) # type annotation before initialization or block
+            | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+              (?: # ignore keywords
+                # wordlike operators
+                [io]n|of|to|by
+              ) \b
+          )
+        captures:
+          1: *prefix-type-annotation
+          2: *type-operators
+          3: *assignment-variable
+          4: *type-operators
+      - include: "#binding-patterns"
+      - include: "#angle-brackets"
+      - include: "#type-signature"
+      - include: "#default-value"
+      - include: "#line-continuation-comma"
+      - include: "#comma"
+
+  declarations:
+    patterns:
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(quote)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.quote.ruko}
+        name: meta.quote.ruko
+        patterns:
+          - begin: \s*({)\s*
+            end: \s*(})\s*
+            name: meta.quote.ruko
+            captures:
+              1: {name: punctuation.definition.block.ruko}
+            patterns:
+              - include: "#embedded-expressions"
+              - include: "#embedded-formatting"
+              - include: "#embedded-arguments"
+              - include: $self
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.quote.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(style)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.style.ruko}
+        name: meta.style.ruko
+        patterns:
+          - include: "#style-rules"
+          - include: "#style-entries"
+          - include: "#style-block"
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.style.ruko
+      - begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(oper)\b\s*
+        end: ([?:]?=(?:\s+|$)(?!\#?[(\[{]))|(?=\#?{|[,;]|$)
+        beginCaptures:
+          1: {name: storage.type.operator.ruko}
+        endCaptures:
+          1: {name: punctuation.terminator.operator.ruko}
+        name: meta.operator.ruko
+        patterns:
+          - include: "#angle-brackets"
+          - include: "#operator-declarations"
+          - include: "#declaration-content"
+          - match: *entity-name
+            name: variable.parameter.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(shader)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.shader.ruko}
+        name: meta.shader.ruko
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.shader.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(script)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.script.ruko}
+        name: meta.script.ruko
+        patterns:
+          - include: "#script-blocks"
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.script.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(compo)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.component.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.component.ruko
+            patterns: [{include: "#html-tag-names"}]
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(decl|def)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.other.declare.ruko}
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(func)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.function.ruko}
+        patterns:
+          - include: "#curly-brackets"
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.function.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(proc)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.procedure.ruko}
+        patterns:
+          - include: "#curly-brackets"
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.procedure.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(iter)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.iterator.ruko}
+        patterns:
+          - include: "#curly-brackets"
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.iterator.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(actor)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.actor.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.actor.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(prop)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.property.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.property.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(temp)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.template.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.template.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(class)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.class.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.class.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(inter)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.interface.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.interface.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(enum)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.enum.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.enum.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(module)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.module.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.module.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(impl)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.implementation.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.implementation.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(schema)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.schema.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.schema.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(macro)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.macro.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.macro.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(query)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.query.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.query.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(object)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.object.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.object.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(record)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.record.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.record.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(trait)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.trait.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.trait.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(realm)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.realm.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.realm.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(union)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.union.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.union.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(struct)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.struct.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.struct.ruko
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(space)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: storage.type.namespace.ruko}
+        patterns:
+          - include: "#declaration-content"
+          - include: "#namespace-separators"
+          - match: *entity-name
+            name: entity.name.namespace.ruko
+
+  declaration-content:
+    name: meta.declaration.ruko
+    patterns:
+      - include: "#typed-declarations"
+      - include: "#line-continuation"
+      - match: ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=(?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        name: entity.name.namespace.ruko
+      - include: "#type-square-brackets"
+      - include: "#type-signature"
+      - include: "#decorators"
+      - include: "#embedded-verbatim"
+      - include: "#type-keywords"
+      - match: \b(\*)\b
+        name: keyword.generator.asterisk.ruko
+      - include: "#type-operators"
+      - include: "#comments"
+      - include: "#line-continuation-comma"
+      - include: "#comma"
+      - include: "#line-continuation"
+      - begin: (\#?\()\s*
+        end: \s*(\))
+        captures:
+          1: {name: punctuation.definition.parameters.ruko}
+        patterns:
+          - include: "#lambda-patterns"
+          - include: $self
+      - begin: (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.class.ruko}
+        patterns:
+          - include: "#modifier-clause"
+          - include: $self
+      - include: "#embedded-expressions"
+      - include: "#embedded-formatting"
+      - include: "#embedded-arguments"
+      - include: "#accessor-operators"
+      - include: "#brackets"
+      - include: "#literals"
+      - include: "#default-value"
+      - match: \s+
+        name: meta.block.ruko
+
+  labels:
+    comment: Modifiers for declarations in classes, objects, traits, etc.
+    match: |-
+      (?x) (?<=
+        (?:
+            ^ # beginning of line
+          | [,;] # separator
+          | \#? [(\[{] # opening bracket
+        ) \s*
+      ) \s*
+
+      (
+        (?:
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          \s*
+        )
+      )
+      (:)(?=\s+|$)
+    name: meta.label.ruko
+    captures:
+      1: {name: entity.name.label.ruko}
+      2: {name: punctuation.separator.section.ruko}
+
+  modifier-clause:
+    comment: Modifiers for declarations in classes, objects, traits, etc.
+    match: |-
+      (?x) (?<=
+        (?:
+            ^ # beginning of line
+          | [,;] # separator
+          | \#? [(\[{] # opening bracket
+        ) \s*
+      ) \s*
+
+      (
+        (?:
+          (?!
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository['ignore-keywords'].match
+          )
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          \s*
+        )+
+      )
+      (:)(?=\s+|$)
+    name: meta.modifier.section.ruko
+    captures:
+      1:
+        name: storage.modifier.specifier.ruko
+        patterns: [{include: "#modifiers"}]
+      2: {name: punctuation.section.expression.ruko}
+
+  function-clause:
+    patterns:
+      - comment: Function def before function keyword; x = def()
+        match: |-
+          (?x)
+          \s*
+          (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
+          \s*
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s+ # label
+          ([?:]?=)\s+ # assignment operator
+
+          ( # modifiers
+            (?:
+              \s*
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)
+              \s*
+            )*
+          )
+
+          \s*
+          (?=
+            \b
+            (?: # declaration keywords
+              func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+            )
+            \b
+          )
+        name: meta.function.declaration.ruko
+        captures:
+          1: {name: entity.name.method.ruko}
+          2: {name: keyword.operator.assignment.ruko}
+          3: {patterns: [{include: "#modifiers"}]}
+      - begin: |-
+          (?x)
+          \s*
+          (?<=[?!:]:|\b\.|[?!]\.) # lookbehind for valid assignment
+          \s*
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s+ # label
+          ([?:]?=)\s+ # assignment operator
+
+          ((?# group 3)
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+              )
+              \s*
+            )+
+          )?
+
+          \s*
+          (\|) (?=(
+            (?:[,;] \s*)* # optional separators
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+              )
+              \s*
+            )+
+          ))
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        name: meta.function.declaration.ruko
+        captures:
+          1: {name: entity.name.method.ruko}
+          2: {name: keyword.operator.assignment.ruko}
+          3: *prefix-type-annotation
+          4: {name: punctuation.definition.function.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.function.ruko}
+        patterns: [{include: "#lambda-content"}]
+      - comment: "Function def before function keyword; x = func()"
+        match: |-
+          (?x)
+          \s*
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s+ # Label
+          ([?:]?=)\s+ # Assignment operator
+
+          ( # modifiers
+            (?:
+              \s*
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)
+              \s*
+            )*
+          )
+
+          \s*
+          (?=
+            \b
+            (?: # declaration keywords
+              func|pro[pc]|type|class|actor|trait|enum|in?ter
+              |module|schema|struct|record|object|union|macro|space
+              |query|quote|style|script|shader|compo|temp|oper|realm
+            )
+            \b
+          )
+        name: meta.function.declaration.ruko
+        captures:
+          1: {name: entity.name.ruko}
+          2: {name: keyword.operator.assignment.ruko}
+          3: {patterns: [{include: "#modifiers"}]}
+      - comment: "Function def with function keyword; x = fn |args| { }"
+        begin: |-
+          (?x)
+
+          \s*
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s+ # Label
+          ([?:]?=)\s+ # Assignment operator
+          \s*
+
+          (
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+              )
+              \s*
+            )+
+          )?
+
+          \s*
+          (\|) (?=(
+            (?:[,;] \s*)* # optional separators
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+              )
+              \s*
+            )+
+          ))
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        name: meta.function.declaration.ruko
+        captures:
+          1: {name: entity.name.ruko}
+          2: {name: keyword.operator.assignment.ruko}
+          3: *prefix-type-annotation
+          4: {name: punctuation.definition.function.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.function.ruko}
+        patterns: [{include: "#lambda-content"}]
+
+  lambdas:
+    patterns:
+      - comment: Lambda starting and ending with |
+        name: meta.lambda.ruko
+        begin: |-
+          (?x) (?<=
+            (?:
+              ^ # start of line
+              | [,;] # terminator / separator
+              | ['"`)\]}\w\s][\\:] # postfix colon or backslash
+              | \#? [(\[{] # opening bracket
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # operator
+            ) \s*
+          ) \s*
+
+          (
+            (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository['ignore-keywords'].match
+            )
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+              )
+              \s*
+            )+
+          )?
+
+          \s*
+          (\|) (?=(
+            (?:[,;] \s*)* # optional separators
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+              )
+              \s*
+            )+
+          ))
+        beginCaptures:
+          1: *prefix-type-annotation
+          2: {name: punctuation.definition.function.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.function.ruko}
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        patterns: [{include: "#lambda-content"}]
+      - comment: Lambda starting and ending with |
+        name: meta.lambda.no-return.ruko
+        begin: |-
+          (?x) (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            (?:
+              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+              (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
+            )*
+            (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+            \s*
+          ) \s*
+
+          (\|) (?=(
+            (?:[,;] \s*)* # optional separators
+            (?:
+              (?:
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+              )
+              \s*
+            )+
+          ))
+        beginCaptures:
+          1: {name: punctuation.definition.function.ruko}
+        end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
+        endCaptures:
+          1: {name: punctuation.definition.function.ruko}
+        patterns: [{include: "#lambda-content"}]
+
+  lambda-content:
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+        name: keyword.operator.expression.as.ruko
+      - match: ","
+        name: punctuation.separator.arguments.ruko
+      - include: "#lambda-patterns"
+
+  # Control flow clauses
+
+  clauses:
+    patterns:
+      - include: "#do-clause"
+      - include: "#for-clause"
+      - include: "#if-clause"
+      - include: "#match-clause"
+      - include: "#switch-clause"
+      - include: "#catch-clause"
+      - include: "#with-clause"
+      - include: "#when-clause"
+      - include: "#try-clause"
+      - include: "#type-clause"
+
+  do-clause:
+    match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(do)\b\s*
+    name: keyword.control.do.ruko
+
+  type-clause:
+    patterns:
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(old|new)\b
+        end: $|
+        beginCaptures:
+          1: {name: keyword.operator.expression.$1.ruko}
+        patterns:
+          - match: *entity-name
+            name: entity.name.instance.ruko
+          - include: "#brackets"
+          - include: "#types"
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([ai]s|by)\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.operator.expression.$1.ruko}
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(is|has|can)(?:\s+(not))?\b\s*
+        end: $|
+        beginCaptures:
+          1: {name: keyword.operator.expression.$1.ruko}
+          2: {name: keyword.operator.expression.logical.ruko}
+        patterns:
+          - include: "#declarations"
+          - include: "#types"
+      - applyEndPatternLast: true
+        begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(type)\b\s*
+        end: $|
+        captures:
+          1: {name: keyword.other.typedef.ruko}
+        patterns:
+          - include: "#types"
+          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+            captures:
+              1: {name: keyword.operator.assignment.ruko}
+              2: {name: keyword.operator.assignment.ruko}
+
+  try-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(try|then|raise)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+    name: meta.try.ruko
+    beginCaptures:
+      1: {name: keyword.control.error.ruko}
+    endCaptures:
+      1: {name: punctuation.terminator.colon.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
+        name: keyword.control.error.ruko
+      - include: $self
+
+  catch-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(catch|error)\b\s*
+    end: \s*(?=[,;)\]}])|$
+    name: meta.catch.ruko
+    beginCaptures:
+      1: {name: keyword.control.error.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+        name: keyword.control.error.ruko
+      - begin: \s*({)\s*
+        end: \s*(})\s*
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns:
+          - include: "#catch-case-clause"
+          - include: $self
+      - include: $self
+
+  catch-case-clause:
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(else)\b\s*(:)
+        captures:
+          1: {name: keyword.control.error.ruko}
+          2: {name: punctuation.definition.case-statement.ruko}
+      - begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
+        end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|$
+        beginCaptures:
+          1: {name: keyword.control.error.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.case-statement.ruko}
+        patterns:
+          - include: "#lambdas"
+          - applyEndPatternLast: true
+            begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
+            end: $|
+            beginCaptures:
+              1: {name: keyword.control.error.ruko}
+            patterns:
+              - include: "#declarations"
+              - include: "#types"
+          - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as|(?:el)?if(?:\s+not)?)\b\s*
+            name: keyword.control.error.ruko
+          - include: "#type-keywords"
+          - include: $self
+
+  for-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(for(?:\s+ever|\s+each)?|while(?:\s+not)?|loop)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+    name: meta.for.ruko
+    beginCaptures:
+      1: {name: keyword.control.loop.ruko}
+    endCaptures:
+      1: {name: punctuation.terminator.colon.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b([io]n|of|as|await)\b\s*
+        name: keyword.control.loop.ruko
+      - include: $self
+
+  if-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:el)?if(?:\s+not)?)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+    name: meta.if.ruko
+    beginCaptures:
+      1: {name: keyword.control.conditional.ruko}
+    endCaptures:
+      1: {name: punctuation.terminator.colon.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
+        name: keyword.control.conditional.ruko
+      - include: $self
+
+  match-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(match)\b\s*
+    end: \s*(?=[,;)\]}])|$
+    name: meta.match.ruko
+    beginCaptures:
+      1: {name: keyword.control.match.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
+        name: keyword.control.match.ruko
+      - begin: \s*({)\s*
+        end: \s*(})\s*
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns:
+          - include: "#match-case-clause"
+          - include: $self
+      - include: $self
+
+  match-case-clause:
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(else)\b\s*(:)
+        captures:
+          1: {name: keyword.control.match.ruko}
+          2: {name: punctuation.definition.case-statement.ruko}
+      - begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
+        end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|$
+        beginCaptures:
+          1: {name: keyword.control.match.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.case-statement.ruko}
+        patterns:
+          - include: "#lambdas"
+          - applyEndPatternLast: true
+            begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
+            end: $|
+            beginCaptures:
+              1: {name: keyword.control.match.ruko}
+            patterns:
+              - include: "#declarations"
+              - include: "#types"
+          - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as|(?:el)?if(?:\s+not)?)\b\s*
+            name: keyword.control.match.ruko
+          - include: "#type-keywords"
+          - include: $self
+
+  switch-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(switch)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+    name: meta.switch.ruko
+    beginCaptures:
+      1: {name: keyword.control.switch.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
+        name: keyword.control.switch.ruko
+      - begin: \s*({)\s*
+        end: \s*(})\s*
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns:
+          - include: "#switch-case-clause"
+          - include: $self
+      - include: $self
+
+  switch-case-clause:
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(else)\b\s*(:)
+        captures:
+          1: {name: keyword.control.switch.ruko}
+          2: {name: punctuation.definition.case-statement.ruko}
+      - begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(case)\b\s*
+        end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|$
+        beginCaptures:
+          1: {name: keyword.control.switch.ruko}
+        endCaptures:
+          1: {name: punctuation.definition.case-statement.ruko}
+        patterns:
+          - include: "#lambdas"
+          - applyEndPatternLast: true
+            begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b((?:is|has|can)(?:\s+not)?)\b\s*
+            end: $|
+            beginCaptures:
+              1: {name: keyword.control.switch.ruko}
+            patterns:
+              - include: "#declarations"
+              - include: "#types"
+          - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as|(?:el)?if(?:\s+not)?)\b\s*
+            name: keyword.control.switch.ruko
+          - include: "#type-keywords"
+          - include: $self
+
+  when-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(when|guard)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+    name: meta.if.ruko
+    beginCaptures:
+      1: {name: keyword.control.signal.ruko}
+    endCaptures:
+      1: {name: punctuation.terminator.colon.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
+        name: keyword.control.signal.ruko
+      - include: $self
+
+  with-clause:
+    begin: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(with)\b\s*
+    end: \s*(:)(?=(?:[,;'"`)\]}\w\s]|\#?[(\[{]))|(?=[;)\]}])|$
+    name: meta.if.ruko
+    beginCaptures:
+      1: {name: keyword.control.with.ruko}
+    endCaptures:
+      1: {name: punctuation.terminator.colon.ruko}
+    patterns:
+      - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(await)\b\s*
+        name: keyword.control.with.ruko
+      - include: $self
+
+  # Binding patterns
+
+  object-labels:
+    patterns:
+      - include: "#object-keys"
+      - include: "#object-punning"
+
+  object-keys:
+    begin: (?<=(?:^|[,;]|\#?[(\[{])\s*)
+    end: \s*(?=[,;)\]}]|$)|\s*(:)
+    name: meta.object-keys.ruko
+    endCaptures:
+      1: {name: punctuation.separator.key-value.ruko}
+    patterns:
+      - include: "#literals"
+      - include: "#embedded-expressions"
+      - include: "#brackets"
+      - match: |-
+          (?x)
+          (?<=^|[,;]|\#?[(\[{]) \s*
+          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) \s*
+
+          (?= :\s* # key-value separator
+            (?:
+              (?: # declaration
+                (?:
+                  (?:
+                  \s*
+                    (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)
+                  )
+                  \s*
+                )* \s*
+                \b
+                (?: # declaration keywords
+                  func|pro[pc]|type|class|actor|trait|enum|in?ter
+                  |module|schema|struct|record|object|union|macro|space
+                  |query|quote|style|script|shader|compo|temp|oper|realm
+                )
+                \b
+              ) | ( # lambda declaration
+                (?!
+                  (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                  #this.repository.define.repository['ignore-keywords'].match
+                )
+                (?:
+                  (?:
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                  )
+                  \s*
+                )+
+              )
+
+              \s* \| (?=(
+                (?:[,;] \s*)* # optional separators
+                (?:
+                  (?:
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                  )
+                  \s*
+                )+
+              ))
+            )
+          )
+        captures:
+          1: {name: entity.other.attribute-name.key.ruko}
+      - match: (?<=^|[,;]|\#?[(\[{])\s*((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s*(?=[,;)\]}:]|$)
+        captures:
+          1:
+            name: constant.other.object.key.ruko
+            patterns:
+              - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b
+                captures:
+                  0:
+                    patterns:
+                      - include: "#stdlib-variables"
+                      - include: "#stdlib-constants"
+                      - include: "#stdlib-properties"
+      - include: "#comments"
+      - include: "#line-continuation"
+      - include: "#space"
+      - include: $self
+
+  object-punning:
+    match: (?<=^|[,;]|\#?[(\[{])\s*((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s*(?=[,;)\]}]|[?:]?=(?:['"`\w\s]|\#?[(\[{])|$)
+    captures:
+      1: {name: variable.other.constant.ruko}
+
+  object-binding:
+    match: (?<=^|[,;]|\#?[(\[{])\s*((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))\s*(?=[,;)\]}]|[?:]?=(?:['"`\w\s]|\#?[(\[{])|$)
+    captures:
+      1: {name: variable.other.assignment.ruko}
+
+  # Lambda binding patterns
+
+  lambda-patterns:
+    patterns:
+      - include: "#lambda-as-keyword"
+      - include: "#lambda-pattern-tuple"
+      - include: "#lambda-pattern-array"
+      - include: "#lambda-pattern-object"
+      - include: "#lambda-parameters"
+      - include: "#default-value"
+      - include: "#type-operators"
+      - include: "#type-signature"
+      - include: "#type-clause"
+
+  lambda-as-keyword:
+    name: meta.as-keyword.ruko
+    match: |-
+      (?x)
+      \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
+        (?: # ignore keywords
+          # wordlike operators
+          [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+          |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+
+          # declaration keywords
+          |va[rl]|let|mut|const
+          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+          |module|schema|struct|record|object|union|macro|space
+          |query|quote|style|script|shader|compo|temp|oper|realm
+
+          # control flow keywords
+          |if|elif|else|[tw]hen|guard|with
+          |for|while|loop|break|skip|redo
+          |try|retry|switch|[cm]atch|case|def|throw
+          |return|yield|await|goto|pass|defer|race|join
+          |raise|error|final|copy|move|drop|sink
+          |[gd]o|from|where|use|show|hide
+
+          # miscellaneous keywords
+          |debug|assert|check|decl|ignore
+          |use|echo|eval|exec|scope|safe|unsafe
+          |begin|end
+        ) \b
+      )
+
+      \s*
+      ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
+      )
+      ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+      \s*
+    captures:
+      1: {name: keyword.operator.expression.as.ruko}
+      2: *type-operators
+      3: *parameter-variable
+      4: *type-operators
+
+  lambda-pattern-object:
+    begin: (\#?{)\s*
+    end: \s*(})
+    name: meta.brace.curly.ruko
+    captures:
+      1: {name: punctuation.definition.binding-pattern.object.ruko}
+    patterns:
+      - include: "#lambda-as-keyword"
+      - include: "#lambda-parameters"
+      - include: "#object-assignment"
+      - include: "#object-binding"
+      - include: "#object-labels"
+      - include: "#type-signature"
+      - include: "#typed-declarations"
+      - match: *entity-name
+        name: variable.parameter.ruko
+        captures: &binding-pattern-parameter
+          0:
+            patterns:
+              - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+                captures:
+                  0:
+                    patterns:
+                      - include: "#stdlib-constants"
+                      - include: "#stdlib-variables"
+                      - include: "#stdlib-properties"
+      - match: "[,;]"
+        name: punctuation.separator.mapping.ruko
+      - include: "#lambda-patterns"
+      - include: "#type-clause"
+      - include: $self
+
+  lambda-pattern-tuple:
+    begin: (\#?\()\s*
+    end: \s*(\))
+    name: meta.brace.round.ruko
+    captures:
+      1: {name: punctuation.definition.binding-pattern.tuple.ruko}
+    patterns:
+      - include: "#lambda-as-keyword"
+      - include: "#lambda-parameters"
+      - include: "#type-signature"
+      - include: "#typed-declarations"
+      - match: *entity-name
+        name: variable.parameter.ruko
+        captures: *binding-pattern-parameter
+      - match: "[,;]"
+        name: punctuation.separator.arguments.ruko
+      - include: "#lambda-patterns"
+      - include: "#type-clause"
+      - include: $self
+
+  lambda-pattern-array:
+    begin: (\#?\[)\s*
+    end: \s*(])
+    name: meta.brace.square.ruko
+    captures:
+      1: {name: punctuation.definition.binding-pattern.array.ruko}
+    patterns:
+      - include: "#lambda-as-keyword"
+      - include: "#lambda-parameters"
+      - include: "#type-signature"
+      - include: "#typed-declarations"
+      - match: *entity-name
+        name: variable.parameter.ruko
+        captures: *binding-pattern-parameter
+      - match: "[,;]"
+        name: punctuation.separator.sequence.ruko
+      - include: "#lambda-patterns"
+      - include: "#type-clause"
+      - include: $self
+
+  # Binding pattern components
+
+  binding-patterns:
+    patterns:
+      - include: "#as-keyword"
+      - include: "#binding-pattern-tuple"
+      - include: "#binding-pattern-array"
+      - include: "#binding-pattern-object"
+      - include: "#binding-parameters"
+      - include: "#default-value"
+      - include: "#type-operators"
+      - include: "#type-signature"
+      - include: "#type-clause"
+
+  as-keyword:
+    name: meta.as-keyword.ruko
+    match: |-
+      (?x)
+      \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
+      )
+
+      \s*
+      ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
+
+      (?!
+        (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['ignore-keywords'].match
+      )
+      ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
+
+      ([\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*) # postfix argument operator
+      \s*
+    captures:
+      1: {name: keyword.operator.expression.as.ruko}
+      2: *type-operators
+      3: *assignment-variable
+      4: *type-operators
+
+  binding-pattern-object:
+    begin: (\#?{)\s*
+    end: \s*(})
+    name: meta.brace.curly.ruko
+    captures:
+      1: {name: punctuation.definition.binding-pattern.object.ruko}
+    patterns:
+      - include: "#as-keyword"
+      - include: "#binding-parameters"
+      - include: "#object-assignment"
+      - include: "#object-binding"
+      - include: "#object-labels"
+      - include: "#type-signature"
+      - include: "#typed-declarations"
+      - match: *entity-name
+        name: variable.other.assignment.ruko
+      - match: "[,;]"
+        name: punctuation.separator.mapping.ruko
+      - include: "#binding-patterns"
+      - include: "#type-clause"
+      - include: $self
+
+  binding-pattern-tuple:
+    begin: (\#?\()\s*
+    end: \s*(\))
+    name: meta.brace.round.ruko
+    captures:
+      1: {name: punctuation.definition.binding-pattern.tuple.ruko}
+    patterns:
+      - include: "#as-keyword"
+      - include: "#binding-parameters"
+      - include: "#type-signature"
+      - include: "#typed-declarations"
+      - match: *entity-name
+        name: variable.other.assignment.ruko
+      - match: "[,;]"
+        name: punctuation.separator.arguments.ruko
+      - include: "#binding-patterns"
+      - include: "#type-clause"
+      - include: $self
+
+  binding-pattern-array:
+    begin: (\#?\[)\s*
+    end: \s*(])
+    name: meta.brace.square.ruko
+    captures:
+      1: {name: punctuation.definition.binding-pattern.array.ruko}
+    patterns:
+      - include: "#as-keyword"
+      - include: "#binding-parameters"
+      - include: "#type-signature"
+      - include: "#typed-declarations"
+      - match: *entity-name
+        name: variable.other.assignment.ruko
+      - match: "[,;]"
+        name: punctuation.separator.sequence.ruko
+      - include: "#binding-patterns"
+      - include: "#type-clause"
+      - include: $self
+
+  default-value:
+    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+    captures:
+      1: {name: keyword.operator.assignment.ruko}
+      2: {name: keyword.operator.assignment.ruko}
+    end: (?<=['"`)\]}\w])(?=[,;)\]}]|\|$|\|[^|])|$
+    patterns: [{include: $self}]
+
+  # Slicing syntax
+
+  slice-syntax:
+    patterns:
+      - match: (?<=[:'"`\w\s])(:)(?=[:'"`\w\s]|\#?[(\[{]|$)
+        name: keyword.operator.slice.ruko
+      - include: "#numbers"
+      - include: "#space"
+      - include: "#comments"
+      - include: "#line-continuation"
+
+  # Punctuation
+
+  punctuation:
+    patterns:
+      - include: "#line-continuation"
+      - include: "#comma"
+      - include: "#semicolon"
+
+  line-continuation:
+    begin: \s*(\\)\s*(?=/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)|$)
+    end: ^\s*(?=\S)
+    captures:
+      1: {name: punctuation.separator.continuation.ruko}
+    patterns: [{include: "#comments"}]
+
+  line-continuation-comma:
+    begin: \s*(,)\s*(?=/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)|$)
+    end: ^\s*(?=\S)
+    captures:
+      1: {name: punctuation.separator.expression.ruko}
+    patterns: [{include: "#comments"}]
+
+  comma:
+    match: \s*(,)\s*
+    captures:
+      1: {name: punctuation.terminator.expression.ruko}
+
+  semicolon:
+    match: \s*(;)\s*
+    captures:
+      1: {name: punctuation.terminator.statement.ruko}
+
+  brackets:
+    patterns:
+      - include: "#angle-brackets"
+      - include: "#curly-brackets"
+      - include: "#square-brackets"
+      - include: "#round-brackets"
+
+  accessor-operators:
+    match: (?<=^|['"`>)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=['"`<(\[{\w])
+    name: keyword.operator.accessor.ruko
+    captures:
+      1:
+        patterns:
+          - match: "!"
+            name: keyword.operator.unwrap.ruko
+          - match: \?
+            name: keyword.operator.optional.ruko
+          - match: =
+            name: keyword.operator.assignment.ruko
+
+  angle-brackets: &generics
+    patterns:
+      - comment: empty generics
+        name: meta.type-arguments.ruko
+        match: (?<=^|['"`)\]}>\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<>)
+        captures:
+          1: {name: punctuation.type.arguments.ruko}
+      - comment: <...> generics
+        name: meta.type-arguments.ruko
+        begin: (?<=^|['"`)\]}>\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*|(?:[?!]\.|[?!:]:|[?!-]>)=?)(<)(?=[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*(?:['"`\w]|\#?[(\[{]))
+        end: (?<=^|['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(>)(?:(!)|(~)|(\*))?
+        beginCaptures:
+          1: {name: punctuation.type.arguments.ruko}
+        endCaptures:
+          1: {name: punctuation.type.arguments.ruko}
+          2: {name: keyword.operator.macro.ruko}
+          3: {name: keyword.operator.destructor.ruko}
+          4: {name: keyword.generator.asterisk.ruko}
+        patterns:
+          - include: "#types"
+          - include: "#type-signature"
+          - include: "#punctuation"
+          - include: "#embedded"
+          - include: "#brackets"
+          - include: "#comments"
+          - include: "#illegal"
+
+  curly-brackets:
+    repository:
+      punctuation:
+        patterns:
+          - match: ","
+            name: punctuation.separator.mapping.ruko
+          - match: (?<=['"`)\]}\w][\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*):(?=(?:['"`\w\s]|\#?[(\[{])|$)
+            name: punctuation.separator.key-value.ruko
+
+    patterns:
+      - begin: |-
+          (?x)
+          (?<= # beside postfix operators
+            ['"`)\]}\w] # literal
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+            \s+
+          )
+          (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.class.ruko}
+        patterns: [{include: $self}]
+      - begin: |-
+          (?x)
+          (?<= # beside postfix operators
+            ['"`)\]}\w] # literal
+            [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+            \s+
+          )
+          ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns: [{include: $self}]
+      - begin: |-
+          (?x)
+          (?<=
+            (?:
+                (?:^|[\p{P}\p{S}\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*):\|\s*\| # beside a lambda pipe
+              | (?:^|[,;'"`)\]}\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)\| # beside a lambda pipe
+              | ^\s*\| # beside a lambda pipe
+              | (?:^|[,;'"`)\]}\w])
+                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  )?
+                ): # beside a key-value separator
+            )
+            \s*
+          )
+          (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.class.ruko}
+        patterns: [{include: $self}]
+      - begin: |-
+          (?x)
+          (?<=
+            (?:
+                (?:^|[\p{P}\p{S}\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*):\|\s*\| # beside a lambda pipe
+              | (?:^|[,;'"`)\]}\w\s][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)\| # beside a lambda pipe
+              | ^\s*\| # beside a lambda pipe
+              | (?:^|[,;'"`)\]}\w])
+                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  (?:[\p{P}\p{S}]*
+                    [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
+                  )?
+                ): # beside a key-value separator
+            )
+            \s*
+          )
+          ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns: [{include: $self}]
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                va[rl]|let|mut|const
+                |case
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.binding-pattern.object.ruko}
+        patterns:
+          - include: "#object-labels"
+          - include: "#punctuation"
+          - include: "#as-keyword"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.mapping.ruko}
+        patterns:
+          - include: "#object-labels"
+          - include: "#punctuation"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # wordlike operators
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.dictionary.ruko}
+        patterns:
+          - include: "#object-labels"
+          - include: "#punctuation"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:
+                [,;(\[{] # beside opening bracket or separator
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # beside key-value separator
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # beside other operators
+            )
+            \s*
+          )
+          (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.mapping.ruko}
+        patterns:
+          - include: "#object-labels"
+          - include: "#punctuation"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:
+                [,;(\[{] # beside opening bracket or separator
+              | (?:^|[,;()\[\]{}'"`\w]|\\.):\s* # beside key-value separator
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # beside other operators
+            )
+            \s*
+          )
+          ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.dictionary.ruko}
+        patterns:
+          - include: "#object-labels"
+          - include: "#punctuation"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+              ['"`>)\]}\w][!*~]? # literal before call
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.template.ruko}
+        patterns:
+          - include: "#call-parameters"
+          - include: $self
+      - begin: (\#{)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.class.ruko}
+        patterns: [{include: $self}]
+      - begin: ({)\s*
+        end: \s*(})
+        name: meta.brace.curly.ruko
+        captures:
+          1: {name: punctuation.definition.block.ruko}
+        patterns: [{include: $self}]
+
+  round-brackets:
+    repository:
+      punctuation:
+        patterns:
+          - match: ","
+            name: punctuation.separator.arguments.ruko
+          - match: \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(as)\b\s*
+            name: keyword.operator.expression.as.ruko
+          - match: (?<=[\w\s][(|])\.
+            name: punctuation.definition.metadata.ruko
+
+    patterns:
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                va[rl]|let|mut|const
+                |case
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\#?\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.binding-pattern.tuple.ruko}
+        patterns:
+          - include: "#as-keyword"
+          - include: "#punctuation"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+              ['"`>)\]}\w][!*~]? # literal before call
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.parameters.ruko}
+        patterns:
+          - include: "#call-parameters"
+          - include: $self
+      - begin: (\#\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.tuple.ruko}
+        patterns: [{include: $self}]
+      - begin: (\()\s*
+        end: \s*(\))
+        name: meta.brace.round.ruko
+        captures:
+          1: {name: punctuation.definition.expression.ruko}
+        patterns: [{include: $self}]
+
+  square-brackets:
+    repository:
+      punctuation:
+        patterns:
+          - match: ","
+            name: punctuation.separator.sequence.ruko
+
+    patterns:
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                va[rl]|let|mut|const
+                |case
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\#?\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.binding-pattern.array.ruko}
+        patterns:
+          - include: "#punctuation"
+          - include: "#as-keyword"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.sequence.ruko}
+        patterns:
+          # duplicated from #core
+          &selector-core
+          - include: "#selector-method-calls"
+          - include: "#punctuation"
+          - include: "#directives"
+          - include: "#function-clause"
+          - include: "#declarations"
+          - include: "#variable-declarations"
+          - include: "#modifier-keywords"
+          - include: "#clauses"
+          - include: "#keywords"
+          - include: "#constants"
+          - include: "#comments"
+          - include: "#type-signature"
+          - include: "#lambdas"
+          - include: "#selector-function-calls"
+          - include: "#xml-tags"
+          - include: "#angle-brackets"
+          - include: "#literals"
+          - include: "#accessor-operators"
+          - include: "#brackets"
+          - include: "#operators"
+          - include: "#variables"
+          - include: "#illegal"
+          - include: "#space"
+          - include: $self
+      - begin: |-
+          (?x)
+          (?<=
+            (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \b
+              (?: # destructuring keywords
+                [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
+                |ref|void|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
+              )
+            \b
+            (?:$|[,;'"()\[\]{}\s]) # beside a delimiter or space
+            \s*
+          )
+          (\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.array.ruko}
+        patterns: *selector-core
+      - begin: |-
+          (?x)
+          (?<=
+              ['"`>)\]}\w][!*~]? # literal before call
+            | [^\s.]\.=?|[?!:]:=?|[-!?]>=? # accessor or assignment
+          )
+          (\#?\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.selector.ruko}
+        patterns:
+          - include: "#slice-syntax"
+          - include: "#punctuation"
+          - include: $self
+      - begin: (\#\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.sequence.ruko}
+        patterns: *selector-core
+      - begin: (\[)\s*
+        end: \s*(\])
+        name: meta.brace.square.ruko
+        captures:
+          1: {name: punctuation.definition.array.ruko}
+        patterns: *selector-core
+
+  # Support
+
+  unicode-property-keys:
+    comment: "Corresponds to Unicode Standard Annex #44 https://unicode.org/Public/UCD/latest/ucd/PropertyAliases.txt"
+    patterns:
+      - comment: Numeric Unicode property aliases and canonical names
+        match: |-
+          (?xi)\b(
+              cjkAccountingNumeric     | kAccountingNumeric
+            | cjkOtherNumeric          | kOtherNumeric
+            | cjkPrimaryNumeric        | kPrimaryNumeric
+            | nv                       | Numeric_Value
+          )\b
+        name: support.type.property-name.unicode.numeric.ruko
+      - comment: String Unicode property aliases and canonical names
+        match: |-
+          (?xi)\b(
+              bmg                      | Bidi_Mirroring_Glyph
+            | bpb                      | Bidi_Paired_Bracket
+            | cf                       | Case_Folding
+            | cjkCompatibilityVariant  | kCompatibilityVariant
+            | dm                       | Decomposition_Mapping
+            | EqUIdeo                  | Equivalent_Unified_Ideograph
+            | FC_NFKC                  | FC_NFKC_Closure
+            | lc                       | Lowercase_Mapping
+            | NFKC_CF                  | NFKC_Casefold
+            | NFKC_SCF                 | NFKC_Simple_Casefold
+            | scf                      | Simple_Case_Folding          | sfc
+            | slc                      | Simple_Lowercase_Mapping
+            | stc                      | Simple_Titlecase_Mapping
+            | suc                      | Simple_Uppercase_Mapping
+            | tc                       | Titlecase_Mapping
+            | uc                       | Uppercase_Mapping
+          )
+        name: support.type.property-name.unicode.string.ruko
+      - comment: Catalog Unicode property aliases and canonical names
+        match: |-
+          (?xi)\b(
+                age                      | Age
+              | blk                      | Block
+              | sc                       | Script
+              | scx                      | Script_Extensions # note: not in UAX #44
+          )\b
+        name: support.type.property-name.unicode.catalog.ruko
+      - comment: Enumerated Unicode property aliases and canonical names
+        match: |-
+          (?xi)\b(
+              bc                       | Bidi_Class
+            | bpt                      | Bidi_Paired_Bracket_Type
+            | ccc                      | Canonical_Combining_Class
+            | dt                       | Decomposition_Type
+            | ea                       | East_Asian_Width
+            | gc                       | General_Category
+            | GCB                      | Grapheme_Cluster_Break
+            | hst                      | Hangul_Syllable_Type
+            | InCB                     | Indic_Conjunct_Break
+            | InPC                     | Indic_Positional_Category
+            | InSC                     | Indic_Syllabic_Category
+            | jg                       | Joining_Group
+            | jt                       | Joining_Type
+            | lb                       | Line_Break
+            | NFC_QC                   | NFC_Quick_Check
+            | NFD_QC                   | NFD_Quick_Check
+            | NFKC_QC                  | NFKC_Quick_Check
+            | NFKD_QC                  | NFKD_Quick_Check
+            | nt                       | Numeric_Type
+            | SB                       | Sentence_Break
+            | vo                       | Vertical_Orientation
+            | WB                       | Word_Break
+          )\b
+        name: support.type.property-name.unicode.enumerated.ruko
+      - comment: Binary Unicode propery aliases and canonical names
+        match: |-
+          (?xi)\b(
+              AHex                     | ASCII_Hex_Digit
+            | Alpha                    | Alphabetic
+            | Bidi_C                   | Bidi_Control
+            | Bidi_M                   | Bidi_Mirrored
+            | Cased                    | Cased
+            | CE                       | Composition_Exclusion
+            | CI                       | Case_Ignorable
+            | Comp_Ex                  | Full_Composition_Exclusion
+            | CWCF                     | Changes_When_Casefolded
+            | CWCM                     | Changes_When_Casemapped
+            | CWKCF                    | Changes_When_NFKC_Casefolded
+            | CWL                      | Changes_When_Lowercased
+            | CWT                      | Changes_When_Titlecased
+            | CWU                      | Changes_When_Uppercased
+            | Dash                     | Dash
+            | Dep                      | Deprecated
+            | DI                       | Default_Ignorable_Code_Point
+            | Dia                      | Diacritic
+            | EBase                    | Emoji_Modifier_Base
+            | EComp                    | Emoji_Component
+            | EMod                     | Emoji_Modifier
+            | Emoji                    | Emoji
+            | EPres                    | Emoji_Presentation
+            | Ext                      | Extender
+            | ExtPict                  | Extended_Pictographic
+            | Gr_Base                  | Grapheme_Base
+            | Gr_Ext                   | Grapheme_Extend
+            | Gr_Link                  | Grapheme_Link
+            | Hex                      | Hex_Digit
+            | Hyphen                   | Hyphen
+            | ID_Compat_Math_Continue  | ID_Compat_Math_Continue
+            | ID_Compat_Math_Start     | ID_Compat_Math_Start
+            | IDC                      | ID_Continue
+            | Ideo                     | Ideographic
+            | IDS                      | ID_Start
+            | IDSB                     | IDS_Binary_Operator
+            | IDST                     | IDS_Trinary_Operator
+            | IDSU                     | IDS_Unary_Operator
+            | Join_C                   | Join_Control
+            | kEH_NoMirror             | kEH_NoMirror
+            | kEH_NoRotate             | kEH_NoRotate
+            | LOE                      | Logical_Order_Exception
+            | Lower                    | Lowercase
+            | Math                     | Math
+            | MCM                      | Modifier_Combining_Mark
+            | NChar                    | Noncharacter_Code_Point
+            | OAlpha                   | Other_Alphabetic
+            | ODI                      | Other_Default_Ignorable_Code_Point
+            | OGr_Ext                  | Other_Grapheme_Extend
+            | OIDC                     | Other_ID_Continue
+            | OIDS                     | Other_ID_Start
+            | OLower                   | Other_Lowercase
+            | OMath                    | Other_Math
+            | OUpper                   | Other_Uppercase
+            | Pat_Syn                  | Pattern_Syntax
+            | Pat_WS                   | Pattern_White_Space
+            | PCM                      | Prepended_Concatenation_Mark
+            | QMark                    | Quotation_Mark
+            | Radical                  | Radical
+            | RI                       | Regional_Indicator
+            | SD                       | Soft_Dotted
+            | STerm                    | Sentence_Terminal
+            | Term                     | Terminal_Punctuation
+            | UIdeo                    | Unified_Ideograph
+            | Upper                    | Uppercase
+            | VS                       | Variation_Selector
+            | WSpace                   | White_Space                 | space
+            | XIDC                     | XID_Continue
+            | XIDS                     | XID_Start
+            | XO_NFC                   | Expands_On_NFC
+            | XO_NFD                   | Expands_On_NFD
+            | XO_NFKC                  | Expands_On_NFKC
+            | XO_NFKD                  | Expands_On_NFKD
+          )\b
+        name: support.type.property-name.unicode.binary.ruko
+
+  unicode-property-values:
+    comment: "Unicode Standard Annex #44 https://unicode.org/Public/UCD/latest/ucd/PropertyValueAliases.txt"
+    patterns:
+      - comment: Unicode Script property values
+        match: |-
+          (?xi)\b(
+              Adlam                            | Adlam
+            | Aegean_Numbers                   | Aegean_Numbers
+            | Ahom                             | Ahom
+            | Alchemical                       | Alchemical_Symbols
+            | Alphabetic_PF                    | Alphabetic_Presentation_Forms
+            | Anatolian_Hieroglyphs            | Anatolian_Hieroglyphs
+            | Ancient_Greek_Music              | Ancient_Greek_Musical_Notation
+            | Ancient_Greek_Numbers            | Ancient_Greek_Numbers
+            | Ancient_Symbols                  | Ancient_Symbols
+            | Arabic                           | Arabic
+            | Arabic_Ext_A                     | Arabic_Extended_A
+            | Arabic_Ext_B                     | Arabic_Extended_B
+            | Arabic_Ext_C                     | Arabic_Extended_C
+            | Arabic_Math                      | Arabic_Mathematical_Alphabetic_Symbols
+            | Arabic_PF_A                      | Arabic_Presentation_Forms_A | Arabic_Presentation_Forms-A
+            | Arabic_PF_B                      | Arabic_Presentation_Forms_B
+            | Arabic_Sup                       | Arabic_Supplement
+            | Armenian                         | Armenian
+            | Arrows                           | Arrows
+            | ASCII                            | Basic_Latin
+            | Avestan                          | Avestan
+            | Balinese                         | Balinese
+            | Bamum                            | Bamum
+            | Bamum_Sup                        | Bamum_Supplement
+            | Bassa_Vah                        | Bassa_Vah
+            | Batak                            | Batak
+            | Bengali                          | Bengali
+            | Beria_Erfe                       | Beria_Erfe
+            | Bhaiksuki                        | Bhaiksuki
+            | Block_Elements                   | Block_Elements
+            | Bopomofo                         | Bopomofo
+            | Bopomofo_Ext                     | Bopomofo_Extended
+            | Box_Drawing                      | Box_Drawing
+            | Brahmi                           | Brahmi
+            | Braille                          | Braille_Patterns
+            | Buginese                         | Buginese
+            | Buhid                            | Buhid
+            | Byzantine_Music                  | Byzantine_Musical_Symbols
+            | Carian                           | Carian
+            | Caucasian_Albanian               | Caucasian_Albanian
+            | Chakma                           | Chakma
+            | Cham                             | Cham
+            | Cherokee                         | Cherokee
+            | Cherokee_Sup                     | Cherokee_Supplement
+            | Chess_Symbols                    | Chess_Symbols
+            | Chorasmian                       | Chorasmian
+            | CJK                              | CJK_Unified_Ideographs
+            | CJK_Compat                       | CJK_Compatibility
+            | CJK_Compat_Forms                 | CJK_Compatibility_Forms
+            | CJK_Compat_Ideographs            | CJK_Compatibility_Ideographs
+            | CJK_Compat_Ideographs_Sup        | CJK_Compatibility_Ideographs_Supplement
+            | CJK_Ext_A                        | CJK_Unified_Ideographs_Extension_A
+            | CJK_Ext_B                        | CJK_Unified_Ideographs_Extension_B
+            | CJK_Ext_C                        | CJK_Unified_Ideographs_Extension_C
+            | CJK_Ext_D                        | CJK_Unified_Ideographs_Extension_D
+            | CJK_Ext_E                        | CJK_Unified_Ideographs_Extension_E
+            | CJK_Ext_F                        | CJK_Unified_Ideographs_Extension_F
+            | CJK_Ext_G                        | CJK_Unified_Ideographs_Extension_G
+            | CJK_Ext_H                        | CJK_Unified_Ideographs_Extension_H
+            | CJK_Ext_I                        | CJK_Unified_Ideographs_Extension_I
+            | CJK_Ext_J                        | CJK_Unified_Ideographs_Extension_J
+            | CJK_Radicals_Sup                 | CJK_Radicals_Supplement
+            | CJK_Strokes                      | CJK_Strokes
+            | CJK_Symbols                      | CJK_Symbols_And_Punctuation
+            | Compat_Jamo                      | Hangul_Compatibility_Jamo
+            | Control_Pictures                 | Control_Pictures
+            | Coptic                           | Coptic
+            | Coptic_Epact_Numbers             | Coptic_Epact_Numbers
+            | Counting_Rod                     | Counting_Rod_Numerals
+            | Cuneiform                        | Cuneiform
+            | Cuneiform_Numbers                | Cuneiform_Numbers_And_Punctuation
+            | Currency_Symbols                 | Currency_Symbols
+            | Cypriot_Syllabary                | Cypriot_Syllabary
+            | Cypro_Minoan                     | Cypro_Minoan
+            | Cyrillic                         | Cyrillic
+            | Cyrillic_Ext_A                   | Cyrillic_Extended_A
+            | Cyrillic_Ext_B                   | Cyrillic_Extended_B
+            | Cyrillic_Ext_C                   | Cyrillic_Extended_C
+            | Cyrillic_Ext_D                   | Cyrillic_Extended_D
+            | Cyrillic_Sup                     | Cyrillic_Supplement | Cyrillic_Supplementary
+            | Deseret                          | Deseret
+            | Devanagari                       | Devanagari
+            | Devanagari_Ext                   | Devanagari_Extended
+            | Devanagari_Ext_A                 | Devanagari_Extended_A
+            | Diacriticals                     | Combining_Diacritical_Marks
+            | Diacriticals_Ext                 | Combining_Diacritical_Marks_Extended
+            | Diacriticals_For_Symbols         | Combining_Diacritical_Marks_For_Symbols | Combining_Marks_For_Symbols
+            | Diacriticals_Sup                 | Combining_Diacritical_Marks_Supplement
+            | Dingbats                         | Dingbats
+            | Dives_Akuru                      | Dives_Akuru
+            | Dogra                            | Dogra
+            | Domino                           | Domino_Tiles
+            | Duployan                         | Duployan
+            | Early_Dynastic_Cuneiform         | Early_Dynastic_Cuneiform
+            | Egyptian_Hieroglyph_Format_Controls| Egyptian_Hieroglyph_Format_Controls
+            | Egyptian_Hieroglyphs             | Egyptian_Hieroglyphs
+            | Egyptian_Hieroglyphs_Ext_A       | Egyptian_Hieroglyphs_Extended_A
+            | Elbasan                          | Elbasan
+            | Elymaic                          | Elymaic
+            | Emoticons                        | Emoticons
+            | Enclosed_Alphanum                | Enclosed_Alphanumerics
+            | Enclosed_Alphanum_Sup            | Enclosed_Alphanumeric_Supplement
+            | Enclosed_CJK                     | Enclosed_CJK_Letters_And_Months
+            | Enclosed_Ideographic_Sup         | Enclosed_Ideographic_Supplement
+            | Ethiopic                         | Ethiopic
+            | Ethiopic_Ext                     | Ethiopic_Extended
+            | Ethiopic_Ext_A                   | Ethiopic_Extended_A
+            | Ethiopic_Ext_B                   | Ethiopic_Extended_B
+            | Ethiopic_Sup                     | Ethiopic_Supplement
+            | Garay                            | Garay
+            | Geometric_Shapes                 | Geometric_Shapes
+            | Geometric_Shapes_Ext             | Geometric_Shapes_Extended
+            | Georgian                         | Georgian
+            | Georgian_Ext                     | Georgian_Extended
+            | Georgian_Sup                     | Georgian_Supplement
+            | Glagolitic                       | Glagolitic
+            | Glagolitic_Sup                   | Glagolitic_Supplement
+            | Gothic                           | Gothic
+            | Grantha                          | Grantha
+            | Greek                            | Greek_And_Coptic
+            | Greek_Ext                        | Greek_Extended
+            | Gujarati                         | Gujarati
+            | Gunjala_Gondi                    | Gunjala_Gondi
+            | Gurmukhi                         | Gurmukhi
+            | Gurung_Khema                     | Gurung_Khema
+            | Half_And_Full_Forms              | Halfwidth_And_Fullwidth_Forms
+            | Half_Marks                       | Combining_Half_Marks
+            | Hangul                           | Hangul_Syllables
+            | Hanifi_Rohingya                  | Hanifi_Rohingya
+            | Hanunoo                          | Hanunoo
+            | Hatran                           | Hatran
+            | Hebrew                           | Hebrew
+            | High_PU_Surrogates               | High_Private_Use_Surrogates
+            | High_Surrogates                  | High_Surrogates
+            | Hiragana                         | Hiragana
+            | IDC                              | Ideographic_Description_Characters
+            | Ideographic_Symbols              | Ideographic_Symbols_And_Punctuation
+            | Imperial_Aramaic                 | Imperial_Aramaic
+            | Indic_Number_Forms               | Common_Indic_Number_Forms
+            | Indic_Siyaq_Numbers              | Indic_Siyaq_Numbers
+            | Inscriptional_Pahlavi            | Inscriptional_Pahlavi
+            | Inscriptional_Parthian           | Inscriptional_Parthian
+            | IPA_Ext                          | IPA_Extensions
+            | Jamo                             | Hangul_Jamo
+            | Jamo_Ext_A                       | Hangul_Jamo_Extended_A
+            | Jamo_Ext_B                       | Hangul_Jamo_Extended_B
+            | Javanese                         | Javanese
+            | Kaithi                           | Kaithi
+            | Kaktovik_Numerals                | Kaktovik_Numerals
+            | Kana_Ext_A                       | Kana_Extended_A
+            | Kana_Ext_B                       | Kana_Extended_B
+            | Kana_Sup                         | Kana_Supplement
+            | Kanbun                           | Kanbun
+            | Kangxi                           | Kangxi_Radicals
+            | Kannada                          | Kannada
+            | Katakana                         | Katakana
+            | Katakana_Ext                     | Katakana_Phonetic_Extensions
+            | Kawi                             | Kawi
+            | Kayah_Li                         | Kayah_Li
+            | Kharoshthi                       | Kharoshthi
+            | Khitan_Small_Script              | Khitan_Small_Script
+            | Khmer                            | Khmer
+            | Khmer_Symbols                    | Khmer_Symbols
+            | Khojki                           | Khojki
+            | Khudawadi                        | Khudawadi
+            | Kirat_Rai                        | Kirat_Rai
+            | Lao                              | Lao
+            | Latin_1_Sup                      | Latin_1_Supplement | Latin_1
+            | Latin_Ext_A                      | Latin_Extended_A
+            | Latin_Ext_Additional             | Latin_Extended_Additional
+            | Latin_Ext_B                      | Latin_Extended_B
+            | Latin_Ext_C                      | Latin_Extended_C
+            | Latin_Ext_D                      | Latin_Extended_D
+            | Latin_Ext_E                      | Latin_Extended_E
+            | Latin_Ext_F                      | Latin_Extended_F
+            | Latin_Ext_G                      | Latin_Extended_G
+            | Lepcha                           | Lepcha
+            | Letterlike_Symbols               | Letterlike_Symbols
+            | Limbu                            | Limbu
+            | Linear_A                         | Linear_A
+            | Linear_B_Ideograms               | Linear_B_Ideograms
+            | Linear_B_Syllabary               | Linear_B_Syllabary
+            | Lisu                             | Lisu
+            | Lisu_Sup                         | Lisu_Supplement
+            | Low_Surrogates                   | Low_Surrogates
+            | Lycian                           | Lycian
+            | Lydian                           | Lydian
+            | Mahajani                         | Mahajani
+            | Mahjong                          | Mahjong_Tiles
+            | Makasar                          | Makasar
+            | Malayalam                        | Malayalam
+            | Mandaic                          | Mandaic
+            | Manichaean                       | Manichaean
+            | Marchen                          | Marchen
+            | Masaram_Gondi                    | Masaram_Gondi
+            | Math_Alphanum                    | Mathematical_Alphanumeric_Symbols
+            | Math_Operators                   | Mathematical_Operators
+            | Mayan_Numerals                   | Mayan_Numerals
+            | Medefaidrin                      | Medefaidrin
+            | Meetei_Mayek                     | Meetei_Mayek
+            | Meetei_Mayek_Ext                 | Meetei_Mayek_Extensions
+            | Mende_Kikakui                    | Mende_Kikakui
+            | Meroitic_Cursive                 | Meroitic_Cursive
+            | Meroitic_Hieroglyphs             | Meroitic_Hieroglyphs
+            | Miao                             | Miao
+            | Misc_Arrows                      | Miscellaneous_Symbols_And_Arrows
+            | Misc_Math_Symbols_A              | Miscellaneous_Mathematical_Symbols_A
+            | Misc_Math_Symbols_B              | Miscellaneous_Mathematical_Symbols_B
+            | Misc_Pictographs                 | Miscellaneous_Symbols_And_Pictographs
+            | Misc_Symbols                     | Miscellaneous_Symbols
+            | Misc_Symbols_Sup                 | Miscellaneous_Symbols_Supplement
+            | Misc_Technical                   | Miscellaneous_Technical
+            | Modi                             | Modi
+            | Modifier_Letters                 | Spacing_Modifier_Letters
+            | Modifier_Tone_Letters            | Modifier_Tone_Letters
+            | Mongolian                        | Mongolian
+            | Mongolian_Sup                    | Mongolian_Supplement
+            | Mro                              | Mro
+            | Multani                          | Multani
+            | Music                            | Musical_Symbols
+            | Myanmar                          | Myanmar
+            | Myanmar_Ext_A                    | Myanmar_Extended_A
+            | Myanmar_Ext_B                    | Myanmar_Extended_B
+            | Myanmar_Ext_C                    | Myanmar_Extended_C
+            | Nabataean                        | Nabataean
+            | Nag_Mundari                      | Nag_Mundari
+            | Nandinagari                      | Nandinagari
+            | NB                               | No_Block
+            | New_Tai_Lue                      | New_Tai_Lue
+            | Newa                             | Newa
+            | NKo                              | NKo
+            | Number_Forms                     | Number_Forms
+            | Nushu                            | Nushu
+            | Nyiakeng_Puachue_Hmong           | Nyiakeng_Puachue_Hmong
+            | OCR                              | Optical_Character_Recognition
+            | Ogham                            | Ogham
+            | Ol_Chiki                         | Ol_Chiki
+            | Ol_Onal                          | Ol_Onal
+            | Old_Hungarian                    | Old_Hungarian
+            | Old_Italic                       | Old_Italic
+            | Old_North_Arabian                | Old_North_Arabian
+            | Old_Permic                       | Old_Permic
+            | Old_Persian                      | Old_Persian
+            | Old_Sogdian                      | Old_Sogdian
+            | Old_South_Arabian                | Old_South_Arabian
+            | Old_Turkic                       | Old_Turkic
+            | Old_Uyghur                       | Old_Uyghur
+            | Oriya                            | Oriya
+            | Ornamental_Dingbats              | Ornamental_Dingbats
+            | Osage                            | Osage
+            | Osmanya                          | Osmanya
+            | Ottoman_Siyaq_Numbers            | Ottoman_Siyaq_Numbers
+            | Pahawh_Hmong                     | Pahawh_Hmong
+            | Palmyrene                        | Palmyrene
+            | Pau_Cin_Hau                      | Pau_Cin_Hau
+            | Phags_Pa                         | Phags_Pa
+            | Phaistos                         | Phaistos_Disc
+            | Phoenician                       | Phoenician
+            | Phonetic_Ext                     | Phonetic_Extensions
+            | Phonetic_Ext_Sup                 | Phonetic_Extensions_Supplement
+            | Playing_Cards                    | Playing_Cards
+            | Psalter_Pahlavi                  | Psalter_Pahlavi
+            | PUA                              | Private_Use_Area | Private_Use
+            | Punctuation                      | General_Punctuation
+            | Rejang                           | Rejang
+            | Rumi                             | Rumi_Numeral_Symbols
+            | Runic                            | Runic
+            | Samaritan                        | Samaritan
+            | Saurashtra                       | Saurashtra
+            | Sharada                          | Sharada
+            | Sharada_Sup                      | Sharada_Supplement
+            | Shavian                          | Shavian
+            | Shorthand_Format_Controls        | Shorthand_Format_Controls
+            | Siddham                          | Siddham
+            | Sidetic                          | Sidetic
+            | Sinhala                          | Sinhala
+            | Sinhala_Archaic_Numbers          | Sinhala_Archaic_Numbers
+            | Small_Forms                      | Small_Form_Variants
+            | Small_Kana_Ext                   | Small_Kana_Extension
+            | Sogdian                          | Sogdian
+            | Sora_Sompeng                     | Sora_Sompeng
+            | Soyombo                          | Soyombo
+            | Specials                         | Specials
+            | Sundanese                        | Sundanese
+            | Sundanese_Sup                    | Sundanese_Supplement
+            | Sunuwar                          | Sunuwar
+            | Sup_Arrows_A                     | Supplemental_Arrows_A
+            | Sup_Arrows_B                     | Supplemental_Arrows_B
+            | Sup_Arrows_C                     | Supplemental_Arrows_C
+            | Sup_Math_Operators               | Supplemental_Mathematical_Operators
+            | Sup_PUA_A                        | Supplementary_Private_Use_Area_A
+            | Sup_PUA_B                        | Supplementary_Private_Use_Area_B
+            | Sup_Punctuation                  | Supplemental_Punctuation
+            | Sup_Symbols_And_Pictographs      | Supplemental_Symbols_And_Pictographs
+            | Super_And_Sub                    | Superscripts_And_Subscripts
+            | Sutton_SignWriting               | Sutton_SignWriting
+            | Syloti_Nagri                     | Syloti_Nagri
+            | Symbols_And_Pictographs_Ext_A    | Symbols_And_Pictographs_Extended_A
+            | Symbols_For_Legacy_Computing     | Symbols_For_Legacy_Computing
+            | Symbols_For_Legacy_Computing_Sup | Symbols_For_Legacy_Computing_Supplement
+            | Syriac                           | Syriac
+            | Syriac_Sup                       | Syriac_Supplement
+            | Tagalog                          | Tagalog
+            | Tagbanwa                         | Tagbanwa
+            | Tags                             | Tags
+            | Tai_Le                           | Tai_Le
+            | Tai_Tham                         | Tai_Tham
+            | Tai_Viet                         | Tai_Viet
+            | Tai_Xuan_Jing                    | Tai_Xuan_Jing_Symbols
+            | Tai_Yo                           | Tai_Yo
+            | Takri                            | Takri
+            | Tamil                            | Tamil
+            | Tamil_Sup                        | Tamil_Supplement
+            | Tangsa                           | Tangsa
+            | Tangut                           | Tangut
+            | Tangut_Components                | Tangut_Components
+            | Tangut_Components_Sup            | Tangut_Components_Supplement
+            | Tangut_Sup                       | Tangut_Supplement
+            | Telugu                           | Telugu
+            | Thaana                           | Thaana
+            | Thai                             | Thai
+            | Tibetan                          | Tibetan
+            | Tifinagh                         | Tifinagh
+            | Tirhuta                          | Tirhuta
+            | Todhri                           | Todhri
+            | Tolong_Siki                      | Tolong_Siki
+            | Toto                             | Toto
+            | Transport_And_Map                | Transport_And_Map_Symbols
+            | Tulu_Tigalari                    | Tulu_Tigalari
+            | UCAS                             | Unified_Canadian_Aboriginal_Syllabics | Canadian_Syllabics
+            | UCAS_Ext                         | Unified_Canadian_Aboriginal_Syllabics_Extended
+            | UCAS_Ext_A                       | Unified_Canadian_Aboriginal_Syllabics_Extended_A
+            | Ugaritic                         | Ugaritic
+            | Vai                              | Vai
+            | Vedic_Ext                        | Vedic_Extensions
+            | Vertical_Forms                   | Vertical_Forms
+            | Vithkuqi                         | Vithkuqi
+            | VS                               | Variation_Selectors
+            | VS_Sup                           | Variation_Selectors_Supplement
+            | Wancho                           | Wancho
+            | Warang_Citi                      | Warang_Citi
+            | Yezidi                           | Yezidi
+            | Yi_Radicals                      | Yi_Radicals
+            | Yi_Syllables                     | Yi_Syllables
+            | Yijing                           | Yijing_Hexagram_Symbols
+            | Zanabazar_Square                 | Zanabazar_Square
+            | Znamenny_Music                   | Znamenny_Musical_Notation
+          )\b
+        name: support.constant.property-value.unicode.block.ruko
+
+  # CSS Support
+
+  css-functions:
+    match: |-
+      (?x)\b(
+        url|calc|rgba?|rgb|hsla?|hsl|hwb|lab|oklab|lch|oklch|color|annotation|attr|blur|brightness|character-variant|
+        clamp|contrast|counters?|cross-fade|drop-shadow|element|fit-content|format|grayscale|hue-rotate|color-mix|image-set|invert|
+        local|max|min|minmax|opacity|ornaments|repeat|saturate|sepia|styleset|stylistic|swash|symbols|cos|sin|tan|acos|asin|atan|
+        atan2|hypot|sqrt|pow|log|exp|abs|sign|round|ceil|floor|mod|rem|min|max|clamp|cubic-bezier|steps|circle|ellipse|inset|
+        polygon|rect|(translate|scale|rotate)[XYZ]?|matrix(3D)?|skew[XY]?|perspective|var|env|clamp|fit-content|
+        url|calc|rgba?|rgb|hsla?|hsl|hwb|lab|oklab|lch|oklch|color|annotation|attr|blur|brightness|characterVariant|
+        clamp|contrast|counters?|crossFade|dropShadow|element|fitContent|format|grayscale|hueRotate|colorMix|imageSet|invert|
+        local|max|min|minmax|opacity|ornaments|repeat|saturate|sepia|styleset|stylistic|swash|symbols|cos|sin|tan|acos|asin|atan|
+        atan2|hypot|sqrt|pow|log|exp|abs|sign|round|ceil|floor|mod|rem|min|max|clamp|cubicBezier|steps|circle|ellipse|inset|
+        polygon|rect|(translate|scale|rotate)[XYZ]?|matrix(3D)?|skew[XY]?|perspective|var|env|clamp|fitContent
+      )\b
+    name: support.function.misc.css
+
+  css-property-keys:
+    patterns:
+      - match: |-
+          (?x)\b(
+            accent-color|additive-symbols|align-content|align-items|align-self|all|animation|animation-delay|animation-direction|animation-duration
+            |animation-fill-mode|animation-iteration-count|animation-name|animation-play-state|animation-timing-function|aspect-ratio|backdrop-filter
+            |backface-visibility|background|background-attachment|background-blend-mode|background-clip|background-color|background-image
+            |background-origin|background-position|background-position-[xy]|background-repeat|background-size|bleed|block-size|border
+            |border-block-end|border-block-end-color|border-block-end-style|border-block-end-width|border-block-start|border-block-start-color
+            |border-block-start-style|border-block-start-width|border-bottom|border-bottom-color|border-bottom-left-radius|border-bottom-right-radius
+            |border-bottom-style|border-bottom-width|border-collapse|border-color|border-end-end-radius|border-end-start-radius|border-image
+            |border-image-outset|border-image-repeat|border-image-slice|border-image-source|border-image-width|border-inline-end
+            |border-inline-end-color|border-inline-end-style|border-inline-end-width|border-inline-start|border-inline-start-color
+            |border-inline-start-style|border-inline-start-width|border-left|border-left-color|border-left-style|border-left-width
+            |border-radius|border-right|border-right-color|border-right-style|border-right-width|border-spacing|border-start-end-radius
+            |border-start-start-radius|border-style|border-top|border-top-color|border-top-left-radius|border-top-right-radius|border-top-style
+            |border-top-width|border-width|bottom|box-decoration-break|box-shadow|box-sizing|break-after|break-before|break-inside|caption-side
+            |caret-color|clear|clip|clip-path|clip-rule|color|color-adjust|color-interpolation-filters|color-scheme|column-count|column-fill|column-gap
+            |column-rule|column-rule-color|column-rule-style|column-rule-width|column-span|column-width|columns|contain|container|container-name|container-type|content|counter-increment
+            |counter-reset|cursor|direction|display|empty-cells|enable-background|fallback|fill|fill-opacity|fill-rule|filter|flex|flex-basis
+            |flex-direction|flex-flow|flex-grow|flex-shrink|flex-wrap|float|flood-color|flood-opacity|font|font-display|font-family
+            |font-feature-settings|font-kerning|font-language-override|font-optical-sizing|font-size|font-size-adjust|font-stretch
+            |font-style|font-synthesis|font-variant|font-variant-alternates|font-variant-caps|font-variant-east-asian|font-variant-ligatures
+            |font-variant-numeric|font-variant-position|font-variation-settings|font-weight|gap|glyph-orientation-horizontal|glyph-orientation-vertical
+            |grid|grid-area|grid-auto-columns|grid-auto-flow|grid-auto-rows|grid-column|grid-column-end|grid-column-gap|grid-column-start
+            |grid-gap|grid-row|grid-row-end|grid-row-gap|grid-row-start|grid-template|grid-template-areas|grid-template-columns|grid-template-rows
+            |hanging-punctuation|height|hyphens|image-orientation|image-rendering|image-resolution|ime-mode|initial-letter|initial-letter-align
+            |inline-size|inset|inset-block|inset-block-end|inset-block-start|inset-inline|inset-inline-end|inset-inline-start|isolation
+            |justify-content|justify-items|justify-self|kerning|left|letter-spacing|lighting-color|line-break|line-clamp|line-height|list-style
+            |list-style-image|list-style-position|list-style-type|margin|margin-block|margin-block-end|margin-block-start|margin-bottom|margin-inline|margin-inline-end|margin-inline-start
+            |margin-left|margin-right|margin-top|marker-end|marker-mid|marker-start|marks|mask|mask-border|mask-border-mode|mask-border-outset
+            |mask-border-repeat|mask-border-slice|mask-border-source|mask-border-width|mask-clip|mask-composite|mask-image|mask-mode
+            |mask-origin|mask-position|mask-repeat|mask-size|mask-type|max-block-size|max-height|max-inline-size|max-lines|max-width
+            |max-zoom|min-block-size|min-height|min-inline-size|min-width|min-zoom|mix-blend-mode|negative|object-fit|object-position
+            |offset|offset-anchor|offset-distance|offset-path|offset-position|offset-rotation|opacity|order|orientation|orphans
+            |outline|outline-color|outline-offset|outline-style|outline-width|overflow|overflow-anchor|overflow-block|overflow-inline
+            |overflow-wrap|overflow-[xy]|overscroll-behavior|overscroll-behavior-block|overscroll-behavior-inline|overscroll-behavior-[xy]
+            |pad|padding|padding-block|padding-block-end|padding-block-start|padding-bottom|padding-inline|padding-inline-end|padding-inline-start|padding-left
+            |padding-right|padding-top|page-break-after|page-break-before|page-break-inside|paint-order|perspective|perspective-origin
+            |place-content|place-items|place-self|pointer-events|position|prefix|quotes|range|resize|right|rotate|row-gap|ruby-align
+            |ruby-merge|ruby-position|scale|scroll-behavior|scroll-margin|scroll-margin-block|scroll-margin-block-end|scroll-margin-block-start
+            |scroll-margin-bottom|scroll-margin-inline|scroll-margin-inline-end|scroll-margin-inline-start|scroll-margin-left|scroll-margin-right
+            |scroll-margin-top|scroll-padding|scroll-padding-block|scroll-padding-block-end|scroll-padding-block-start|scroll-padding-bottom
+            |scroll-padding-inline|scroll-padding-inline-end|scroll-padding-inline-start|scroll-padding-left|scroll-padding-right
+            |scroll-padding-top|scroll-snap-align|scroll-snap-coordinate|scroll-snap-destination|scroll-snap-stop|scroll-snap-type
+            |scrollbar-color|scrollbar-gutter|scrollbar-width|shape-image-threshold|shape-margin|shape-outside|shape-rendering|size
+            |speak-as|src|stop-color|stop-opacity|stroke|stroke-dasharray|stroke-dashoffset|stroke-linecap|stroke-linejoin|stroke-miterlimit
+            |stroke-opacity|stroke-width|postfix|symbols|system|tab-size|table-layout|text-align|text-align-last|text-anchor|text-combine-upright
+            |text-decoration|text-decoration-color|text-decoration-line|text-decoration-skip|text-decoration-skip-ink|text-decoration-style|text-decoration-thickness
+            |text-emphasis|text-emphasis-color|text-emphasis-position|text-emphasis-style|text-indent|text-justify|text-orientation
+            |text-overflow|text-rendering|text-shadow|text-size-adjust|text-transform|text-underline-offset|text-underline-position|top|touch-action|transform
+            |transform-box|transform-origin|transform-style|transition|transition-delay|transition-duration|transition-property|transition-timing-function
+            |translate|unicode-bidi|unicode-range|user-select|user-zoom|vertical-align|visibility|white-space|widows|width|will-change
+            |word-break|word-spacing|word-wrap|writing-mode|z-index|zoom
+
+            # SVG attributes
+            |alignment-baseline|baseline-shift|clip-rule|color-interpolation|color-interpolation-filters|color-profile
+            |color-rendering|cx|cy|dominant-baseline|enable-background|fill|fill-opacity|fill-rule|flood-color|flood-opacity
+            |glyph-orientation-horizontal|glyph-orientation-vertical|height|kerning|lighting-color|marker-end|marker-mid
+            |marker-start|r|rx|ry|shape-rendering|stop-color|stop-opacity|stroke|stroke-dasharray|stroke-dashoffset|stroke-linecap
+            |stroke-linejoin|stroke-miterlimit|stroke-opacity|stroke-width|text-anchor|width|x|y
+
+            # Not listed on MDN; presumably deprecated
+            |adjust|after|align|align-last|alignment|alignment-adjust|appearance|attachment|azimuth|background-break
+            |balance|baseline|before|bidi|binding|bookmark|bookmark-label|bookmark-level|bookmark-target|border-length
+            |bottom-color|bottom-left-radius|bottom-right-radius|bottom-style|bottom-width|box|box-align|box-direction
+            |box-flex|box-flex-group|box-lines|box-ordinal-group|box-orient|box-pack|break|character|collapse|column
+            |column-break-after|column-break-before|count|counter|crop|cue|cue-after|cue-before|decoration|decoration-break
+            |delay|display-model|display-role|down|drop|drop-initial-after-adjust|drop-initial-after-align|drop-initial-before-adjust
+            |drop-initial-before-align|drop-initial-size|drop-initial-value|duration|elevation|emphasis|family|fit|fit-position
+            |flex-group|float-offset|gap|grid-columns|grid-rows|hanging-punctuation|header|hyphenate|hyphenate-after|hyphenate-before
+            |hyphenate-character|hyphenate-lines|hyphenate-resource|icon|image|increment|indent|index|initial-after-adjust
+            |initial-after-align|initial-before-adjust|initial-before-align|initial-size|initial-value|inline-box-align|iteration-count
+            |justify|label|left-color|left-style|left-width|length|level|line|line-stacking|line-stacking-ruby|line-stacking-shift
+            |line-stacking-strategy|lines|list|mark|mark-after|mark-before|marks|marquee|marquee-direction|marquee-play-count|marquee-speed
+            |marquee-style|max|min|model|move-to|name|nav|nav-down|nav-index|nav-left|nav-right|nav-up|new|numeral|offset|ordinal-group
+            |orient|origin|overflow-style|overhang|pack|page|page-policy|pause|pause-after|pause-before|phonemes|pitch|pitch-range
+            |play-count|play-during|play-state|point|presentation|presentation-level|profile|property|punctuation|punctuation-trim
+            |radius|rate|rendering-intent|repeat|replace|reset|resolution|resource|respond-to|rest|rest-after|rest-before|richness
+            |right-color|right-style|right-width|role|rotation|rotation-point|rows|ruby|ruby-overhang|ruby-span|rule|rule-color
+            |rule-style|rule-width|shadow|size|size-adjust|sizing|space|space-collapse|spacing|span|speak|speak-header|speak-numeral
+            |speak-punctuation|speech|speech-rate|speed|stacking|stacking-ruby|stacking-shift|stacking-strategy|stress|stretch
+            |string-set|style|style-image|style-position|style-type|target|target-name|target-new|target-position|text|text-height
+            |text-justify|text-outline|text-replace|text-wrap|timing-function|top-color|top-left-radius|top-right-radius|top-style
+            |top-width|trim|unicode|up|user-select|variant|voice|voice-balance|voice-duration|voice-family|voice-pitch|voice-pitch-range
+            |voice-rate|voice-stress|voice-volume|volume|weight|white|white-space-collapse|word|wrap
+
+            # in PascalCase
+            |accentColor|additiveSymbols|alignContent|alignItems|alignSelf|all|animation|animationDelay|animationDirection|animationDuration
+            |animationFillMode|animationIterationCount|animationName|animationPlayState|animationTimingFunction|aspectRatio|backdropFilter
+            |backfaceVisibility|background|backgroundAttachment|backgroundBlendMode|backgroundClip|backgroundColor|backgroundImage
+            |backgroundOrigin|backgroundPosition|backgroundPosition[xy]|backgroundRepeat|backgroundSize|bleed|blockSize|border
+            |borderBlockEnd|borderBlockEndColor|borderBlockEndStyle|borderBlockEndWidth|borderBlockStart|borderBlockStartColor
+            |borderBlockStartStyle|borderBlockStartWidth|borderBottom|borderBottomColor|borderBottomLeftRadius|borderBottomRightRadius
+            |borderBottomStyle|borderBottomWidth|borderCollapse|borderColor|borderEndEndRadius|borderEndStartRadius|borderImage
+            |borderImageOutset|borderImageRepeat|borderImageSlice|borderImageSource|borderImageWidth|borderInlineEnd
+            |borderInlineEndColor|borderInlineEndStyle|borderInlineEndWidth|borderInlineStart|borderInlineStartColor
+            |borderInlineStartStyle|borderInlineStartWidth|borderLeft|borderLeftColor|borderLeftStyle|borderLeftWidth
+            |borderRadius|borderRight|borderRightColor|borderRightStyle|borderRightWidth|borderSpacing|borderStartEndRadius
+            |borderStartStartRadius|borderStyle|borderTop|borderTopColor|borderTopLeftRadius|borderTopRightRadius|borderTopStyle
+            |borderTopWidth|borderWidth|bottom|boxDecorationBreak|boxShadow|boxSizing|breakAfter|breakBefore|breakInside|captionSide
+            |caretColor|clear|clip|clipPath|clipRule|color|colorAdjust|colorInterpolationFilters|colorScheme|columnCount|columnFill|columnGap
+            |columnRule|columnRuleColor|columnRuleStyle|columnRuleWidth|columnSpan|columnWidth|columns|contain|container|containerName|containerType|content|counterIncrement
+            |counterReset|cursor|direction|display|emptyCells|enableBackground|fallback|fill|fillOpacity|fillRule|filter|flex|flexBasis
+            |flexDirection|flexFlow|flexGrow|flexShrink|flexWrap|float|floodColor|floodOpacity|font|fontDisplay|fontFamily
+            |fontFeatureSettings|fontKerning|fontLanguageOverride|fontOpticalSizing|fontSize|fontSizeAdjust|fontStretch
+            |fontStyle|fontSynthesis|fontVariant|fontVariantAlternates|fontVariantCaps|fontVariantEastAsian|fontVariantLigatures
+            |fontVariantNumeric|fontVariantPosition|fontVariationSettings|fontWeight|gap|glyphOrientationHorizontal|glyphOrientationVertical
+            |grid|gridArea|gridAutoColumns|gridAutoFlow|gridAutoRows|gridColumn|gridColumnEnd|gridColumnGap|gridColumnStart
+            |gridGap|gridRow|gridRowEnd|gridRowGap|gridRowStart|gridTemplate|gridTemplateAreas|gridTemplateColumns|gridTemplateRows
+            |hangingPunctuation|height|hyphens|imageOrientation|imageRendering|imageResolution|imeMode|initialLetter|initialLetterAlign
+            |inlineSize|inset|insetBlock|insetBlockEnd|insetBlockStart|insetInline|insetInlineEnd|insetInlineStart|isolation
+            |justifyContent|justifyItems|justifySelf|kerning|left|letterSpacing|lightingColor|lineBreak|lineClamp|lineHeight|listStyle
+            |listStyleImage|listStylePosition|listStyleType|margin|marginBlock|marginBlockEnd|marginBlockStart|marginBottom|marginInline|marginInlineEnd|marginInlineStart
+            |marginLeft|marginRight|marginTop|markerEnd|markerMid|markerStart|marks|mask|maskBorder|maskBorderMode|maskBorderOutset
+            |maskBorderRepeat|maskBorderSlice|maskBorderSource|maskBorderWidth|maskClip|maskComposite|maskImage|maskMode
+            |maskOrigin|maskPosition|maskRepeat|maskSize|maskType|maxBlockSize|maxHeight|maxInlineSize|maxLines|maxWidth
+            |maxZoom|minBlockSize|minHeight|minInlineSize|minWidth|minZoom|mixBlendMode|negative|objectFit|objectPosition
+            |offset|offsetAnchor|offsetDistance|offsetPath|offsetPosition|offsetRotation|opacity|order|orientation|orphans
+            |outline|outlineColor|outlineOffset|outlineStyle|outlineWidth|overflow|overflowAnchor|overflowBlock|overflowInline
+            |overflowWrap|overflow[xy]|overscrollBehavior|overscrollBehaviorBlock|overscrollBehaviorInline|overscrollBehavior[xy]
+            |pad|padding|paddingBlock|paddingBlockEnd|paddingBlockStart|paddingBottom|paddingInline|paddingInlineEnd|paddingInlineStart|paddingLeft
+            |paddingRight|paddingTop|pageBreakAfter|pageBreakBefore|pageBreakInside|paintOrder|perspective|perspectiveOrigin
+            |placeContent|placeItems|placeSelf|pointerEvents|position|prefix|quotes|range|resize|right|rotate|rowGap|rubyAlign
+            |rubyMerge|rubyPosition|scale|scrollBehavior|scrollMargin|scrollMarginBlock|scrollMarginBlockEnd|scrollMarginBlockStart
+            |scrollMarginBottom|scrollMarginInline|scrollMarginInlineEnd|scrollMarginInlineStart|scrollMarginLeft|scrollMarginRight
+            |scrollMarginTop|scrollPadding|scrollPaddingBlock|scrollPaddingBlockEnd|scrollPaddingBlockStart|scrollPaddingBottom
+            |scrollPaddingInline|scrollPaddingInlineEnd|scrollPaddingInlineStart|scrollPaddingLeft|scrollPaddingRight
+            |scrollPaddingTop|scrollSnapAlign|scrollSnapCoordinate|scrollSnapDestination|scrollSnapStop|scrollSnapType
+            |scrollbarColor|scrollbarGutter|scrollbarWidth|shapeImageThreshold|shapeMargin|shapeOutside|shapeRendering|size
+            |speakAs|src|stopColor|stopOpacity|stroke|strokeDasharray|strokeDashoffset|strokeLinecap|strokeLinejoin|strokeMiterlimit
+            |strokeOpacity|strokeWidth|postfix|symbols|system|tabSize|tableLayout|textAlign|textAlignLast|textAnchor|textCombineUpright
+            |textDecoration|textDecorationColor|textDecorationLine|textDecorationSkip|textDecorationSkipInk|textDecorationStyle|textDecorationThickness
+            |textEmphasis|textEmphasisColor|textEmphasisPosition|textEmphasisStyle|textIndent|textJustify|textOrientation
+            |textOverflow|textRendering|textShadow|textSizeAdjust|textTransform|textUnderlineOffset|textUnderlinePosition|top|touchAction|transform
+            |transformBox|transformOrigin|transformStyle|transition|transitionDelay|transitionDuration|transitionProperty|transitionTimingFunction
+            |translate|unicodeBidi|unicodeRange|userSelect|userZoom|verticalAlign|visibility|whiteSpace|widows|width|willChange
+            |wordBreak|wordSpacing|wordWrap|writingMode|zIndex|zoom
+            |alignmentBaseline|baselineShift|clipRule|colorInterpolation|colorInterpolationFilters|colorProfile
+            |colorRendering|cx|cy|dominantBaseline|enableBackground|fill|fillOpacity|fillRule|floodColor|floodOpacity
+            |glyphOrientationHorizontal|glyphOrientationVertical|height|kerning|lightingColor|markerEnd|markerMid
+            |markerStart|r|rx|ry|shapeRendering|stopColor|stopOpacity|stroke|strokeDasharray|strokeDashoffset|strokeLinecap
+            |strokeLinejoin|strokeMiterlimit|strokeOpacity|strokeWidth|textAnchor|width|x|y
+            |adjust|after|align|alignLast|alignment|alignmentAdjust|appearance|attachment|azimuth|backgroundBreak
+            |balance|baseline|before|bidi|binding|bookmark|bookmarkLabel|bookmarkLevel|bookmarkTarget|borderLength
+            |bottomColor|bottomLeftRadius|bottomRightRadius|bottomStyle|bottomWidth|box|boxAlign|boxDirection
+            |boxFlex|boxFlexGroup|boxLines|boxOrdinalGroup|boxOrient|boxPack|break|character|collapse|column
+            |columnBreakAfter|columnBreakBefore|count|counter|crop|cue|cueAfter|cueBefore|decoration|decorationBreak
+            |delay|displayModel|displayRole|down|drop|dropInitialAfterAdjust|dropInitialAfterAlign|dropInitialBeforeAdjust
+            |dropInitialBeforeAlign|dropInitialSize|dropInitialValue|duration|elevation|emphasis|family|fit|fitPosition
+            |flexGroup|floatOffset|gap|gridColumns|gridRows|hangingPunctuation|header|hyphenate|hyphenateAfter|hyphenateBefore
+            |hyphenateCharacter|hyphenateLines|hyphenateResource|icon|image|increment|indent|index|initialAfterAdjust
+            |initialAfterAlign|initialBeforeAdjust|initialBeforeAlign|initialSize|initialValue|inlineBoxAlign|iterationCount
+            |justify|label|leftColor|leftStyle|leftWidth|length|level|line|lineStacking|lineStackingRuby|lineStackingShift
+            |lineStackingStrategy|lines|list|mark|markAfter|markBefore|marks|marquee|marqueeDirection|marqueePlayCount|marqueeSpeed
+            |marqueeStyle|max|min|model|moveTo|name|nav|navDown|navIndex|navLeft|navRight|navUp|new|numeral|offset|ordinalGroup
+            |orient|origin|overflowStyle|overhang|pack|page|pagePolicy|pause|pauseAfter|pauseBefore|phonemes|pitch|pitchRange
+            |playCount|playDuring|playState|point|presentation|presentationLevel|profile|property|punctuation|punctuationTrim
+            |radius|rate|renderingIntent|repeat|replace|reset|resolution|resource|respondTo|rest|restAfter|restBefore|richness
+            |rightColor|rightStyle|rightWidth|role|rotation|rotationPoint|rows|ruby|rubyOverhang|rubySpan|rule|ruleColor
+            |ruleStyle|ruleWidth|shadow|size|sizeAdjust|sizing|space|spaceCollapse|spacing|span|speak|speakHeader|speakNumeral
+            |speakPunctuation|speech|speechRate|speed|stacking|stackingRuby|stackingShift|stackingStrategy|stress|stretch
+            |stringSet|style|styleImage|stylePosition|styleType|target|targetName|targetNew|targetPosition|text|textHeight
+            |textJustify|textOutline|textReplace|textWrap|timingFunction|topColor|topLeftRadius|topRightRadius|topStyle
+            |topWidth|trim|unicode|up|userSelect|variant|voice|voiceBalance|voiceDuration|voiceFamily|voicePitch|voicePitchRange
+            |voiceRate|voiceStress|voiceVolume|volume|weight|white|whiteSpaceCollapse|word|wrap
+          )\b
+        name: support.type.property-name.css.ruko
+      - match: (?x)\b(?:ah|apple|atsc|epub|hp|khtml|moz|ms|o|rim|ro|tc|wap|webkit|xv|mso|prince)(?:[\p{L}\p{Nl}\p{Pc}&&\P{Ll}][\w&&\P{Lu}]*)+\b
+        name: support.type.vendored.property-name.css.ruko
+
+  css-property-values:
+    patterns:
+      - match: |-
+          (?x)\b(
+            aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow
+          )\b
+        name: support.constant.color.w3c-standard-color-name.css.ruko
+      - match: |-
+          (?x)\b(aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|gold|goldenrod|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|magenta|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olivedrab|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rebeccapurple|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|transparent|turquoise|violet|wheat|whitesmoke|yellowgreen)\b
+        name: support.constant.color.w3c-extended-color-name.css.ruko
+      - match: (?x)\b(currentColor)\b
+        name: support.constant.color.current.css.ruko
+      - match: |-
+          (?x)\b(
+            ActiveBorder|ActiveCaption|AppWorkspace|Background|ButtonFace|ButtonHighlight|ButtonShadow|ButtonText|CaptionText|GrayText|Highlight|HighlightText|InactiveBorder|InactiveCaption|InactiveCaptionText|InfoBackground|InfoText|Menu|MenuText|Scrollbar|ThreeDDarkShadow|ThreeDFace|ThreeDHighlight|ThreeDLightShadow|ThreeDShadow|Window|WindowFrame|WindowText
+          )\b
+        name: support.constant.color.system.css.ruko
+      - match: |-
+          (?x)\b(
+            above|absolute|active|add|additive|after-edge|alias|all|all-petite-caps|all-scroll|all-small-caps|alpha|alphabetic|alternate|alternate-reverse
+            |always|antialiased|auto|auto-fill|auto-fit|auto-pos|available|avoid|avoid-column|avoid-page|avoid-region|backwards|balance|baseline|before-edge|below|bevel
+            |bidi-override|blink|block|block-axis|block-start|block-end|bold|bolder|border|border-box|both|bottom|bottom-outside|break-all|break-word|bullets
+            |butt|capitalize|caption|cell|center|central|char|circle|clip|clone|close-quote|closest-corner|closest-side|col-resize|collapse|color|color-burn
+            |color-dodge|column|column-reverse|common-ligatures|compact|condensed|contain|content|content-box|contents|context-menu|contextual|copy|cover
+            |crisp-edges|crispEdges|crosshair|cyclic|dark|darken|dashed|decimal|default|dense|diagonal-fractions|difference|digits|disabled|disc|discretionary-ligatures
+            |distribute|distribute-all-lines|distribute-letter|distribute-space|dot|dotted|double|double-circle|downleft|downright|e-resize|each-line|ease|ease-in
+            |ease-in-out|ease-out|economy|ellipse|ellipsis|embed|end|evenodd|ew-resize|exact|exclude|exclusion|expanded|extends|extra-condensed|extra-expanded
+            |fallback|farthest-corner|farthest-side|fill|fill-available|fill-box|filled|fit-content|fixed|flat|flex|flex-end|flex-start|flip|flow-root|forwards|freeze
+            |from-image|full-width|geometricPrecision|georgian|grab|grabbing|grayscale|grid|groove|hand|hanging|hard-light|help|hidden|hide
+            |historical-forms|historical-ligatures|horizontal|horizontal-tb|hue|icon|ideograph-alpha|ideograph-numeric|ideograph-parenthesis|ideograph-space
+            |ideographic|inactive|infinite|inherit|initial|inline|inline-axis|inline-block|inline-end|inline-flex|inline-grid|inline-list-item|inline-start
+            |inline-table|inset|inside|inter-character|inter-ideograph|inter-word|intersect|invert|isolate|isolate-override|italic|jis04|jis78|jis83
+            |jis90|justify|justify-all|kannada|keep-all|landscape|large|larger|left|light|lighten|lighter|line|line-edge|line-through|linear|linearRGB
+            |lining-nums|list-item|local|loose|lowercase|lr|lr-tb|ltr|luminance|luminosity|main-size|mandatory|manipulation|manual|margin-box|match-parent
+            |match-source|mathematical|max-content|medium|menu|message-box|middle|min-content|miter|mixed|move|multiply|n-resize|narrower|ne-resize
+            |nearest-neighbor|nesw-resize|newspaper|no-change|no-clip|no-close-quote|no-common-ligatures|no-contextual|no-discretionary-ligatures
+            |no-drop|no-historical-ligatures|no-open-quote|no-repeat|none|nonzero|normal|not-allowed|nowrap|ns-resize|numbers|numeric|nw-resize|nwse-resize
+            |oblique|oldstyle-nums|open|open-quote|optimizeLegibility|optimizeQuality|optimizeSpeed|optional|ordinal|outset|outside|over|overlay|overline|padding
+            |padding-box|page|painted|pan-down|pan-left|pan-right|pan-up|pan-x|pan-y|paused|petite-caps|pixelated|plaintext|pointer|portrait|pre|pre-line
+            |pre-wrap|preserve-3d|progress|progressive|proportional-nums|proportional-width|proximity|radial|recto|region|relative|remove|repeat|repeat-[xy]
+            |reset-size|reverse|revert|ridge|right|rl|rl-tb|round|row|row-resize|row-reverse|row-severse|rtl|ruby|ruby-base|ruby-base-container|ruby-text
+            |ruby-text-container|run-in|running|s-resize|saturation|scale-down|screen|scroll|scroll-position|se-resize|semi-condensed|semi-expanded|separate
+            |sesame|show|sideways|sideways-left|sideways-lr|sideways-right|sideways-rl|simplified|slashed-zero|slice|small|small-caps|small-caption|smaller
+            |smooth|soft-light|solid|space|space-around|space-between|space-evenly|spell-out|square|sRGB|stacked-fractions|start|static|status-bar|swap
+            |step-end|step-start|sticky|stretch|strict|stroke|stroke-box|style|sub|subgrid|subpixel-antialiased|subtract|super|sw-resize|symbolic|table
+            |table-caption|table-cell|table-column|table-column-group|table-footer-group|table-header-group|table-row|table-row-group|tabular-nums|tb|tb-rl
+            |text|text-after-edge|text-before-edge|text-bottom|text-top|thick|thin|titling-caps|top|top-outside|touch|traditional|transparent|triangle
+            |ultra-condensed|ultra-expanded|under|underline|unicase|unset|upleft|uppercase|upright|use-glyph-orientation|use-script|verso|vertical
+            |vertical-ideographic|vertical-lr|vertical-rl|vertical-text|view-box|visible|visibleFill|visiblePainted|visibleStroke|w-resize|wait|wavy
+            |weight|whitespace|wider|words|wrap|wrap-reverse|x|x-large|x-small|xx-large|xx-small|y|zero|zoom-in|zoom-out
+            |above|absolute|active|add|additive|afterEdge|alias|all|allPetiteCaps|allScroll|allSmallCaps|alpha|alphabetic|alternate|alternateReverse
+            |always|antialiased|auto|autoFill|autoFit|autoPos|available|avoid|avoidColumn|avoidPage|avoidRegion|backwards|balance|baseline|beforeEdge|below|bevel
+            |bidiOverride|blink|block|blockAxis|blockStart|blockEnd|bold|bolder|border|borderBox|both|bottom|bottomOutside|breakAll|breakWord|bullets
+            |butt|capitalize|caption|cell|center|central|char|circle|clip|clone|closeQuote|closestCorner|closestSide|colResize|collapse|color|colorBurn
+            |colorDodge|column|columnReverse|commonLigatures|compact|condensed|contain|content|contentBox|contents|contextMenu|contextual|copy|cover
+            |crispEdges|crispEdges|crosshair|cyclic|dark|darken|dashed|decimal|default|dense|diagonalFractions|difference|digits|disabled|disc|discretionaryLigatures
+            |distribute|distributeAllLines|distributeLetter|distributeSpace|dot|dotted|double|doubleCircle|downleft|downright|eResize|eachLine|ease|easeIn
+            |easeInOut|easeOut|economy|ellipse|ellipsis|embed|end|evenodd|ewResize|exact|exclude|exclusion|expanded|extends|extraCondensed|extraExpanded
+            |fallback|farthestCorner|farthestSide|fill|fillAvailable|fillBox|filled|fitContent|fixed|flat|flex|flexEnd|flexStart|flip|flowRoot|forwards|freeze
+            |fromImage|fullWidth|geometricPrecision|georgian|grab|grabbing|grayscale|grid|groove|hand|hanging|hardLight|help|hidden|hide
+            |historicalForms|historicalLigatures|horizontal|horizontalTb|hue|icon|ideographAlpha|ideographNumeric|ideographParenthesis|ideographSpace
+            |ideographic|inactive|infinite|inherit|initial|inline|inlineAxis|inlineBlock|inlineEnd|inlineFlex|inlineGrid|inlineListItem|inlineStart
+            |inlineTable|inset|inside|interCharacter|interIdeograph|interWord|intersect|invert|isolate|isolateOverride|italic|jis04|jis78|jis83
+            |jis90|justify|justifyAll|kannada|keepAll|landscape|large|larger|left|light|lighten|lighter|line|lineEdge|lineThrough|linear|linearRGB
+            |liningNums|listItem|local|loose|lowercase|lr|lrTb|ltr|luminance|luminosity|mainSize|mandatory|manipulation|manual|marginBox|matchParent
+            |matchSource|mathematical|maxContent|medium|menu|messageBox|middle|minContent|miter|mixed|move|multiply|nResize|narrower|neResize
+            |nearestNeighbor|neswResize|newspaper|noChange|noClip|noCloseQuote|noCommonLigatures|noContextual|noDiscretionaryLigatures
+            |noDrop|noHistoricalLigatures|noOpenQuote|noRepeat|none|nonzero|normal|notAllowed|nowrap|nsResize|numbers|numeric|nwResize|nwseResize
+            |oblique|oldstyleNums|open|openQuote|optimizeLegibility|optimizeQuality|optimizeSpeed|optional|ordinal|outset|outside|over|overlay|overline|padding
+            |paddingBox|page|painted|panDown|panLeft|panRight|panUp|panX|panY|paused|petiteCaps|pixelated|plaintext|pointer|portrait|pre|preLine
+            |preWrap|preserve3d|progress|progressive|proportionalNums|proportionalWidth|proximity|radial|recto|region|relative|remove|repeat|repeat[xy]
+            |resetSize|reverse|revert|ridge|right|rl|rlTb|round|row|rowResize|rowReverse|rowSeverse|rtl|ruby|rubyBase|rubyBaseContainer|rubyText
+            |rubyTextContainer|runIn|running|sResize|saturation|scaleDown|screen|scroll|scrollPosition|seResize|semiCondensed|semiExpanded|separate
+            |sesame|show|sideways|sidewaysLeft|sidewaysLr|sidewaysRight|sidewaysRl|simplified|slashedZero|slice|small|smallCaps|smallCaption|smaller
+            |smooth|softLight|solid|space|spaceAround|spaceBetween|spaceEvenly|spellOut|square|sRGB|stackedFractions|start|static|statusBar|swap
+            |stepEnd|stepStart|sticky|stretch|strict|stroke|strokeBox|style|sub|subgrid|subpixelAntialiased|subtract|super|swResize|symbolic|table
+            |tableCaption|tableCell|tableColumn|tableColumnGroup|tableFooterGroup|tableHeaderGroup|tableRow|tableRowGroup|tabularNums|tb|tbRl
+            |text|textAfterEdge|textBeforeEdge|textBottom|textTop|thick|thin|titlingCaps|top|topOutside|touch|traditional|transparent|triangle
+            |ultraCondensed|ultraExpanded|under|underline|unicase|unset|upleft|uppercase|upright|useGlyphOrientation|useScript|verso|vertical
+            |verticalIdeographic|verticalLr|verticalRl|verticalText|viewBox|visible|visibleFill|visiblePainted|visibleStroke|wResize|wait|wavy
+            |weight|whitespace|wider|words|wrap|wrapReverse|x|xLarge|xSmall|xxLarge|xxSmall|y|zero|zoomIn|zoomOut
+          )\b
+        name: support.constant.property-value.css.ruko
+      - match: |-
+          (?x)\b(
+            arabicIndic|armenian|bengali|cambodian|circle|cjkDecimal|cjkEarthlyBranch|cjkHeavenlyStem|cjkIdeographic
+            |decimal|decimalLeadingZero|devanagari|disc|disclosureClosed|disclosureOpen|ethiopicHalehameAm
+            |ethiopicHalehameTiE[rt]|ethiopicNumeric|georgian|gujarati|gurmukhi|hangul|hangulConsonant|hebrew
+            |hiragana|hiraganaIroha|japaneseFormal|japaneseInformal|kannada|katakana|katakanaIroha|khmer
+            |koreanHangulFormal|koreanHanjaFormal|koreanHanjaInformal|lao|lowerAlpha|lowerArmenian|lowerGreek
+            |lowerLatin|lowerRoman|malayalam|mongolian|myanmar|oriya|persian|simpChineseFormal|simpChineseInformal
+            |square|tamil|telugu|thai|tibetan|tradChineseFormal|tradChineseInformal|upperAlpha|upperArmenian
+            |upperLatin|upperRoman|urdu
+            |arabic-indic|armenian|bengali|cambodian|circle|cjk-decimal|cjk-earthly-branch|cjk-heavenly-stem|cjk-ideographic
+            |decimal|decimal-leading-zero|devanagari|disc|disclosure-closed|disclosure-open|ethiopic-halehame-am
+            |ethiopic-halehame-ti-e[rt]|ethiopic-numeric|georgian|gujarati|gurmukhi|hangul|hangul-consonant|hebrew
+            |hiragana|hiragana-iroha|japanese-formal|japanese-informal|kannada|katakana|katakana-iroha|khmer
+            |korean-hangul-formal|korean-hanja-formal|korean-hanja-informal|lao|lower-alpha|lower-armenian|lower-greek
+            |lower-latin|lower-roman|malayalam|mongolian|myanmar|oriya|persian|simp-chinese-formal|simp-chinese-informal
+            |square|tamil|telugu|thai|tibetan|trad-chinese-formal|trad-chinese-informal|upper-alpha|upper-armenian
+            |upper-latin|upper-roman|urdu
+          )\b
+        name: support.constant.property-value.list-style-type.css.ruko
+      - match: |-
+          (?x)\b(arial|century|comic|courier|garamond|georgia|helvetica|impact|lucida|symbol|system-ui|system|tahoma|times|trebuchet|ui-monospace|ui-rounded|ui-sans-serif|ui-serif|utopia|verdana|webdings|sans-serif|serif|monospace|arial|century|comic|courier|garamond|georgia|helvetica|impact|lucida|symbol|systemUi|system|tahoma|times|trebuchet|uiMonospace|uiRounded|uiSansSerif|uiSerif|utopia|verdana|webdings|sansSerif|serif|monospace)\b
+        name: support.constant.font-name.css.ruko
+      - match: (?x)\b(all|print|screen|speech|aural|braille|embossed|handheld|projection|tty|tv)\b
+        name: support.constant.media.css.ruko
+
+  css-tag-names:
+    match: |-
+      (?x)\b(
+        a|abbr|acronym|address|altGlyph|altGlyphDef|altGlyphItem|animate|animateColor|animateMotion|animateTransform|annotation|annotationXml|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|block-quote|body|br|button|canvas|caption|center|circle|cite|clipPath|code|col|colgroup|colorProfile|command|content|cursor|data|datalist|dd|defs|del|desc|details|dfn|dialog|dir|discard|div|dl|dt|elem|ellipse|em|embed|feBlend|feColorMatrix|feComponentTransfer|feComposite|feConvolveMatrix|feDiffuseLighting|feDisplacementMap|feDistantLight|feDropShadow|feFlood|feFuncA|feFuncB|feFuncG|feFuncR|feGaussianBlur|feImage|feMerge|feMergeNode|feMorphology|feOffset|fePointLight|feSpecularLighting|feSpotLight|feTile|feTurbulence|fieldset|figcaption|figure|filter|font|fontFace|fontFaceFormat|fontFaceName|fontFaceSrc|fontFaceUri|footer|foreignObject|form|frame|frameset|g|glyph|glyphRef|hatch|hatchpath|hd|head|header|hgroup|hkern|hr|html|h[1-6]|i|iframe|image|img|input|ins|isindex|kbd|keygen|label|legend|li|line|linearGradient|link|listing|maction|main|maligngroup|malignmark|map|mark|marker|marquee|mask|math|menclose|menu|menuitem|merror|mesh|meshgradient|meshpatch|meshrow|meta|metadata|meter|mfenced|mfrac|mglyph|mi|missingGlyph|mlabeledtr|mlongdiv|mmultiscripts|mn|mo|mover|mpadded|mpath|mphantom|mroot|mrow|ms|mscarries|mscarry|msgroup|msline|mspace|msqrt|msrow|mstack|mstyle|msub|msubsup|msup|mtable|mtd|mtext|mtr|multicol|munder|munderover|nav|nextid|nobr|noembed|noframes|noscript|object|ol|optgroup|option|output|p|param|path|pattern|picture|plaintext|polygon|polyline|pre|progress|q|radialGradient|rb|rect|rp|rt|rtc|ruby|s|samp|script|section|select|semantics|set|shadow|slot|small|solidcolor|source|spacer|span|stop|strike|strong|style|sub|summary|sup|svg|switch|symbol|table|tbody|td|template|text|textarea|textPath|tfoot|th|thead|time|title|tr|track|tref|tspan|tt|u|ul|use|var|video|view|vkern|wbr|xmp
+      )\b
+    name: entity.name.tag.css.ruko
+
+  xml-entity-names:
+    comment: Yes this is a bit ridiculous, there are quite a lot of these
+    match: \b((a(s(ymp(eq)?|cr|t)|n(d(slope|d|v|and)?|g(s(t|ph)|zarr|e|le|rt(vb(d)?)?|msd(a(h|c|d|e|f|a|g|b))?)?)|c(y|irc|d|ute|E)?|tilde|o(pf|gon)|uml|p(id|os|prox(eq)?|e|E|acir)?|elig|f(r)?|w(conint|int)|l(pha|e(ph|fsym))|acute|ring|grave|m(p|a(cr|lg))|breve)|A(s(sign|cr)|nd|MP|c(y|irc)|tilde|o(pf|gon)|uml|pplyFunction|fr|Elig|lpha|acute|ring|grave|macr|breve))|(B(scr|cy|opf|umpeq|e(cause|ta|rnoullis)|fr|a(ckslash|r(v|wed))|reve)|b(s(cr|im(e)?|ol(hsub|b)?|emi)|n(ot|e(quiv)?)|c(y|ong)|ig(s(tar|qcup)|c(irc|up|ap)|triangle(down|up)|o(times|dot|plus)|uplus|vee|wedge)|o(t(tom)?|pf|wtie|x(h(d|u|D|U)?|times|H(d|u|D|U)?|d(R|l|r|L)|u(R|l|r|L)|plus|D(R|l|r|L)|v(R|h|H|l|r|L)?|U(R|l|r|L)|V(R|h|H|l|r|L)?|minus|box))|Not|dquo|u(ll(et)?|mp(e(q)?|E)?)|prime|e(caus(e)?|t(h|ween|a)|psi|rnou|mptyv)|karow|fr|l(ock|k(1(2|4)|34)|a(nk|ck(square|triangle(down|left|right)?|lozenge)))|a(ck(sim(eq)?|cong|prime|epsilon)|r(vee|wed(ge)?))|r(eve|vbar)|brk(tbrk)?))|(c(s(cr|u(p(e)?|b(e)?))|h(cy|i|eck(mark)?)|ylcty|c(irc|ups(sm)?|edil|a(ps|ron))|tdot|ir(scir|c(eq|le(d(R|circ|S|dash|ast)|arrow(left|right)))?|e|fnint|E|mid)?|o(n(int|g(dot)?)|p(y(sr)?|f|rod)|lon(e(q)?)?|m(p(fn|le(xes|ment))?|ma(t)?))|dot|u(darr(l|r)|p(s|c(up|ap)|or|dot|brcap)?|e(sc|pr)|vee|wed|larr(p)?|r(vearrow(left|right)|ly(eq(succ|prec)|vee|wedge)|arr(m)?|ren))|e(nt(erdot)?|dil|mptyv)|fr|w(conint|int)|lubs(uit)?|a(cute|p(s|c(up|ap)|dot|and|brcup)?|r(on|et))|r(oss|arr))|C(scr|hi|c(irc|onint|edil|aron)|ircle(Minus|Times|Dot|Plus)|Hcy|o(n(tourIntegral|int|gruent)|unterClockwiseContourIntegral|p(f|roduct)|lon(e)?)|dot|up(Cap)?|OPY|e(nterDot|dilla)|fr|lo(seCurly(DoubleQuote|Quote)|ckwiseContourIntegral)|a(yleys|cute|p(italDifferentialD)?)|ross))|(d(s(c(y|r)|trok|ol)|har(l|r)|c(y|aron)|t(dot|ri(f)?)|i(sin|e|v(ide(ontimes)?|onx)?|am(s|ond(suit)?)?|gamma)|Har|z(cy|igrarr)|o(t(square|plus|eq(dot)?|minus)?|ublebarwedge|pf|wn(harpoon(left|right)|downarrows|arrow)|llar)|d(otseq|a(rr|gger))?|u(har|arr)|jcy|e(lta|g|mptyv)|f(isht|r)|wangle|lc(orn|rop)|a(sh(v)?|leth|rr|gger)|r(c(orn|rop)|bkarow)|b(karow|lac)|Arr)|D(s(cr|trok)|c(y|aron)|Scy|i(fferentialD|a(critical(Grave|Tilde|Do(t|ubleAcute)|Acute)|mond))|o(t(Dot|Equal)?|uble(Right(Tee|Arrow)|ContourIntegral|Do(t|wnArrow)|Up(DownArrow|Arrow)|VerticalBar|L(ong(RightArrow|Left(RightArrow|Arrow))|eft(RightArrow|Tee|Arrow)))|pf|wn(Right(TeeVector|Vector(Bar)?)|Breve|Tee(Arrow)?|arrow|Left(RightVector|TeeVector|Vector(Bar)?)|Arrow(Bar|UpArrow)?))|Zcy|el(ta)?|D(otrahd)?|Jcy|fr|a(shv|rr|gger)))|(e(s(cr|im|dot)|n(sp|g)|c(y|ir(c)?|olon|aron)|t(h|a)|o(pf|gon)|dot|u(ro|ml)|p(si(v|lon)?|lus|ar(sl)?)|e|D(ot|Dot)|q(s(im|lant(less|gtr))|c(irc|olon)|u(iv(DD)?|est|als)|vparsl)|f(Dot|r)|l(s(dot)?|inters|l)?|a(ster|cute)|r(Dot|arr)|g(s(dot)?|rave)?|x(cl|ist|p(onentiale|ectation))|m(sp(1(3|4))?|pty(set|v)?|acr))|E(s(cr|im)|c(y|irc|aron)|ta|o(pf|gon)|NG|dot|uml|TH|psilon|qu(ilibrium|al(Tilde)?)|fr|lement|acute|grave|x(ists|ponentialE)|m(pty(SmallSquare|VerySmallSquare)|acr)))|(f(scr|nof|cy|ilig|o(pf|r(k(v)?|all))|jlig|partint|emale|f(ilig|l(ig|lig)|r)|l(tns|lig|at)|allingdotseq|r(own|a(sl|c(1(2|8|3|4|5|6)|78|2(3|5)|3(8|4|5)|45|5(8|6)))))|F(scr|cy|illed(SmallSquare|VerySmallSquare)|o(uriertrf|pf|rAll)|fr))|(G(scr|c(y|irc|edil)|t|opf|dot|T|Jcy|fr|amma(d)?|reater(Greater|SlantEqual|Tilde|Equal(Less)?|FullEqual|Less)|g|breve)|g(s(cr|im(e|l)?)|n(sim|e(q(q)?)?|E|ap(prox)?)|c(y|irc)|t(c(c|ir)|dot|quest|lPar|r(sim|dot|eq(qless|less)|less|a(pprox|rr)))?|imel|opf|dot|jcy|e(s(cc|dot(o(l)?)?|l(es)?)?|q(slant|q)?|l)?|v(nE|ertneqq)|fr|E(l)?|l(j|E|a)?|a(cute|p|mma(d)?)|rave|g(g)?|breve))|(h(s(cr|trok|lash)|y(phen|bull)|circ|o(ok(leftarrow|rightarrow)|pf|arr|rbar|mtht)|e(llip|arts(uit)?|rcon)|ks(earow|warow)|fr|a(irsp|lf|r(dcy|r(cir|w)?)|milt)|bar|Arr)|H(s(cr|trok)|circ|ilbertSpace|o(pf|rizontalLine)|ump(DownHump|Equal)|fr|a(cek|t)|ARDcy))|(i(s(cr|in(s(v)?|dot|v|E)?)|n(care|t(cal|prod|e(rcal|gers)|larhk)?|odot|fin(tie)?)?|c(y|irc)?|t(ilde)?|i(nfin|i(nt|int)|ota)?|o(cy|ta|pf|gon)|u(kcy|ml)|jlig|prod|e(cy|xcl)|quest|f(f|r)|acute|grave|m(of|ped|a(cr|th|g(part|e|line))))|I(scr|n(t(e(rsection|gral))?|visible(Comma|Times))|c(y|irc)|tilde|o(ta|pf|gon)|dot|u(kcy|ml)|Ocy|Jlig|fr|Ecy|acute|grave|m(plies|a(cr|ginaryI))?))|(j(s(cr|ercy)|c(y|irc)|opf|ukcy|fr|math)|J(s(cr|ercy)|c(y|irc)|opf|ukcy|fr))|(k(scr|hcy|c(y|edil)|opf|jcy|fr|appa(v)?|green)|K(scr|c(y|edil)|Hcy|opf|Jcy|fr|appa))|(l(s(h|cr|trok|im(e|g)?|q(uo(r)?|b)|aquo)|h(ar(d|u(l)?)|blk)|n(sim|e(q(q)?)?|E|ap(prox)?)|c(y|ub|e(il|dil)|aron)|Barr|t(hree|c(c|ir)|imes|dot|quest|larr|r(i(e|f)?|Par))?|Har|o(ng(left(arrow|rightarrow)|rightarrow|mapsto)|times|z(enge|f)?|oparrow(left|right)|p(f|lus|ar)|w(ast|bar)|a(ng|rr)|brk)|d(sh|ca|quo(r)?|r(dhar|ushar))|ur(dshar|uhar)|jcy|par(lt)?|e(s(s(sim|dot|eq(qgtr|gtr)|approx|gtr)|cc|dot(o(r)?)?|g(es)?)?|q(slant|q)?|ft(harpoon(down|up)|threetimes|leftarrows|arrow(tail)?|right(squigarrow|harpoons|arrow(s)?))|g)?|v(nE|ertneqq)|f(isht|loor|r)|E(g)?|l(hard|corner|tri|arr)?|a(ng(d|le)?|cute|t(e(s)?|ail)?|p|emptyv|quo|rr(sim|hk|tl|pl|fs|lp|b(fs)?)?|gran|mbda)|r(har(d)?|corner|tri|arr|m)|g(E)?|m(idot|oust(ache)?)|b(arr|r(k(sl(d|u)|e)|ac(e|k))|brk)|A(tail|arr|rr))|L(s(h|cr|trok)|c(y|edil|aron)|t|o(ng(RightArrow|left(arrow|rightarrow)|rightarrow|Left(RightArrow|Arrow))|pf|wer(RightArrow|LeftArrow))|T|e(ss(Greater|SlantEqual|Tilde|EqualGreater|FullEqual|Less)|ft(Right(Vector|Arrow)|Ceiling|T(ee(Vector|Arrow)?|riangle(Bar|Equal)?)|Do(ubleBracket|wn(TeeVector|Vector(Bar)?))|Up(TeeVector|DownVector|Vector(Bar)?)|Vector(Bar)?|arrow|rightarrow|Floor|A(ngleBracket|rrow(RightArrow|Bar)?)))|Jcy|fr|l(eftarrow)?|a(ng|cute|placetrf|rr|mbda)|midot))|(M(scr|cy|inusPlus|opf|u|e(diumSpace|llintrf)|fr|ap)|m(s(cr|tpos)|ho|nplus|c(y|omma)|i(nus(d(u)?|b)?|cro|d(cir|dot|ast)?)|o(dels|pf)|dash|u(ltimap|map)?|p|easuredangle|DDot|fr|l(cp|dr)|a(cr|p(sto(down|up|left)?)?|l(t(ese)?|e)|rker)))|(n(s(hort(parallel|mid)|c(cue|e|r)?|im(e(q)?)?|u(cc(eq)?|p(set(eq(q)?)?|e|E)?|b(set(eq(q)?)?|e|E)?)|par|qsu(pe|be)|mid)|Rightarrow|h(par|arr|Arr)|G(t(v)?|g)|c(y|ong(dot)?|up|edil|a(p|ron))|t(ilde|lg|riangle(left(eq)?|right(eq)?)|gl)|i(s(d)?|v)?|o(t(ni(v(c|a|b))?|in(dot|v(c|a|b)|E)?)?|pf)|dash|u(m(sp|ero)?)?|jcy|p(olint|ar(sl|t|allel)?|r(cue|e(c(eq)?)?)?)|e(s(im|ear)|dot|quiv|ar(hk|r(ow)?)|xist(s)?|Arr)?|v(sim|infin|Harr|dash|Dash|l(t(rie)?|e|Arr)|ap|r(trie|Arr)|g(t|e))|fr|w(near|ar(hk|r(ow)?)|Arr)|V(dash|Dash)|l(sim|t(ri(e)?)?|dr|e(s(s)?|q(slant|q)?|ft(arrow|rightarrow))?|E|arr|Arr)|a(ng|cute|tur(al(s)?)?|p(id|os|prox|E)?|bla)|r(tri(e)?|ightarrow|arr(c|w)?|Arr)|g(sim|t(r)?|e(s|q(slant|q)?)?|E)|mid|L(t(v)?|eft(arrow|rightarrow)|l)|b(sp|ump(e)?))|N(scr|c(y|edil|aron)|tilde|o(nBreakingSpace|Break|t(R(ightTriangle(Bar|Equal)?|everseElement)|Greater(Greater|SlantEqual|Tilde|Equal|FullEqual|Less)?|S(u(cceeds(SlantEqual|Tilde|Equal)?|perset(Equal)?|bset(Equal)?)|quareSu(perset(Equal)?|bset(Equal)?))|Hump(DownHump|Equal)|Nested(GreaterGreater|LessLess)|C(ongruent|upCap)|Tilde(Tilde|Equal|FullEqual)?|DoubleVerticalBar|Precedes(SlantEqual|Equal)?|E(qual(Tilde)?|lement|xists)|VerticalBar|Le(ss(Greater|SlantEqual|Tilde|Equal|Less)?|ftTriangle(Bar|Equal)?))?|pf)|u|e(sted(GreaterGreater|LessLess)|wLine|gative(MediumSpace|Thi(nSpace|ckSpace)|VeryThinSpace))|Jcy|fr|acute))|(o(s(cr|ol|lash)|h(m|bar)|c(y|ir(c)?)|ti(lde|mes(as)?)|S|int|opf|d(sold|iv|ot|ash|blac)|uml|p(erp|lus|ar)|elig|vbar|f(cir|r)|l(c(ir|ross)|t|ine|arr)|a(st|cute)|r(slope|igof|or|d(er(of)?|f|m)?|v|arr)?|g(t|on|rave)|m(i(nus|cron|d)|ega|acr))|O(s(cr|lash)|c(y|irc)|ti(lde|mes)|opf|dblac|uml|penCurly(DoubleQuote|Quote)|ver(B(ar|rac(e|ket))|Parenthesis)|fr|Elig|acute|r|grave|m(icron|ega|acr)))|(p(s(cr|i)|h(i(v)?|one|mmat)|cy|i(tchfork|v)?|o(intint|und|pf)|uncsp|er(cnt|tenk|iod|p|mil)|fr|l(us(sim|cir|two|d(o|u)|e|acir|mn|b)?|an(ck(h)?|kv))|ar(s(im|l)|t|a(llel)?)?|r(sim|n(sim|E|ap)|cue|ime(s)?|o(d|p(to)?|f(surf|line|alar))|urel|e(c(sim|n(sim|eqq|approx)|curlyeq|eq|approx)?)?|E|ap)?|m)|P(s(cr|i)|hi|cy|i|o(incareplane|pf)|fr|lusMinus|artialD|r(ime|o(duct|portion(al)?)|ecedes(SlantEqual|Tilde|Equal)?)?))|(q(scr|int|opf|u(ot|est(eq)?|at(int|ernions))|prime|fr)|Q(scr|opf|UOT|fr))|(R(s(h|cr)|ho|c(y|edil|aron)|Barr|ight(Ceiling|T(ee(Vector|Arrow)?|riangle(Bar|Equal)?)|Do(ubleBracket|wn(TeeVector|Vector(Bar)?))|Up(TeeVector|DownVector|Vector(Bar)?)|Vector(Bar)?|arrow|Floor|A(ngleBracket|rrow(Bar|LeftArrow)?))|o(undImplies|pf)|uleDelayed|e(verse(UpEquilibrium|E(quilibrium|lement)))?|fr|EG|a(ng|cute|rr(tl)?)|rightarrow)|r(s(h|cr|q(uo(r)?|b)|aquo)|h(o(v)?|ar(d|u(l)?))|nmid|c(y|ub|e(il|dil)|aron)|Barr|t(hree|imes|ri(e|f|ltri)?)|i(singdotseq|ng|ght(squigarrow|harpoon(down|up)|threetimes|left(harpoons|arrows)|arrow(tail)?|rightarrows))|Har|o(times|p(f|lus|ar)|a(ng|rr)|brk)|d(sh|ca|quo(r)?|ldhar)|uluhar|p(polint|ar(gt)?)|e(ct|al(s|ine|part)?|g)|f(isht|loor|r)|l(har|arr|m)|a(ng(d|e|le)?|c(ute|e)|t(io(nals)?|ail)|dic|emptyv|quo|rr(sim|hk|c|tl|pl|fs|w|lp|ap|b(fs)?)?)|rarr|x|moust(ache)?|b(arr|r(k(sl(d|u)|e)|ac(e|k))|brk)|A(tail|arr|rr)))|(s(s(cr|tarf|etmn|mile)|h(y|c(hcy|y)|ort(parallel|mid)|arp)|c(sim|y|n(sim|E|ap)|cue|irc|polint|e(dil)?|E|a(p|ron))?|t(ar(f)?|r(ns|aight(phi|epsilon)))|i(gma(v|f)?|m(ne|dot|plus|e(q)?|l(E)?|rarr|g(E)?)?)|zlig|o(pf|ftcy|l(b(ar)?)?)|dot(e|b)?|u(ng|cc(sim|n(sim|eqq|approx)|curlyeq|eq|approx)?|p(s(im|u(p|b)|et(neq(q)?|eq(q)?)?)|hs(ol|ub)|1|n(e|E)|2|d(sub|ot)|3|plus|e(dot)?|E|larr|mult)?|m|b(s(im|u(p|b)|et(neq(q)?|eq(q)?)?)|n(e|E)|dot|plus|e(dot)?|E|rarr|mult)?)|pa(des(uit)?|r)|e(swar|ct|tm(n|inus)|ar(hk|r(ow)?)|xt|mi|Arr)|q(su(p(set(eq)?|e)?|b(set(eq)?|e)?)|c(up(s)?|ap(s)?)|u(f|ar(e|f))?)|fr(own)?|w(nwar|ar(hk|r(ow)?)|Arr)|larr|acute|rarr|m(t(e(s)?)?|i(d|le)|eparsl|a(shp|llsetminus))|bquo)|S(scr|hort(RightArrow|DownArrow|UpArrow|LeftArrow)|c(y|irc|edil|aron)?|tar|igma|H(cy|CHcy)|opf|u(c(hThat|ceeds(SlantEqual|Tilde|Equal)?)|p(set|erset(Equal)?)?|m|b(set(Equal)?)?)|OFTcy|q(uare(Su(perset(Equal)?|bset(Equal)?)|Intersection|Union)?|rt)|fr|acute|mallCircle))|(t(s(hcy|c(y|r)|trok)|h(i(nsp|ck(sim|approx))|orn|e(ta(sym|v)?|re(4|fore))|k(sim|ap))|c(y|edil|aron)|i(nt|lde|mes(d|b(ar)?)?)|o(sa|p(cir|f(ork)?|bot)?|ea)|dot|prime|elrec|fr|w(ixt|ohead(leftarrow|rightarrow))|a(u|rget)|r(i(sb|time|dot|plus|e|angle(down|q|left(eq)?|right(eq)?)?|minus)|pezium|ade)|brk)|T(s(cr|trok)|RADE|h(i(nSpace|ckSpace)|e(ta|refore))|c(y|edil|aron)|S(cy|Hcy)|ilde(Tilde|Equal|FullEqual)?|HORN|opf|fr|a(u|b)|ripleDot))|(u(scr|h(ar(l|r)|blk)|c(y|irc)|t(ilde|dot|ri(f)?)|Har|o(pf|gon)|d(har|arr|blac)|u(arr|ml)|p(si(h|lon)?|harpoon(left|right)|downarrow|uparrows|lus|arrow)|f(isht|r)|wangle|l(c(orn(er)?|rop)|tri)|a(cute|rr)|r(c(orn(er)?|rop)|tri|ing)|grave|m(l|acr)|br(cy|eve)|Arr)|U(scr|n(ion(Plus)?|der(B(ar|rac(e|ket))|Parenthesis))|c(y|irc)|tilde|o(pf|gon)|dblac|uml|p(si(lon)?|downarrow|Tee(Arrow)?|per(RightArrow|LeftArrow)|DownArrow|Equilibrium|arrow|Arrow(Bar|DownArrow)?)|fr|a(cute|rr(ocir)?)|ring|grave|macr|br(cy|eve)))|(v(s(cr|u(pn(e|E)|bn(e|E)))|nsu(p|b)|cy|Bar(v)?|zigzag|opf|dash|prop|e(e(eq|bar)?|llip|r(t|bar))|Dash|fr|ltri|a(ngrt|r(s(igma|u(psetneq(q)?|bsetneq(q)?))|nothing|t(heta|riangle(left|right))|p(hi|i|ropto)|epsilon|kappa|r(ho)?))|rtri|Arr)|V(scr|cy|opf|dash(l)?|e(e|r(yThinSpace|t(ical(Bar|Separator|Tilde|Line))?|bar))|Dash|vdash|fr|bar))|(w(scr|circ|opf|p|e(ierp|d(ge(q)?|bar))|fr|r(eath)?)|W(scr|circ|opf|edge|fr))|(X(scr|i|opf|fr)|x(s(cr|qcup)|h(arr|Arr)|nis|c(irc|up|ap)|i|o(time|dot|p(f|lus))|dtri|u(tri|plus)|vee|fr|wedge|l(arr|Arr)|r(arr|Arr)|map))|(y(scr|c(y|irc)|icy|opf|u(cy|ml)|en|fr|ac(y|ute))|Y(scr|c(y|irc)|opf|uml|Icy|Ucy|fr|acute|Acy))|(z(scr|hcy|c(y|aron)|igrarr|opf|dot|e(ta|etrf)|fr|w(nj|j)|acute)|Z(scr|c(y|aron)|Hcy|opf|dot|e(ta|roWidthSpace)|fr|acute)))\b
+    name: support.constant.character.entity.ruko
+
+  dom-api-classes:
+    comment: JavaScript DOM and Web API classes
+    match: \b(AbortController|AbortSignal|AbsoluteOrientationSensor|AbstractRange|AccelerometerExperimental|AesCbcParams|AesCtrParams|AesDerivedKeyParams|AesGcmParams|AesKeyGenParams|AmbientLightSensorExperimental|AnalyserNode|ANGLE_instanced_arrays|Animation|AnimationEffect|AnimationEvent|AnimationPlaybackEvent|AnimationTimeline|Attr|AudioBuffer|AudioBufferSourceNode|AudioContext|AudioData|AudioDecoder|AudioDestinationNode|AudioEncoder|AudioListener|AudioNode|AudioParam|AudioParamDescriptor|AudioParamMap|AudioProcessingEventDeprecated|AudioScheduledSourceNode|AudioSinkInfoExperimental|AudioTrack|AudioTrackList|AudioWorklet|AudioWorkletGlobalScope|AudioWorkletNode|AudioWorkletProcessor|AuthenticatorAssertionResponse|AuthenticatorAttestationResponse|AuthenticatorResponse|BackgroundFetchEventExperimental|BackgroundFetchManagerExperimental|BackgroundFetchRecordExperimental|BackgroundFetchRegistrationExperimental|BackgroundFetchUpdateUIEventExperimental|BarcodeDetectorExperimental|BarProp|BaseAudioContext|BatteryManager|BeforeInstallPromptEventExperimentalNon-standard|BeforeUnloadEvent|BiquadFilterNode|Blob|BlobEvent|BluetoothExperimental|BluetoothCharacteristicPropertiesExperimental|BluetoothDeviceExperimental|BluetoothRemoteGATTCharacteristicExperimental|BluetoothRemoteGATTDescriptorExperimental|BluetoothRemoteGATTServerExperimental|BluetoothRemoteGATTServiceExperimental|BluetoothUUID|BroadcastChannel|BrowserCaptureMediaStreamTrackExperimental|ByteLengthQueuingStrategy|Cache|CacheStorage|CanMakePaymentEventExperimental|CanvasCaptureMediaStreamTrack|CanvasGradient|CanvasPattern|CanvasRenderingContext2D|CaptureControllerExperimental|CaretPosition|CDATASection|ChannelMergerNode|ChannelSplitterNode|ChapterInformationExperimental|CharacterBoundsUpdateEventExperimental|CharacterData|Client|Clients|Clipboard|ClipboardEvent|ClipboardItem|CloseEvent|CloseWatcherExperimental|CommandEvent|Comment|CompositionEvent|CompressionStream|console|ConstantSourceNode|ContactAddressExperimental|ContactsManagerExperimental|ContentIndexExperimental|ContentIndexEventExperimental|ContentVisibilityAutoStateChangeEvent|ConvolverNode|CookieChangeEvent|CookieStore|CookieStoreManager|CountQueuingStrategy|CreateMonitorExperimental|Credential|CredentialsContainer|CropTargetExperimental|Crypto|CryptoKey|CryptoKeyPair|CSPViolationReportBody|CSS|CSSAnimation|CSSConditionRule|CSSContainerRule|CSSCounterStyleRule|CSSFontFaceRule|CSSFontFeatureValuesRule|CSSFontPaletteValuesRule|CSSFunctionDeclarationsExperimental|CSSFunctionDescriptorsExperimental|CSSFunctionRuleExperimental|CSSGroupingRule|CSSImageValue|CSSImportRule|CSSKeyframeRule|CSSKeyframesRule|CSSKeywordValue|CSSLayerBlockRule|CSSLayerStatementRule|CSSMathInvert|CSSMathMax|CSSMathMin|CSSMathNegate|CSSMathProduct|CSSMathSum|CSSMathValue|CSSMatrixComponent|CSSMediaRule|CSSNamespaceRule|CSSNestedDeclarations|CSSNumericArray|CSSNumericValue|CSSPageDescriptors|CSSPageRule|CSSPerspective|CSSPositionTryDescriptors|CSSPositionTryRule|CSSPositionValue|CSSPrimitiveValueDeprecated|CSSPropertyRule|CSSPseudoElementExperimental|CSSRotate|CSSRule|CSSRuleList|CSSScale|CSSScopeRule|CSSSkew|CSSSkewX|CSSSkewY|CSSStartingStyleRule|CSSStyleDeclaration|CSSStyleProperties|CSSStyleRule|CSSStyleSheet|CSSStyleValue|CSSSupportsRule|CSSTransformComponent|CSSTransformValue|CSSTransition|CSSTranslate|CSSUnitValue|CSSUnparsedValue|CSSValueDeprecated|CSSValueListDeprecated|CSSVariableReferenceValue|CSSViewTransitionRule|CustomElementRegistry|CustomEvent|CustomStateSet|DataTransfer|DataTransferItem|DataTransferItemList|DecompressionStream|DedicatedWorkerGlobalScope|DeferredRequestInitExperimental|DelayNode|DelegatedInkTrailPresenterExperimental|DeprecationReportBodyExperimental|DeviceMotionEvent|DeviceMotionEventAcceleration|DeviceMotionEventRotationRate|DeviceOrientationEvent|DevicePostureExperimental|DirectoryEntrySync|DirectoryReaderSync|Document|DocumentFragment|DocumentPictureInPictureExperimental|DocumentPictureInPictureEventExperimental|DocumentTimeline|DocumentType|DOMErrorDeprecated|DOMException|DOMHighResTimeStamp|DOMImplementation|DOMMatrix|DOMMatrixReadOnly|DOMParser|DOMPoint|DOMPointReadOnly|DOMQuad|DOMRect|DOMRectList|DOMRectReadOnly|DOMStringList|DOMStringMap|DOMTokenList|DragEvent|DynamicsCompressorNode|EcdhKeyDeriveParams|EcdsaParams|EcKeyGenParams|EcKeyImportParams|EncodedAudioChunk|EncodedVideoChunk|ErrorEvent|Event|EventCounts|EventSource|EventTarget|ExtendableCookieChangeEvent|ExtendableEvent|ExtendableMessageEvent|EyeDropperExperimental|FeaturePolicyExperimental|FederatedCredentialExperimental|FederatedCredentialInit|FenceExperimental|FencedFrameConfigExperimental|FetchEvent|FetchLaterResultExperimental|File|FileEntrySync|FileList|FileReader|FileReaderSync|FileSystem|FileSystemChangeRecord|FileSystemDirectoryEntry|FileSystemDirectoryHandle|FileSystemEntry|FileSystemFileEntry|FileSystemFileHandle|FileSystemHandle|FileSystemObserverExperimentalNon-standard|FileSystemSync|FileSystemSyncAccessHandle|FileSystemWritableFileStream|FocusEvent|FontDataExperimental|FontFace|FontFaceSet|FontFaceSetLoadEvent|FormData|FormDataEvent|FragmentDirective|GainNode|Gamepad|GamepadButton|GamepadEvent|GamepadHapticActuator|GamepadPoseExperimental|Geolocation|GeolocationCoordinates|GeolocationPosition|GeolocationPositionError|GestureEventNon-standard|GPU|GPUAdapter|GPUAdapterInfo|GPUBindGroup|GPUBindGroupLayout|GPUBuffer|GPUCanvasContext|GPUCommandBuffer|GPUCommandEncoder|GPUCompilationInfo|GPUCompilationMessage|GPUComputePassEncoder|GPUComputePipeline|GPUDevice|GPUDeviceLostInfo|GPUError|GPUExternalTexture|GPUInternalError|GPUOutOfMemoryError|GPUPipelineError|GPUPipelineLayout|GPUQuerySet|GPUQueue|GPURenderBundle|GPURenderBundleEncoder|GPURenderPassEncoder|GPURenderPipeline|GPUSampler|GPUShaderModule|GPUSupportedFeatures|GPUSupportedLimits|GPUTexture|GPUTextureView|GPUUncapturedErrorEvent|GPUValidationError|GravitySensor|Gyroscope|HashChangeEvent|Headers|HIDExperimental|HIDConnectionEventExperimental|HIDDeviceExperimental|HIDInputReportEventExperimental|Highlight|HighlightRegistry|History|HkdfParams|HmacImportParams|HmacKeyGenParams|HMDVRDevice|HTMLAllCollection|HTMLAnchorElement|HTMLAreaElement|HTMLAudioElement|HTMLBaseElement|HTMLBodyElement|HTMLBRElement|HTMLButtonElement|HTMLCanvasElement|HTMLCollection|HTMLDataElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDivElement|HTMLDListElement|HTMLDocument|HTMLElement|HTMLEmbedElement|HTMLFencedFrameElementExperimental|HTMLFieldSetElement|HTMLFontElementDeprecated|HTMLFormControlsCollection|HTMLFormElement|HTMLFrameSetElementDeprecated|HTMLHeadElement|HTMLHeadingElement|HTMLHRElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLInputElement|HTMLLabelElement|HTMLLegendElement|HTMLLIElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElementDeprecated|HTMLMediaElement|HTMLMenuElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLObjectElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOptionsCollection|HTMLOutputElement|HTMLParagraphElement|HTMLParamElementDeprecated|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLSelectedContentElementExperimental|HTMLSelectElement|HTMLSlotElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTimeElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|IDBCursor|IDBCursorWithValue|IDBDatabase|IDBFactory|IDBIndex|IDBKeyRange|IDBObjectStore|IDBOpenDBRequest|IDBRequest|IDBTransaction|IDBVersionChangeEvent|IdentityCredentialExperimental|IdentityCredentialErrorExperimental|IdentityCredentialRequestOptionsExperimental|IdentityProviderExperimental|IdleDeadline|IdleDetectorExperimental|IIRFilterNode|ImageBitmap|ImageBitmapRenderingContext|ImageCapture|ImageData|ImageDecoder|ImageTrack|ImageTrackList|InkExperimental|InputDeviceCapabilitiesExperimental|InputDeviceInfo|InputEvent|InstallEvent|IntegrityViolationReportBody|InterestEventExperimentalNon-standard|IntersectionObserver|IntersectionObserverEntry|InterventionReportBodyExperimental|KeyboardExperimental|KeyboardEvent|KeyboardLayoutMapExperimental|KeyframeEffect|LanguageDetectorExperimental|LargestContentfulPaint|LaunchParamsExperimental|LaunchQueueExperimental|LayoutShiftExperimental|LayoutShiftAttributionExperimental|LinearAccelerationSensor|Location|Lock|LockManager|MagnetometerExperimental|MathMLElement|MediaCapabilities|MediaDeviceInfo|MediaDevices|MediaElementAudioSourceNode|MediaEncryptedEvent|MediaError|MediaKeyMessageEvent|MediaKeys|MediaKeySession|MediaKeyStatusMap|MediaList|MediaMetadata|MediaQueryList|MediaQueryListEvent|MediaRecorder|MediaRecorderErrorEvent|MediaSession|MediaSource|MediaSourceHandle|MediaStream|MediaStreamAudioDestinationNode|MediaStreamAudioSourceNode|MediaStreamEvent|MediaStreamTrack|MediaStreamTrackAudioSourceNode|MediaStreamTrackEvent|MediaStreamTrackGeneratorExperimentalNon-standard|MediaStreamTrackProcessor|MediaTrackConstraints|MediaTrackSettings|MediaTrackSupportedConstraints|MerchantValidationEventDeprecated|MessageChannel|MessageEvent|MessagePort|MetadataExperimentalNon-standard|MIDIAccess|MIDIConnectionEvent|MIDIInput|MIDIInputMap|MIDIMessageEvent|MIDIOutput|MIDIOutputMap|MIDIPort|MimeTypeDeprecated|MimeTypeArrayDeprecated|MouseEvent|MouseScrollEvent|MutationEvent|MutationObserver|MutationRecord|NamedNodeMap|NavigateEvent|Navigation|NavigationActivation|NavigationCurrentEntryChangeEvent|NavigationDestination|NavigationHistoryEntry|NavigationPrecommitController|NavigationPreloadManager|NavigationTransition|Navigator|NavigatorLogin|NavigatorUADataExperimental|NDEFMessageExperimental|NDEFReaderExperimental|NDEFReadingEventExperimental|NDEFRecordExperimental|NetworkInformation|Node|NodeIterator|NodeList|Notification|NotificationEvent|NotRestoredReasonDetailsExperimental|NotRestoredReasonsExperimental|OES_draw_buffers_indexed|OfflineAudioCompletionEvent|OfflineAudioContext|OffscreenCanvas|OffscreenCanvasRenderingContext2D|OrientationSensor|OscillatorNode|OTPCredentialExperimental|OverconstrainedError|PageRevealEvent|PageSwapEvent|PageTransitionEvent|PaintRenderingContext2D|PaintSize|PaintWorkletGlobalScopeExperimental|PannerNode|PasswordCredentialExperimental|PasswordCredentialInit|Path2D|PaymentAddress|PaymentManagerExperimental|PaymentMethodChangeEvent|PaymentRequest|PaymentRequestEventExperimental|PaymentRequestUpdateEvent|PaymentResponse|Pbkdf2Params|Performance|PerformanceElementTimingExperimental|PerformanceEntry|PerformanceEventTiming|PerformanceLongAnimationFrameTimingExperimental|PerformanceLongTaskTimingExperimental|PerformanceMark|PerformanceMeasure|PerformanceNavigationDeprecated|PerformanceNavigationTiming|PerformanceObserver|PerformancePaintTiming|PerformanceResourceTiming|PerformanceScriptTimingExperimental|PerformanceServerTiming|PerformanceTimingDeprecated|PeriodicSyncEventExperimental|PeriodicSyncManagerExperimental|PeriodicWave|Permissions|PermissionStatus|PictureInPictureEvent|PictureInPictureWindow|PluginDeprecated|PluginArrayDeprecated|Point|PointerEvent|PopStateEvent|PositionSensorVRDevice|PresentationExperimental|PresentationAvailabilityExperimental|PresentationConnectionExperimental|PresentationConnectionAvailableEventExperimental|PresentationConnectionCloseEventExperimental|PresentationConnectionListExperimental|PresentationReceiverExperimental|PresentationRequestExperimental|PressureObserverExperimental|PressureRecordExperimental|ProcessingInstruction|ProfilerExperimental|ProgressEvent|PromiseRejectionEvent|PublicKeyCredential|PublicKeyCredentialCreationOptions|PublicKeyCredentialRequestOptions|PushEvent|PushManager|PushMessageData|PushSubscription|PushSubscriptionOptions|QuotaExceededErrorExperimental|RadioNodeList|Range|ReadableByteStreamController|ReadableStream|ReadableStreamBYOBReader|ReadableStreamBYOBRequest|ReadableStreamDefaultController|ReadableStreamDefaultReader|RelativeOrientationSensor|RemotePlayback|Report|ReportBody|ReportingObserver|Request|RequestInit|ResizeObserver|ResizeObserverEntry|ResizeObserverSize|Response|RestrictionTargetExperimental|RsaHashedImportParams|RsaHashedKeyGenParams|RsaOaepParams|RsaPssParams|RTCAudioSourceStats|RTCCertificate|RTCCertificateStats|RTCCodecStats|RTCDataChannel|RTCDataChannelEvent|RTCDataChannelStats|RTCDtlsTransport|RTCDTMFSender|RTCDTMFToneChangeEvent|RTCEncodedAudioFrame|RTCEncodedVideoFrame|RTCError|RTCErrorEvent|RTCIceCandidate|RTCIceCandidatePair|RTCIceCandidatePairStats|RTCIceCandidateStats|RTCIceParameters|RTCIceTransport|RTCIdentityAssertionExperimental|RTCInboundRtpStreamStats|RTCOutboundRtpStreamStats|RTCPeerConnection|RTCPeerConnectionIceErrorEvent|RTCPeerConnectionIceEvent|RTCPeerConnectionStats|RTCRemoteInboundRtpStreamStats|RTCRemoteOutboundRtpStreamStats|RTCRtpReceiver|RTCRtpScriptTransform|RTCRtpScriptTransformer|RTCRtpSender|RTCRtpTransceiver|RTCSctpTransport|RTCSessionDescription|RTCStatsReport|RTCTrackEvent|RTCTransformEvent|RTCTransportStats|RTCVideoSourceStats|SanitizerExperimental|SanitizerConfigExperimental|Scheduler|SchedulingExperimental|Screen|ScreenDetailedExperimental|ScreenDetailsExperimental|ScreenOrientation|ScriptProcessorNodeDeprecated|ScrollTimeline|SecurePaymentConfirmationRequest|SecurityPolicyViolationEvent|Selection|Sensor|SensorErrorEvent|SerialExperimental|SerialPortExperimental|ServiceWorker|ServiceWorkerContainer|ServiceWorkerGlobalScope|ServiceWorkerRegistration|ShadowRoot|SharedStorageDeprecated|SharedStorageOperationDeprecated|SharedStorageRunOperationDeprecated|SharedStorageWorkletDeprecated|SharedStorageWorkletGlobalScopeDeprecated|SharedWorker|SharedWorkerGlobalScope|SnapEventExperimental|SourceBuffer|SourceBufferList|SpeechGrammarDeprecated|SpeechGrammarListDeprecated|SpeechRecognition|SpeechRecognitionAlternative|SpeechRecognitionErrorEvent|SpeechRecognitionEvent|SpeechRecognitionPhraseExperimental|SpeechRecognitionResult|SpeechRecognitionResultList|SpeechSynthesis|SpeechSynthesisErrorEvent|SpeechSynthesisEvent|SpeechSynthesisUtterance|SpeechSynthesisVoice|StaticRange|StereoPannerNode|Storage|StorageAccessHandle|StorageEvent|StorageManager|StylePropertyMap|StylePropertyMapReadOnly|StyleSheet|StyleSheetList|SubmitEvent|SubtleCrypto|SummarizerExperimental|SVGAElement|SVGAngle|SVGAnimateColorElementDeprecated|SVGAnimatedAngle|SVGAnimatedBoolean|SVGAnimatedEnumeration|SVGAnimatedInteger|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedPreserveAspectRatio|SVGAnimatedRect|SVGAnimatedString|SVGAnimatedTransformList|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGDefsElement|SVGDescElement|SVGDiscardElementDeprecated|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGradientElement|SVGGraphicsElement|SVGImageElement|SVGLength|SVGLengthList|SVGLinearGradientElement|SVGLineElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMPathElement|SVGNumber|SVGNumberList|SVGPathElement|SVGPatternElement|SVGPointDeprecated|SVGPointList|SVGPolygonElement|SVGPolylineElement|SVGPreserveAspectRatio|SVGRadialGradientElement|SVGRect|SVGRectElement|SVGRenderingIntentDeprecated|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStringList|SVGStyleElement|SVGSVGElement|SVGSwitchElement|SVGSymbolElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGTransform|SVGTransformList|SVGTSpanElement|SVGUnitTypes|SVGUseElement|SVGViewElement|SyncEvent|SyncManager|TaskAttributionTimingExperimental|TaskController|TaskPriorityChangeEvent|TaskSignal|Text|TextDecoder|TextDecoderStream|TextEncoder|TextEncoderStream|TextEventDeprecated|TextFormatExperimental|TextFormatUpdateEventExperimental|TextMetrics|TextTrack|TextTrackCue|TextTrackCueList|TextTrackList|TextUpdateEventExperimental|TimeEvent|TimeRanges|ToggleEvent|Touch|TouchEvent|TouchList|TrackEvent|TransformStream|TransformStreamDefaultController|TransitionEvent|TranslatorExperimental|TreeWalker|TrustedHTML|TrustedScript|TrustedScriptURL|TrustedTypePolicy|TrustedTypePolicyFactory|UIEvent|URL|URLPattern|URLSearchParams|USBExperimental|USBAlternateInterfaceExperimental|USBConfigurationExperimental|USBConnectionEventExperimental|USBDeviceExperimental|USBEndpointExperimental|USBInterfaceExperimental|USBInTransferResultExperimental|USBIsochronousInTransferPacketExperimental|USBIsochronousInTransferResultExperimental|USBIsochronousOutTransferPacketExperimental|USBIsochronousOutTransferResultExperimental|USBOutTransferResultExperimental|UserActivation|ValidityState|VideoColorSpace|VideoDecoder|VideoEncoder|VideoFrame|VideoPlaybackQuality|VideoTrack|VideoTrackGeneratorExperimental|VideoTrackList|ViewportExperimental|ViewTimeline|ViewTransitionTypeSet|VirtualKeyboardExperimental|VisibilityStateEntryExperimental|VisualViewport|VRDisplay|VRDisplayCapabilities|VRDisplayEvent|VREyeParameters|VRFieldOfView|VRFrameData|VRLayerInit|VRPose|VRStageParameters|VTTCue|VTTRegion|WakeLock|WakeLockSentinel|WaveShaperNode|WebGL2RenderingContext|WebGLActiveInfo|WebGLBuffer|WebGLContextEvent|WebGLFramebuffer|WebGLObjectExperimental|WebGLProgram|WebGLQuery|WebGLRenderbuffer|WebGLRenderingContext|WebGLSampler|WebGLShader|WebGLShaderPrecisionFormat|WebGLSync|WebGLTexture|WebGLTransformFeedback|WebGLUniformLocation|WebGLVertexArrayObject|WebSocket|WebSocketStreamExperimental|WebTransport|WebTransportBidirectionalStream|WebTransportDatagramDuplexStream|WebTransportError|WebTransportReceiveStreamExperimental|WebTransportSendStreamExperimental|WGSLLanguageFeatures|WheelEvent|Window|WindowClient|WindowControlsOverlayExperimental|WindowControlsOverlayGeometryChangeEventExperimental|WindowSharedStorageDeprecated|Worker|WorkerGlobalScope|WorkerLocation|WorkerNavigator|Worklet|WorkletGlobalScope|WorkletSharedStorageDeprecated|WritableStream|WritableStreamDefaultController|WritableStreamDefaultWriter|XMLDocument|XMLHttpRequest|XMLHttpRequestEventTarget|XMLHttpRequestUpload|XMLSerializer|XPathEvaluator|XPathExpression|XPathResult|XRAnchorExperimental|XRAnchorSetExperimental|XRBoundedReferenceSpaceExperimental|XRCompositionLayerExperimental|XRCPUDepthInformationExperimental|XRCubeLayerExperimental|XRCylinderLayerExperimental|XRDepthInformationExperimental|XREquirectLayerExperimental|XRFrameExperimental|XRHand|XRHitTestResultExperimental|XRHitTestSourceExperimental|XRInputSource|XRInputSourceArrayExperimental|XRInputSourceEvent|XRInputSourcesChangeEvent|XRJointPose|XRJointSpace|XRLayerExperimental|XRLayerEventExperimental|XRLightEstimateExperimental|XRLightProbeExperimental|XRMediaBindingExperimental|XRPose|XRProjectionLayerExperimental|XRQuadLayerExperimental|XRRayExperimental|XRReferenceSpace|XRReferenceSpaceEvent|XRRenderStateExperimental|XRRigidTransform|XRSessionExperimental|XRSessionEvent|XRSpace|XRSubImageExperimental|XRSystemExperimental|XRTransientInputHitTestResultExperimental|XRTransientInputHitTestSourceExperimental|XRViewExperimental|XRViewerPose|XRViewport|XRWebGLBindingExperimental|XRWebGLDepthInformationExperimental|XRWebGLLayerExperimental|XRWebGLSubImageExperimental|XSLTProcessor)\b
+    name: support.class.dom.ruko
+
+  type-names:
+    comment: Names for builtin types
+    patterns:
+      - comment: |-
+          Scalar primitive types
+          bool: 0 or 1
+          rune: unicode codepoint
+          char: UTF-8 character
+          str: UTF-8 string
+          sym: interned string (symbol)
+          blob: byte array
+          buf: byte buffer
+          unit: empty value
+          num: numeric value (int, real, etc)
+          nat: natural number (0, 1, 2, ...)
+          uint: alias for nat
+          int: signed integer
+          rat: rational number (p/q)
+          real: floating point number
+          imag: imaginary number (bi)
+          comp: complex number (a + bi)
+          quat: quaternion (a + bi + cj + dk)
+          oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
+          decimal: arbitrary-precision decimal
+          bigint/bignum: arbitrary-size integer
+        match: |-
+          (?x)\b(
+            [bB]ool|[rR]une|[cC]har|[sS]tr|[sS]ym|[bB]lob|[bB]uf|[uU]nit
+            |[nN]um|[nN]at|[uU]?[iI]nt|[rR]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
+            |[dD]ecimal|[bB]ig(?:int|num)
+            |(?i:[iunfcjqo]\d+) # match num types with bit sizes like i32, u64, f16, c128, j32, q256, o512
+          )\b
+        name: support.type.builtin.primitive.ruko
+      - comment: |-
+          Composite builtin types
+          array: fixed-size array
+          list: dynamic array
+          map: associative array (hash table)
+          set: unordered collection of unique elements
+          tuple: fixed-size ordered collection of heterogeneous elements
+          record: named fields (like struct)
+          union: value that can be one of several types
+          option: value that may be present or absent (like nullable)
+          result: value that represents success or failure
+          void: no value
+          size: platform-dependent size type
+          ptr: raw memory pointer
+          ref: managed reference type
+          func: function type
+          chan: channel for concurrent communication
+        match: |-
+          (?x)\b(
+            [aA]rray|[lL]ist|[mM]ap|[sS]et|[tT]uple|[rR]ecord|[uU]nion|[oO]ption|[rR]esult|[vV]oid|[sS]ize|[pP]tr|[rR]ef|[fF]unc|[cC]han
+          )\b
+        name: support.type.builtin.composite.ruko
+      - comment: Error handling types
+        match: \b(\p{Lu}[\w&&\P{Lu}]*)+(Error|Exception|Fault|Failure|Abort|Panic|Crash|Trap)\b
+        name: support.class.error.ruko
+      - comment: POSIX reserved type names commonly used in C standard library and system programming
+        match: \b([\p{L}\p{Nl}\p{Pc}])+\s*_t\b|\b(\p{Lu}[\w&&\P{Lu}]*)+T\b
+        name: support.type.posix.ruko
+      - match: \b(void|float|double|decimal|s?byte|u?short|u?int|u?long|u?cent|[wd]?char|bool|string|struct|enum|union|register|buffer|class|interface|namespace|struct|tbuffer|mixed|any)\b
+        name: support.type.builtin.language.ruko
+      - match: \b(NS|UI|CG|MK|SK|CA|CI|CK|AV|CF|MD|AB|PC|SC|SK|SKM|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
+        name: support.class.cocoa.ruko
+      - match: \b(AV|CM|GK|SK|SC|CI|CA|CK|MD|NS|UI|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
+        name: support.class.apple.ruko
+
+      # Python
+      - include: "source.python#builtin-exceptions"
+      # PHP
+      - include: "source.php#class-builtin"
+      # Swift
+      - include: "source.swift#builtin-types"
+      # Objective-C
+      - include: "source.objc#anonymous_pattern_17"
+      - include: "source.objc#anonymous_pattern_18"
+      - include: "source.objc#anonymous_pattern_19"
+      - include: "source.objc#anonymous_pattern_20"
+      - include: "source.objc#anonymous_pattern_21"
+      - include: "source.objc#anonymous_pattern_22"
+      - include: "source.objc#anonymous_pattern_23"
+      - include: "source.objc#anonymous_pattern_24"
+      - include: "source.objc#anonymous_pattern_25"
+      # Objective-C++
+      - include: "source.objcpp#anonymous_pattern_17"
+      - include: "source.objcpp#anonymous_pattern_18"
+      - include: "source.objcpp#anonymous_pattern_19"
+      - include: "source.objcpp#anonymous_pattern_20"
+      - include: "source.objcpp#anonymous_pattern_21"
+      - include: "source.objcpp#anonymous_pattern_22"
+      - include: "source.objcpp#anonymous_pattern_23"
+      - include: "source.objcpp#anonymous_pattern_24"
+      - include: "source.objcpp#anonymous_pattern_25"
+      # JavaScript DOM and Web API
+      - include: "#dom-api-classes"
+      # Ruko
+      - include: "#stdlib-types"
+      - include: "#stdlib-classes"
+      - include: "#stdlib-enums"
+      - include: "#stdlib-interfaces"
+      - include: "#stdlib-modules"
+      - include: "#stdlib-namespaces"
+
+  builtin-functions:
+    comment: Names for general support functions in Ruko standard library organized by naming conventions for maintainability
+    patterns:
+      # Swift
+      - include: "source.swift#builtin-functions"
+      - include: "source.swift#builtin-global-functions"
+      # Batch
+      - include: "source.bat#commands"
+      # R
+      - include: "source.r#builtin-functions"
+      # PHP
+      - include: "source.php#support"
+      # C, Objective-C, C++, Objective-C++
+      - include: "source.objcpp#c_functions"
+      - include: "source.objc#c_functions"
+      # Ruko
+      - include: "#stdlib-functions"
+
+      # Function naming conventions for Ruko standard library
+      - comment: Magic functions like __init__, __str__, etc
+        match: \b\p{Pc}+(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)\p{Pc}+\b
+        name: support.function.magic.ruko
+      - comment: Accessor functions like getName, setValue, etc
+        match: \b[gs]et[\p{Lu}\p{Pc}]\w*\b
+        name: support.function.accessor.ruko
+      - comment: Type-related functions like isStr, hasProp, canRun, toList, fromDict
+        match: \b((i|ha)s|to|from)[\p{Lu}\p{Pc}]\w*\b
+        name: support.function.type.ruko
+      - comment: Commonly used functions for control flow and error handling like canRun, shouldRetry, mustSucceed, etc
+        match: \b(can|could|will|would|may|might|must|shall|should)[\p{Lu}\p{Pc}]\w*\b
+        name: support.function.error.ruko
+```

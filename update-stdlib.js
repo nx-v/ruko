@@ -19,6 +19,8 @@ let sortKeys = obj =>
     )
   : obj;
 
+let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k);
+
 let pluralize = word => {
   word = word.toLowerCase().trim();
   return (
@@ -40,30 +42,18 @@ let conventions = {
     name => /^[a-z][a-zA-Z\d]*([A-Z][a-z\d]*)*$/.test(name),
     name => name.match(/^[a-z]+|[A-Z][a-z\d]*|\d+/g).filter(Boolean),
   ],
-  snake: [
-    name => /^([a-z][a-z\d]*_+)*[a-z\d]+$/.test(name),
-    name => name.split(/_+/).filter(Boolean),
-  ],
-  // kebab: [
-  //   name => /^([a-z][a-z\d]*-+)*[a-z\d]+\b$/.test(name),
-  //   name => name.split(/-+/).filter(Boolean),
-  // ],
-  screamingSnake: [
-    name => /^([A-Z][A-Z\d]*_+)*[A-Z\d]+$/.test(name),
-    name => name.split(/_+/).filter(Boolean),
-  ],
-  // screamingKebab: [
-  //   name => /^([A-Z][A-Z\d]*-+)*[A-Z\d]+\b$/.test(name),
-  //   name => name.split(/-+/).filter(Boolean),
-  // ],
   pascalSnake: [
     name => /^([A-Z][a-z\d]*_+)*[A-Z\d][a-z\d]*$/.test(name),
     name => name.split(/_+/).filter(Boolean),
   ],
-  // pascalKebab: [
-  //   name => /^([A-Z][a-z\d]*-+)*[A-Z\d][a-z\d]*\b$/.test(name),
-  //   name => name.split(/-+/).filter(Boolean),
-  // ],
+  screamingSnake: [
+    name => /^([A-Z][A-Z\d]*_+)*[A-Z\d]+$/.test(name),
+    name => name.split(/_+/).filter(Boolean),
+  ],
+  snake: [
+    name => /^([a-z][a-z\d]*_+)*[a-z\d]+$/.test(name),
+    name => name.split(/_+/).filter(Boolean),
+  ],
   upper: [name => /^[A-Z][A-Z\d]*$/.test(name), name => [name]],
   lower: [name => /^[a-z][a-z\d]*$/.test(name), name => [name]],
 };
@@ -87,7 +77,8 @@ let traversePlatform = node => {
   if (node.patterns)
     for (let pattern of node.patterns) {
       if (pattern.match) {
-        if (pattern.captures) pattern.name = pattern.captures[2]?.name || pattern.name;
+        if (pattern.captures)
+          pattern.name = pattern.captures[2]?.name || pattern.name;
         let name = (
           /^invalid\./.test(pattern.name) ?
             pattern.name.replace(/^.+(?=support)/, "")
@@ -104,7 +95,13 @@ traversePlatform(platform);
 
 // === GODOT ENGINE STANDARD LIBRARY ===
 
-import gdScriptClasses from "./gdscript-classes.json" with {type: "json"};
+let gdScriptClasses = parse(
+  readFileSync(
+    "C:/Users/Admin/Dropbox/Ruko Language/gdscript-classes.json",
+    "utf8",
+  ),
+  "utf8",
+);
 values(gdScriptClasses).forEach(
   symbols => (symbolSet.class = symbolSet.class.union(new Set(symbols))),
 );
@@ -164,13 +161,15 @@ let repository = (() => {
         // keep them together as "xml http request" instead of "x m l http request"
         // and "uint 16" instead of "uint 1 6"
         let words = splitter(symbol)
-          .map(word => word.toLowerCase())
+          .map(word => word.normalize("NFD").toLowerCase())
           .join(" ")
-          .replace(/\b((?:[a-z]\b\s*){2,}|(?:\d\b\s*){2,})\b/g, match => match.replace(/\s/g, ""))
+          .replace(/\b((?:[a-z]\b\s*){2,}|(?:\d\b\s*){2,})\b/g, match =>
+            match.replace(/\s/g, ""),
+          )
           .replace(/\d+/g, "")
           .replace(/\s+/g, " ")
           .trim()
-          .split(" ");
+          .split(" "); // then split them back into individual words
 
         groups = groups.union(new Set(words));
       }
@@ -178,15 +177,14 @@ let repository = (() => {
 
     let groupList = [...groups]
       // leave out single-letter/digit groups since they can cause false positives
-      .filter(x => x.length >= 2 && !/\d/.test(x))
+      .filter(word => word.length >= 2 && !/\d/.test(word))
+      .map(x => x.trim())
       .sort((a, b) => a.length - b.length);
 
     repo[`stdlib-${pluralize(type)}`] = {
       match:
         "\\b(?!\\d+)((?i:" +
-        values(groupBy(groupList, g => g.length))
-          .map(g => toRegExp(g).source)
-          .join("|") +
+        toRegExp(groupList).source +
         "|\\d+)\\p{Pc}*)*\\g<1>\\b",
       name: `support.${type}.ruko`,
     };
@@ -209,7 +207,10 @@ let grammar = sortKeys({
 });
 
 // === ADOBE GLYPH LIST ===
-let aglfn = readFileSync("C:/Users/Admin/Dropbox/Ruko Language/aglfn.txt", "utf8")
+let aglfn = readFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/aglfn.txt",
+  "utf8",
+)
   .split("\n")
   .filter(line => !line.startsWith("#") && line.trim() != "")
   .map(line => line.split(";")[0].trim());
@@ -225,15 +226,22 @@ import {colornames} from "color-name-list";
 // Group by first letter to avoid creating a single huge regex pattern,
 // which can be inefficient to match against.
 grammar.repository["stdlib-color-names"] = {
-  patterns: "abcdefghijklmnopqrstuvwxyz".split("").map(letter => {
-    let symbols = colornames
-      .filter(({name}) => name.toLowerCase().startsWith(letter))
-      .map(({name}) => name.normalize("NFD").replace(/\W/g, "").toLowerCase());
-    return {
-      match: `\\b(${toRegExp(symbols).source})\\b`,
-      name: "support.constant.color.ruko",
-    };
-  }),
+  match:
+    "\\b(" +
+    pipe(
+      colornames,
+      x =>
+        x.flatMap(({name}) =>
+          name
+            .normalize("NFD")
+            .replace(/[\W--\s]/gv, "")
+            .toLowerCase()
+            .split(" "),
+        ),
+      x => toRegExp([...new Set(x.filter(word => /\D+/.test(word)))]).source,
+    ) +
+    ")\\b",
+  name: "support.constant.color.ruko",
 };
 grammar.patterns.push({include: "#stdlib-color-names"});
 
@@ -242,7 +250,10 @@ grammar = parse(
   stringify(grammar, (key, value) => {
     switch (typeof value) {
       case "object":
-        delete value.key || delete value.comment || delete value.define || delete value.library;
+        delete value.key ||
+          delete value.comment ||
+          delete value.define ||
+          delete value.library;
         break;
     }
     return value;
@@ -253,5 +264,8 @@ grammar.information_for_contributors = [
   "This file is generated from ruko.stdlib.tmLanguage.yaml using update-stdlib.js.",
   "To make changes to the standard library patterns, edit ruko.stdlib.tmLanguage.yaml and run update-stdlib.js.",
 ];
-grammar = stringify(sortKeys(grammar), null, 2);
-writeFileSync("C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json", grammar);
+grammar = stringify(sortKeys(grammar));
+writeFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
+  grammar,
+);
