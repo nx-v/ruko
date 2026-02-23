@@ -267,8 +267,8 @@ let stdlib = parse(
 );
 grammar.information_for_contributors = stdlib.information_for_contributors;
 grammar.repository = {
-  ...sortKeys(grammar.repository),
-  ...sortKeys(stdlib.repository),
+  ...sortKeys(grammar.repository), // main grammar patterns
+  ...sortKeys(stdlib.repository), // standard library patterns
 };
 grammar = stringify(grammar);
 

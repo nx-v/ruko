@@ -1,5 +1,5 @@
 // test file for the Ruko Language
-proc main {
+proc main([]str args) {
   use Figlet.*,
     Dom.{Canvas, Audio, FS, Log},
     Artists.`Nexo Volta`,
@@ -412,30 +412,30 @@ scope `for` for let `in` in [`mut` alloc: init: release:]:
 
 // component example with props and conditional rendering
 module CounterMessage(use React) {
-  let compo make = |{count, ?username}|{
+  compo make({int count, str ?username}) {
     let times = switch count {
-      case 1: "once";
-      case 2: "twice";
-      case n: str(n) ++ " times";
+      | 1: "once";
+      | 2: "twice";
+      | |n|: str(n) + " times";
     }
 
     let name = switch username {
-      case Some(""): "Anonymous";
-      case Some(name): name;
-      case None: "Anonymous";
+      | "": "Anonymous";
+      | |name|: name;
+      |: "Anonymous";
     }
 
-    <div>#"Hello #name, you clicked me #times"</div>;
-  };
+    return <div>#"Hello #name, you clicked me #times"</div>;
+  }
 }
 
 // console output example with various options
 module App(use React, CounterMessage) {
-  let compo make = |()|{
-    let (int count, |int _| int setCount) = useState(|()|0);
-    let (str username, |str _| int setUsername) = useState(|()|"Anonymous");
+  compo make() {
+    let (int count, |int _|setCount) = useState(|()|0);
+    let (str username, |str _|setUsername) = useState(|()|"Anonymous");
 
-    <div>
+    return <div>
       "Username: ";
       <input
         type="text"
@@ -455,7 +455,7 @@ module App(use React, CounterMessage) {
       </button>;
       <CounterMessage count username/>;
     </div>;
-  };
+  }
 }
 
 // Tokio async client example with blocking wrapper

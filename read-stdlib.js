@@ -20,7 +20,9 @@ let chunk = (array, chunkSize) =>
     return result;
   }, []);
 
-let libraries = stdlibFiles.map(path => path.match(/(?<=types[\\/])(.+?)(?=__|[-.\\/]|\.ts$)/)[1]);
+let libraries = stdlibFiles.map(
+  path => path.match(/(?<=types[\\/])(.+?)(?=__|[-.\\/]|\.ts$)/)[1],
+);
 
 // install 20 libraries at a time
 console.log(
