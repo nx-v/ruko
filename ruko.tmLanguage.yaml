@@ -9989,19 +9989,18 @@ repository:
           num: numeric value (int, real, etc)
           nat: natural number (0, 1, 2, ...)
           uint: alias for nat
-          int: signed integer
+          int: signed arbitrary-precision integer
           rat: rational number (p/q)
-          real: floating point number
+          fract: alias for rat
+          real: arbitrary-precision floating point number
+          float: fixed-precision floating point number
           imag: imaginary number (bi)
           comp: complex number (a + bi)
           quat: quaternion (a + bi + cj + dk)
           oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
-          decimal: arbitrary-precision decimal
-          bigint/bignum: arbitrary-size integer
         match: |-
           (?x)\b(
-            [nN]um|[nN]at|[uU]?[iI]nt|[rR]at|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
-            |[dD]ecimal|[bB]ig(?:int|num)
+            [nN]um|[nN]at|[uU]?[iI]nt|[rR]at|[fF]ract|[fF]loat|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
             |(?i:[iunfcjqo]\d+) # match num types with bit sizes like i32, u64, f16, c128, j32, q256, o512
           )\b
         name: support.type.builtin.numeric.ruko
@@ -10025,19 +10024,37 @@ repository:
           (?x)\b(
             [aA]rray|[lL]ist|[mM]ap|[sS]et|[tT]uple|[rR]ecord|[uU]nion|[oO]ption|[rR]esult|[sS]ize|[pP]tr|[rR]ef|[fF]unc|[cC]han
           )\b
-        name: support.type.builtin.composite.ruko
-      - comment: Error handling types
+        name: support.type.builtin.vector.ruko
+      - comment: |-
+          Error handling types
         match: \b(\p{Lu}[\w&&\P{Lu}]*)+(Error|Exception|Fault|Failure|Abort|Panic|Crash|Trap)\b
         name: support.class.error.ruko
-      - comment: POSIX reserved type names commonly used in C standard library and system programming
+      - comment: |-
+          POSIX reserved type names commonly used in C standard library and system programming
         match: \b([\p{L}\p{Nl}\p{Pc}])+\s*_t\b|\b(\p{Lu}[\w&&\P{Lu}]*)+T\b
         name: support.type.posix.ruko
       - match: \b(void|float|double|decimal|s?byte|u?short|u?int|u?long|u?cent|[wd]?char|bool|string|struct|enum|union|register|buffer|class|interface|namespace|struct|tbuffer|mixed|any)\b
         name: support.type.builtin.ruko
-      - match: \b(NS|UI|CG|MK|SK|CA|CI|CK|AV|CF|MD|AB|PC|SC|SK|SKM|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
+      - comment: |-
+          Common prefix naming conventions for classes in Apple frameworks like Cocoa, Core Graphics, MapKit, SpriteKit, etc
+        match: \b(NS|UI|CG|MK|SK|CA|CI|CK|AV|CF|MD|AB|PC|SC|SK|SKM|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
         name: support.class.cocoa.ruko
-      - match: \b(AV|CM|GK|SK|SC|CI|CA|CK|MD|NS|UI|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
+      - comment: |-
+          Common prefix naming conventions for classes in Apple frameworks like AVFoundation, Core Media, GameKit, SceneKit, etc
+        match: \b(AV|CM|GK|SK|SC|CI|CA|CK|MD|NS|UI|WK)(\p{Lu}[\w&&\P{Lu}]*)+\b
         name: support.class.apple.ruko
+      - comment: |-
+          Common suffix naming conventions for classes in Apple frameworks like Foundation, UIKit, Core Data, etc
+        match: \b(\p{Lu}[\w&&\P{Lu}]*)+(View|Controller|Manager|Delegate|DataSource|Observer|Session|Request|Response|Error|Exception)\b
+        name: support.class.apple.ruko
+      - comment: |-
+          Common prefix naming conventions for Microsoft Windows API classes and interfaces, including Win32 API, COM, .NET, etc
+        match: \b(I|C|D|H|LP|LPC|LPC?O|LP?W|WIN|WND|MSG|H[DCMNRSZ]|[GS]et|[GS]etWindow|[GS]etClass|[GS]et[AB][CD]?[RW]?)(\p{Lu}[\w&&\P{Lu}]*)+\b
+        name: support.class.windows.ruko
+      - comment: |-
+          Common suffix naming conventions for Microsoft Windows API classes and interfaces, including Win32 API, COM, .NET, etc
+        match: \b(\p{Lu}[\w&&\P{Lu}]*)+(Exception|Error|Event|Handler|Manager|Controller|Service|Provider|Factory|Interface|Class|Struct|Enum|Union|Record|Delegate|Attribute|Annotation)\b
+        name: support.class.windows.ruko
 
       # Python
       - include: "source.python#builtin-exceptions"
