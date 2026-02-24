@@ -207,24 +207,22 @@ grammar = parse(
   stringify(grammar, (key, value) => {
     switch (typeof value) {
       case "object":
-        delete value.comment || delete value.define;
-        if (/^stdlib-(css|unicode)/.test(key))
-          if (value.match) {
-            console.log(value.match, key);
-            value.match = optimize(value.match).pattern.replace(
-              /(?<=\\b)\((.+)\)(?=\\b)/,
-              match => "(" + toRegExp(genex(match).generate()).source + ")",
-            );
-            return value;
-          } else if (value.patterns)
-            value.patterns = value.patterns.map(v => {
-              if (v.match)
-                v.match = optimize(v.match).pattern.replace(
-                  /(?<=\\b)\((.+)\)(?=\\b)/,
-                  match => "(" + toRegExp(genex(match).generate()).source + ")",
+        if (value.comment || value.define) {
+          delete value.comment;
+          delete value.define;
+        }
+        if (/^stdlib/.test(key))
+          if (value.patterns) {
+            value.patterns = value.patterns.map(val => {
+              if (val.match)
+                val.match = optimize(val.match).pattern.replace(
+                  /(?<=\\b\().+(?=\)\\b$)/,
+                  p0 => toRegExp(genex(p0).generate()).source,
                 );
-              return v;
+              return val;
             });
+            return value;
+          }
         break;
       case "string":
         if (["begin", "end", "match", "while"].includes(key.trim()))
@@ -255,7 +253,7 @@ grammar = parse(
             return value;
           }
     }
-    return sortKeys(value);
+    return value;
   }),
 );
 
@@ -267,8 +265,8 @@ let stdlib = parse(
 );
 grammar.information_for_contributors = stdlib.information_for_contributors;
 grammar.repository = {
-  ...sortKeys(grammar.repository), // main grammar patterns
-  ...sortKeys(stdlib.repository), // standard library patterns
+  ...grammar.repository, // main grammar patterns
+  ...stdlib.repository, // standard library patterns
 };
 grammar = stringify(grammar);
 
