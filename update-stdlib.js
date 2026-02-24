@@ -71,8 +71,19 @@ let symbolSet = [
   "property",
 ].reduce((result, key) => ((result[key] = new Set()), result), {});
 
-// === C/C++ STANDARD LIBRARY ===
+// === GODOT ENGINE STANDARD LIBRARY ===
+let gdScriptClasses = parse(
+  readFileSync(
+    "C:/Users/Admin/Dropbox/Ruko Language/gdscript-classes.json",
+    "utf8",
+  ),
+  "utf8",
+);
+values(gdScriptClasses).forEach(
+  symbols => (symbolSet.class = symbolSet.class.union(new Set(symbols))),
+);
 
+// === C/C++ STANDARD LIBRARY ===
 let traversePlatform = node => {
   if (node.patterns)
     for (let pattern of node.patterns) {
@@ -90,24 +101,9 @@ let traversePlatform = node => {
       pattern.patterns && traversePlatform(pattern);
     }
 };
-
 traversePlatform(platform);
 
-// === GODOT ENGINE STANDARD LIBRARY ===
-
-let gdScriptClasses = parse(
-  readFileSync(
-    "C:/Users/Admin/Dropbox/Ruko Language/gdscript-classes.json",
-    "utf8",
-  ),
-  "utf8",
-);
-values(gdScriptClasses).forEach(
-  symbols => (symbolSet.class = symbolSet.class.union(new Set(symbols))),
-);
-
 // === NODE.JS STANDARD LIBRARY ===
-
 let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts";
 let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .filter(path => !/\/node_modules\//.test(path))
@@ -145,7 +141,6 @@ stdlibFiles.forEach(path => {
 });
 
 // === REPOSITORY ===
-
 let repository = (() => {
   let repo = {};
 
@@ -194,9 +189,6 @@ let repository = (() => {
 })();
 
 // === STDLIB GRAMMAR ===
-
-// Combine both the C/C++ standard library patterns and the standard library patterns
-// into a single repository object, sorted alphabetically by key and then by pattern name.
 let grammar = sortKeys({
   comment:
     "This file was generated using data from https://github.com/DefinitelyTyped/DefinitelyTyped",
@@ -205,6 +197,17 @@ let grammar = sortKeys({
   patterns: keys(repository).map(key => ({include: `#${key}`})),
   repository,
 });
+
+// === HTML CHARACTER ENTITY REFERENCES ===
+let htmlEntities = readFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/html-entities.txt",
+  "utf8",
+).match(/(?<=&)\w+(?=;)/g);
+grammar.repository["stdlib-html-entities"] = {
+  match: `\\b(${toRegExp(htmlEntities).source})\\b`,
+  name: "support.constant.character.html.ruko",
+};
+grammar.patterns.push({include: "#stdlib-html-entities"});
 
 // === ADOBE GLYPH LIST ===
 let aglfn = readFileSync(
@@ -221,7 +224,6 @@ grammar.repository["stdlib-adobe-glyph-list"] = {
 grammar.patterns.push({include: "#stdlib-adobe-glyph-list"});
 
 // === COLOR NAMES ===
-
 import {colornames} from "color-name-list";
 // Group by first letter to avoid creating a single huge regex pattern,
 // which can be inefficient to match against.
