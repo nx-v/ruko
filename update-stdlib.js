@@ -3,8 +3,10 @@ import {readFileSync, writeFileSync} from "fs";
 import platform from "./src/platform.tmLanguage.json" with {type: "json"};
 import toRegExp from "./to-regex.js";
 import genex from "genex";
+import {unicodeName} from "unicode-name";
 
-let {isArray} = Array;
+let {isArray, from} = Array;
+let {fromCodePoint, fromCharCode, raw} = String;
 let {parse, stringify} = JSON;
 let {keys, values, fromEntries, entries, groupBy} = Object;
 
@@ -196,6 +198,33 @@ let grammar = sortKeys({
   patterns: keys(repository).map(key => ({include: `#${key}`})),
   repository,
 });
+
+// === UNICODE CHARACTER NAMES ===
+let assignedUnicodeChars = from({length: 0x110000}, (_, i) =>
+  fromCodePoint(i),
+).filter(char => /\p{Assigned}/u.test(char));
+let unicodeWords = [
+  ...new Set(
+    assignedUnicodeChars.flatMap(char =>
+      unicodeName(char)
+        .normalize("NFD")
+        .replace(/[\W--[\-\s]]/gv, "")
+        .toLowerCase()
+        .split(" "),
+    ),
+  ),
+]
+  .filter(word => word.length >= 2 && !/\d/.test(word))
+  .sort((a, b) => a.length - b.length);
+grammar.repository["stdlib-unicode-names"] = {
+  match:
+    "\\b(?!\\d+)((?i:" +
+    toRegExp(unicodeWords).source +
+    "|\\d+)\\p{Pc}*)*\\g<1>\\b",
+
+  name: "support.constant.character.unicode.ruko",
+};
+grammar.patterns.push({include: "#stdlib-unicode-names"});
 
 // === HTML CHARACTER ENTITY REFERENCES ===
 let htmlEntities = readFileSync(
