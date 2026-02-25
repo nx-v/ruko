@@ -312,7 +312,7 @@ export default function toRegExp(input, flags = "") {
       if (
         pattern.startsWith("\\u{") &&
         pattern.endsWith("}") &&
-        !/[|]/.test(pattern)
+        !/\|/.test(pattern)
       )
         return true;
       if (/^\\u[\dA-Fa-f]{4}$/.test(pattern)) return true;
@@ -486,7 +486,9 @@ export default function toRegExp(input, flags = "") {
         prefix &&
         middlePattern.startsWith("(?:" + escapeRegExp(prefix, flags) + ")")
       ) {
-        let quantMatch = middlePattern.match(/^\\(\\?:[^)]+\\)\\{([^}]+)\\}$/);
+        let quantMatch = middlePattern.match(
+          /^\(\?:.*?\)(\{\d+(?:,\d*)?|[*+?])$/,
+        );
         if (quantMatch) {
           let quant = quantMatch[1];
           let reps = quant.split(",").map(Number);

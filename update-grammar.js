@@ -196,7 +196,7 @@ grammar.repository = {
   ...grammar.repository, // main grammar patterns
   ...stdlib.repository, // standard library patterns
 };
-grammar = stringify(grammar);
+grammar = stringify(grammar, null, 2);
 
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json",

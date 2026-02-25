@@ -9,6 +9,8 @@ let {parse, stringify} = JSON;
 let {keys, values, fromEntries, entries, groupBy} = Object;
 
 // Utility functions
+let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k);
+
 let sortKeys = obj =>
   isArray(obj) ? obj.map(sortKeys)
   : obj && typeof obj == "object" ?
@@ -18,8 +20,6 @@ let sortKeys = obj =>
         .map(k => [k, sortKeys(obj[k])]),
     )
   : obj;
-
-let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k);
 
 let pluralize = word => {
   word = word.toLowerCase().trim();
@@ -135,8 +135,7 @@ stdlibFiles.forEach(path => {
   );
 
   keys(patterns).forEach(key => {
-    let symbols = patterns[key].filter(symbol => !symbolSet[key].has(symbol));
-    symbolSet[key] = symbolSet[key].union(new Set(symbols));
+    symbolSet[key] = symbolSet[key].union(new Set(patterns[key]));
   });
 });
 
@@ -266,7 +265,7 @@ grammar.information_for_contributors = [
   "This file is generated from ruko.stdlib.tmLanguage.yaml using update-stdlib.js.",
   "To make changes to the standard library patterns, edit ruko.stdlib.tmLanguage.yaml and run update-stdlib.js.",
 ];
-grammar = stringify(sortKeys(grammar));
+grammar = stringify(sortKeys(grammar), null, 2);
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
   grammar,
