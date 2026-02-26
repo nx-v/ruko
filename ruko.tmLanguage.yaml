@@ -3104,6 +3104,16 @@ repository:
           - match: (?<=</)(>)
             name: punctuation.definition.tag.ruko
           - include: "#illegal"
+      - comment: Fragment tags like <> ... </>.
+        contentName: meta.xml.ruko
+        begin: (<)(?=>)
+        <<: *bracket-tag-content
+        patterns:
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
       - comment: Standard tags like <div>.
         contentName: meta.xml.ruko
         begin: |-
@@ -3115,8 +3125,8 @@ repository:
               (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
             )*
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-          )?
-          (?=[,;'"()\[\]{}/>])
+          )
+          (?=[,;'"()\[\]{}/>\s])
         end: \s*(?:(?<=</)(\2)?(>)|(/>)|((?<=</).*?)(>))\s*
         beginCaptures:
           0: {name: meta.tag.ruko}

@@ -1,11 +1,12 @@
 import yaml from "js-yaml";
+import jsesc from "jsesc";
+import regexGen from "./regex-gen.js";
+import genex from "genex";
+import prettier from "prettier";
 import {optimize} from "oniguruma-parser/optimizer";
 import {mirrorDir} from "./utils.js";
 import {readFileSync, writeFileSync} from "fs";
-import regexGen from "./regex-gen.js";
-import genex from "genex";
 import {toRegExp} from "oniguruma-to-es";
-import jsesc from "jsesc";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
@@ -197,7 +198,7 @@ mirrorDir(
   "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
 );
 
-// compile for shiki misaki
+// compile for Shiki Misaki
 /*
 Shiki uses the JS regex dialect, which is NOT compatible with Oniguruma.
 A separate grammar file is needed for Shiki, which uses JS regexes instead of Oniguruma patterns.
@@ -207,28 +208,31 @@ Note that this does not import anything from the original YAML file, so any patt
 rely on dynamic generation using JavaScript (e.g. using genex) will not work in the Shiki 
 grammar unless they are pre-generated and hardcoded into the YAML file.
 */
-grammar = parse(grammar, (key, value) => {
-  if (
-    ["begin", "end", "match", "while"].includes(key) &&
-    typeof value == "string"
-  )
-    try {
-      return RegExp(toRegExp(value).source);
-    } catch {
-      try {
-        return optimize(value).pattern;
-      } catch {
-        return value;
-      }
-    }
-  return value;
-});
-writeFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
-  "export default " +
-    jsesc(grammar, {
-      compact: false,
-      quotes: "double",
-    }) +
-    ";",
-);
+// grammar = parse(grammar, (key, value) => {
+//   if (
+//     ["begin", "end", "match", "while"].includes(key) &&
+//     typeof value == "string"
+//   )
+//     try {
+//       return RegExp(toRegExp(value).source);
+//     } catch {
+//       try {
+//         return optimize(value).pattern;
+//       } catch {
+//         return value;
+//       }
+//     }
+//   return value;
+// });
+// writeFileSync(
+//   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
+//   await prettier.format(
+//     "export default " +
+//       jsesc(grammar, {
+//         compact: false,
+//         quotes: "double",
+//       }) +
+//       ";",
+//     {parser: "babel", singleQuote: false, trailingComma: "all", tabWidth: 2},
+//   ),
+// );

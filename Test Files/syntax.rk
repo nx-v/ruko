@@ -1,66 +1,5321 @@
-\\ Ruko is a markup, scripting, styling and shader language that compiles
-\\ to HTML/CSS/JS, WebAssembly, and WebGPU shaders (GLSL, WGSL, etc.).
-\\ Its syntax is inspired by Haskell, Rust and Kotlin, hence the name
-\\ "HaRuKo", clipped to just "Ruko", but also is named after the character
-\\ Haruko Haruhara from the anime "FLCL".
-\\
+\* 
+  ============================================================
+  SYNTAX REFERENCE — INDEX
+  ============================================================
+  This file is the top level index for the comprehensive Ruko
+  syntax reference. Each section lives in its own file inside
+  syntax/, mirroring the sections of ruko.tmLanguage.yaml.
+  Ruko is a markup, scripting, styling and shader language that compiles
+  to HTML/CSS/JS, WebAssembly, and WebGPU shaders (GLSL, WGSL, etc.).
+  Its syntax is inspired by Haskell, Rust and Kotlin, hence the name
+
+  "HaRuKo", clipped to just "Ruko", but also is named after the character
+  Haruko Haruhara from the anime "FLCL".
+
+  This language is both a personal project and a learning experiment
+  for me to practice language and compiler design, and to make my own
+  engine, LSP and IDE support for it as I build it out. It's also a
+  playground for me to explore new language features and paradigms,
+  and to have fun with programming in general.
+
+  This document is intended to be a comprehensive overview of the syntax
+  of the Ruko language, covering all the constructs and features as provided
+  by the compiler. Take this as a reference for how to write Ruko code,
+  and as a guide for what the language can do. It is not intended to be a
+  tutorial or a style guide, but rather a specification of the syntax
+  and semantics of the language, with examples to illustrate the concepts,
+  based on the current state of ruko.tmLanguage.yaml and the example code
+  in the Tests/ directory. This is a living document that will be updated
+  as the language evolves and new features are added, so check back often
+  for the latest information on how to write Ruko code.
+
+  A documentation of the standard library and built-in functions will be
+  provided separately, as that is a different scope of work. This document
+  will focus on the syntax of the language itself, and not on the libraries
+  or APIs that are available to use with it.
+
+  ============================================================
+    SYNTAX REFERENCE — INDEX
+  ============================================================
+
+  This file is the top-level index for the comprehensive Ruko
+  syntax reference. Each section lives in its own file inside
+  syntax/, mirroring the sections of ruko.tmLanguage.yaml.
+
+    syntax/01-illegal.rk            — Ignored / illegal patterns
+    syntax/02-definitions.rk        — Shared definitions & identifiers
+    syntax/03-directives.rk         — Preprocessor directives
+    syntax/04-types.rk              — Type system & type expressions
+    syntax/05-literals-constants.rk — Literals, booleans, null…
+    syntax/06-numbers.rk            — Numeric literals (all bases)
+    syntax/07-symbols.rk            — Symbol literals (:name)
+    syntax/08-strings.rk            — String literals (all forms)
+    syntax/09-embedded.rk           — Embedded expressions (#, @, %)
+    syntax/10-format-specifiers.rk  — Format & flag specifiers
+    syntax/11-regexps.rk            — Regular expression literals
+    syntax/12-xml-jsx.rk            — XML / JSX syntax
+    syntax/13-markdown.rk           — Ruko Markdown literals
+    syntax/14-percent-literals.rk   — Percent literals (\%rgb, \%url…)
+    syntax/15-script-blocks.rk      — Embedded foreign script blocks
+    syntax/16-comments.rk           — Comments (line, block, doc)
+    syntax/17-jsdoc.rk              — JSDoc annotations
+    syntax/18-function-calls.rk     — Function & method call syntax
+    syntax/19-call-arguments.rk     — Call argument patterns
+    syntax/20-variables.rk          — Variable declarations & bindings
+    syntax/21-operators.rk          — Operators (all categories)
+    syntax/22-clauses-keywords.rk   — Keywords, clauses & modifiers
+    syntax/23-type-annotations.rk   — Type annotations & typed bindings
+    syntax/24-control-flow.rk       — Control flow clauses
+    syntax/25-binding-patterns.rk   — Binding patterns
+    syntax/26-lambda-binding.rk     — Lambda binding patterns
+    syntax/27-binding-components.rk — Binding pattern components
+    syntax/28-slicing.rk            — Slice syntax
+    syntax/29-punctuation.rk        — Punctuation & separators
+    syntax/30-support.rk            — Standard library (unicode…)
+    syntax/31-css-support.rk        — CSS property/value support
+*\
+
+\* ============================================================
+   01 — IGNORED / ILLEGAL PATTERNS
+   These are patterns that are silently ignored by the parser
+   but flagged as errors or warnings by the editor/linter.
+   ============================================================ *\
+
+// The parser is lenient; the editor marks these as errors.
+
+// Stray characters inside expressions that cannot start any
+// known token are tagged as `invalid.illegal.ruko`.
+// Examples (do not use in real code):
+
+// @   — bare sigil with nothing following
+// #   — bare hash with nothing following
+// %   — bare percent with no known literal prefix
+// `   — unclosed backtick identifier
+
+// In well-formed code these tokens appear only as prefixes,
+// so the "illegal" rule acts as a catch-all fallback.
+
+// Embedded whitespace tokens are tagged `invalid.whitespace`
+// when they appear inside a token that does not allow them.
+
+// Null bytes (\x00) inside source text are always illegal.
+
+\* ============================================================
+   02 — SHARED DEFINITIONS & IDENTIFIERS
+   Core reusable patterns: identifiers, type annotations,
+   access modifiers, and the keyword list.
+   ============================================================ *\
+
+// ----- Ordinary identifiers -----
+// Must start with a letter, unicode letter, or connector (_).
+// May contain letters, digits, connectors.
+let camelCase   = 1
+let PascalCase  = 2
+let snake_case  = 3
+let _leading    = 4
+let café        = 5   // unicode letters allowed
+let α           = 6   // greek letters ok
+let ñoño        = 7
+
+// ----- Backtick-escaped identifiers -----
+// Any sequence of characters (except unescaped backtick) can
+// be used as an identifier by surrounding it with backticks.
+// This lets reserved keywords be used as variable names.
+let `set`   = {1, 2, 3}
+let `const` = 42
+let `let` mut `mut`: `in` i32 = 10
+let `user name` = "Alice"      // spaces allowed inside backticks
+let `+` = |a, b| a + b        // operators as identifiers
+let `hello world` = "hi"
+
+// Backtick identifiers can be doubled internally to escape:
+let `it``s fine` = true        // literal backtick inside = ``
+
+// ----- Access / visibility modifiers -----
+// Used before declarations to control visibility.
+pub let x = 1          // public
+prot let y = 2         // protected
+stat let z = 3         // static
+pub stat let k = 4     // public static
+intern let w = 5       // internal (package-private)
+extern let v = 6       // external (foreign binding)
+local let u = 7        // local scope only
+global let t = 8       // global scope
+
+// ----- Storage / mutability modifiers -----
+mut let a = 0          // mutable binding
+immut let b = 0        // explicitly immutable
+shared let c = 0       // shared ownership
+unique let d = 0       // unique ownership
+owned let e = 0        // owned value
+
+// ----- Lifetime / storage-class modifiers -----
+static let counter = 0
+volatile let reg = 0
+thread let tls = 0
+atomic let flag = false
+
+// ----- Function behaviour modifiers -----
+pure func int square(int n) { n * n }
+async func loadFile(str path): str { await readFile(path) }
+rec func int fib(int n) { if n <= 1: n else: fib(n-1) + fib(n-2) }
+gen func int* range(int n) { for let i in 0 ..< n: yield i }
+inline func int inc(int n) { n + 1 }
+unsafe func void poke(*mut u8 p, u8 v) { *p = v }
+
+// ----- Type modifiers -----
+abstract class Shape { }
+final class Circle : Shape { }
+sealed class Result<T> { }
+
+// ----- Prefix type annotations (C-style) -----
+// A type name directly before an identifier annotates its type.
+let i32 x2 = 10
+let f64 pi = 3.14159
+let str msg = "hello"
+let bool ok = true
+let []int xs = [1, 2, 3]
+
+// ----- Postfix type annotations (Rust-style) -----
+// A colon after the identifier followed by a type.
+let x3: i32 = 10
+let pi2: f64 = 3.14159
+let msg2: str = "hello"
+let ok2: bool = true
+let xs2: []int = [1, 2, 3]
+
+// ----- Mixed annotation -----
+let (y: int | str, str b2, f64 c2) = (42, "hello", 3.14)
+
+\* ============================================================
+   03 — PREPROCESSOR DIRECTIVES
+   C-preprocessor-style directives, prefixed with `%`.
+   Processed before the main compiler pass.
+   ============================================================ *\
+
+// ----- Inclusion -----
+%include "utils.rk"
+%include std::math.rk
+
+// ----- Macro definitions -----
+%define MAX_SIZE 1024
+%define PI 3.14159265358979
+%define SQUARE(x) ((x) * (x))
+%define CLAMP(v, lo, hi) (v < lo ? lo : v > hi ? hi : v)
+
+// Undefine a macro
+%undef MAX_SIZE
+
+// ----- Conditional compilation -----
+%ifdef DEBUG
+  %define LOG(msg) print(msg)
+%else
+  %define LOG(msg) // no-op
+%endif
+
+%ifndef RELEASE
+  %warning "Building in non-release mode"
+%endif
+
+%if VERSION >= 2
+  // use new API
+%elif VERSION == 1
+  // use old API
+%else
+  %error "Unsupported version"
+%endif
+
+// ----- Pragmas -----
+%pragma once                  // include guard
+%pragma optimize on
+%pragma optimize off
+%pragma pack(1)               // struct packing
+%pragma region "My Region"
+// ... code ...
+%pragma endregion
+
+// ----- Assertion / debug -----
+%assert sizeof(int) == 4
+%check VERSION > 0
+%debug print("debug info")
+
+// ----- Evaluation -----
+%eval 2 + 2           // evaluates at compile time
+%expr MAX_SIZE * 2    // expands to an expression
+%exec buildStep()     // runs at build time
+
+// ----- Module directives -----
+%import { alpha, beta } from "lib"
+%export { myFunc, MyClass }
+%extern "C" { /* C ABI bindings */ }
+%intern myPrivateThing
+
+// ----- Miscellaneous -----
+%once                         // file-level include guard (shorthand)
+%warning "This API is deprecated"
+%error "Do not compile on 32-bit targets"
+
+\* ============================================================
+   04 — TYPE SYSTEM & TYPE EXPRESSIONS
+   Primitive types, composite types, generics, type operators,
+   type keywords, and type-level computation.
+   ============================================================ *\
+
+// ----- Primitive scalar types -----
+let a: i8   = 127
+let b: i16  = 32767
+let c: i32  = 2_147_483_647
+let d: i64  = 9_223_372_036_854_775_807
+let e: i128 = 170_141_183_460_469_231_731_687_303_715_884_105_727
+
+let f: u8   = 255
+let g: u16  = 65535
+let h: u32  = 4_294_967_295
+let i: u64  = 18_446_744_073_709_551_615
+let j: u128 = 340_282_366_920_938_463_463_374_607_431_768_211_455
+
+let k: f32  = 3.14
+let l: f64  = 3.141592653589793
+let m: f128 = 3.14159265358979323846264338327950288
+
+let n: bool = true
+let o: char = 'A'
+let p: str  = "hello"
+let q: void = void
+
+// Short aliases
+let r: int   = 42    // platform int (usually i64)
+let s: uint  = 42    // platform uint
+let t: float = 1.0   // platform float (usually f64)
+let u: byte  = 0xAB  // u8 alias
+let v: word  = 0     // u16 alias
+let w: dword = 0     // u32 alias
+let x: qword = 0     // u64 alias
+
+// ----- Optional and Result -----
+let opt: int?    = null       // optional (nullable) int
+let res: int!    = 42         // result (failable) int
+let both: int?!  = null       // optional result
+
+// ----- Pointer and reference types -----
+let ptr: *i32          = null
+let mutPtr: *mut i32   = &mut someInt
+let constPtr: *const i32 = &someInt
+let ref_: &i32         = &someInt
+let mutRef: &mut i32   = &mut someInt
+let ptrPtr: **i32      = null   // pointer to pointer
+
+// ----- Array types -----
+let arr1: []int          = [1, 2, 3]        // dynamic array / slice
+let arr2: [3]int         = [1, 2, 3]        // fixed-size array (N=3)
+let arr3: [][]int        = [[1,2],[3,4]]    // 2-D array
+let arr4: [4][4]f32      = /* ... */ undef  // 4×4 matrix
+
+// ----- Tuple types -----
+let tup1: (int, str)           = (1, "a")
+let tup2: (int, str, f64)      = (1, "a", 3.14)
+let tup3: (i32, (bool, char))  = (0, (true, 'x'))  // nested
+
+// ----- Dictionary / map types -----
+let dict1: {str: int} = {"a": 1}
+let dict2: {int: []str} = {1: ["x", "y"]}
+
+// ----- Union types -----
+let val: int | str = 42        // value is int OR str
+let multi: int | str | bool = true
+let nullable: str | null = null
+
+// ----- Generic types -----
+let v1: Vec<int>         = Vec!(1, 2, 3)
+let v2: Map<str, int>    = Map!()
+let v3: Set<f64>         = Set!(3.14, 2.71)
+let v4: Option<int>      = Some(42)
+let v5: Result<int, str> = Okay(0)
+let v6: Pair<int, str>   = Pair(1, "x")
+
+// ----- Function types -----
+let fn1: func(int, int): int    = |a, b| a + b
+let fn2: proc(str): void        = |s| print(s)
+let fn3: func(): bool            = || true
+let fn4: async func(str): str    = async |s| s ++ "!"
+
+// ----- Type aliases -----
+type Coord = (f64, f64)
+type Transform<T> = func(T): T
+type Callback = proc(str): void
+type Matrix4 = [4][4]f32
+type NodeRef = *Node
+
+// ----- Type parameters (generics) -----
+func max<T>(T a, T b): T { if a > b: a else: b }
+class Stack<T> { /* ... */ }
+struct Pair2<A, B> { A first; B second }
+
+// Type parameter with constraint
+func sum<T: Numeric>([]T xs): T { xs.fold(T.zero, |+|) }
+func eq<T: Eq & Hash>(T a, T b): bool { a == b }
+
+// Inferred type parameter
+func identity<T>(T x) = x
+let result = identity(42)   // T inferred as int
+
+// ----- Type operators (prefix) -----
+// *T    — pointer to T
+// &T    — reference to T
+// %T    — percent / private
+// @T    — decorator type
+// ^T    — borrow
+// !T    — result / unwrap
+// ~T    — bitwise complement type
+// ?T    — optional
+// \T   — lifetime annotated
+// -T    — negated type
+// +T    — additive type
+// $T    — variable type
+// #T    — meta type
+// ..T   — spread / variadic
+
+// ----- Type operators (infix) -----
+type And  = A & B          // intersection
+type Or   = A | B          // union
+type Plus = A + B          // sum type
+type Xor  = A ^ B          // exclusive or
+type Sub  = A - B          // difference
+type Sub2 = A <: B         // subtype constraint (A extends B)
+type Sup  = A :> B         // supertype constraint
+type Eq   = A =: B         // type equality
+type Neq  = A =! B         // type inequality
+type Impl = A :: B         // A implements B
+type Of   = A : B          // A of kind B (HKT)
+type Pipe = A +> B         // pipe type
+type Back = A <+ B         // reverse pipe type
+
+// ----- Type keywords -----
+type Ext      = ext SomeBase       // extension / inheritance type
+type Of2      = of Container       // element type of
+type Impl2    = impl SomeTrait     // implementation proof
+type ForT     = a for &!a is str   // universal quantifier
+type Infer    = infer U            // type inference hole
+
+// typeof, valueof, fieldof, nameof, sizeof, keyof, addrof, etc.
+let sz  = sizeof(i32)              // size of type at compile time
+let nm  = nameof(MyClass)          // "MyClass" as string
+let k2  = keyof({a: int, b: str})  // "a" | "b"
+let pt  = typeof(42)               // i32 type object
+let ao  = addrof(someVar)          // address as usize
+let ao2 = ptrof(someVar)           // pointer to someVar
+let id  = idof(MyClass)            // runtime type id
+
+// ----- `is`, `has`, `can` type checks -----
+if x is int: print("int!")
+if x is not str: print("not a string")
+if x has .length: print("has length")
+if x can .serialize: x.serialize()
+
+// ----- Type brackets -----
+// Square brackets in types for fixed-size arrays
+let m2: [3][3]f64 = [[1,0,0],[0,1,0],[0,0,1]]
+
+// Angle brackets for generics
+let h2: Map<str, Vec<int>> = Map!()
+
+\* ============================================================
+   05 — LITERALS & CONSTANTS
+   Boolean, null-like, and other compile-time constants.
+   (Numeric literals are in 06-numbers.rk)
+   ============================================================ *\
+
+// ----- Boolean literals -----
+let yes: bool = true
+let no:  bool = false
+
+// ----- Null-like -----
+let nothing: str?   = null    // null — absence of value
+let bad: f64        = nan     // not-a-number
+let nowhere: *int   = null    // null pointer
+let empty: []int    = []      // empty array (not null, but zero-length)
+let und              = undef  // undefined (uninitialized region)
+let inf: f64        = infty   // positive infinity
+let negInf: f64     = -infty  // negative infinity
+
+// ----- Void -----
+proc doNothing() { void }     // void as return or expression
+
+// ----- Self-referential constants -----
+class Foo {
+  proc bar() {
+    let s = this     // `this`  — current instance (C++/Java style)
+    let s2 = self    // `self`  — same, Rust/Swift style
+    let s3 = #       // `#`     — Ruko self-reference alias
+    let p = super    // `super` — parent class instance
+    let c = ctor     // `ctor`  — constructor function
+    let d = dtor     // `dtor`  — destructor function
+    let pr = proto   // `proto` — prototype object
+  }
+}
+
+// ----- Context variables -----
+func sum([]int xs): int {
+  xs.fold(0, |acc, it| acc + it)  // `it` — implicit iteration variable
+}
+
+// ----- Index variables -----
+let first  = arr[_0]    // _0  — first element
+let second = arr[_1]    // _1  — second element
+let last   = arr[_-1]   // _-1 — last element
+
+// ----- Argument list -----
+func variadic() {
+  let all = args          // `args` — all call arguments as array
+}
+
+// ----- Wildcard -----
+let (a, _, c) = (1, 2, 3)  // `_` — discard / don't-care
+
+// ----- Option / result constructors -----
+let s1: Option<int>       = Some(42)
+let s2: Option<int>       = None
+let r1: Result<int, str>  = Okay(0)
+let r2: Result<int, str>  = Valid(0)
+let r3: Result<int, str>  = Error("oops")
+let r4: Option<[]int>     = Empty
+
+// ----- Decorator syntax -----
+@deprecated("use newFunc instead")
+func oldFunc() { }
+
+@id("my-component")
+@version(2)
+@by("Alice")
+compo MyComp { }
+
+@override()
+func str toString() { "MyClass" }
+
+\* ============================================================
+   06 — NUMERIC LITERALS
+   Every numeric base, exponent form, fraction, byte-shift,
+   and unit suffix.
+   ============================================================ *\
+
+// ----- Decimal -----
+let a = 0
+let b = 42
+let c = 1_000_000        // underscores as separators
+let d = 9_007_199_254_740_992
+
+// ----- Binary (0b) -----
+let bin1 = 0b0
+let bin2 = 0b1010_1010
+let bin3 = 0b1111_0000_1010_0101
+
+// ----- Ternary (0t) -----
+let ter1 = 0t0
+let ter2 = 0t1201
+let ter3 = 0t2_1022
+
+// ----- Quaternary (0q) -----
+let qua1 = 0q0
+let qua2 = 0q3012
+let qua3 = 0q3_203_120
+
+// ----- Senary / base-6 (0s) -----
+let sex1 = 0s0
+let sex2 = 0s5432
+let sex3 = 0s1_234_50
+
+// ----- Octal (0o) -----
+let oct1 = 0o0
+let oct2 = 0o755
+let oct3 = 0o777
+let oct4 = 0o1234_5670
+
+// ----- Duodecimal / base-12 (0z) -----
+// Digits: 0-9, a, b
+let duo1 = 0z0
+let duo2 = 0z9ab
+let duo3 = 0z1_0b9
+
+// ----- Hexadecimal (0x) -----
+let hex1 = 0x0
+let hex2 = 0xDEAD_BEEF
+let hex3 = 0xCAFE_BABE
+let hex4 = 0xFF_FF_FF
+let hex5 = 0x0000_0001
+
+// ----- Arbitrary base (Nb..._) -----
+// Format: <base>b<digits>  where base is 2–64
+let base3  =  3b210        // base 3
+let base5  =  5b43210
+let base16 = 16b0123456789ABCDEF
+let base32 = 32bQRSTUV
+let base64 = 64bABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/
+
+// ----- Floating-point -----
+let f1 = 0.0
+let f2 = 3.14
+let f3 = 1_234.567_89
+let f4 = 0.5              // leading dot
+let f5 = 1.0              // trailing dot
+
+// ----- Rational / fractional -----
+let r1 = 1/2             // rational one-half
+let r2 = 3/4
+let r3 = 22/7
+
+// ----- Decimal exponent (e) -----
+let e1 = 1e10
+let e2 = 1.5e-3
+let e3 = 2.0e+8
+let e4 = 0b1.0e10        // binary mantissa, decimal exponent
+let e5 = 0x1p8           // hex mantissa, binary exponent (C-style)
+
+// ----- Byte-shift exponent (\p or \P) -----
+// x \p n  means x * 2^n  (left shift by n bits)
+let p1 = 1\p8            // 256
+let p2 = 1.5\p4          // 24.0
+let p3 = 0b1\p10         // 1024
+let p4 = 0x1\P8          // same, upper-case P
+
+// ----- Cross-base floating / rational -----
+let xf1 = 0b1010.1010    // binary fraction
+let xf2 = 0o7.5          // octal fraction
+let xf3 = 0xF.8          // hex fraction = 15.5
+let xr1 = 0b101/110      // binary rational
+
+// ----- Unit suffixes -----
+// A unit name (identifier) may follow any number literal.
+let px1   = 200px        // pixels
+let em1   = 1.5em
+let rem1  = 2rem
+let pct1  = 50%          // percent-as-unit (inside expressions)
+let ms1   = 300ms
+let sec1  = 1.5s
+let deg1  = 90deg
+let rad1  = 3.14159rad
+let turn1 = 0.5turn
+let hz1   = 440hz
+let khz1  = 1.0khz
+let kb1   = 4096kb
+let mb1   = 1mb
+let gb1   = 2.5gb
+
+// Unit suffixes also work on other bases
+let hexPx = 0xFFpx
+let binMs = 0b1010ms
+
+\* ============================================================
+   07 — SYMBOL LITERALS
+   Symbols are compile-time interned string/atom values,
+   prefixed with a colon. Similar to Ruby symbols or Elixir atoms.
+   ============================================================ *\
+
+// ----- Basic symbols -----
+let s1 = :ok
+let s2 = :error
+let s3 = :pending
+let s4 = :blue
+let s5 = :red
+let s6 = :none
+
+// ----- Symbols in expressions -----
+let color = :green
+let status: :ok | :error | :pending = :ok
+
+// ----- Symbols as map keys -----
+let config = {(:host): "localhost", (:port): 8080, (:debug): false}
+
+// ----- Symbols as function arguments -----
+style button {
+  background color: :blue
+  border style: :solid
+  display: :flex
+  text align: :center
+  cursor: :pointer
+}
+
+// CSS-like symbol values in style blocks
+style card {
+  position: :relative
+  overflow: :hidden
+  flex direction: :column
+  align items: :center
+  justify content: :space-between
+  box sizing: :border box
+  visibility: :visible
+  pointer events: :none
+}
+
+// ----- Symbols with string notation -----
+// Symbols can be quoted to allow arbitrary characters:
+let sym1 = :"hello world"    // symbol with space
+let sym2 = :'any chars!'     // single-quoted symbol
+
+// ----- Symbols in pattern matching -----
+match result {
+  | is :ok: print("success")
+  | is :error: print("failure")
+}
+
+// ----- Symbol type -----
+// The type of a symbol literal is its singleton type
+let x: :ok = :ok
+let y: :blue | :red | :green = :blue
+
+// ----- Symbols vs strings -----
+// :foo  — compile-time atom, compared by identity (fast, no alloc)
+// "foo" — runtime string, heap-allocated
+let sym = :hello     // symbol
+let str = "hello"    // string
+// sym != str (different types)
+
+\* ============================================================
+   08 — STRING LITERALS
+   Single-quoted, double-quoted, multiline, raw, interpolated,
+   template, and combined string forms. Plus escape sequences.
+   ============================================================ *\
+
+// ----- Basic strings -----
+let s1 = "hello, world"
+let s2 = 'hello, world'     // single-quote variant
+
+// ----- Escape sequences -----
+let esc1 = "\n"             // newline
+let esc2 = "\t"             // tab
+let esc3 = "\r"             // carriage return
+let esc4 = "\\"             // literal backslash
+let esc5 = "\""             // literal double-quote
+let esc6 = "\'"             // literal single-quote
+let esc7 = "\0"             // null byte
+let esc8 = "\a"             // bell
+let esc9 = "\b"             // backspace
+let esc10 = "\f"            // form feed
+let esc11 = "\v"            // vertical tab
+let esc12 = "\e"            // escape (ESC)
+
+// Hex Unicode escapes
+let u1 = "\x41"             // 'A' (2-digit hex)
+let u2 = "\u0041"           // 'A' (4-digit hex)
+let u3 = "\U00000041"       // 'A' (8-digit hex)
+let u4 = "\u{1F600}"        // emoji — variable-width braced
+
+// Named Unicode escapes
+let n1 = "\N{LATIN SMALL LETTER A}"
+let n2 = "\N{SNOWMAN}"
+let n3 = "\N{U+1F600}"      // by codepoint
+
+// Non-decimal Unicode escapes
+let bu1 = "\ub0100001"      // binary unicode
+let ou1 = "\uo101"          // octal unicode
+let ru1 = "\ux41"           // hex unicode (alternate)
+
+// ----- Raw strings (no escape processing) -----
+// Prefix $" or $'
+let r1 = $"no \n escape here"
+let r2 = $'also \t raw'
+let r3 = $"C:\Users\Admin\path"   // useful for Windows paths
+
+// ----- Interpolated strings -----
+// Prefix # — interpolates #name or #{expr}
+let name = "World"
+let i1 = #"Hello, #name!"
+let i2 = #"2 + 2 = #{2 + 2}"
+let i3 = #"pi = #{Float.pi:.4f}"
+let i4 = #"arr = #{arr.join(", ")}"
+
+// ----- Template strings -----
+// Prefix @ — @arg placeholder for tagged template calls
+let t1 = @"Hello, @name!"
+let t2 = @"INSERT INTO @table VALUES (@val)"
+
+// ----- Multiline strings (triple-quoted) -----
+let ml1 = """
+  Hello,
+  World!
+"""
+
+let ml2 = '''
+  Line one
+  Line two
+'''
+
+// ----- Combined prefix strings -----
+// #$  — interpolated raw (no escape + interpolation)
+let ri1 = #$"C:\path\to\#dir"
+
+// #@  — interpolated template
+let it1 = #@"Hello, #name, your path is @path"
+
+// $#  — same as #$
+let ri2 = $#"value: #{x}"
+
+// #"""  — interpolated triple-quoted
+let mi1 = #"""
+  Name: #name
+  Age:  #{age}
+"""
+
+// $"""  — raw triple-quoted
+let mr1 = $"""
+  no \n escaping
+  in this block
+"""
+
+// #$"""  — raw + interpolated triple-quoted
+let mri1 = #$"""
+  Path: #dir
+  Escaped: \n (literal backslash-n)
+"""
+
+// @"""  — template triple-quoted
+let mt1 = @"""
+  SELECT *
+  FROM @table
+  WHERE id = @id
+"""
+
+// ----- Tagged string prefix on identifiers -----
+// An identifier immediately before a string calls it as a tag
+let html1 = html"<b>bold</b> "
+let css1  = css".foo { color: red }"
+let sql1  = sql"SELECT * FROM users"
+let re1   = re"[a-z]+"                // regex via tag
+let md1   = md"**bold** _italic_"
+let tex1  = tex"\frac{a}{b}"
+
+// ----- Single-character (char) literals -----
+let c1: char = 'A'
+let c2: char = '\n'
+let c3: char = '\u{1F600}'
+let c4: char = '中'
+
+\* ============================================================
+   09 — EMBEDDED EXPRESSIONS
+   Interpolation (#{}), template arguments (@arg),
+   and format specifiers (%fmt) inside strings.
+   ============================================================ *\
+
+// ----- Basic interpolation --- #name and #{expr} -----
+let user = "Alice"
+let age  = 30
+let msg1 = #"User: #user"
+let msg2 = #"Age:  #age"
+let msg3 = #"User #user is #age years old"
+let msg4 = #"2 + 2 = #{2 + 2}"
+let msg5 = #"max = #Math.max(a, b)"
+
+// Arbitrary expressions in #{}
+let arr = [1, 2, 3]
+let msg6  = #"sum = #{arr.reduce(+)}"
+let msg7  = #"sorted = #{arr.sort().join(", ")}"
+let msg8  = #"cond = #{if flag: "yes" else: "no"}"
+let msg9  = #"nested = #{#"inner: #user"}"
+
+// ----- Template arguments (@arg) inside @-strings -----
+// @arg is replaced by caller-supplied values
+let tmpl1 = @"Hello, @name!"
+let tmpl2 = @"INSERT INTO @table (id, val) VALUES (@id, @val)"
+let tmpl3 = @"FROM @`schema`.@table WHERE @cond"
+
+// Calling a template string as a tagged function:
+let result1 = greet@"@name"{ name: "Bob" }
+let result2 = `query`@"SELECT @cols FROM @tbl"{ cols: "*", tbl: "users" }
+
+// ----- Format specifiers --- %fmt inside #-strings -----
+// Format: #{expr %specifier}
+// Common specifiers:
+let pi = 3.14159265
+let f1 = #%"pi = #pi%f:(0.2)"       // fixed-point, 2 decimals → "3.14"
+let f2 = #%"pi = #pi%f:(10.4)"      // width 10, 4 decimals
+let f3 = #%"pi = #pi%f:(-10.4)"     // left-aligned
+let f4 = #%"pi = #pi%f:(+0.3)"      // force sign
+let f5 = #%"x  = #{255}%x"          // hex with 0x prefix → "0xff"
+let f6 = #%"x  = #{255}%x08"        // zero-padded hex
+let f7 = #%"b  = #{0b1010}%b"       // binary
+let f8 = #%"o  = #{0o17}%o"         // octal
+let f9 = #%"e  = #{1234.5}%e"       // scientific notation
+let f10 = #%"g = #{0.000123}%g"     // shortest form
+let f11 = #%"s = #{"hello"}%s10"    // string, width 10
+let f12 = #%"d = #{42}%d05"         // decimal, zero-padded
+let f13 = #%"p = #ptr%p"            // pointer address
+let f14 = #%"c = #{65}%c"           // character
+
+// Combined format flags
+let f15 = #"#{n %+010.3f}" // sign, zero-pad, width, precision
+
+// ----- Embedded argument / splice syntax -----
+// #( ... ) — splice a sub-expression result
+let spliced = #"#result: #{computeValue(x, y)}"
+
+// ----- Embedded formatting tokens -----
+// %d %i %u %f %e %g %x %X %o %b %c %s %p %n %q — printf-style
+let q1 = #"quoted = #{s %q}"    // %q = debug/quoted form
+
+// ----- Nested interpolation -----
+let outer = #"outer: #{#"inner: #{1 + 1}"}"
+
+// ----- Verbatim / escape of # and @ -----
+let lit1 = #"literal hash: \#"       // \# = literal #
+let lit2 = @"literal at: \@"         // \@ = literal @
+
+\* ============================================================
+   10 — FORMAT & FLAG SPECIFIERS
+   A mini-language for describing format strings and option flags,
+   used with print, format, regex flags, and similar constructs.
+   ============================================================ *\
+
+// ----- Printf-style format specifiers -----
+// Used inside #{ expr %spec } interpolation or format() calls.
+
+// Integer specifiers
+format("%d", 42)          // decimal integer
+format("%i", -42)         // integer (signed)
+format("%u", 42u)         // unsigned integer
+format("%o", 0o755)       // octal
+format("%x", 0xFF)        // hex lowercase
+format("%X", 0xFF)        // hex uppercase
+format("%b", 0b1010)      // binary
+format("%c", 65)          // character
+
+// Floating-point specifiers
+format("%f",  3.14)       // fixed-point
+format("%e",  3.14)       // scientific (e notation)
+format("%E",  3.14)       // scientific (E notation)
+format("%g",  3.14)       // shortest of %f/%e
+format("%G",  3.14)       // shortest of %f/%E
+
+// String / pointer specifiers
+format("%s",  "hello")    // string
+format("%p",  ptr)        // pointer address
+format("%q",  val)        // debug / quoted
+format("%n",  val)        // name of value (nameof)
+
+// ----- Format flags -----
+// Flags precede the width/precision in the specifier:
+// -   left-justify
+// +   force sign (+ or -)
+// (space) space before positive numbers
+// 0   zero-pad
+// #   alternate form (0x prefix for hex, 0 for octal, etc.)
+// '   locale-aware thousands separator
+// *   width/precision taken from argument
+
+format("%-10d", 42)       // left-justified, width 10
+format("%+.3f", 3.14)     // forced sign, 3 decimal places
+format("% d",   42)       // space before positive
+format("%010d", 42)       // zero-padded width 10
+format("%#x",   255)      // hex with 0x prefix
+format("%'d",   1000000)  // thousands separator → 1,000,000
+format("%*d",   10, 42)   // width from argument
+format("%.*f", 3, 3.14)   // precision from argument → 3.140
+
+// ----- Regex flags -----
+// Used after the closing / of a regex literal: /pattern/flags
+let r1 = /hello/g          // g — global (find all)
+let r2 = /hello/i          // i — case-insensitive
+let r3 = /hello/m          // m — multiline (^ and $ per line)
+let r4 = /hello/s          // s — dotall (. matches \n)
+let r5 = /hello/u          // u — unicode mode
+let r6 = /hello/x          // x — extended (ignore whitespace, allow comments)
+let r7 = /hello/gi         // combined: global + case-insensitive
+let r8 = /hello/gims       // combined: global + case-insensitive + multiline + dotall
+let r9 = /hello/v          // v — unicode sets (ES2024)
+let r10 = /hello/d         // d — indices (hasIndices)
+let r11 = /hello/y         // y — sticky mode
+
+// Extended mode with comments (/x flag)
+let re_x = (/(?x)
+  \d{4}   // year
+  [-/]    // separator
+  \d{2}   // month
+  [-/]    // separator
+  \d{2}   // day
+/).test x
+
+// ----- Format width & precision -----
+// width.precision
+format("%8.2f",  3.14)    // width 8, 2 decimals
+format("%-8.4s", "hello") // left-justified, max 4 chars of string
+
+\* ============================================================
+   11 — REGULAR EXPRESSION LITERALS
+   Inline regex literals, all group types, character classes,
+   fuzzy matching, replacement forms, and random generation.
+   ============================================================ *\
+
+// ----- Basic regex literals -----
+let r1 = /hello/
+let r2 = /hello/gi
+let r3 = /[a-z]+/
+let r4 = /^\d{4}-\d{2}-\d{2}$/m     // ISO date
+
+// ----- Character classes -----
+let digit      = /\d/                 // digit
+let word       = /\w/                 // word char
+let space      = /\s/                 // whitespace
+let nonDigit   = /\D/
+let nonWord    = /\W/
+let nonSpace   = /\S/
+
+// POSIX named classes
+let alpha      = /[[:alpha:]]/
+let alnum      = /[[:alnum:]]/
+let upper      = /[[:upper:]]/
+let lower      = /[[:lower:]]/
+let punct      = /[[:punct:]]/
+let blank      = /[[:blank:]]/
+
+// Unicode property escapes
+let letter     = /\p{L}/              // any letter
+let upper2     = /\p{Lu}/             // uppercase letter
+let lower2     = /\p{Ll}/             // lowercase letter
+let numeral    = /\p{N}/              // any number
+let emoji      = /\p{Emoji_Presentation}/
+let han        = /\p{Script=Han}/
+let latin      = /\p{Script=Latin}/
+let arabic     = /\p{Script=Arabic}/
+let thai       = /\p{Block=Thai}/
+let cjk        = /\p{Block=CJK}/
+
+// Negated Unicode property
+let nonLetter  = /\P{L}/
+
+// Extended character class (set operations)
+let thai_or_lao = /(?[\p{Thai}|\p{Lao}])/
+let letter_no_ascii = /(?[\p{L}--\p{ASCII}])/
+let consonants = /(?[\p{L}&&[^aeiouAEIOU]])/
+
+// ----- Anchors and boundaries -----
+let anchors = /^start|end$/m
+let word_b  = /\bhello\b/
+let non_word_b = /\Bhello\B/
+let line_s  = /^/m
+let input_s = /\A/                   // start of input
+let input_e = /\Z/                   // end of input (before \n)
+
+// ----- Quantifiers -----
+let q1  = /a*/          // zero or more
+let q2  = /a+/          // one or more
+let q3  = /a?/          // zero or one
+let q4  = /a{3}/        // exactly 3
+let q5  = /a{3,}/       // 3 or more
+let q6  = /a{3,7}/      // between 3 and 7
+let q7  = /a*?/         // lazy zero or more
+let q8  = /a+?/         // lazy one or more
+let q9  = /a??/         // lazy zero or one
+let q10 = /a{3,7}?/     // lazy bounded
+let q11 = /a*+/         // possessive zero or more
+let q12 = /a++/         // possessive one or more
+
+// ----- Non-capturing group -----
+let nc1 = /(?:abc)+/
+let nc2 = /(?:foo|bar)baz/
+
+// ----- Named capture groups -----
+let named1 = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/
+let named2 = /(?<word>\w+)\s+\k<word>/    // backreference by name
+
+// ----- Atomic group (no backtracking) -----
+let atom1 = /(?>abc|ab)c/
+
+// ----- Lookahead and lookbehind -----
+let la_pos  = /\w+(?= is)/       // positive lookahead
+let la_neg  = /\w+(?! is)/       // negative lookahead
+let lb_pos  = /(?<=Mr\. )\w+/    // positive lookbehind
+let lb_neg  = /(?<!Mr\. )\w+/    // negative lookbehind
+
+// Variable-length lookbehind
+let vllb = /(?<=\w+)\s/
+
+// ----- Conditional groups -----
+let cond1 = /(?(1)a|b)/          // if group 1 matched: a else: b
+let cond2 = /(?(<name>)yes|no)/  // named conditional
+
+// ----- Branch reset group -----
+let branch1 = /(?|(\d+)|([a-z]+))/
+
+// ----- Flag modifier group -----
+let fg1 = /(?i:abc)/              // case-insensitive only within group
+let fg2 = /(?-i:abc)/             // force case-sensitive within group
+let fg3 = /(?si:.)*/              // dotall + case-insensitive
+
+// ----- Absent operator -----
+let absent = /(?~;.*)/            // Oniguruma absent expression
+
+// ----- Callout group -----
+let callout1 = /a(?{myCallback})b/
+
+// ----- Recursive patterns -----
+let balanced = /\((?:[^()]*|\g<0>)*\)/   // balanced parentheses
+
+// ----- Subroutine calls -----
+let sub1 = /(?P=name)/            // backreference (Python-style)
+let sub2 = /\g{1}/                // group subroutine by number
+let sub3 = /\g<name>/             // group subroutine by name
+
+// ----- Fuzzy matching -----
+// {~n}  — allow up to n errors (insertions, deletions, substitutions)
+let fuzzy1 = /hello{~1}/          // allow 1 error
+let fuzzy2 = /world{~2}/          // allow 2 errors
+let fuzzy3 = /#{pattern}{~n}/     // dynamic error count
+
+// ----- Replacement form -----
+// /pattern/:replacement/flags
+let replaced = str.replace(/foo:bar/)
+let replaced2 = str.replace(/(\w+):$1!/)
+let replaced3 = str.replace(/\d+:#{"NUM"}/g)
+
+// ----- Random generation from regex -----
+// /pattern/ random: seed
+let generated = (/[a-z]{8}/).random 42
+let password  = (/[A-Za-z0-9!@#]{12}/).random Date.now()
+
+\* ============================================================
+   12 — XML / JSX SYNTAX
+   All JSX/XML tag forms, attributes, components, fragments,
+   spread, event, class, id, directive, and ref attributes.
+   ============================================================ *\
+
+// ----- Basic HTML tags -----
+let el1 = <div>Hello</div>
+let el2 = <p>Paragraph</p>
+let el3 = <span>Inline</span>
+let el4 = <input/>
+let el5 = <br/>
+let el6 = <img src="photo.jpg" alt="A photo"/>
+
+// ----- Self-closing tags -----
+let sc1 = <hr/>
+let sc2 = <link rel="stylesheet" href="style.css"/>
+let sc3 = <meta charset="UTF-8"/>
+
+// ----- Component tags (PascalCase) -----
+let c1 = <Button>"Click me"</Button>
+let c2 = <Modal title="Alert"> <p>"Body"</p> </Modal>
+let c3 = <DataTable rows=data columns=cols/>
+
+// ----- Fragment -----
+let frag = <>
+  <h1>"Title"</h1>
+  <p>"Body"</p>
+</>
+
+// ----- Expression tags -----
+// Dynamic tag name from expression
+let tagName = "div"
+let e1 = <(tagName)> "content" </> // round bracket: expression
+let e2 = <[tagList[0]]> "a" </> // square bracket: array access
+let e3 = <{getTag()}> "b" </> // curly bracket: function call
+
+// ----- Attributes -----
+// Standard value attribute
+<div class="container" id="main" style={color: :red}/>
+
+// Attribute with expression value
+<Component
+  value=count
+  label=#"Item #index"
+  callback=(|e| handleClick(e))
+/>
+
+// ----- Attribute sigils -----
+// :event  — event listener
+<button :click=(|e| handleClick(e))>Click</button>
+<input :change=(|e| setValue(e.target.value))/>
+<form :submit=(|e| { e.preventDefault(); doSubmit() })/>
+<div :mouseover=(|e| onHover(e)) :mouseout=(|e| onLeave(e))/>
+
+// .class  — conditional class binding
+<div .active=isActive .error=hasError .hidden=!visible/>
+<p .highlight .bold> "Styled" </p> // bare .class = always applied
+
+// #id     — dynamic id binding
+<div #mainContainer/>
+<section #(sectionId)/>
+
+// @directive — custom directive
+<div @tooltip="help text"/>
+<input @validate=(|v| v.length > 0)/>
+<div @animate:fade/>
+<img @lazy-load/>
+
+// &ref    — component / DOM reference
+<div &containerRef/>
+<Canvas &canvasEl/>
+<input &inputEl type="text"/>
+
+// *spread — spread object as attributes
+let props = {class: "foo", id: "bar"}
+<div *props/>
+<Component {..baseProps, extra: true}/>
+
+// |bind   — two-way binding
+<input |value=myVar/>
+<Select |selected=currentOption/>
+
+// %private — private attribute
+<div %data=internalState/>
+
+// ~key    — reconciliation key
+<li ~key=item.id> 'item.name' </li>
+
+// ^ prefix attr — parent/ancestor reference in selectors
+<div ^hover=onParentHover/>
+
+// ? conditional attribute
+<input ?disabled=isLoading/>
+<button ?hidden/>
+
+// ----- Mixed attributes -----
+<Button
+  .primary
+  .large=isLarge
+  :click=handleClick
+  &btnRef
+  ?disabled=loading
+  *extraProps
+>
+  "Submit"
+</Button>
+
+// ----- Nested JSX / children -----
+<ul>
+  <for let=item in=items>
+    <li ~key=item.id> item.name </li>
+  </for>
+  <if cond>
+    <li> "Conditional item" </li>
+  <elif anotherCond/>
+    <li> "Another" </li>
+  <else/>
+    <li> "Default" </li>
+  </if>
+</ul>
+
+// ----- JSX control tags -----
+<for let=i in=(0 ..< 10)>
+  <span> i </span>
+</for>
+
+<while(count < 5)>
+  <div> "Loop body" </div>
+</while>
+
+<if (user != null)>
+  <Profile user=user/>
+<elif guest/>
+  <GuestView/>
+<else/>
+  <LoginPrompt/>
+</if>
+
+<switch (status)>
+  <case "loading">
+    <Spinner/>
+  </case>
+  <case "error">
+    <ErrorMessage/>
+  </case>
+  <def>
+    <Content/>
+  </def>
+</>
+
+// ----- XML entities -----
+let amp  = \* &amp; *\    // &
+let lt   = \* &lt; *\     // <
+let gt   = \* &gt; *\     // >
+let quot = \* &quot; *\    // "
+let apos = \* &apos; *\    // '
+let nbsp = \* &nbsp; *\    // non-breaking space
+let num  = \* &#65; *\    // decimal entity → A
+let hex2 = \* &#x41; *\   // hex entity → A
+
+// ----- Inline style on tag -----
+<div style={background: :blue; color: :white; padding: "1rem"}/>
+
+// ----- JSX expression children -----
+<div>
+  { items.map(|item| <span> item </span>) }
+  { if show: <Modal/> }
+  { count > 0 ? <Badge n=count/> : <> </> }
+</div>
+
+\* ============================================================
+   13 — RUKO MARKDOWN LITERALS
+   Line and block Markdown literals, and all inline formatting.
+   ============================================================ *\
+
 \\ ============================================================
-\\   SYNTAX REFERENCE — INDEX
+\\ MARKDOWN LINE LITERALS
+\\ A line beginning with `\\` is a Markdown line literal.
+\\ The rest of the line is parsed as Markdown.
 \\ ============================================================
-\\ This file is the top-level index for the comprehensive Ruko
-\\ syntax reference. Each section lives in its own file inside
-\\ syntax/, mirroring the sections of ruko.tmLanguage.yaml.
-\\
-\\   syntax/01-illegal.rk            — Ignored / illegal patterns
-\\   syntax/02-definitions.rk        — Shared definitions & identifiers
-\\   syntax/03-directives.rk         — Preprocessor directives
-\\   syntax/04-types.rk              — Type system & type expressions
-\\   syntax/05-literals-constants.rk — Literals, booleans, null…
-\\   syntax/06-numbers.rk            — Numeric literals (all bases)
-\\   syntax/07-symbols.rk            — Symbol literals (:name)
-\\   syntax/08-strings.rk            — String literals (all forms)
-\\   syntax/09-embedded.rk           — Embedded expressions (#, @, %)
-\\   syntax/10-format-specifiers.rk  — Format & flag specifiers
-\\   syntax/11-regexps.rk            — Regular expression literals
-\\   syntax/12-xml-jsx.rk            — XML / JSX syntax
-\\   syntax/13-markdown.rk           — Ruko Markdown literals
-\\   syntax/14-percent-literals.rk   — Percent literals (\%rgb, \%url…)
-\\   syntax/15-script-blocks.rk      — Embedded foreign script blocks
-\\   syntax/16-comments.rk           — Comments (line, block, doc)
-\\   syntax/17-jsdoc.rk              — JSDoc annotations
-\\   syntax/18-function-calls.rk     — Function & method call syntax
-\\   syntax/19-call-arguments.rk     — Call argument patterns
-\\   syntax/20-variables.rk          — Variable declarations & bindings
-\\   syntax/21-operators.rk          — Operators (all categories)
-\\   syntax/22-clauses-keywords.rk   — Keywords, clauses & modifiers
-\\   syntax/23-type-annotations.rk   — Type annotations & typed bindings
-\\   syntax/24-control-flow.rk       — Control flow clauses
-\\   syntax/25-binding-patterns.rk   — Binding patterns
-\\   syntax/26-lambda-binding.rk     — Lambda binding patterns
-\\   syntax/27-binding-components.rk — Binding pattern components
-\\   syntax/28-slicing.rk            — Slice syntax
-\\   syntax/29-punctuation.rk        — Punctuation & separators
-\\   syntax/30-support.rk            — Standard library (unicode…)
-\\   syntax/31-css-support.rk        — CSS property/value support
 
-\\ This language is both a personal project and a learning experiment
-\\ for me to practice language and compiler design, and to make my own
-\\ engine, LSP and IDE support for it as I build it out. It's also a
-\\ playground for me to explore new language features and paradigms,
-\\ and to have fun with programming in general.
+\\ # Heading 1
+\\ ## Heading 2
+\\ ### Heading 3
+\\ #### Heading 4
+\\ ##### Heading 5
+\\ ###### Heading 6
 
-\\ This document is intended to be a comprehensive overview of the syntax
-\\ of the Ruko language, covering all the constructs and features as provided
-\\ by the compiler. Take this as a reference for how to write Ruko code,
-\\ and as a guide for what the language can do. It is not intended to be a
-\\ tutorial or a style guide, but rather a specification of the syntax
-\\ and semantics of the language, with examples to illustrate the concepts,
-\\ based on the current state of ruko.tmLanguage.yaml and the example code
-\\ in the Tests/ directory. This is a living document that will be updated
-\\ as the language evolves and new features are added, so check back often
-\\ for the latest information on how to write Ruko code.
+\\ Regular paragraph text here.
 
-\\ A documentation of the standard library and built-in functions will be
-\\ provided separately, as that is a different scope of work. This document
-\\ will focus on the syntax of the language itself, and not on the libraries
-\\ or APIs that are available to use with it.
+\\ **bold text**  *italic text*  ***bold italic***
+
+\\ ~~strikethrough~~   ++underline++   ==highlight==
+
+\\ ||spoiler text||
+
+\\ ^superscript^   ~subscript~
+
+\\ `inline code`
+
+\\ {inline code block, alternative syntax}
+
+\\ $inline math expression$
+
+\\ ---  (horizontal rule)
+
+\\ - Unordered list item
+\\ - Another item
+\\ + Ordered list item 1
+\\ + Ordered list item 2
+\\ : Term definition
+
+\\ > Blockquote line
+\\ >> Nested blockquote
+
+\\ [Link text](https://example.com)
+\\ ![Alt text](image.png)
+\\ [^footnote reference]
+\\ [@citation key]
+
+\\ !(span .class #id style=color:red) Styled span text
+
+\\ !{color: :red; font weight: :bold} Inline style span
+
+\* `============================================================`
+   MARKDOWN BLOCK LITERALS
+   Delimited by `\*` ... `*\`  (backslash-star ... star-backslash)
+   Everything inside is parsed as Markdown.
+   `============================================================` *\
+
+\*
+# Document Title
+
+This is a **block** of Markdown content inside a Ruko source file.
+
+## Features
+
+- Inline `code` with backticks
+- *Italic* and **bold** text
+- ~~Strikethrough~~, ++underline++, ==highlight==
+- ^super^ and ~sub~ scripts
+- ||spoiler text here||
+
+### Links & Images
+
+[Ruko Language](https://github.com/ruko-lang/ruko)
+![Logo](assets/logo.png "Optional title")
+
+### Math
+
+Inline math: $E = mc^2$
+
+Block math (rendered as display):
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+
+### Code
+
+{print("hello from inline code block")}
+
+### Lists
+
+1. First ordered item
+2. Second ordered item
+   - Nested unordered
+   - Another nested
+
+### Blockquotes
+
+> This is a blockquote.
+> It can span multiple lines.
+>> And be nested.
+
+### Table
+
+| Col 1 | Col 2 | Col 3 |
+|-------|-------|-------|
+| a     | b     | c     |
+
+### Footnotes and Citations
+
+See the reference[^1] and cite[@smith2023].
+
+[^1]: Footnote definition goes here.
+
+### Inline Styles
+
+!(em .emphasized) Styled emphasis !(strong) Strong
+
+!{color: red; font size: 1.2em} Red large text
+
+*\
+
+// ----- Markdown inside function bodies -----
+func greeting(str name): str {
+  \\ Builds a greeting string.
+  \\ **name** — the recipient's name.
+  #"Hello, #name!"
+}
+
+// ----- Markdown doc comments -----
+\\ **sortedPowerSet** — returns all sorted subsets of `xs`.
+\\ Parameters:
+\\ - `xs: []T` — input array
+\\ Returns: `[][]T`
+func sortedPowerSet<T: Ord>([]T xs): [][]T {
+  xs
+    |> powerSet
+    |> map(sort)
+    |> sort
+}
+
+\* ============================================================
+   14 — PERCENT LITERALS
+   Color, path-drawing, timestamp, URL, base64, word-array,
+   file-path, and embedded script literal forms.
+   ============================================================ *\
+
+// ----- RGB / RGBA colors -----
+let c1 = %rgb(255, 128, 0)       // orange
+let c2 = %rgba(255, 128, 0, 0.5) // semi-transparent orange
+let c3 = %rgb(100%, 50%, 0%)       // percentage form
+let c4 = %rgba(100%, 50%, 0%, 0.8)
+
+// ----- CMYK colors -----
+let c5 = %cmyk(0, 50, 100, 0)     // orange in CMYK
+let c6 = %cmyka(0, 50, 100, 0, 1.0)
+
+// ----- HSL / HSV / OKLCH colors -----
+let c7  = %hsl(30, 100%, 50%)     // orange as HSL
+let c8  = %hsla(30, 100%, 50%, 0.5)
+let c9  = %hsv(30, 100%, 100%)
+let c10 = %hcl(30, 100, 50)       // HCL
+let c11 = %oklch(0.7, 0.18, 30)   // OKLCH
+let c12 = %oklab(0.7, 0.12, 0.05) // OKLAB
+
+// ----- Hex colors -----
+let c13 = %#FF8000          // 6-digit hex
+let c14 = %#FF8000FF        // 8-digit hex with alpha
+let c15 = %#F80               // 3-digit hex
+let c16 = %#F80F              // 4-digit hex with alpha
+
+// ----- LAB colors -----
+let c17 = %lab(50, 30, -20)
+let c18 = %lab(70, -10, 40, 0.9)
+
+// ----- Canvas path drawing  %draw(..._) -----
+let path1 = %draw(M 10 10, L 100 10, L 100 100, Z)
+let path2 = %draw(
+  M 50 10,
+  A 40 40 0 1 0 50.001 10,
+  Z
+)
+let path3 = %draw(M 0 0, C 10 20, 30 20, 40 0)  // cubic bezier
+
+// ----- Timestamps  %time'...' -----
+let t1 = %time'2026-02-26'
+let t2 = %time'2026-02-26T14:30:00'
+let t3 = %time'2026-02-26T14:30:00Z'
+let t4 = %time'2026-02-26T14:30:00+07:00'
+let t5 = %time'14:30:00'
+let t6 = %time'P1Y2M3DT4H5M6S'     // ISO 8601 duration
+
+// ----- URLs  %url"..." -----
+let u1 = %url"https://example.com"
+let u2 = %url"https://api.example.com/v2/users?page=1&limit=20"
+let u3 = %url"ftp://files.example.com/data.csv"
+let u4 = %url"mailto:user@example.com"
+let u5 = %url"file:///C:/Users/Admin/file.txt"
+
+// ----- Base64  %b64"..." -----
+let b1 = %b64"SGVsbG8sIFdvcmxkIQ=="
+let b2 = %b64"aGVsbG8="
+let b3 = %b64'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+// ----- Word arrays  %words(..._) -----
+// Splits a space-separated literal into a string array at compile time
+let w1 = %words( foo bar baz )         // ["foo", "bar", "baz"]
+let w2 = %words( red green blue )
+let w3 = %words( Monday Tuesday Wednesday Thursday Friday )
+
+// ----- File paths  %file"..." -----
+let f1 = %file"assets/logo.png"
+let f2 = %file"C:/Users/Admin/data.json"
+let f3 = %file"../config/settings.toml"
+
+// ----- Embedded script literal blocks (%lang ... lang%) -----
+// See also: 15-script-blocks.rk for the block form.
+// The percent-literal form uses matching delimiters:
+
+%latex
+  \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+latex%
+
+%sql
+  SELECT u.name, COUNT(o.id) AS num_orders
+  FROM users u
+  LEFT JOIN orders o ON o.user_id = u.id
+  WHERE u.active = 1
+  GROUP BY u.id
+  ORDER BY num_orders DESC
+sql%
+
+%re
+  (?x)
+  (?P<year>  \d{4} ) -
+  (?P<month> \d{2} ) -
+  (?P<day>   \d{2} )
+re%
+
+%js
+  const greet = (name) => `Hello, ${name}!`
+  export default greet
+js%
+
+%rs
+  pub fn add(a: i32, b: i32) -> i32 { a + b }
+rs%
+
+%py
+  def fib(n):
+    return n if n <= 1 else fib(n-1) + fib(n-2)
+py%
+
+%cpp
+  template<typename T>
+  T clamp(T v, T lo, T hi) {
+    return v < lo ? lo : v > hi ? hi : v;
+  }
+cpp%
+
+%glsl
+  void main() {
+    gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0);
+  }
+glsl%
+
+%wgsl
+  @fragment
+  fn fsMain() -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0, 0.5, 0.0, 1.0);
+  }
+wgsl%
+
+\* ============================================================
+   15 — EMBEDDED FOREIGN SCRIPT BLOCKS
+   Two syntactic forms to embed foreign-language code:
+     1. Block form:    lang { ... }
+     2. Literal form:  %lang ... lang%
+   All supported languages listed here.
+   ============================================================ *\
+
+// ============================================================
+// BLOCK FORM: lang { ... }
+// The language keyword is followed by a curly-brace block.
+// ============================================================
+
+// Web languages
+script js {
+  function greet(name) {
+    console.log(`Hello, ${name}!`)
+  }
+}
+
+script jsx {
+  function App() {
+    return <h1>Hello JSX</h1>
+  }
+}
+
+script ts {
+  function add(a: number, b: number): number {
+    return a + b
+  }
+}
+
+script tsx {
+  const Button: React.FC<{label: string}> = ({label}) => (
+    <button>{label}</button>
+  )
+}
+
+script css {
+  .container {
+    display: flex;
+    gap: 1rem;
+  }
+}
+
+script scss {
+  $primary: #3498db;
+  .btn { background: $primary; }
+}
+
+script less {
+  @primary: #3498db;
+  .btn { background: @primary; }
+}
+
+script html {
+  <!DOCTYPE html>
+  <html lang="en"><body><h1>Hi</h1> </body> </html>
+}
+
+script json {
+  { "name": "Ruko", "version": "0.1.0" }
+}
+
+script yaml {
+  name: Ruko
+  version: 0.1.0
+  features:
+    - wasm
+    - webgpu
+}
+
+script gql {
+  query GetUser($id: ID!) {
+    user(id: $id) { id name email }
+  }
+}
+
+// Systems languages
+script c {
+  int add(int a, int b) { return a + b; }
+}
+
+script cpp {
+  template<typename T>
+  T max(T a, T b) { return a > b ? a : b; }
+}
+
+script rs {
+  pub fn fib(n: u64) -> u64 {
+      match n { 0 | 1 => n, _ => fib(n-1) + fib(n-2) }
+  }
+}
+
+script go {
+  func add(a, b int) int { return a + b }
+}
+
+// JVM languages
+script java {
+  public class Hello {
+    public static void main(String[] args) {
+      System.out.println("Hello, World!");
+    }
+  }
+}
+
+script kt {
+  fun main() = println("Hello, Kotlin!")
+}
+
+script scala {
+  def fib(n: Int): Int = if (n <= 1) n else fib(n-1) + fib(n-2)
+}
+
+// .NET
+script cs {
+  int Square(int x) => x * x;
+}
+
+script vb {
+  Function Add(a As Integer, b As Integer) As Integer
+    Return a + b
+  End Function
+}
+
+// FP languages
+script hs {
+  fib :: Int -> Int
+  fib 0 = 0
+  fib 1 = 1
+  fib n = fib (n-1) + fib (n-2)
+}
+
+script ml {
+  let rec fib = function 0 -> 0 | 1 -> 1 | n -> fib(n-1) + fib(n-2)
+}
+
+script ocaml {
+  let rec fib n = if n <= 1 then n else fib (n-1) + fib (n-2)
+}
+
+script fs {
+  let rec fib = function 0 -> 0 | 1 -> 1 | n -> fib(n-1) + fib(n-2)
+}
+
+script elm {
+  fib : Int -> Int
+  fib n = if n <= 1 then n else fib (n-1) + fib (n-2)
+}
+
+// Scripting languages
+script py {
+  def fib(n):
+    return n if n <= 1 else fib(n-1) + fib(n-2)
+}
+
+script rb {
+  def fib(n)
+    n <= 1 ? n : fib(n-1) + fib(n-2)
+  end
+}
+
+script php {
+  function fib($n) {
+    return $n <= 1 ? $n : fib($n-1) + fib($n-2);
+  }
+}
+
+script lua {
+  function fib(n)
+    return n <= 1 and n or fib(n-1) + fib(n-2)
+  end
+}
+
+script perl {
+  sub fib { my $n = shift; $n <= 1 ? $n : fib($n-1) + fib($n-2) }
+}
+
+script r {
+  fib <- function(n) if (n <= 1) n else fib(n-1) + fib(n-2)
+}
+
+// Shader languages
+script glsl {
+  void main() {
+    gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0);
+  }
+}
+
+script wgsl {
+  @fragment
+  fn main() -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0, 0.5, 0.0, 1.0);
+  }
+}
+
+// Shell and build
+script sh {
+  #!/bin/bash
+  echo "Hello, World!"
+  for f in *.rk; do echo "$f"; done
+}
+
+script ps1 {
+  Write-Host "Hello, PowerShell!"
+  Get-ChildItem *.rk | ForEach-Object { $_.Name }
+}
+
+// Data languages
+script sql {
+  SELECT u.name, COUNT(*) AS n
+  FROM users u JOIN orders o ON o.user_id = u.id
+  GROUP BY u.id ORDER BY n DESC
+}
+
+script xml {
+  <root>
+    <item id="1">Hello</item>
+  </root>
+}
+
+// Other languages
+script dart {
+  int fib(int n) => n <= 1 ? n : fib(n-1) + fib(n-2);
+}
+
+script swift {
+  func fib(_ n: Int) -> Int { n <= 1 ? n : fib(n-1) + fib(n-2) }
+}
+
+script jl {
+  fib(n) = n <= 1 ? n : fib(n-1) + fib(n-2)
+}
+
+script ex {
+  def fib(0), do: 0
+  def fib(1), do: 1
+  def fib(n), do: fib(n-1) + fib(n-2)
+}
+
+script clj {
+  (defn fib [n]
+    (if (<= n 1) n (+ (fib (- n 1)) (fib (- n 2)))))
+}
+
+script groovy {
+  def fib(n) { n <= 1 ? n : fib(n-1) + fib(n-2) }
+}
+
+script sol {
+  function add(uint a, uint b) public pure returns (uint) {
+    return a + b;
+  }
+}
+
+script mo {
+  func add(a: Nat, b: Nat) : Nat { a + b }
+}
+
+script re {
+  # Extended Python-style regex block
+  (?P<year>  \d{4} )  -
+  (?P<month> \d{2} )  -
+  (?P<day>   \d{2} )
+}
+
+script markdown {
+  # Embedded Markdown
+
+  This is **bold** and *italic* text.
+}
+
+script latex {
+  \documentclass{article}
+  \begin{document}
+    $E = mc^2$
+  \end{document}
+}
+
+script toml {
+  [package]
+  name = "ruko"
+  version = "0.1.0"
+}
+
+script wat {
+  (module
+    (func $add (param i32 i32) (result i32)
+      local.get 0 local.get 1 i32.add))
+}
+
+\* ============================================================
+   16 — COMMENTS
+   Line comments, block comments, doc comments, nested
+   block comments, and Markdown rendering inside comments.
+   ============================================================ *\
+
+// ----- Line comment -----
+// This is a single-line comment. Everything after // is ignored.
+let x = 10   // inline comment after code
+
+// Continuation does not apply — each // starts fresh.
+// Line 1
+// Line 2
+// Line 3
+
+// ----- Block comment -----
+/* This is a block comment.
+   It spans multiple lines.
+   Ends at the closing delimiter. */
+
+let y = /* inline block comment */ 20
+
+/* Single-line block */ let z = 30
+
+// ----- Nested block comments -----
+/* outer comment start
+   /* inner comment start
+      content inside inner
+   */ inner comment end
+   still inside outer
+*/ // outer comment end
+
+/* level 1 /* level 2 /* level 3 */ back to 2 */ back to 1 */
+
+// ----- Documentation line comment  (///) -----
+/// A single-line doc comment.
+/// Appears before a declaration.
+/// Multiple lines combine into one doc block.
+/// **bold**, *italic*, `code` — Markdown rendered.
+func square(int n): int { n * n }
+
+/// Standalone doc line comments can appear anywhere.
+/// These describe the next declaration.
+/// Parameters:
+/// - `n: int` — the base value
+/// Returns: `n * n`
+func docuSquare(int n): int { n * n }
+
+// ----- Documentation block comment  (/** ... */) -----
+/**
+ * Full JSDoc-style block comment.
+ * @param n - the input number
+ * @returns n squared
+ */
+func jsDocSquare(int n): int { n * n }
+
+/**
+ * @class Point
+ * @description A 2D point with x and y coordinates.
+ */
+class Point {
+  /**
+   * @property x - horizontal coordinate
+   */
+  val x: f64
+
+  /**
+   * @property y - vertical coordinate
+   */
+  val y: f64
+
+  /**
+   * @constructor
+   * @param x - x value
+   * @param y - y value
+   */
+  new func(f64 x, f64 y) {
+    self.x = x
+    self.y = y
+  }
+
+  /**
+   * @method dist - Euclidean distance to another point
+   * @param other - the target point
+   * @returns distance as f64
+   * @example
+   * let p = Point.new(0, 0)
+   * let q = Point.new(3, 4)
+   * p.dist(q)   // 5.0
+   */
+  func dist(Point other): f64 {
+    let dx = self.x - other.x
+    let dy = self.y - other.y
+    (dx * dx + dy * dy).sqrt()
+  }
+}
+
+// ----- Markdown inside doc comments -----
+/// # Overview
+/// This module provides **sorting** utilities.
+///
+/// ## Usage
+///
+/// ```
+/// let sorted = mergeSort([3, 1, 2])
+/// ```
+///
+/// See [sorting theory](https://en.wikipedia.org/wiki/Sorting_algorithm).
+module Sort {
+  /// Sorts an array using merge sort.
+  /// - Time: $O(n \log n)$
+  /// - Space: $O(n)$
+  func []T mergeSort<T: Ord>([]T xs) {
+    if xs.len() <= 1: xs
+    else {
+      let mid = xs.len() / 2
+      let left  = mergeSort(xs[..mid, ])
+      let right = mergeSort(xs[, ..mid])
+      merge(left, right)
+    }
+  }
+}
+
+// ----- Disabled code via block comment -----
+/*
+func oldImpl(int n): int {
+  var acc = 0
+  for i in 0 ..< n {
+    acc += i
+  }
+  acc
+}
+*/
+
+// ----- todo / fixme / note / hack inline annotations -----
+// TODO: implement caching
+// FIXME: off-by-one on line 42
+// NOTE: this assumes sorted input
+// HACK: workaround for compiler bug
+// DEPRECATED: use newFn() instead
+
+\* ============================================================
+   17 — JSDOC ANNOTATIONS
+   All @tag annotations valid inside /** ... */ doc-blocks.
+   ============================================================ *\
+
+// ----- @param variations -----
+
+/**
+ * @param name - description (simple)
+ */
+func f1(str name) {}
+
+/**
+ * @param {string} name - with type annotation
+ */
+func f2(str name) {}
+
+/**
+ * @param [optionalParam] - optional parameter
+ */
+func f3(str? opt) {}
+
+/**
+ * @param {string} [optionalWithType] - optional with type
+ */
+func f4(str? opt) {}
+
+/**
+ * @param {string} [param="default"] - optional with default
+ */
+func f5(str param = "default") {}
+
+/**
+ * @param {...string} rest - rest parameters
+ */
+func f6(str ..rest) {}
+
+// ----- @returns / @return -----
+
+/**
+ * @returns The computed value
+ */
+func f7(): int { 0 }
+
+/**
+ * @returns {number} The computed value with type
+ */
+func f8(): int { 0 }
+
+/**
+ * @return {Promise<string>} Also accepted (singular)
+ */
+func f9(): Promise<str> { resolve("ok") }
+
+// ----- @type, @typedef, @property -----
+
+/**
+ * @type {string}
+ */
+let userName: str = "Alice"
+
+/**
+ * @typedef {Object} Config
+ * @property {string} host - the hostname
+ * @property {number} port - the port number
+ * @property {boolean} [ssl] - optional TLS flag
+ */
+type Config = {
+  host: str,
+  port: int,
+  ssl: bool?,
+}
+
+// ----- @class, @constructor, @interface -----
+
+/**
+ * @class Rectangle
+ * @description A 2D rectangle.
+ */
+class Rectangle {
+
+  /**
+   * @constructor
+   * @param {number} w - width
+   * @param {number} h - height
+   */
+  func new(f64 w, f64 h) {
+    self.w = w
+    self.h = h
+  }
+
+  /**
+   * @returns {number} The area
+   */
+  func area(): f64 { self.w * self.h }
+}
+
+/**
+ * @interface Drawable
+ */
+inter Drawable {
+  func draw(): void
+}
+
+// ----- @enum -----
+
+/**
+ * @enum {string}
+ */
+enum Direction {
+  :north, :south, :east, :west
+}
+
+// ----- @event, @fires -----
+
+/**
+ * @event click
+ * @type {MouseEvent}
+ */
+
+/**
+ * @fires click - emitted when the button is pressed
+ */
+func onButtonPress() {}
+
+// ----- @augments / @extends, @implements -----
+
+/**
+ * @class Dog
+ * @augments Animal
+ */
+class Dog extends Animal {}
+
+/**
+ * @class Cat
+ * @extends Animal
+ * @implements Drawable
+ */
+class Cat extends Animal impl Drawable {
+  func draw(): void {}
+}
+
+// ----- @memberof, @inner -----
+
+/**
+ * @memberof Utils
+ */
+func clamp(int val, int lo, int hi): int { min(max(val, lo), hi) }
+
+/**
+ * @memberof Outer~
+ * @inner
+ */
+
+// ----- @module, @namespace -----
+
+/**
+ * @module MathUtils
+ * Utility functions for math operations.
+ */
+module MathUtils {
+
+  /**
+   * @namespace Trigonometry
+   */
+  space Trigonometry {
+
+    /**
+     * @constant {number} PI
+     */
+    const PI: f64 = 3.14159265358979323846
+  }
+}
+
+// ----- @throws / @exception -----
+
+/**
+ * @throws {RangeError} When n is negative
+ * @throws {TypeError} When n is not a number
+ */
+func sqrt(f64 n): f64 {
+  if n < 0: raise RangeError("n must be non-negative")
+  n ** 0.5
+}
+
+// ----- @example -----
+
+/**
+ * Computes the factorial of n.
+ * @param {number} n - non-negative integer
+ * @returns {number} n!
+ * @example
+ * factorial(0)  // 1
+ * factorial(5)  // 120
+ */
+func factorial(int n): int {
+  if n == 0: 1
+  else: n * factorial(n - 1)
+}
+
+// ----- @deprecated, @since, @version -----
+
+/**
+ * @deprecated Use `newFn()` instead
+ * @since 1.0.0
+ */
+func oldFn() {}
+
+/**
+ * @version 2.0.0
+ */
+module API {}
+
+// ----- @see, @link, @tutorial -----
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API
+ * @see {@link OtherClass#method} for the related method
+ * @tutorial getting-started
+ */
+func seeExample() {}
+
+// Using inline @link:
+/// Calls {@link formatDate} to format the output.
+func printDate() {}
+
+// ----- @author, @license -----
+
+/**
+ * @author Jane Doe <jane@example.com>
+ * @license MIT
+ */
+module MyLib {}
+
+// ----- @override, @abstract, @access -----
+
+/**
+ * @override
+ */
+func toString(): str { "Object" }
+
+/**
+ * @abstract
+ */
+func render(): void {}   // must be overridden
+
+/**
+ * @access private
+ */
+func internalHelper() {}
+
+/**
+ * @access public
+ */
+func publicMethod() {}
+
+/**
+ * @access protected
+ */
+func protectedLogic() {}
+
+// ----- @readonly, @default -----
+
+/**
+ * @readonly
+ * @default 0
+ */
+val counter: int = 0
+
+// ----- Class#method / Class.staticMethod syntax in references -----
+
+/// See {@link Point#dist} for distance calculation.
+/// See {@link MathUtils.clamp} for the clamping static.
+/// See {@link Rectangle~_privateHelper} for the inner helper.
+func refExamples() {}
+
+// ----- JSDoc type expressions -----
+
+/**
+ * @param {string|number} id - accepts string or number
+ * @param {Array<string>} tags - generic array type
+ * @param {?boolean} flag - nullable boolean
+ * @param {!boolean} required - non-nullable boolean
+ * @param {function(string, number): boolean} predicate - function type
+ * @param {{x: number, y: number}} point - inline object type
+ */
+func complex(str | int id, []str tags, bool? flag, bool required, fn predicate, point: {x: int, y: int}) {}
+
+\* ============================================================
+   18 — FUNCTION CALLS
+   Paren calls, piped calls, parenless calls, method chains,
+   named arguments, generic calls, and special suffixed calls.
+   ============================================================ *\
+
+// ----- Standard paren call -----
+let r1 = foo()
+let r2 = bar(1, 2, 3)
+let r3 = baz("hello", true, null)
+let r4 = Math.sqrt(144.0)
+let r5 = List.new(10)
+
+// ----- Multi-line paren call -----
+let r6 = compute(
+  x: 10,
+  y: 20,
+  z: 30,
+)
+
+// ----- Named argument call -----
+let r7  = open(path: "data.csv", mode: :read)
+let r8  = connect(host: "localhost", port: 5432, ssl: false)
+let r9  = Box.new(width: 200px, height: 100px, color: %#FF0000)
+let r10 = animate(`from`: 0, to: 100, duration: 300ms, easing: :linear)
+
+// ----- Generic call -----
+let r11 = identity<int>(42)
+let r12 = parse<Config>(jsonStr)
+let r13 = Vec.new<str>()
+let r14 = zip<int, str>(numbers, names)
+
+// ----- Method chain call -----
+let r15 = [1, 2, 3]
+  .map(|x| x * 2)
+  .filter(|x| x > 2)
+  .fold(0, |acc, x| acc + x)
+
+let r16 = text
+  .trim()
+  .toLower()
+  .replace(/\s+:"-"/)
+  .slice(0, 50)
+
+// ----- Optional chain call -----
+let r17 = user?.getAddress()?.city
+let r18 = map?.get("key")?.toLower()
+let r19 = obj?.(dynamicMethod)()
+let r20 = arr?.[0]?.name
+
+// ----- Force-unwrap chain call -----
+let r21 = cfg!.database!.password
+let r22 = arr!.[0]!.toLower()
+
+// ----- Pipeline operator call -----
+let r23 = 10 |> double
+let r24 = "hello" |> trim |> toUpper
+let r25 = [1, 2, 3] |> sort |> reverse |> first
+
+let r26 = data
+  |> parse
+  |> validate
+  |> transform
+  |> persist
+
+// ----- Reverse pipeline -----
+let r27 = double <| 10
+let r28 = toUpper <| "hello"
+
+// ----- Piped with arguments (partial application) -----
+let r29 = list |> map(|x| x * 2)
+let r30 = list |> filter(|x| x > 0) |> sum
+
+// ----- Parenless / bracketless call -----
+// Function call with arguments and no parentheses (low-precedence)
+print "Hello, World!"
+log :error, "Something went wrong"
+push arr, 42
+assert n > 0, "n must be positive"
+
+// ----- Argument-less parenless -----
+// zero-arg parenless call when preceded by known function name
+// (grammar: `function-name space* eol` form)
+sort arr
+reverse list
+clear map
+close handle
+
+// ----- Embedded / method call with `·` (middle-dot) -----
+let r31 = xs ·map |x| x * 2
+let r32 = y ·fold 0, |acc, x| acc + x
+
+// ----- Spread in call -----
+let r33 = f(*args)
+let r34 = g(1, *rest, last: true)
+let r35 = h(**namedArgs)
+
+// ----- Lambda as last argument (trailing) -----
+let r36 = map(list) |x| x * 2
+let r37 = filter([1, 2, 3]) |x| x > 1
+let r38 = reduce(arr, 0) |acc, x| acc + x
+
+// ----- Suffixed calls -----
+// ! macro call
+let r39 = format! "Error: {}" msg
+let r40 = vec! [1, 2, 3]
+let r41 = panic! "unreachable"
+
+// ~ destructor call
+let r42 = obj~()
+let r43 = buffer~()
+
+// * generator call
+let r44 = genRange*(0, 100)
+let r45 = iter*(collection)
+
+// ----- Mutating method call  .= -----
+arr.=push(42)
+map.=insert("key", :value)
+set.=remove(item)
+
+// ----- Constructor calls  new -----
+let pt  = new Point(3, 4)
+let box = new Box(width: 100, height: 50)
+let arr2 = new [10]int(0)        // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+// ----- Async call -----
+let r46 = await fetch("https://api.example.com/data")
+let r47 = await Promise.all([fetchA(), fetchB(), fetchC()])
+
+// ----- Call with type parameter inferred -----
+let r48 = fromJson(raw)           // T inferred from context
+let r49: []int = fromJson(raw)    // T = []int inferred from binding
+
+// ----- Named + positional mix -----
+let r50 = lerp(a, b, t: 0.5)
+let r51 = slice(arr, start: 2, end: 8, step: 1)
+
+// ----- Macro / quote calls -----
+let q1 = quote { 1 + 1 }
+let q2 = macro! do_thing
+let e1 = eval! #{expr}
+
+// ----- Inline IIFE-style -----
+let r52 = (|x| x * x)(7)       // = 49
+let r53 = (func(int n): int { n + 1 })(41)  // = 42
+
+\* ============================================================
+   19 — CALL ARGUMENTS & BINDING PARAMETERS
+   Named arguments, binding parameters in signatures,
+   lambda parameters, call parameters, and default values.
+   ============================================================ *\
+
+// ----- Positional arguments -----
+f(1, 2, 3)
+g("hello", true, null)
+
+// ----- Named arguments (key: value) -----
+connect(host: "localhost", port: 5432)
+animate(from: 0, to: 100, duration: 300ms)
+Box.new(width: 200, height: 100, depth: 50)
+
+// Mixed positional + named
+slice(arr, start: 2, end: 10)
+log :info, msg: "System started", time: now()
+
+// ----- Spread arguments -----
+print(*args)                       // spread array as positional args
+merge(**obj1, **obj2)              // spread object as named args
+f(a, *rest)                        // positional + spread
+g(x: 1, **opts)                    // named + spread
+
+// ----- Function signature parameters -----
+// C-style prefix type annotation
+func add(int a, int b): int { a + b }
+
+// Rust-style colon annotation
+func sub(a: int, b: int): int { a - b }
+
+// Mixed forms (unusual but valid)
+func mul(int a, b: int): int { a * b }
+
+// ----- Optional parameters with ? -----
+func greet(str name, str? title): str {
+  if title != null: #"#title #name"
+  else: name
+}
+
+// ----- Default value parameters -----
+func connect(str host, int port = 5432, bool ssl = false): Connection {
+  Connection.new(host, port, ssl)
+}
+
+func repeat(str s, int n = 3): str {
+  (1..n).map(|_| s).join()
+}
+
+// ----- Rest parameters (variadic) -----
+func sum([]int ..nums): int {
+  nums.fold(0, |acc, x| acc + x)
+}
+
+func log(str level, []str ..messages): void {
+  messages.each(|m| print(#"[#level] #m"))
+}
+
+// Named rest
+func record(str name, []int ..values): void {
+  print(#"#{name}: #values")
+}
+
+// ----- Generic type parameters in signatures -----
+func map<T, U>([]T xs, fn(T): U f): []U {
+  xs.map(f)
+}
+
+func identity<T>(T x): T { x }
+
+func zip<A, B>([]A as_, []B bs): [](A, B) {
+  as_.zip(bs)
+}
+
+// ----- Constrained type parameters -----
+func sort<T: Ord>([]T xs): []T { xs.sorted() }
+func clamp<T: Ord + Copy>(T v, T lo, T hi): T {
+  if v < lo: lo
+  elif v > hi: hi
+  else: v
+}
+
+// ----- Lambda parameters in signatures -----
+func applyTwice<T>(fn(T): T f, T x): T { f(f(x)) }
+func filter<T>([]T xs, fn(T): bool pred): []T { xs.filter(pred) }
+func fold<T, U>([]T xs, U init, fn(U, T): U f): U { xs.fold(init, f) }
+
+// ----- Binding parameters (destructuring in signature) -----
+func swapPair({first: a, second: b}) { (b, a) }
+func sumPair((int a, int b)): int { a + b }
+func headTail([h, ..t]) { (h, t) }
+
+// ----- Lambda parameter forms -----
+
+// No-arg lambda
+let zero = || 0
+let unit = || {}
+
+// Single positional arg
+let double = |x| x * 2
+let negate = |b| !b
+
+// Typed args (Rust-style)
+let add2 = |a: int, b: int| a + b
+
+// Typed args (C-style)
+let mul2 = |int a, int b| a * b
+
+// With return type
+let safe_div = |a: f64, b: f64|: f64 {
+  if b == 0: 0.0
+  else: a / b
+}
+
+// Return type prefix style
+let safe_div2 = f64 |a: f64, b: f64| {
+  if b == 0: 0.0
+  else: a / b
+}
+
+// Destructuring lambda params — object
+let getName = |{name}| name
+let getXY   = |{x, y}| (x, y)
+let getAlias = |{name: alias}| alias
+
+// Destructuring lambda params — tuple
+let fst = |(a, b)| a
+let snd = |(a, b)| b
+let sum3 = |(a, b, c)| a + b + c
+
+// Destructuring lambda params — array
+let head  = |[h, .._]| h
+let first2 = |[a, b, .._]| (a, b)
+let last  = |[.._, l]| l
+
+// Rest in lambda
+let sumAll = |..xs| xs.fold(0, |a, b| a + b)
+
+// Default value in lambda
+let greetL = |name: str, title: str = "Mx."| #"#title #name"
+
+// ----- Named binding parameters in calls -----
+// (binding-parameters: when a named key binds to a local)
+let {x, y} = point
+let {width: w, height: h} = rect
+let (r, g, b) = colorTuple
+let [first, ..rest2] = numbers
+
+// ----- as keyword in parameter/binding -----
+func foo(as: a): void {}        // `as` used as identifier via escape
+let node as parent = getParent()
+
+// ----- Type-annotated destructuring -----
+let {x: int, y: int} = pixel
+let (a: f64, b: f64, c: f64) = triangle
+let [head2: str, ..tail: []str] = words
+
+\* ============================================================
+   20 — VARIABLES & PROPERTY ACCESS
+   Property access forms, variable categories (dynamic,
+   constant, static), self/super access, and chaining.
+   ============================================================ *\
+
+// ----- Basic variable access -----
+let a = x           // local variable
+let b = Module.x    // qualified access
+let c = obj.field   // property access
+
+// ----- Property access (dot notation) -----
+let len = arr.length
+let ch  = str.chars[0]
+let top = stack.peek()
+let h   = screen.size.height
+
+// Multi-level chain
+let city = user.address.city
+let ver  = App.config.version.major
+
+// ----- Optional chain (safe navigation) -----
+let name = user?.name             // null if user is null
+let city2 = user?.address?.city   // null-safe deep access
+let first = arr?.first()
+let len2 = maybePair?.0           // optional tuple index
+
+// ----- Force-unwrap access -----
+let val1 = optional!.value        // panic if null
+let val2 = arr!.first()
+let x    = pair!.0
+
+// ----- Arrow access (indirection / pointer deref) -----
+let v1 = ptr->value               // pointer dereference
+let n1 = node->next->data         // chained pointer dereference
+
+// Optional arrow access
+let v2 = ptr?->value
+// Force arrow access
+let v3 = ptr!->value
+
+// ----- Scope resolution operator (::) -----
+let mod  = Module::function       // module-qualified
+let enm  = Direction::north       // enum variant
+let assoc = T::associated         // associated type/method
+let impl2 = Vec<int>::new()       // qualified generic method call
+
+// ----- Self-reference access (#, self, this, super) -----
+class Circle {
+  val radius: f64
+
+  func area(): f64 {
+    Math.PI * self.radius ** 2    // via self
+  }
+
+  func perimeter(): f64 {
+    2.0 * Math.PI * #radius       // via # shorthand
+  }
+
+  func copy(): Circle {
+    Circle.new(this.radius)       // via this
+  }
+}
+
+class ColoredCircle extends Circle {
+  val color: str
+
+  func describe(): str {
+    #"radius=#super.radius, color=#color"
+  }
+}
+
+// ----- Index / subscript access -----
+let first2 = arr[0]
+let last   = arr[arr.len() - 1]
+let ch2    = str[5]
+let entry  = map["key"]
+let row    = matrix[i][j]
+
+// Dynamic key
+let v  = obj[dynamicKey]
+let v4 = items[idx + offset]
+
+// ----- Tuple index access -----
+let fst  = pair.0
+let snd  = pair.1
+let third = triple.2
+
+// Optional tuple access
+let maybeFst = tup?.0
+
+// ----- Dynamic property access -----
+// run-time dispatch via string key
+let val3 = obj[key]               // dynamic key string
+let val4 = obj[#"field_#{n}"]     // interpolated key
+
+// ----- Constant / compile-time property access -----
+const MAX_SIZE = Config::MAX_SIZE
+const PI       = Math.PI
+const VERSION  = App::VERSION
+
+// ----- Static property access -----
+let inst_count = Counter.instances
+let default_cfg = Config.default
+Counter.reset()                   // static method call
+
+// ----- Global variable access -----
+let env_path  = process.env.PATH
+let win_count = window.innerWidth
+let doc_title = document.title
+
+// ----- Prototype chain access -----
+let proto = Object.getPrototypeOf(obj)
+let hasOwn = obj.hasOwnProperty("key")
+
+// ----- Iterator / generator access -----
+let it1 = col.iter()
+let it2 = map.entries()
+let it3 = range.values()
+
+for item of it1 {
+  process(item)
+}
+
+// ----- Call chaining with access -----
+let result = api
+  .getUsers()
+  .filter(|u| u.active)
+  .map(|u| u.name)
+  .sort()
+  .first()
+
+// ----- Nullish / fallback access -----
+let title = user?.title ?? "Untitled"
+let count = opts?.count ??? 0       // three-question null coalesce
+let label = val ¿¿ "default"        // Unicode null-coalesce
+
+\* ============================================================
+   21 — OPERATORS
+   Every operator category: infix, prefix, postfix, special,
+   named-infix, type-cast, and custom oper declarations.
+   ============================================================ *\
+
+// ----- Arithmetic -----
+let s  = 3 + 4
+let d  = 10 - 6
+let m  = 5 * 7
+let q  = 20 / 4
+let r  = 17 % 3
+let pw = 2 ** 10     // power / exponentiation
+
+// ----- String operators -----
+let cat  = "hello" ++ " world"    // concatenation
+let rep  = "ha" -- 3              // ?? repeated-removal?
+let mul2 = "ab" ×× 3              // repetition (Unicode ×)
+
+// ----- Unary arithmetic -----
+let neg  = -x
+let pos  = +x
+let pp   = +x      // prefix increment context
+let mm   = -x      // prefix decrement context
+
+// ----- Augmented assignment (compound) -----
+x += 1
+x -= 1
+x *= 2
+x /= 2
+x %= 3
+x **= 2
+x ++= " suffix"
+x &&= true
+x ||= false
+x ??= 0
+x <<= 1
+x >>= 1
+x &= 0xFF
+x |= 0x01
+x ^= 0xF0
+
+// ----- Bitwise -----
+let band  = a & b
+let bor   = a | b
+let bxor  = a ^ b
+let bnot  = ~a
+let lsh   = a << 4
+let rsh   = a >> 4
+let rotl  = a <<> 5
+let rotr  = a '<>>' 5
+
+// ----- Comparison -----
+let eq   = a == b
+let neq  = a != b
+let seq  = a === b    // structural equality
+let sneq = a !== b
+let lt   = a < b
+let gt   = a > b
+let le   = a <= b
+let ge   = a >= b
+let cmp  = a <=> b    // three-way comparison: -1 / 0 / 1
+
+// ----- Logical -----
+let land  = a && b
+let lor   = a || b
+let lnot  = !a
+let lxor  = a ^^ b
+let lnand = a §§ b   // NAND (Unicode §)
+let lnor  = a ¦¦ b   // NOR  (Unicode ¦)
+let lxnor = a ¤¤ b   // XNOR (Unicode ¤)
+let limp  = a and b
+let lor2  = a or b
+let lnot2 = not a
+let lnand2 = a nand b
+let lnor2  = a nor b
+let lxor2  = a xor b
+
+// ----- Similarity -----
+let sml  = a ~= b     // similar / fuzzy equal
+let smr  = a =~ b     // regex match
+let nsm  = a !=~ b    // not regex match
+
+// ----- Null-coalescing -----
+let nc1 = val ?? default_val       // null coalesce
+let nc2 = val ??? fallback         // triple-? coalesce
+let nc3 = val ¿¿ backup            // Unicode ¿ coalesce
+
+// ----- Error-coalescing -----
+let ec1 = result !!! fallback      // error coalesce (unwrap or fallback)
+let ec2 = result ¡¡ backup         // Unicode ¡ coalesce
+
+// ----- Ternary / conditional -----
+let t1 = cond ? a : b             // standard ternary
+let t2 = cond ¿ a : b             // Unicode ¿ ternary
+let t3 = cond ! a : b             // negate-ternary
+let t4 = cond ¡ a : b             // Unicode ¡ ternary
+
+// ----- Range operators -----
+let r1 = 0 .. 10          // inclusive range
+let r2 = 0 ..< 10         // exclusive upper
+let r3 = 0 >.. 10         // exclusive lower
+let r4 = 0 >.< 10         // both exclusive
+let r5 = [_..10]          // up-to (prefix)
+let r6 = [0.._]           // from (suffix)
+let r7 = ..               // unbounded full range
+
+// ----- Accessor / member operators -----
+let a1 = obj.field          // dot-access
+let a2 = obj?.field         // optional-access
+let a3 = obj!.field         // force-access
+let a4 = obj::member        // scope-resolution
+let a5 = ptr->field         // pointer deref access
+let a6 = ptr?->field        // optional pointer deref
+let a7 = ptr!->field        // force pointer deref
+
+// ----- Assignment -----
+x = 10
+x := 20        // declare-assign
+x ?= 30        // assign if null/undef
+
+// ----- Fat / skinny / wavy arrows -----
+let fa  = a ==> b     // fat right
+let fa2 = a <== b     // fat left
+let sk  = a --> b     // skinny right
+let sk2 = a <-- b     // skinny left
+let wv  = a ~~> b     // wavy right
+let wv2 = a <~~ b     // wavy left
+
+// ----- Pipeline operators -----
+let p1 = x |> f              // pipe right
+let p2 = f <| x              // pipe left
+let p3 = x +> g              // applicative pipe right
+let p4 = g <+ x              // applicative pipe left
+let p5 = x *> h              // monadic pipe right
+let p6 = h <* x              // monadic pipe left
+let p7 = x $> i              // fmap pipe
+
+// ----- Application operators -----
+let ap1 = f $ x              // function application (Haskell-style)
+let ap2 = f # x              // alternative application
+
+// ----- Composition operators -----
+let c1 = f . g               // compose (right to-left)
+let c2 = f · g               // middle-dot compose
+let c3 = f ° g               // degree-sign compose
+let c4 = f <+ g              // compose left
+let c5 = f +> g              // compose right
+
+// ----- Class / subtype operators -----
+let isa = T <: U             // T is subtype of U
+let isa2 = T :> U            // T is supertype of U
+
+// ----- Prefix operators -----
+let deref = *ptr             // pointer dereference
+let spread = [..arr]         // spread into context
+let ref_   = &v              // create reference
+let borrow = ^v              // borrow (lifetime-aware)
+let anchor = #label          // anchor / meta
+
+// ----- Postfix operators -----
+let unwrap  = opt!           // unwrap Option / error
+let opt_get = v?             // option: None if null
+let inc     = n!             // postfix unwrap/increment (context)
+
+// ----- Named infix (backslash-quoted) -----
+let ni1 = 10 \div\ 3         // user-defined named infix
+let ni2 = xs \append\ ys
+let ni3 = a \isApprox\ b
+
+// ----- Type-cast operators -----
+let tc1 = (int) 3.14         // C-style cast
+let tc2 = x as f64           // safe cast keyword
+let tc3 = x as! int          // force cast (panics on failure)
+let tc4 = x as? str          // optional cast (returns null on failure)
+let tc5 = typeof x           // type of expression (type keyword)
+let tc6 = sizeof T           // size of type
+let tc7 = valueof MyEnum     // values of enum
+let tc8 = fieldof MyStruct   // fields of struct
+let tc9 = keyof MyMap        // key type of map
+
+// ----- Custom operator declarations -----
+left oper infix  (+-) 6
+right oper infix  (><) 5
+oper prefix (¬)
+oper postfix (‼)
+
+// Using the custom operators
+let r8 = a +- b
+let r9 = a >< b
+let r10 = ¬condition
+let r11 = val‼
+
+// ----- Unicode math operators -----
+let um1 = a × b              // times (U+00D7)
+let um2 = a ÷ b              // divide (U+00F7)
+let um3 = a − b              // minus (U+2212)
+let um4 = a ≠ b              // not equal (U+2260)
+let um5 = a ≤ b              // less-or-equal (U+2264)
+let um6 = a ≥ b              // greater-or-equal (U+2265)
+let um7 = a ≈ b              // approximately equal
+let um8 = a ∈ b              // element-of
+let um9 = a ∉ b              // not element-of
+let uma = a ⊂ b              // subset
+let umb = a ⊃ b              // superset
+let umc = a ⊕ b              // XOR / direct sum
+let umd = a ⊗ b              // tensor product
+let ume = a ∧ b              // logical and (U+2227)
+let umf = a ∨ b              // logical or (U+2228)
+let umg = ¬a                 // logical not (U+00AC)
+
+// ----- Macro operators -----
+let m1 = x $ y               // macro application
+let m2 = x ::: y             // splice-operator
+let m3 = x :: y              // namespace or cons
+let m4 = x : y               // type / pair operator
+let m5 = x # y               // interpolation operator
+let m6 = x @ y               // attribute / annotation operator
+let m7 = x %% y              // custom macro operator
+let m8 = x ! y               // macro invocation operator
+let m9 = x ? y               // macro conditional operator
+let m10 = x ?? y             // macro null-coalesce operator
+let m11 = x ??? y            // macro triple-? operator
+let m12 = x ¿¿ y             // macro Unicode ¿ operator
+let m13 = x ¡¡ y             // macro Unicode ¡ operator
+
+\* ============================================================
+   22 — CLAUSES & KEYWORDS
+   All modifier, declaration, general, expression, and
+   control-flow keywords organised by grammar category.
+   ============================================================ *\
+
+// ============================================================
+// ACCESS / VISIBILITY MODIFIERS
+// ============================================================
+pub    func publicFn() {}
+priv   func privateFn() {}
+prot   func protectedFn() {}
+int    func internalFn() {}        // package-internal
+extern func externalFn(): void     // foreign declaration
+
+// ============================================================
+// STORAGE MODIFIERS
+// ============================================================
+static let counter: int = 0
+thread val local_data: str = ""
+shared let shared_count: int = 0    // across fibers
+lazy   val config = Config.load()   // computed on first access
+inline func fastOp(int x): int { x + 1 }
+extern val C_CONSTANT: int          // from C
+
+// ============================================================
+// MUTABILITY MODIFIERS
+// ============================================================
+let   imm: int = 5         // immutable binding
+mut   var1: int = 5        // mutable binding keyword
+const C_MAX: int = 1000    // compile-time constant
+val   answer: int = 42     // value binding (alias of let)
+var   counter2: int = 0    // variable (mutable by default)
+final val done: bool = true // cannot be overridden
+
+// ============================================================
+// LIFETIME MODIFIERS
+// ============================================================
+// \a, \b — named lifetimes (backslash prefix)
+func longest(\a str s1, \a str s2): \a str {
+  if s1.len() >= s2.len(): s1 else: s2
+}
+
+// ============================================================
+// FUNCTION BEHAVIOUR MODIFIERS
+// ============================================================
+async  func fetchData(): Promise<str>    { await http.get(url) }
+pure   func add2(int a, int b): int      { a + b }
+safe   func safeDiv(int a, int b): int?  { if b == 0: null else: a / b }
+unsafe func rawMemCopy(ptr src, ptr dst): void {}
+gen    func* counter3(int start): iter<int> { yield start; yield start + 1 }
+iter   func* range2(int lo, int hi): iter<int> {
+  var i = lo
+  while i < hi { yield i; i += 1 }
+}
+
+// ============================================================
+// TYPE MODIFIERS
+// ============================================================
+abstract class Shape {
+  abstract func area(): f64
+}
+
+sealed class Tree<T> {
+  record Leaf(T val)
+  record Branch(Tree<T> left, Tree<T> right)
+}
+
+open class Base {}       // can be extended
+closed class Final {}    // cannot be extended
+data class Point(f64 x, f64 y)
+value class Celsius(f64 deg)
+opaque type UserId = int
+
+// ============================================================
+// INHERITANCE / TRAIT MODIFIERS
+// ============================================================
+class Circle extends Shape {
+  override func area(): f64 { Math.PI * radius ** 2 }
+}
+
+class B extends A {
+  virtual func method() {}
+}
+
+// ============================================================
+// DECLARATION KEYWORDS
+// ============================================================
+let x: int = 10
+mut y: str = "hello"
+const PI: f64 = 3.14159
+var z: bool = false
+val w: f64 = 2.718
+
+// Function declarations
+func add(int a, int b): int { a + b }
+proc sideEffect(): void { print("side effect") }
+
+// Property
+prop name: str { get { storage_name } set(v) { storage_name = v } }
+
+// Iterator / generator
+iter countdown(int n): iter<int> {
+  mut i = n
+  while i >= 0 { yield i; i -= 1 }
+}
+
+// Type alias
+type Point2D = (f64, f64)
+type Matrix  = [][]f64
+
+// Class, trait, interface, enum, record
+class Animal { val name: str }
+trait Describable { func describe(): str }
+inter Serializable { func toJson(): str }
+enum Color { :red, :green, :blue }
+record Pair(int fst, int snd)
+struct Vec3 { val x, y, z: f64 }
+
+// Module, schema, object, union
+module Http {}
+schema UserInput { name: str, age: int }
+object Singleton { val instance = new Singleton() }
+union Value = int | f64 | str | bool
+
+// Implementation
+impl Describable for Animal {
+  func describe(): str { #"Animal: #name" }
+}
+
+// Macro
+macro make_pair {
+  ($a:expr, $b:expr) => Pair($a, $b)
+}
+
+// Namespace / space
+space Utils {
+  func clamp(int v, int lo, int hi): int { min(max(v, lo), hi) }
+}
+
+// Realm (compile-time execution context)
+realm Compile {
+  func constFibonacci(int n): int {
+    if n <= 1: n else: constFibonacci(n-1) + constFibonacci(n-2)
+  }
+}
+
+// Query declaration
+query ActiveUsers {
+  from users
+  where user.active == true
+  select user
+}
+
+// Template
+temp Button(str label, fn(): void onClick) {
+  <button :click=onClick> label </button>
+}
+
+// Shader
+shader VertexShader(v: VertexInput): VertexOutput {
+  gl_Position = projection * view * model * vec4(v.position, 1.0)
+}
+
+// Quote
+quote MyAst {
+  let x = 1 + 2
+}
+
+// Style
+style Theme {
+  background-color: %#1a1a2e;
+  font family: "Inter", sans-serif;
+}
+
+// Script / Component
+script {
+  let count = 0
+  func increment() { count += 1 }
+}
+
+compo Counter {
+  \\ A simple click counter.
+  let count = 0
+  <button :click=(|_| count += 1)>#"Count: #count" </button>
+}
+
+// ============================================================
+// GENERAL KEYWORDS
+// ============================================================
+
+// Membership / type checking
+let r1 = item in collection
+let r2 = key of obj
+let r3 = value as str
+let r4 = x is int
+let r5 = obj has .serialize
+let r6 = obj can .render
+
+// Object construction
+let pt = new Point(1, 2)
+let old_pt = old Point(1, 2)     // create via "old" constructor
+
+// Direction / iteration keywords
+for x in list {}
+for x of map {}
+for x to 10 {}
+for x by 2 {}
+
+// Access direction
+func foo(): int { ref myGlobal } // ref: reference return
+
+// Logical keywords (spelled out)
+let la = a and b
+let lo = a or b
+let ln = not a
+let lna = a nand b
+let lno = a nor b
+let lx  = a xor b
+let lxn = a xnor b
+let li  = a imply b
+let lni = a nimply b
+
+// Deletion
+del map["key"]
+del obj.field
+
+// Get / set
+get prop {}
+set prop(v) {}
+
+// Module keywords
+use Http
+use Http show { get, post }
+use Http hide { internal }
+
+// ----- safe / unsafe blocks -----
+safe {
+  let r = safeDivide(10, 0)
+}
+unsafe {
+  let raw = derefRawPointer(ptr)
+}
+
+// ----- scope / begin / end -----
+scope "outer" {
+  scope "inner" {
+    break "outer"
+  }
+}
+
+begin
+  let temp = doSetup()
+end
+
+// ----- pass / skip / redo -----
+for x in list {
+  if x == 0: skip
+  if x < 0: redo
+}
+pass   // no-op statement
+
+\* ============================================================
+   23 — TYPE ANNOTATIONS & DECLARATIONS
+   All typed-binding, typed-declaration, and variable-
+   declaration forms with full type annotation syntax.
+   ============================================================ *\
+
+// ============================================================
+// SIMPLE TYPED VARIABLE DECLARATIONS
+// ============================================================
+
+// C-style: type before name
+let int n = 42
+let str s = "hello"
+let f64 pi = 3.14159
+let bool flag = true
+
+// Rust-style: colon annotation
+let n2: int = 42
+let s2: str = "hello"
+let pi2: f64 = 3.14159
+let flag2: bool = true
+
+// mut, val, var, const forms
+mut  counter: int = 0
+val  answer:  int = 42
+var  cursor:  int = 0
+const MAX:    int = 1000
+
+// Inferred (no annotation required)
+let inferred = 12345         // int
+let inferred2 = "world"      // str
+
+// ============================================================
+// COLLECTION TYPES
+// ============================================================
+
+// Array types
+let []int   arr1 = [1, 2, 3]
+let arr2: []int = [1, 2, 3]
+
+let [5]f64  vec5 = [0.0, 1.0, 2.0, 3.0, 4.0]   // fixed size
+let vec6: [5]f64 = [0.0, 1.0, 2.0, 3.0, 4.0]
+
+// Nested arrays
+let [][]str grid1: [][]str = [["a"], ["b", "c"]]
+
+// Tuple types
+let (int, str) pair1 = (42, "hello")
+let pair2: (int, str) = (42, "hello")
+
+let (f64, f64, f64) triple1 = (1.0, 2.0, 3.0)
+let triple2: (f64, f64, f64) = (1.0, 2.0, 3.0)
+
+// Dict / map types
+let {str: int}  wordCounts: {str: int}  = {"hello": 1, "world": 2}
+let {int: []str} groupMap = {}
+
+// ============================================================
+// OPTIONAL AND RESULT TYPES
+// ============================================================
+
+// Optional: T?
+let name: str? = null
+let maybe: int? = Some(5)
+let nothing: bool? = None
+
+// Result: T!  (can either be the value or an error)
+let r1: int! = Okay(42)
+let r2: str! = Error("oops")
+
+// Chained optional
+let nested: str?? = null     // doubly optional
+let deep: {str: int?}? = null
+
+// ============================================================
+// POINTER / REFERENCE TYPES
+// ============================================================
+
+let raw_ptr: *int = ptr_of(value)
+let mut_ptr: *mut int = ptr_of(value)
+let con_ptr: *const int = ptr_of(c)
+
+let ref_val: &int = &value
+let mut_ref: &mut int = &mut value
+
+// ============================================================
+// FUNCTION TYPES
+// ============================================================
+
+// Function type annotation
+let fn_type:   fn(int, int): int   = |a, b| a + b
+let async_fn:  async fn(str): void = async |s| print(s)
+let pure_fn:   pure fn(f64): f64   = |x| x * x
+
+// Named parameter types (not applied)
+type Comparator<T> = fn(T, T): int
+type Reducer<T, U> = fn(U, T): U
+type Predicate<T>  = fn(T): bool
+
+// ============================================================
+// GENERIC TYPES
+// ============================================================
+
+// Generic type parameters
+let list3: Vec<int> = Vec.new()
+let set1:  Set<str> = Set.new()
+let pair3: Pair<int, str> = Pair.new(1, "one")
+let map2:  Map<str, []int> = Map.new()
+
+// Nested generics
+let nested2: Vec<Vec<str>> = Vec.new()
+let either:  Either<int, str> = Left(42)
+let either2: Either<int, str> = Right("hello")
+
+// ============================================================
+// FUNCTION DECLARATIONS WITH TYPE ANNOTATIONS
+// ============================================================
+
+// C-style prefix types
+func int_add(int a, int b): int { a + b }
+
+// Rust-style colon annotations
+func f_add(a: int, b: int): int { a + b }
+
+// Mixed
+func mixed(int a, b: int): int { a + b }
+
+// Generic function
+func identity<T>(T x): T { x }
+func zip2<A, B>([]A as2, []B bs): [](A, B) { as2.zip(bs) }
+
+// Constrained type parameter
+func sort2<T: Ord>([]T xs): []T { xs.sorted() }
+func clamp2<T: Ord + Copy>(T v, T lo, T hi): T {
+  if v < lo: lo
+  elif v > hi: hi
+  else: v
+}
+
+// Multiple constraints
+func printSorted<T: Ord + Display + Clone>([]T xs): void {
+  xs.sorted().each(print)
+}
+
+// Higher-kinded type simulation
+func map2<T, U>([]T xs, fn(T): U f): []U { xs.map(f) }
+func flatMap<T, U>([]T xs, fn(T): []U f): []U { xs.flatMap(f) }
+
+// ============================================================
+// TYPED DESTRUCTURING IN DECLARATIONS
+// ============================================================
+
+// Object destructuring with types
+let {x: int, y: int, z: int} = vec3
+let {name3: str, age: int} = user
+
+// Tuple destructuring with types
+let (int a, int b, int c) = triple1
+let (f64 lat, f64 lon) = coord
+
+// Array destructuring with types
+let [int head2, []int ..rest] = numbers
+let [str first_word, str second_word] = words
+
+// ============================================================
+// TYPE ALIASES AND SYNONYMS
+// ============================================================
+
+type ID   = int
+type Name = str
+type Vec2 = (f64, f64)
+type Vec3 = (f64, f64, f64)
+type Matrix4 = [4][4]f64
+type Callback<T> = fn(T): void
+type Maybe<T> = T?
+type Result2<T, E> = T | E
+type Nullable<T> = T | null
+
+// ============================================================
+// COMPLEX INLINE TYPES
+// ============================================================
+
+// Union types
+let intOrStr: int | str = 42
+let maybe2: int | null = null
+let multi:  int | f64 | str | bool = 3.14
+
+// Intersection (implied via impl/has)
+func printAll<T: Display + Serialize>(T val): void {}
+
+// Literal / singleton types
+let yes: :ok = :ok
+let no:  :err = :err
+let num: 42 = 42        // literal type
+let flag3: true = true  // boolean literal type
+
+// ============================================================
+// VARIABLE DECLARATIONS WITH COMPLEX EXPRESSIONS
+// ============================================================
+
+let sum3    = arr.fold(0, |a, b| a + b)
+let maxVal  = arr.max() ?? 0
+let words   = text.split(" ").filter(|w| w.len() > 0)
+let doubled = [1, 2, 3].map(|x| x * 2)
+let config  = Config{host: "localhost", port: 8080}
+
+\* ============================================================
+   24 — CONTROL FLOW
+   if/elif/else, for/while/loop, match/switch/case,
+   try/catch/throw, when/guard, with/do, return/yield/await.
+   ============================================================ *\
+
+// ============================================================
+// IF / ELIF / ELSE
+// ============================================================
+
+// Block form
+if x > 0 {
+  print("positive")
+} elif x < 0 {
+  print("negative")
+} else {
+  print("zero")
+}
+
+// Colon form (single expression)
+if x > 0: print("positive")
+elif x < 0: print("negative")
+else print("zero")
+
+// if not
+if not done { retry() }
+if not (a > 0 and b > 0) { fail() }
+
+// if as expression
+let abs = if x >= 0: x else -x
+let label = if score >= 90: "A" elif score >= 80: "B" else "C"
+
+// ============================================================
+// FOR LOOPS
+// ============================================================
+
+// for in (iterate over sequence)
+for item in list { process(item) }
+for x in 0 ..< 10 { print(x) }
+for ch in "hello" { print(ch) }
+
+// for of (iterate over key-value / entries)
+for key of map { print(key) }
+for (k, v) of map.entries() { print(#"#k = #v") }
+
+// for as (bind iteration variable with alias)
+for entry as prev in log { print(#"#entry after #prev") }
+
+// for ever (infinite loop)
+for ever {
+  let msg = channel.receive()
+  if msg == :stop: break
+  handle(msg)
+}
+
+// for each (collection shorthand)
+for each item in items { render(item) }
+
+// for await (async iteration)
+for await chunk in stream { process(chunk) }
+
+// while
+mut n = 10
+while n > 0 {
+  print(n)
+  n -= 1
+}
+
+// while not
+while not done { tick() }
+
+// loop (infinite, exit via break)
+loop {
+  let input = readLine()
+  if input == "quit": break
+  handle(input)
+}
+
+// Labelled loops
+{
+  outer: for i in 0 ..< 5 {
+    inner: for j in 0 ..< 5 {
+      if i == j: skip inner       // continue inner loop
+      if i + j > 6: break outer   // break outer loop
+    }
+  }
+}
+
+// ============================================================
+// MATCH / SWITCH
+// ============================================================
+
+// match
+match value {
+  | 0: print("zero")
+  | 1: print("one")
+  | n if n < 0: print("negative")
+  | n: print(#"other: #n")
+  | else print("unreachable")
+}
+
+// match with type guards
+match val {
+  | is int: print("integer")
+  | is str: print("string")
+  | has .name: print("has name field")
+  | can .serialize: print("serializable")
+  | else print("unknown")
+}
+
+// match with destructuring
+match pair {
+  | (0, 0): print("origin")
+  | (x, 0): print(#"on x-axis at #x")
+  | (0, y): print(#"on y-axis at #y")
+  | (x, y): print(#"(#x, #y)")
+}
+
+// match with as alias
+match result {
+  | Okay(v) as ok: print(#"success: #v")
+  | Error(e) as err: print(#"failure: #e")
+}
+
+// switch (similar to match, more C-like feel)
+switch statusCode {
+  | 200: "OK"
+  | 404: "Not Found"
+  | 500: "Server Error"
+  | else "Unknown"
+}
+
+// ============================================================
+// TRY / CATCH / THROW / RAISE / FINAL
+// ============================================================
+
+// try block
+try {
+  let data = parse(input)
+  process(data)
+} catch {
+  | is ParseError as e: print(#"Parse error: #e.msg")
+  | is NetworkError: retry()
+  | e: print(#"Unknown: #e")
+} final {
+  cleanup()
+}
+
+// try expression (returns a Result)
+let parsed: Config! = try parse(rawJson)
+
+// throw / raise
+throw RuntimeError("unexpected null")
+raise ValueError("out of range")
+
+// try with in/of/as
+try connection as c {
+  c.query("SELECT 1")
+}
+
+// error expression (sugar for catch-all)
+let safe_val = doThing() error |e| defaultValue
+
+// ============================================================
+// WHEN / GUARD (signal & reactive conditions)
+// ============================================================
+
+when signal {
+  print("signal fired")
+}
+
+when not busy {
+  processQueue()
+}
+
+// guard (Ruko's version of Swift guard)
+guard user != null else return
+guard user.age >= 18 else raise UnauthorizedError("Too young")
+guard let Ok(cfg) = Config.load() else |e| { log(e); return }
+
+// ============================================================
+// WITH / DO (resource scoping)
+// ============================================================
+
+with open("file.txt") as f {
+  let content = f.readAll()
+  process(content)
+}
+
+with {
+  let db   = Database.connect(url)
+  let lock = Mutex.lock()
+} {
+  db.query("INSERT ...")
+}
+
+do {
+  let tmp = heavyComputation()
+  use(tmp)
+}
+
+// ============================================================
+// RETURN / YIELD / AWAIT
+// ============================================================
+
+func getEven([]int xs): []int {
+  return xs.filter(|x| x % 2 == 0)
+}
+
+func add5(int n): int = n + 5   // expression body, implicit return
+
+iter count_up(int start): iter<int> {
+  mut i = start
+  loop {
+    yield i
+    i += 1
+  }
+}
+
+async func loadUser(int id): Promise<User> {
+  let resp = await http.get(#"/users/#id")
+  await resp.json()
+}
+
+// yield* (delegate to sub-iterator)
+iter all_items(): iter<int> {
+  yield* firstBatch()
+  yield* secondBatch()
+}
+
+// ============================================================
+// BREAK / SKIP (continue) / REDO / GOTO / DEFER
+// ============================================================
+
+for i in 0 ..< 100 {
+  if i % 2 == 0: skip    // continue
+  if i > 50: break
+  if errors > 3: redo    // restart iteration
+  process(i)
+}
+
+// goto (structured — only within a scope)
+goto cleanup
+// ...
+cleanup: releaseResources()
+
+// retry (re-enters a labelled block or loop)
+fetch_data:
+try {
+  let data = fetch(url)
+  use(data)
+} catch is NetworkError {
+  if retries < 3 {
+    retries += 1
+    retry fetch_data
+  }
+  raise
+}
+
+// defer (run at end of enclosing scope)
+defer closeFile(f)
+defer {
+  log("scope exited")
+  cleanup()
+}
+
+// ============================================================
+// RINQ QUERY EXPRESSIONS
+// ============================================================
+
+let active_admins =
+  from users
+  where user.active and user.role == :admin
+  select {id: user.id, name: user.name}
+  order by user.name asc;
+
+let summary =
+  from orders
+  join users on orders.user_id == users.id
+  where orders.total > 100
+  group by users.country
+  having count(*) > 5
+  select {country: users.country, num_orders: count(*), avg_total: avg(orders.total)}
+  order by num_orders desc
+  limit 20 offset 0;
+
+let first_item =
+  from list
+  where item > 0
+  select item
+  |> first();
+
+let page_results =
+  from db.products
+  where p.price < 100
+  select p
+  take 10
+  drop 20;
+
+\* ============================================================
+   25 — BINDING PATTERNS
+   Object, tuple, and array destructuring in let/mut/case arms.
+   ============================================================ *\
+
+// ============================================================
+// OBJECT DESTRUCTURING
+// ============================================================
+
+// Simple punning (variable name == field name)
+let {x, y, z} = vec3
+
+// All fields renamed with :
+let {x: a, y: b, z: c} = vec3
+
+// Mixed punning and renaming
+let {name, age: years} = person
+
+// Nested object destructuring
+let {address: {city, country}, name: personName} = user
+
+// With default values
+let {name: n2, title = "Mx."} = person
+
+// Optional field
+let {name: n3, email?} = user     // email may not exist
+
+// Type-annotated
+let {x: int, y: int} = pixel
+let {name: str, score: f64} = record
+
+// In a function signature
+func printPoint({x, y}: Point): void { print(#"(#x, #y)") }
+func greetUser({name, title = "Friend"}: User): void { print(#"Hello, #title #name!") }
+
+// In for loop
+for let {key, value} of map.entries() { print(#"#key => #value") }
+for let {name, age} of users { print(#"#name (#age)") }
+
+// In case arm
+match event {
+  | {type: :click, target: el}: handler(el)
+  | {type: :keydown, key: k}: keyHandler(k)
+  |: ignore()
+}
+
+// ============================================================
+// TUPLE DESTRUCTURING
+// ============================================================
+
+// Simple ordered unpacking
+let (a, b) = pair
+let (x2, y2, z2) = triple
+
+// With types
+let (int m, int n) = int_pair
+let (f64 lat, f64 lon) = coord
+
+// Ignoring elements with _
+let (first, _, third) = triple
+let (_, snd_el) = pair
+
+// Nested tuples
+let ((x3, y3), z3) = nested_pair
+
+// In function signature
+func addPair((int a, int b)): int { a + b }
+func swapPair2((int a, int b)): (int, int) { (b, a) }
+
+// In for loop
+for let (k, v) of pairs { print(#"#k => #v") }
+
+// In case arm
+match result {
+  | (:ok, val): process(val)
+  | (:err, msg): logError(msg)
+}
+
+// ============================================================
+// ARRAY DESTRUCTURING
+// ============================================================
+
+// First element only
+let [head] = arr
+
+// First and rest
+let [first, ..rest] = arr
+
+// First two
+let [a2, b2] = arr
+
+// First two and rest
+let [a3, b3, ..tail] = arr
+
+// Last element  (rest + last)
+let [..init, last] = arr
+
+// Specific positions
+let [h, _, third2, ..remaining] = arr
+
+// Typed
+let [int h2, int h3, ..[]int t] = int_arr
+let [str first_w, ..str[] more] = words
+
+// Nested arrays
+let [[x4, y4], [x5, y5]] = pairs_arr
+
+// In function signature
+func headTail2([h, ..t]) { (h, t) }
+func firstTwo([a, b, ..]) { (a, b) }
+
+// In for loop (iterating rows of matrix)
+for [a4, b4, c4] in matrix3x { print(#"#a4 #b4 #c4") }
+
+// In case arm
+match list {
+  | []: print("empty")
+  | [x]: print(#"singleton: #x")
+  | [x, y]: print(#"pair: #x, #y")
+  | [h, ..t]: print(#"head=#h tail=#t")
+}
+
+// ============================================================
+// COMBINED / NESTED PATTERNS
+// ============================================================
+
+// Object containing tuple
+let {coord: (lat, lon), name: placeName} = location
+
+// Array of objects
+let [{id: id1, name: n4}, {id: id2, name: n5}, ..otherItems] = results
+
+// Tuple of arrays
+let ([a5, b5], [c5, d5]) = two_arrays
+
+// Deep nesting
+let {meta: {tags: [primaryTag, ..otherTags]}, content} = post
+
+// ============================================================
+// PATTERNS WITH IS / HAS / CAN GUARDS
+// ============================================================
+
+match val {
+  | is int as n: print(#"int: #n")
+  | is str as s: print(#"str: #s")
+  | has .name as obj: print(obj.name)
+  | can .serialize as obj: obj.serialize()
+}
+
+match shape {
+  | is Circle has .radius as c: c.area()
+  | is Rect   has .width as r: r.area()
+}
+
+// ============================================================
+// PATTERNS WITH IF GUARDS
+// ============================================================
+
+match x {
+  | n if n < 0: print("negative")
+  | n if n == 0: print("zero")
+  | n if n > 0: print("positive")
+}
+
+match pair {
+  | (a, b) if a == b: print("equal")
+  | (a, b) if a > b: print("a greater")
+  | (a, b): print("b greater")
+}
+
+// ============================================================
+// AS RENAMING IN PATTERNS
+// ============================================================
+
+match node {
+  | Branch(left, right) as tree: renderBranch(left, right, tree)
+  | Leaf(val) as leaf: renderLeaf(val, leaf)
+}
+
+let xs as original = transform(input)
+let result as backup = riskyOp()
+
+\* ============================================================
+   26 — LAMBDA SYNTAX & BINDING
+   Full lambda/closure syntax, parameter forms, return types,
+   and lambda use as expressions, arguments, and values.
+   ============================================================ *\
+
+// ============================================================
+// BASIC LAMBDA FORMS
+// ============================================================
+
+// No-arg
+let zero  = |()| 0
+let unit2 = |()| {}
+let noop  = |()| ()
+
+// Single positional arg
+let double = |x| x * 2
+let negate = |b| !b
+let id     = |x| x
+
+// Multiple positional args
+let add    = |a, b| a + b
+let max_fn = |a, b| if a > b: a else: b
+let clampL = |v, lo, hi| min(max(v, lo), hi)
+
+// ============================================================
+// TYPE-ANNOTATED LAMBDA PARAMS
+// ============================================================
+
+// Rust-style colon annotations
+let add_typed  = |a: int, b: int| a + b
+let str_len    = |s: str| s.length
+
+// C-style prefix types
+let mul_typed  = |int a, int b| a * b
+let stringify  = |f64 n| n.toString()
+
+// Mixed
+let hypo = |f64 a, b: f64| (a ** 2.0 + b ** 2.0) ** 0.5
+
+// ============================================================
+// RETURN TYPE ANNOTATION
+// ============================================================
+
+// Postfix :|Type| on the parameter list
+let safe_sqrt = |x: f64|: f64 {
+  if x < 0.0: 0.0 else: x.sqrt()
+}
+
+let classify = |n: int|: str {
+  if n < 0: "negative"
+  elif n == 0: "zero"
+  else: "positive"
+}
+
+// Prefix return type (before the |params|)
+let fast_add  = int |a: int, b: int| a + b
+let make_pair2 = (int, int)|a: int, b: int| (a, b)
+
+// ============================================================
+// MODIFIER-PREFIXED LAMBDAS
+// ============================================================
+
+let async_fetch = async |url: str| await http.get(url)
+let pure_square = pure |x: f64| x ** 2.0
+let safe_div    = safe |a: int, b: int| {
+  if b == 0: null else: a / b
+}
+
+// ============================================================
+// DESTRUCTURING IN LAMBDA PARAMS
+// ============================================================
+
+// Object destructuring
+let get_name    = |{name}| name
+let get_coords  = |{x, y}| (x, y)
+let get_alias   = |{name: alias}| alias
+let full_person = |{name, age, title = "Mx."}| #"#title #name (#age)"
+
+// Tuple destructuring
+let fst_lambda  = |(a, b)| a
+let snd_lambda  = |(a, b)| b
+let sum_pair    = |(a, b)| a + b
+let swap_lambda = |(a, b)| (b, a)
+
+// Array destructuring
+let head_lambda = |[h, ..t]| h
+let first2_lambda = |[a, b, ..h]| (a, b)
+let cons_lambda  = |[h, ..t]| (h, t)
+
+// Nested
+let nested_lambda = |({name}, [first_tag, ..tags])| #"#name: #first_tag"
+
+// ============================================================
+// DEFAULT VALUES IN LAMBDA PARAMS
+// ============================================================
+
+let greet_lambda = |name: str, title: str = "Friend"| #"Hello, #title #name!"
+let repeat_n     = |str s, int n = 3| (1..n).map(|_| s).join()
+let log2_fn      = |str msg, str level = "INFO"| print(#"[#level] #msg")
+
+// ============================================================
+// REST PARAMS IN LAMBDAS
+// ============================================================
+
+let sum_all  = |*xs| xs.fold(0, |a, b| a + b)
+let cat_all  = |*ss| ss.join(" ")
+let log_all  = |str level, *str messages| messages.each(|m| print(#"[#level] #m"))
+
+// ============================================================
+// LAMBDAS AS VALUES
+// ============================================================
+
+// Stored in variable
+let double2: fn(int): int = |x| x * 2
+
+// In a collection
+let fns: []fn(int): int = [|x| x, |x| x * 2, |x| x * x]
+
+// Returned from function
+func make_adder(int n): fn(int): int { |x| x + n }
+let add10 = make_adder(10)
+let r10 = add10(5)     // 15
+
+// Passed as argument
+let doubled = [1, 2, 3].map(|x| x * 2)
+let evens   = [1,2,3,4,5].filter(|x| x % 2 == 0)
+let total   = [1, 2, 3, 4].fold(0, |acc, x| acc + x)
+
+// ============================================================
+// LAMBDAS AS TRAILING ARGUMENTS
+// ============================================================
+
+// (no parentheses needed — last arg is a lambda)
+let r = map(list) |x| x * 2
+let e = filter([1,2,3,4]) |x| x > 2
+let f2 = reduce(arr, 0) |acc, x| acc + x
+let sorted2 = sort_by(items) |a, b| a.name <=> b.name
+
+// ============================================================
+// IMMEDIATELY INVOKED LAMBDA (IIFE)
+// ============================================================
+
+let val4 = (|x| x * x)(7)           // 49
+let val5 = (|a, b| a + b)(3, 4)      // 7
+
+// Block IIFE
+let init_result = (|| {
+  let a = complex_init()
+  let b = another_init()
+  combine(a, b)
+})()
+
+// ============================================================
+// RECURSIVE LAMBDA (via rec)
+// ============================================================
+
+let rec fib_lambda = |n: int|: int {
+  if n <= 1: n else: fib_lambda(n-1) + fib_lambda(n-2)
+}
+
+// ============================================================
+// CURRIED LAMBDAS
+// ============================================================
+
+let curried_add = |a: int| |b: int| a + b
+let add5_lambda = curried_add(5)
+let r11 = add5_lambda(3)          // 8
+
+let compose_fn = |f: fn(int): int| |g: fn(int): int| |x: int| f(g(x))
+let double_then_add1 = compose_fn(|x| x + 1)(|x| x * 2)
+let r12 = double_then_add1(4)     // 9
+
+\* ============================================================
+   27 — BINDING COMPONENTS
+   binding-as-keyword, binding-pattern-object, -tuple, -array:
+   all combined forms, punning, key renaming, and splice syntax.
+   ============================================================ *\
+
+// ============================================================
+// BINDING-AS-KEYWORD
+// ============================================================
+
+// Standard `as` in let binding
+let result as backup = riskyOp()       // result bound to both names
+let xs as orig = transform(input)      // xs, also accessible as orig
+
+// `as` in pattern arms
+match node {
+  | Branch(left, right) as tree: process(tree, left, right)
+  | Leaf(val) as leaf: process(leaf, val)
+}
+
+// `as` in for loop
+for event as prev_event in event_log {
+  compare(event, prev_event)
+}
+
+// `as` in catch
+try {
+  dangerousOp()
+} catch {
+  | RuntimeError as e: print(e.message)
+  | else as e: print(e)
+}
+
+// `as` in import
+use Http as H
+use Http{ get as httpGet, post as httpPost }
+
+// ============================================================
+// BINDING-PATTERN-OBJECT: FULL FORMS
+// ============================================================
+
+// Punning (variable == field name)
+let {x, y} = point
+let {name, age, email} = user
+
+// Explicit renaming with :
+let {x: px, y: py} = point
+let {name: username, age: years} = user
+
+// Mixed punning + renaming
+let {name, email: contact, age: years2} = user
+
+// Nested objects
+let {address: {city, country, zip}} = user
+let {meta: {author: {name: authorName}}} = doc
+
+// Default values in object patterns
+let {name: n, title = "Mx."} = person
+let {port = 5432, host = "localhost"} = config
+
+// Rest in object pattern
+let {id, name: name2, ..rest} = record
+
+// Optional fields
+let {name: n3, email? , phone?} = contact
+
+// Type-annotated object pattern
+let {x: int, y: int, z: int} = vec3_obj
+let {name: str, scores: []int} = player
+
+// Object pattern in function param
+func printUser({name, age, title = "Mx."}: User): void {
+  print(#"#title #name, age #age")
+}
+
+// Object pattern in case arm
+match event {
+  | is {type: :click, x, y}: handleClick(x, y)
+  | is {type: :keydown, key: k, shift}: handleKey(k, shift)
+  | is {type: :resize, width: w, height: h}: resize(w, h)
+}
+
+// ============================================================
+// BINDING-PATTERN-TUPLE: FULL FORMS
+// ============================================================
+
+// Simple ordered
+let (a, b)       = pair
+let (x2, y2, z2) = triple
+
+// Ignoring elements
+let (first, _)    = pair
+let (_, second)   = pair
+let (h, _, last2) = triple
+
+// With types
+let (int m, int n2)    = int_pair
+let (str label, f64 val2) = labeled_value
+
+// Nested tuples
+let ((x3, y3), z3) = nested3
+let (a2, (b2, c2)) = right_nested
+
+// Tuple pattern in function param
+func addTuple((int a, int b)): int { a + b }
+func swapFn((int x, int y)): (int, int) { (y, x) }
+
+// Tuple pattern in case arm
+match result {
+  | is (:ok, |val|): use(val)
+  | is (:err, |msg|): logError(msg)
+  | is (:pending, |pct|): showProgress(pct)
+}
+
+// Tuple pattern in for loop
+for (k, v) in pairs { print(#"#k => #v") }
+for (idx, item) in list.enumerate() { print(#"#{idx}: #item") }
+
+// ============================================================
+// BINDING-PATTERN-ARRAY: FULL FORMS
+// ============================================================
+
+// Single element
+let [h] = char_arr
+
+// Head / tail
+let [first2, ..rest] = list
+
+// First N elements
+let [a3, b3, c3] = three_arr
+
+// First N + rest
+let [a4, b4, ..tail] = arr
+
+// Init + last
+let [..init, last3] = arr
+
+// Specific + rest
+let [a5, _, c4, ..more] = arr     // skip second element
+
+// Typed
+let [int h2, ..[]int t2] = int_arr
+let [str word, ..str[] words2] = word_list
+
+// Nested arrays
+let [[x4, y4], [x5, y5]] = matrix_row
+let [[r, g, b], ..others] = color_list
+
+// Array pattern in function param
+func headFn([h, .._]): auto { h }
+func firstTwo([a, b, .._]): (auto, auto) { (a, b) }
+
+// Array pattern in case arm
+match list {
+  | []: "empty"
+  | [x]: #"singleton: #x"
+  | [x, y]: #"pair: #x, #y"
+  | [x, y, z]: #"triple: #x #y #z"
+  | [h, ..t]: #"head=#h, rest len=#(t.len())"
+}
+
+// ============================================================
+// SPLICE SYNTAX: #(.._) #[..] #{}
+// ============================================================
+
+// #(.._) — tuple splice inside templates / macros
+let t1 = #(a, b, c)                  // spliced tuple literal
+let t2 = #(x + 1, y - 1)            // computed splice
+macro product($vals: .._) { #($vals) }
+
+// #[..] — array splice
+let arr2 = #[1, 2, 3]
+let arr3 = #[*existing, 4, 5]        // spread + append
+
+// #{..} — object splice
+let obj = #{x: 1, y: 2}
+let obj2 = #{*base_obj, z: 3}        // spread + extend
+
+// Splice in JSX
+let items = [1, 2, 3]
+let el = <ul>#[items.map(|i| <li>#i</li>)]</ul>
+
+// Splice in interpolated strings
+let msg = #"Values: #(a, b, c)"
+let msg2 = #"Items: #[items]"
+
+// Splice in macro rules
+macro log_all($vals: .._) {
+  #($vals).each(|v| print(v))
+}
+
+// ============================================================
+// COMBINED: OBJECT + ARRAY + TUPLE
+// ============================================================
+
+// Object containing array
+let {tags: [primary, ..secondary]} = post
+
+// Array of objects
+let [{id: id1, name: name3}, {id: id2, name: name4}] = two_users
+
+// Object containing tuple
+let {origin: (ox, oy), size: (w, h)} = rect_data
+
+// Tuple of arrays
+let ([a6, b6], [c5, d5]) = two_arrays
+
+// Deeply nested
+let {
+  meta: {
+    author: {name: authorN},
+    tags: [mainTag, ..moreTags]
+  },
+  body: {
+    sections: [intro, ..bodyParts],
+    conclusion
+  }
+} = document
+
+\* ============================================================
+   28 — SLICE SYNTAX
+   Array/string slicing with start:end:step notation.
+   ============================================================ *\
+
+// ============================================================
+// BASIC SLICES
+// ============================================================
+
+let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+let str2 = "Hello, World!"
+
+// [start:end] — from start up to (not including) end
+let s1 = arr[2 : 5]            // [2, 3, 4]
+let s2 = str2[0 : 5]           // "Hello"
+let s3 = arr[1 : 4]            // [1, 2, 3]
+
+// [start:] — from start to end
+let s4 = arr[3 : ]             // [3, 4, 5, 6, 7, 8, 9]
+let s5 = str2[7 : ]            // "World!"
+
+// [:end] — from beginning up to end
+let s6 = arr[ : 5]             // [0, 1, 2, 3, 4]
+let s7 = str2[ : 5]            // "Hello"
+
+// [:] — full copy
+let s8  = arr[ : ]             // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+let s9  = str2[ : ]            // "Hello, World!"
+
+// ============================================================
+// STEP SLICES
+// ============================================================
+
+// [start:end:step]
+let s10 = arr[0 : 9 : 2]       // [0, 2, 4, 6, 8]  — every other
+let s11 = arr[1 : 9 : 2]       // [1, 3, 5, 7]      — every other starting at 1
+let s12 = arr[ : : 3]          // [0, 3, 6, 9]      — every third
+
+// Reverse with step -1
+let s13 = arr[ : : -1]         // [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+let s14 = str2[ : : -1]        // "!dlroW ,olleH"
+
+// Partial reverse
+let s15 = arr[5 : 1 : -1]      // [5, 4, 3, 2]
+
+// Every 2 reversed
+let s16 = arr[8 : 0 : -2]      // [8, 6, 4, 2]
+
+// ============================================================
+// NEGATIVE INDICES
+// ============================================================
+
+// Negative: count from end
+let s17 = arr[-3 : ]           // [7, 8, 9]  — last 3
+let s18 = arr[ : -3]           // [0, 1, 2, 3, 4, 5, 6]  — up to last 3 (exclusive)
+let s19 = arr[-5 : -2]         // [5, 6, 7]
+let s20 = str2[-6 : ]          // "World!"
+let s21 = str2[ : -7]          // "Hello,"
+
+// ============================================================
+// EXPRESSION INDICES
+// ============================================================
+
+let n = 5
+let s22 = arr[n : ]            // from index 5
+let s23 = arr[ : n]            // up to index 5 (exclusive)
+let s24 = arr[n - 2 : n + 2]   // [3, 4, 5, 6]
+
+let s25 = arr[mid - 1 : mid + 1]   // dynamic middle window
+let s26 = arr[start : end : stride]
+
+// ============================================================
+// MULTI-DIMENSIONAL SLICES
+// ============================================================
+
+let mat = [[1,2,3],[4,5,6],[7,8,9]]
+
+// Row slice
+let rows = mat[1 : ]          // rows 1 and 2: [[4,5,6],[7,8,9]]
+let row1 = mat[0]             // [1, 2, 3]
+
+// Column slice (Ruko supports extended indexing)
+let col0 = mat[ : , 0]        // [1, 4, 7]  — first column
+let col1 = mat[ : , 1]        // [2, 5, 8]  — second column
+let sub  = mat[0 : 2, 0 : 2]  // [[1,2],[4,5]] — 2×2 submatrix
+
+// Strided multi-dim
+let strd = mat[ : : 2, : : 2] // every other row AND column
+
+// ============================================================
+// SLICE AS LVALUE (ASSIGNMENT)
+// ============================================================
+
+mut arr2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+arr2[2 : 5] = [20, 30, 40]    // replace elements at index 2,3,4
+arr2[ : 3]  = [10, 11, 12]    // replace first 3
+arr2[ : :2] = arr2[ : : 2].map(|x| x * 2)  // double every other
+
+// ============================================================
+// SLICE WITH RANGE OPERATORS  (comparison)
+// ============================================================
+
+// Ruko also has range literals; slices use : syntax, not ..
+let range1 = 0 ..< 10         // range object (for is and contains)
+let range2 = 0 .. 9           // inclusive range
+
+// Slice is distinct — uses [] and :
+let slice1 = arr[0 : 10]      // array slice
+
+\* ============================================================
+   29 — PUNCTUATION & BRACKETS
+   All bracket forms, accessor operators, angle brackets,
+   generics, line-continuation, comma, and semicolon.
+   ============================================================ *\
+
+// ============================================================
+// SEMICOLONS (statement separator)
+// ============================================================
+
+let a = 1; let b = 2; let c = a + b   // multiple statements on one line
+for i in 0..<5 { print(i); process(i) }
+
+// Semicolon is optional at end of line
+let x = 10
+let y = 20
+
+// ============================================================
+// COMMAS (list separator + line-continuation)
+// ============================================================
+
+// Standard comma in lists
+let arr = [1, 2, 3]
+let obj = {a: 1, b: 2, c: 3}
+func f(int a, int b, int c): int { a + b + c }
+
+// Trailing comma allowed
+let arr2 = [
+  1,
+  2,
+  3,
+]
+
+// Line-continuation comma (comma at end of line continues to next)
+let result = [
+  firstItem, \
+  secondItem, \
+  thirdItem
+]
+
+// ============================================================
+// LINE CONTINUATION (backslash at end of line)
+// ============================================================
+
+let long_expr = veryLongVarName \
+  + anotherLongVarName \
+  + yetAnotherVar
+
+let condition = x > 0 \
+  and y > 0 \
+  and z > 0
+
+// ============================================================
+// CURLY BRACKETS  { }
+// ============================================================
+
+// Block / body
+func foo() { print("block") }
+
+// Object/record literal
+let pt = {x: 1, y: 2}
+let rec = {name: "Alice", age: 30}
+
+// Match / switch body
+match n {
+  | 0: "zero"
+  | 1: "one"
+  | else: "many"
+}
+
+// Binding pattern
+let {x: px, y: py} = point
+
+// String interpolation  #"#{expr}"
+let msg = #"Result: #{a + b}"
+
+// Splice form  #{...}
+let obj2 = #{x: 1, y: 2}
+let merged = #{*base, z: 3}
+
+// Style block
+style Card {
+  background-color: :white;
+  border radius: 8px;
+}
+
+// Lambda body (multi-statement)
+let fn2 = |x: int| {
+  let doubled = x * 2
+  doubled + 1
+}
+
+// ============================================================
+// ROUND BRACKETS  ( )
+// ============================================================
+
+// Grouping expression
+let r1 = (a + b) * c
+
+// Tuple literal
+let pair = (1, "hello")
+let unit_val = ()
+
+// Function call
+foo(1, 2, 3)
+
+// Tuple type
+let p: (int, str) = (42, "world")
+
+// Tuple binding pattern
+let (x2, y2) = coordinate
+
+// Lambda params
+let double2 = |x| x * 2
+
+// Splice form  #(...)
+let t2 = #(a, b, c)
+
+// Type cast
+let n3 = (int) 3.14
+
+// Condition
+if (x > 0) { print("pos") }   // parens optional
+while (running) { tick() }
+
+// ============================================================
+// SQUARE BRACKETS  [ ]
+// ============================================================
+
+// Array literal
+let arr3 = [1, 2, 3]
+
+// Array type annotation
+let list: []int = [10, 20, 30]
+let fixed: [5]int = [1, 2, 3, 4, 5]
+
+// Subscript / index access
+let first3 = arr3[0]
+let last2   = arr3[arr3.len() - 1]
+let ch      = str2[3]
+
+// Slice
+let sl = arr3[1:3]
+
+// Array pattern
+let [h, ..t] = arr3
+
+// Dynamic property key
+let val3 = obj[dynamicKey]
+
+// CSS selector list (in style-list context)
+style FocusStyle [input, textarea, button] {
+  outline: 2px solid blue;
+}
+
+// Splice form #[...]
+let arr4 = #[1, 2, 3]
+let arr5 = #[*existing, 4]
+
+// ============================================================
+// ANGLE BRACKETS  < >
+// ============================================================
+
+// Generic type parameter — declaration
+class Box<T> { val value: T }
+func identity<T>(T x): T { x }
+
+// Generic type parameter — usage
+let box1: Box<int> = Box.new(42)
+let pairs: Vec<(str, int)> = Vec.new()
+let nested2: Map<str, Vec<int>> = Map.new()
+
+// Type constraints
+func max_of<T: Ord>(T a, T b): T { if a > b: a else: b }
+func print_all<T: Display + Clone>([]T xs): void { xs.each(print) }
+
+// Comparison operators (not generic angle brackets)
+let lt2 = a < b
+let gt2 = a > b
+let le  = a <= b
+let ge2 = a >= b
+
+// Turbofish / generic function call
+let v3 = identity<int>(42)
+let p3 = parse<Config>(raw)
+let e3 = Either::<int, str>::Left(5)
+
+// ============================================================
+// ACCESSOR OPERATORS
+// ============================================================
+
+// Dot — field access
+let name3 = user.name
+let len4   = arr.length
+let h5     = img.height
+
+// Dot — method call
+let sorted3 = list.sort()
+let upper2  = str2.toUpper()
+
+// Optional dot — safe access
+let city3  = user?.address?.city
+let first4 = arr?.first()
+
+// Force-unwrap dot
+let val4   = opt!.value
+
+// Double colon — scope resolution
+let val5   = Enum::variant
+let fn3    = Module::subFn
+let assoc2 = Vec<int>::new
+
+// Arrow — pointer dereference access
+let deref2 = ptr->value
+let next   = node->next->data
+
+// Optional arrow
+let safe_v = ptr?->value
+
+// ============================================================
+// COMMA FORMS IN COMPLEX CONTEXTS
+// ============================================================
+
+// Function call with many args
+let r5 = f(
+  a,
+  b,
+  c: cc,
+  d: dd,
+)
+
+// Destructuring
+let {name: n2, age, email?} = user
+
+// Multi-binding let
+let (x5, y5, z5) = triple
+
+// Tuple construction
+let coord = (lat, lon, alt)
+
+// Array with spread
+let all = [*first_batch, *second_batch, extra_item]
+
+// ============================================================
+// GENERIC BRACKET DISAMBIGUATION
+// ============================================================
+
+// These are comparisons (not generics) because no type context
+let ambig1 = a < b && c > d   // comparisons
+
+// These are generics because of the function/type context
+let v4 = Vec::<int>::new()
+let r6: Result<int, str> = Okay(1)
+
+\* ============================================================
+   30 — SUPPORT: UNICODE PROPERTIES & STDLIB
+   Unicode property keys/values for \p{} regex escapes,
+   and stdlib module names, builtins, constants, and vars.
+   ============================================================ *\
+
+// ============================================================
+// UNICODE PROPERTY KEYS (for use in \p{...} regex escapes)
+// ============================================================
+
+// Binary properties
+let has_alpha    = /\p{Alpha}/        // Alphabetic
+let has_upper    = /\p{Upper}/        // Uppercase
+let has_lower    = /\p{Lower}/        // Lowercase
+let has_whitespc = /\p{White_Space}/
+let has_hex      = /\p{Hex_Digit}/
+let has_emoji    = /\p{Emoji}/
+let has_emoji_p  = /\p{Emoji_Presentation}/
+let has_emoji_m  = /\p{Emoji_Modifier}/
+let has_emoji_c  = /\p{Emoji_Component}/
+let has_xid_s    = /\p{XID_Start}/
+let has_xid_c    = /\p{XID_Continue}/
+let has_id_s     = /\p{ID_Start}/
+let has_id_c     = /\p{ID_Continue}/
+let has_math     = /\p{Math}/
+let has_dash     = /\p{Dash}/
+let has_quot     = /\p{Quotation_Mark}/
+let has_term     = /\p{Terminal_Punctuation}/
+let has_join_c   = /\p{Join_Control}/
+let has_dep      = /\p{Deprecated}/
+let has_vari_s   = /\p{Variation_Selector}/
+let has_nonc     = /\p{Noncharacter_Code_Point}/
+let has_patt_s   = /\p{Pattern_Syntax}/
+let has_patt_w   = /\p{Pattern_White_Space}/
+let has_bidi_c   = /\p{Bidi_Control}/
+let has_bidi_m   = /\p{Bidi_Mirrored}/
+let has_soft     = /\p{Soft_Dotted}/
+let has_logical  = /\p{Logical_Order_Exception}/
+let has_expand   = /\p{Full_Composition_Exclusion}/
+
+// Enumerated / catalog properties
+let gc_letter    = /\p{gc=L}/         // General_Category = Letter
+let gc_upper     = /\p{gc=Lu}/        // Uppercase_Letter
+let gc_lower     = /\p{gc=Ll}/        // Lowercase_Letter
+let gc_number    = /\p{gc=N}/         // Number
+let gc_decimal   = /\p{gc=Nd}/        // Decimal_Number
+let gc_punct     = /\p{gc=P}/         // Punctuation
+let gc_symbol    = /\p{gc=S}/         // Symbol
+let gc_separator = /\p{gc=Z}/         // Separator
+let gc_other     = /\p{gc=C}/         // Other
+
+// Script catalog property
+let sc_latin   = /\p{Script=Latin}/
+let sc_han     = /\p{Script=Han}/
+let sc_Arabic  = /\p{Script=Arabic}/
+let sc_Cyril   = /\p{Script=Cyrillic}/
+let sc_Greek   = /\p{Script=Greek}/
+let sc_Hebrew  = /\p{Script=Hebrew}/
+let sc_Devana  = /\p{Script=Devanagari}/
+let sc_Hangul  = /\p{Script=Hangul}/
+let sc_Hirag   = /\p{Script=Hiragana}/
+let sc_Kataka  = /\p{Script=Katakana}/
+let sc_Thai2   = /\p{Script=Thai}/
+let sc_Tibetan = /\p{Script=Tibetan}/
+
+// Block catalog property
+let blk_cjk    = /\p{Block=CJK}/
+let blk_latin  = /\p{Block=Latin-1_Supplement}/
+let blk_arrows = /\p{Block=Arrows}/
+let blk_box    = /\p{Block=Box_Drawing}/
+let blk_emoji  = /\p{Block=Emoticons}/
+let blk_math   = /\p{Block=Mathematical_Operators}/
+let blk_thai   = /\p{Block=Thai}/
+let blk_geom   = /\p{Block=Geometric_Shapes}/
+
+// Numeric properties
+let nv_test    = /\p{nv=1}/           // Numeric_Value = 1
+let nt_decimal = /\p{nt=De}/          // Numeric_Type = Decimal
+
+// ============================================================
+// STDLIB MODULE NAMESPACES
+// ============================================================
+
+use Math
+use String
+use Array
+use Map
+use Set
+use Iter
+use Io
+use Fs
+use Http
+use Net
+use Crypto
+use Regex
+use Date
+use Time
+use Duration
+use Color
+use Path
+use Env
+use Process
+use Thread
+use Fiber
+use Channel
+use Mutex
+use Lock
+use Buffer
+use Codec
+use Base64
+use Json
+use Yaml
+use Toml
+use Xml
+use Csv
+use Sql
+use Url
+use Dom
+use Css
+use Wasm
+use Canvas
+use Gl
+use Audio
+use Video
+use Image
+use Font
+use Event
+use Log
+use Assert
+use Test
+use Bench
+use Rand
+use Uuid
+use Hash
+use Sort
+use Iter
+use Range
+use Option
+use Result
+use Either
+
+// ============================================================
+// STDLIB BUILTIN FUNCTIONS
+// ============================================================
+
+// Type conversion
+let n1 = int("42")
+let n2 = float("3.14")
+let s1 = str(42)
+let b1 = bool(1)
+let c1 = char(65)
+
+// Output / input
+print("Hello")
+println("World")
+eprint("Error")
+eprintln("Error with newline")
+let line = readLine()
+let raw  = readRaw()
+
+// Type inspection
+let t1  = typeof x
+let s2  = sizeof(int)
+let n3  = nameof(MyClass)
+let f1  = fieldof(MyStruct)
+let k1  = keyof(MyMap)
+let v1  = valueof(MyEnum)
+let a1  = addrof(ref_val)
+let p1  = ptrof(raw_ptr)
+let i1  = idof(obj)
+
+// Math builtins
+let ab  = abs(-5)
+let mn  = min(3, 5)
+let mx  = max(3, 5)
+let cl  = clamp(7, 0, 10)
+let pw  = pow(2, 10)
+let sq  = sqrt(144.0)
+let fl  = floor(3.7)
+let ce  = ceil(3.2)
+let ro  = round(3.5)
+let lg  = log(100.0, 10.0)
+let ln  = ln(math.E)
+let sg  = sign(-3)
+let tr  = trunc(3.9)
+let fr  = fract(3.9)
+
+// Collection builtins
+let len = len(arr)
+let rng = range(0, 10)
+let rng2= range(0, 10, 2)
+let zip = zip(list1, list2)
+let en  = enumerate(list)
+let rev = reversed(list)
+let srt = sorted(list)
+let fl2 = flat(nested)
+let un  = unique(list)
+
+// Misc builtins
+let id2  = id(obj)
+let hs2  = hash(val)
+let cl2  = clone(val)
+let cp   = copy(val)
+let df2  = default<int>()
+let mem  = memcopy(src, dst, n)
+
+// ============================================================
+// STDLIB CONSTANTS
+// ============================================================
+
+const MATH_PI   = Math.PI        // 3.141592653589793
+const MATH_E    = Math.E         // 2.718281828459045
+const MATH_TAU  = Math.TAU       // 6.283185307179586
+const MATH_INF  = Math.INFINITY
+const MATH_NAN  = Math.NAN
+const INT_MAX   = Int.MAX
+const INT_MIN   = Int.MIN
+const F64_MAX   = F64.MAX
+const F64_MIN   = F64.MIN
+const F64_EPS   = F64.EPSILON
+const STR_EMPTY = Str.EMPTY
+const ARR_EMPTY = Array.EMPTY
+
+// ============================================================
+// STDLIB VARIABLES & PROPERTIES
+// ============================================================
+
+// Process
+let args2  = process.args
+let env2   = process.env
+let pid    = process.pid
+let cwd2   = process.cwd
+let exit_fn = process.exit
+
+// I/O streams
+let stdin2   = io.stdin
+let stdout   = io.stdout
+let stderr   = io.stderr
+
+// Platform info
+let os     = platform.os       // :windows | :linux | :macos | :wasm
+let arch2  = platform.arch     // :x86 | :x64 | :arm | :aarch64 | :wasm32
+let bits   = platform.bits     // 32 | 64
+let endian = platform.endian   // :big | :little
+
+\* ============================================================
+   31 — CSS SUPPORT: PROPERTIES, VALUES, HTML TAGS & ENTITIES
+   CSS property names, CSS keyword values, HTML tag names,
+   and HTML named character entities.
+   ============================================================ *\
+
+// ============================================================
+// CSS PROPERTY NAMES (inside style { } blocks)
+// ============================================================
+
+style AllCSSProperties {
+
+  // --- Layout ---
+  display: :flex;
+  position: :absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  min width: 200px;
+  max width: 1200px;
+  min height: 100px;
+  max height: 800px;
+  overflow: :hidden;
+  overflow x: :scroll;
+  overflow y: :auto;
+  visibility: :visible;
+  z index: 10;
+  float: :left;
+  clear: :both;
+  clip-path: "inset(10%)";
+  clip: "rect(0,auto,auto,0)";
+  resize: :both;
+  box sizing: :border box;
+  `object fit`: :cover;
+  `object position`: :center;
+  aspect ratio: "16/9";
+
+  // --- Flexbox ---
+  flex: 1;
+  flex direction: :row;
+  flex wrap: :wrap;
+  flex flow: :row :wrap;
+  flex grow: 1;
+  flex shrink: 0;
+  flex basis: :auto;
+  justify content: :center;
+  align items: :center;
+  align self: :flex-start;
+  align content: :space-between;
+  order: 2;
+  gap: 1rem;
+  row-gap: 0.5rem;
+  column gap: 1rem;
+
+  // --- Grid ---
+  grid: :none;
+  grid template: :none;
+  grid template columns: "repeat(3, 1fr)";
+  grid template rows: :auto;
+  grid template areas: "\"header\" \"main\" \"footer\"";
+  grid column: "1 / 3";
+  grid row: "1 / 2";
+  grid column start: 1;
+  grid column end: 3;
+  grid row start: 1;
+  grid row end: 2;
+  grid area: :main;
+  grid auto flow: :row;
+  grid auto columns: :auto;
+  grid auto rows: 100px;
+  place items: :center;
+  place content: :center;
+  place self: :start;
+
+  // --- Box model ---
+  margin: :auto;
+  margin top: 1rem;
+  margin right: 0;
+  margin bottom: 1rem;
+  margin left: 0;
+  padding: 1rem;
+  padding top: 0.5rem;
+  padding right: 1rem;
+  padding bottom: 0.5rem;
+  padding left: 1rem;
+  border: "1px solid #ccc";
+  border width: 1px;
+  border style: :solid;
+  border color: :transparent;
+  border top: :none;
+  border right: :none;
+  border bottom: "2px dashed red";
+  border left: :none;
+  border radius: 8px;
+  border top left radius: 4px;
+  border top right radius: 4px;
+  border bottom left radius: 4px;
+  border bottom right radius: 4px;
+  border collapse: :collapse;
+  border spacing: 0;
+  outline: :none;
+  outline width: 2px;
+  outline style: :dashed;
+  outline color: :blue;
+  outline offset: 2px;
+
+  // --- Background ---
+  background: :transparent;
+  background color: %#1a1a2e;
+  background image: :none;
+  background size: :cover;
+  background position: :center;
+  background repeat: :no-repeat;
+  background attachment: :fixed;
+  background origin: :border box;
+  background clip: :text;
+  background blend mode: :multiply;
+
+  // --- Typography ---
+  color: :inherit;
+  font: :inherit;
+  font family: "\"Inter\", sans-serif";
+  font size: 1rem;
+  font weight: :bold;
+  font style: :italic;
+  font variant: :small-caps;
+  font stretch: :normal;
+  font size adjust: :none;
+  font kerning: :auto;
+  font feature settings: :normal;
+  font optical sizing: :auto;
+  line height: 1.5;
+  letter spacing: 0.05em;
+  word spacing: normal;
+  text align: :center;
+  text align last: :justify;
+  text decoration: :underline;
+  text decoration color: :currentColor;
+  text decoration style: :wavy;
+  text decoration line: "underline overline";
+  text decoration thickness: 2px;
+  text transform: :uppercase;
+  text indent: 2em;
+  text overflow: :ellipsis;
+  text shadow: "2px 2px 4px rgba(0,0,0,0.5)";
+  text rendering: :optimizeLegibility;
+  text combine upright: :none;
+  text emphasis: "dot open blue";
+  text underline offset: 2px;
+  white space: :nowrap;
+  word break: :break-word;
+  word wrap: :break-word;
+  overflow wrap: :anywhere;
+  hyphens: :auto;
+  vertical align: :middle;
+  writing mode: :horizontal-tb;
+  direction: :ltr;
+  unicode bidi: :normal;
+  tab size: 4;
+
+  // --- Appearance & interaction ---
+  cursor: :pointer;
+  pointer events: :none;
+  user select: :none;
+  touch action: :manipulation;
+  caret color: :blue;
+  appearance: :none;
+  content: "\"\"";
+  counter increment: "section 1";
+  counter reset: "item 0";
+  list style: :none;
+  list style type: :disc;
+  list style position: :inside;
+  list style image: :none;
+  quotes: "\"\\201C\\201D\\2018\\2019\"";
+  opacity: 0.8;
+  visibility: :hidden;
+  display: :none;
+  mix blend mode: :screen;
+  isolation: :isolate;
+
+  // --- Transforms & transitions ---
+  transform: "rotate(45deg)";
+  transform origin: :center;
+  transform-style: :preserve-3d;
+  perspective: 1000px;
+  perspective origin: :center;
+  will-change: :transform;
+  transition: "all 0.3s ease";
+  transition property: :opacity;
+  transition duration: 300ms;
+  transition timing function: :ease-in-out;
+  transition delay: 100ms;
+  animation: "fadeIn 1s ease forwards";
+  animation name: :bounce;
+  animation duration: 0.5s;
+  animation timing function: :cubic-bezier;
+  animation iteration count: :infinite;
+  animation direction: :alternate;
+  animation fill mode: :both;
+  animation play state: :paused;
+  animation delay: 200ms;
+
+  // --- Scrolling ---
+  scroll behavior: :smooth;
+  scroll margin: 1rem;
+  scroll padding: 1rem;
+  scroll snap type: "x mandatory";
+  scroll snap align: :start;
+  overscroll behavior: :contain;
+
+  // --- Other ---
+  shape-outside: "circle(50%)";
+  shape-margin: 10px;
+  filter: "blur(4px)";
+  backdrop-filter: "blur(8px)";
+  columns: "3 200px";
+  column count: 3;
+  column width: 200px;
+  column gap: 1.5rem;
+  column rule: "1px solid #ccc";
+  column span: :all;
+  `break inside`: :avoid;
+  `break before`: :page;
+  `break after`: :column;
+  page break inside: :avoid;
+  box shadow: "0 2px 8px rgba(0,0,0,0.2)";
+  table layout: :fixed;
+  caption side: :bottom;
+  empty cells: :hide;
+  image rendering: :pixelated;
+  forced color adjust: :auto;
+  print color adjust: :economy;
+  color scheme: "light dark";
+  accent-color: :auto;
+  contain: :layout;
+  container-type: :inline-size;
+  container-name: :card;
+}
+
+// ============================================================
+// HTML TAG NAMES (used in JSX / markup)
+// ============================================================
+
+// Document structure
+let d1 = <html lang="en"> </html>
+let d2 = <head> <title> "Page" </title> </head>
+let d3 = <body> </body>
+let d4 = <main> </main>
+let d5 = <header> </header>
+let d6 = <footer> </footer>
+let d7 = <nav> </nav>
+let d8 = <aside> </aside>
+let d9 = <section> </section>
+let d10 = <article> </article>
+let d11 = <div> </div>
+let d12 = <span> </span>
+let d13 = <template> </template>
+let d14 = <slot> </slot>
+let d15 = <shadow> </shadow>
+
+// Headings
+let h1_tag = <h1> "Heading 1" </h1>
+let h2_tag = <h2> "Heading 2" </h2>
+let h3_tag = <h3> "Heading 3" </h3>
+let h4_tag = <h4> "Heading 4" </h4>
+let h5_tag = <h5> "Heading 5" </h5>
+let h6_tag = <h6> "Heading 6" </h6>
+
+// Text / inline
+let t1_tag = <p> "Paragraph" </p>
+let t2_tag = <a href="#"> "Link" </a>
+let t3_tag = <em> "Emphasis" </em>
+let t4_tag = <strong> "Strong" </strong>
+let t5_tag = <b> "Bold" </b>
+let t6_tag = <i> "Italic" </i>
+let t7_tag = <u> "Underline" </u>
+let t8_tag = <s> "Strikethrough" </s>
+let t9_tag = <del> "Deleted" </del>
+let t10_tag = <ins> "Inserted" </ins>
+let t11_tag = <mark> "Highlighted" </mark>
+let t12_tag = <small> "Small" </small>
+let t13_tag = <sub> "Subscript" </sub>
+let t14_tag = <sup> "Superscript" </sup>
+let t15_tag = <code>" inline code" </code>
+let t16_tag = <pre> <code> "code block" </code> </pre>
+let t17_tag = <kbd>"Ctrl"</kbd>
+let t18_tag = <samp>"output"</samp>
+let t19_tag = <var> "x" </var>
+let t20_tag = <abbr title="HyperText Markup Language"> "HTML" </abbr>
+let t21_tag = <cite> "Title" </cite>
+let t22_tag = <q> "Quote" </q>
+let t23_tag = <blockquote cite="#"> "Block quote" </blockquote>
+let t24_tag = <dfn> "Term" </dfn>
+let t25_tag = <time datetime="2026-02-26"> "Feb 26" </time>
+let t26_tag = <address> "Contact info" </address>
+let t27_tag = <bdo dir="rtl"> "right to-left" </bdo>
+let t28_tag = <bdi> "Bidirectional" </bdi>
+let t29_tag = <ruby> "漢" <rt> "Kanji" </rt> </ruby>
+let t30_tag = <wbr/>
+
+// Void / self-closing
+let v1_tag = <br/>
+let v2_tag = <hr/>
+let v3_tag = <img src="pic.jpg" alt="A picture"/>
+let v4_tag = <input type="text"/>
+let v5_tag = <link rel="stylesheet" href="style.css"/>
+let v6_tag = <meta charset="UTF-8"/>
+let v7_tag = <base href="/"/>
+let v8_tag = <area shape="rect" coords="0,0,10,10"/>
+let v9_tag = <col span="2"/>
+let v10_tag = <embed src="movie.mp4"/>
+let v11_tag = <param name="autoplay" value="false"/>
+let v12_tag = <source src="video.mp4" type="video/mp4"/>
+let v13_tag = <track src="captions.vtt" kind="subtitles"/>
+
+// Lists
+let l1 = <ul> <li>"Item"</li> </ul>
+let l2 = <ol> <li>"Item"</li> </ol>
+let l3 = <dl> <dt>"Term"</dt> <dd>"Definition"</dd> </dl>
+
+// Table
+let tbl = <table>
+  <caption> "Data" </caption>
+  <colgroup> <col/> </colgroup>
+  <thead> <tr> <th>"Name"</th><th>"Value"</th> </tr> </thead>
+  <tbody> <tr> <td>"Foo"</td><td>"42"</td> </tr> </tbody>
+  <tfoot> <tr> <td colspan="2"> "Total: 42" </td> </tr> </tfoot>
+</table>
+
+// Form elements
+let f1_tag = <form action="/" method="post"> </form>
+let f2_tag = <fieldset> <legend>Group</legend> </fieldset>
+let f3_tag = <label for="name">Name</label>
+let f4_tag = <input type="text" id="name" name="name"/>
+let f5_tag = <textarea rows="4" cols="40"> </textarea>
+let f6_tag = <select> <option value="a"> "A" </option> </select>
+let f7_tag = <optgroup label="Group"><option>Item</option> </optgroup>
+let f8_tag = <button type="submit"> "Submit" </button>
+let f9_tag = <datalist id="opts"> <option value="opt1"/> </datalist>
+let f10_tag = <output for="x"> "Result" </output>
+let f11_tag = <meter min="0" max="100" value="75"/>
+let f12_tag = <progress max="100" value="60"/>
+
+// Media
+let m1_tag = <video src="v.mp4" controls> </video>
+let m2_tag = <audio src="a.mp3" controls> </audio>
+let m3_tag = <picture><img src="pic.jpg" alt=""/> </picture>
+let m4_tag = <canvas width="400" height="300"> </canvas>
+let m5_tag = <svg viewBox="0 0 100 100"> <circle cx="50" cy="50" r="40"/> </svg>
+
+// Script / style
+let s1_tag = <script src="main.js"> </script>
+let s2_tag = <style> style { body { margin: 0; }} </style>
+let s3_tag = <noscript>"JavaScript disabled."</noscript>
+
+// Interactive
+let i1_tag = <details> <summary> "Toggle" </summary><p> "Content" </p> </details>
+let i2_tag = <dialog open> <p> "Modal" </p> </dialog>
+let i3_tag = <menu> <li> "Item" </li> </menu>
+
+// ============================================================
+// HTML NAMED ENTITIES (in JSX / markup)
+// ============================================================
+
+// Common entities
+let e_amp   = \\ &amp;        // & U+0026
+let e_lt    = \\ &lt;         // < U+003C
+let e_gt    = \\ &gt;         // > U+003E
+let e_quot  = \\ &quot;       // " U+0022
+let e_apos  = \\ &apos;       // ' U+0027
+let e_nbsp  = \\ &nbsp;       // non-breaking space U+00A0
+let e_shy   = \\ &shy;        // soft hyphen U+00AD
+let e_copy  = \\ &copy;       // © U+00A9
+let e_reg   = \\ &reg;        // ® U+00AE
+let e_trade = \\ &trade;      // ™ U+2122
+let e_mdash = \\ &mdash;      // — U+2014
+let e_ndash = \\ &ndash;      // – U+2013
+let e_hellip = \\ &hellip;    // … U+2026
+let e_laquo  = \\ &laquo;     // « U+00AB
+let e_raquo  = \\ &raquo;     // » U+00BB
+let e_ldquo  = \\ &ldquo;     // " U+201C
+let e_rdquo  = \\ &rdquo;     // " U+201D
+let e_lsquo  = \\ &lsquo;     // ' U+2018
+let e_rsquo  = \\ &rsquo;     // ' U+2019
+let e_bull   = \\ &bull;      // • U+2022
+let e_prime  = \\ &prime;     // ′ U+2032
+let e_Prime  = \\ &Prime;     // ″ U+2033
+let e_frasl  = \\ &frasl;     // ⁄ U+2044
+let e_alpha  = \\ &alpha;     // α U+03B1
+let e_beta   = \\ &beta;      // β U+03B2
+let e_gamma  = \\ &gamma;     // γ U+03B3
+let e_delta  = \\ &delta;     // δ U+03B4
+let e_pi     = \\ &pi;        // π U+03C0
+let e_sigma  = \\ &sigma;     // σ U+03C3
+let e_omega  = \\ &omega;     // ω U+03C9
+let e_mu     = \\ &mu;        // μ U+03BC
+let e_nu     = \\ &nu;        // ν U+03BD
+let e_lambda = \\ &lambda;    // λ U+03BB
+let e_infin  = \\ &infin;     // ∞ U+221E
+let e_sum    = \\ &sum;       // ∑ U+2211
+let e_prod   = \\ &prod;      // ∏ U+220F
+let e_int    = \\ &int;       // ∫ U+222B
+let e_radic  = \\ &radic;     // √ U+221A
+let e_times  = \\ &times;     // × U+00D7
+let e_divide = \\ &divide;    // ÷ U+00F7
+let e_minus  = \\ &minus;     // − U+2212
+let e_plusmn = \\ &plusmn;    // ± U+00B1
+let e_ne     = \\ &ne;        // ≠ U+2260
+let e_le     = \\ &le;        // ≤ U+2264
+let e_ge     = \\ &ge;        // ≥ U+2265
+let e_approx = \\ &asymp;     // ≈ U+2248
+let e_equiv  = \\ &equiv;     // ≡ U+2261
+let e_sub    = \\ &sub;       // ⊂ U+2282
+let e_sup    = \\ &sup;       // ⊃ U+2283
+let e_isin   = \\ &isin;      // ∈ U+2208
+let e_notin  = \\ &notin;     // ∉ U+2209
+let e_and    = \\ &and;       // ∧ U+2227
+let e_or     = \\ &or;        // ∨ U+2228
+let e_not    = \\ &not;       // ¬ U+00AC
+let e_forall = \\ &forall;    // ∀ U+2200
+let e_exist  = \\ &exist;     // ∃ U+2203
+let e_empty  = \\ &empty;     // ∅ U+2205
+let e_larr   = \\ &larr;      // ← U+2190
+let e_rarr   = \\ &rarr;      // → U+2192
+let e_uarr   = \\ &uarr;      // ↑ U+2191
+let e_darr   = \\ &darr;      // ↓ U+2193
+let e_harr   = \\ &harr;      // ↔ U+2194
+let e_crarr  = \\ &crarr;     // ↵ U+21B5
+let e_lArr   = \\ &lArr;      // ⇐ U+21D0
+let e_rArr   = \\ &rArr;      // ⇒ U+21D2
+let e_hArr   = \\ &hArr;      // ⇔ U+21D4
+let e_para   = \\ &para;      // ¶ U+00B6
+let e_sect   = \\ &sect;      // § U+00A7
+let e_deg    = \\ &deg;       // ° U+00B0
+let e_micro  = \\ &micro;     // µ U+00B5
+let e_euro   = \\ &euro;      // € U+20AC
+let e_pound  = \\ &pound;     // £ U+00A3
+let e_yen    = \\ &yen;       // ¥ U+00A5
+let e_cent   = \\ &cent;      // ¢ U+00A2
+let e_curr   = \\ &curren;    // ¤ U+00A4
+let e_dagger = \\ &dagger;    // † U+2020
+let e_Dagger = \\ &Dagger;    // ‡ U+2021
+let e_permil = \\ &permil;    // ‰ U+2030
+let e_loz    = \\ &loz;       // ◊ U+25CA
+let e_spades = \\ &spades;    // ♠ U+2660
+let e_clubs  = \\ &clubs;     // ♣ U+2663
+let e_hearts = \\ &hearts;    // ♥ U+2665
+let e_diams  = \\ &diams;     // ♦ U+2666
+let e_OElig  = \\ &OElig;     // Œ U+0152
+let e_oelig  = \\ &oelig;     // œ U+0153
+let e_Scaron = \\ &Scaron;    // Š U+0160
+let e_scaron = \\ &scaron;    // š U+0161
+let e_Yuml   = \\ &Yuml;      // Ÿ U+0178
+let e_fnof   = \\ &fnof;      // ƒ U+0192
+let e_circ   = \\ &circ;      // ˆ U+02C6
+let e_tilde  = \\ &tilde;     // ˜ U+02DC
+
+// Numeric character references
+let num_A    = \\ &#65;       // A (decimal)
+let num_hex  = \\ &#x41;      // A (hexadecimal)
+let num_mu   = \\ &#956;      // μ (decimal U+03BC)
