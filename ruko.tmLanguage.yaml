@@ -2312,7 +2312,7 @@ repository:
             \s
         ) \s*
       ) \s*
-      (?=/[^/*\s]) # a slash followed by something that can't start a comment or be part of an operator
+      (?=/[^/*=\s]) # a slash followed by something that can't start a comment or be part of an operator
     end: $|
     name: meta.regexp.ruko
     patterns:
@@ -3116,7 +3116,7 @@ repository:
             )*
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
           )?
-          (?=[,;'"()\[\]{}/>\s])
+          (?=[,;'"()\[\]{}/>])
         end: \s*(?:(?<=</)(\2)?(>)|(/>)|((?<=</).*?)(>))\s*
         beginCaptures:
           0: {name: meta.tag.ruko}
@@ -5562,7 +5562,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -5577,6 +5577,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -5786,7 +5787,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -5801,6 +5802,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -6214,7 +6216,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -6229,6 +6231,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -6648,7 +6651,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -6663,6 +6666,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -7125,7 +7129,7 @@ repository:
               | \b\d # numbers
               | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
               | \#?[(\[] # opening brackets
-              | /[^/*\s] # regexp literal
+              | /[^/*=\s] # regexp literal
               | \\[\\*](?:\s|$) # markdown literal
               | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
               | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -7140,6 +7144,7 @@ repository:
                     \s*
                   )+
                 )
+              | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
                 (?: # identifier
                   (?!
@@ -7906,7 +7911,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
@@ -7979,7 +7986,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
@@ -8028,7 +8037,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         beginCaptures:
           1: *prefix-type-annotation
           2: {name: punctuation.definition.function.ruko}
@@ -8057,7 +8068,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         beginCaptures:
           1: {name: punctuation.definition.function.ruko}
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
@@ -8397,7 +8410,9 @@ repository:
                   )
                   \s*
                 )+
-              ))
+              ) | \#?[(\[{] # opening bracket
+                | $ # end of line
+              )
             )
           )
         captures:
@@ -8708,7 +8723,7 @@ repository:
       - include: "#round-brackets"
 
   accessor-operators:
-    match: (?<=^|['"`>)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=['"`<(\[{\w])
+    match: (?<=^|['"`>/|\\)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=['"`<(\[{\w])
     name: keyword.operator.accessor.ruko
     captures:
       1:
