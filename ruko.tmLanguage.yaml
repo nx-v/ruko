@@ -3,7 +3,7 @@ scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
-# Last updated: February 23, 2026
+# Last updated: February 26, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -13,11 +13,10 @@ patterns: [{include: "#core"}]
 # please open an issue or a pull request on the repository above.
 
 # === TODOs ===
-# - [/] Fix bugs with prefix type annotations in function parameters,
-#   variable declarations, bindings, and type casts to use a recursive
-#   pattern with subroutines rather than a single greedy .*+ match.
-#   Uses atomic groups and recursion for proper nesting up to 20 layers deep.
-#   (?>...) and \g<1>|'(?>\\.|[^\\'])*'|"(?>\\.|[^\\"])*"
+# - [/] Refactor prefix type annotation in variable bindings, numbered() and named{} parameters,
+#   lambda literals and type casts to use the begin and end patterns with applyEndPatternLast
+#   rather than recursive calls, which are limited to one line and 20 layers deep, but are more
+#   performant and easier to maintain than the recursive pattern.
 # - [ ] Rework inline Markdown syntax. Refer to Typst, Textile, Texy,
 #   ASCIIDoc and other lightweight markup languages for inspiration.
 #   Use "while" regex matches to avoid conflicts with existing syntax.
@@ -410,7 +409,7 @@ repository:
 
               | \b (?i: # number literals
                     (?:
-                      (?!0) \d+b [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? # arbitrary base (Nb...)
+                      [1-9]\d*b [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? # arbitrary base (Nb...)
                       (?: \. [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? | # decimal point
                           /  [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? )? # fractional part
                       (?: \\?e [+-]? [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? | # base exponent
@@ -578,7 +577,7 @@ repository:
 
               | \b (?i: # number literals
                     (?:
-                      (?!0) \d+b [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? # arbitrary base (Nb...)
+                      [1-9]\d*b [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? # arbitrary base (Nb...)
                       (?: \. [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? | # decimal point
                           /  [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? )? # fractional part
                       (?: \\?e [+-]? [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? | # base exponent
@@ -1373,7 +1372,7 @@ repository:
               |(\?)|(!)   # conditionals
               |(\+>|<\+)  # composition
             )
-          (?=$|[)\]}\s])
+          (?=$|[\\)\]}\s])
         captures:
           1: {name: keyword.operator.sum.ruko}
           2: {name: keyword.operator.difference.ruko}
@@ -4841,7 +4840,7 @@ repository:
 
                 | \b (?i: # number literals
                     (?:
-                      (?!0) \d+b [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? # arbitrary base (Nb...)
+                      [1-9]\d*b [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? # arbitrary base (Nb...)
                       (?: \. [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? | # decimal point
                           /  [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? )? # fractional part
                       (?: \\?e [+-]? [\p{alnum}](?:[\p{alnum}\p{Pc}]*[\p{alnum}])? | # base exponent
@@ -6273,7 +6272,7 @@ repository:
       - comment: Infix operators at the end of line
         begin: |-
           (?x)
-          (?<=^|[\s(\[{,;])
+          (?<=^|[,;\\(\[{\s])
           (?:
               ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
             | ( \?[.:>] ) # optional
@@ -6357,7 +6356,7 @@ repository:
       - comment: Infix operators - "e.g"., x + y
         match: |-
           (?x)
-          (?<=^|[\s(\[{,;])
+          (?<=^|[,;\\(\[{\s])
           (?:
               ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
             | ( \?[.:>] ) # optional
@@ -6400,7 +6399,7 @@ repository:
                 )?
               )
           )
-          (?=$|[)\]}\s])
+          (?=$|[\\)\]}\s])
         captures: *infix-operator-captures
 
   interfix-operators:
@@ -8119,7 +8118,7 @@ repository:
           1: {name: keyword.other.typedef.ruko}
         patterns:
           - include: "#types"
-          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+          - match: (?<=^|[\s(\[{])([?:]?=)(?=$|[\\)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
             captures:
               1: {name: keyword.operator.assignment.ruko}
               2: {name: keyword.operator.assignment.ruko}
@@ -8641,7 +8640,7 @@ repository:
       - include: $self
 
   default-value:
-    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
+    begin: (?<=^|[\s(\[{])([?:]?=)(?=$|[\\)\]}\s])|(?<=['"`)\]}\w])([?:]?=)(?=['"`\w]|\#?[(\[{])
     captures:
       1: {name: keyword.operator.assignment.ruko}
       2: {name: keyword.operator.assignment.ruko}

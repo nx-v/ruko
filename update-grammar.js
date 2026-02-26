@@ -164,9 +164,6 @@ grammar = parse(
               });
             return optimize(value).pattern;
           } catch (err) {
-            console.error(
-              `Error optimizing pattern ${value.slice(0, 100)}... at key "${key}"`,
-            );
             return value;
           }
     }
@@ -200,15 +197,38 @@ mirrorDir(
   "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
 );
 
-// // compile for shiki misaki
-// grammar = parse(grammar, (key, value) => {
-//   if (key == "match" && typeof value == "string") {
-//     console.log(`Compiling regex pattern for Shiki: ${value}`);
-//     return toRegExp(value);
-//   }
-//   return value;
-// });
-// writeFileSync(
-//   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
-//   "export default " + jsesc(grammar, {compact: false, indent: "  "}),
-// );
+// compile for shiki misaki
+/*
+Shiki uses the JS regex dialect, which is NOT compatible with Oniguruma.
+A separate grammar file is needed for Shiki, which uses JS regexes instead of Oniguruma patterns.
+This section transforms the Oniguruma patterns in grammar.repository into JS regexes,
+and outputs a new grammar file with the transformed patterns.
+Note that this does not import anything from the original YAML file, so any patterns that 
+rely on dynamic generation using JavaScript (e.g. using genex) will not work in the Shiki 
+grammar unless they are pre-generated and hardcoded into the YAML file.
+*/
+grammar = parse(grammar, (key, value) => {
+  if (
+    ["begin", "end", "match", "while"].includes(key) &&
+    typeof value == "string"
+  )
+    try {
+      return RegExp(toRegExp(value).source);
+    } catch {
+      try {
+        return optimize(value).pattern;
+      } catch {
+        return value;
+      }
+    }
+  return value;
+});
+writeFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
+  "export default " +
+    jsesc(grammar, {
+      compact: false,
+      quotes: "double",
+    }) +
+    ";",
+);
