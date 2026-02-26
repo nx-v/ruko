@@ -2,8 +2,10 @@ import yaml from "js-yaml";
 import {optimize} from "oniguruma-parser/optimizer";
 import {mirrorDir} from "./utils.js";
 import {readFileSync, writeFileSync} from "fs";
-import toRegExp from "./to-regex.js";
+import regexGen from "./regex-gen.js";
 import genex from "genex";
+import {toRegExp} from "oniguruma-to-es";
+import jsesc from "jsesc";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
@@ -145,7 +147,7 @@ grammar = parse(
               if (val.match)
                 val.match = optimize(val.match).pattern.replace(
                   /(?<=\\b\().+(?=\)\\b$)/,
-                  p0 => toRegExp(genex(p0).generate()).source,
+                  p0 => regexGen(genex(p0).generate()).source,
                 );
               return val;
             });
@@ -160,24 +162,11 @@ grammar = parse(
                 let code = p2.replace(/(?<!\\)#this\./, "grammar1.");
                 return eval(code);
               });
-            return optimize(value, {
-              override: {
-                alternationToClass: true,
-                extractPrefix: true,
-                extractPrefix2: true,
-                extractSuffix: true,
-                optionalize: true,
-                mergeRanges: true,
-                unnestUselessClasses: true,
-                unwrapNegationWrappers: true,
-                unwrapUselessClasses: true,
-                exposeAnchors: true,
-                removeEmptyGroups: true,
-                unwrapUselessGroups: true,
-                useShorthands: true,
-              },
-            }).pattern;
+            return optimize(value).pattern;
           } catch (err) {
+            console.error(
+              `Error optimizing pattern ${value.slice(0, 100)}... at key "${key}"`,
+            );
             return value;
           }
     }
@@ -210,3 +199,16 @@ mirrorDir(
   "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1",
   "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
 );
+
+// // compile for shiki misaki
+// grammar = parse(grammar, (key, value) => {
+//   if (key == "match" && typeof value == "string") {
+//     console.log(`Compiling regex pattern for Shiki: ${value}`);
+//     return toRegExp(value);
+//   }
+//   return value;
+// });
+// writeFileSync(
+//   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
+//   "export default " + jsesc(grammar, {compact: false, indent: "  "}),
+// );

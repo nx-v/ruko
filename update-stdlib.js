@@ -1,7 +1,7 @@
 import {globSync} from "glob";
 import {readFileSync, writeFileSync} from "fs";
 import platform from "./src/platform.tmLanguage.json" with {type: "json"};
-import toRegExp from "./to-regex.js";
+import regexGen from "./regex-gen.js";
 import genex from "genex";
 import {unicodeName} from "unicode-name";
 
@@ -10,6 +10,7 @@ let {fromCodePoint, fromCharCode, raw} = String;
 let {parse, stringify} = JSON;
 let {keys, values, fromEntries, entries, groupBy} = Object;
 
+let start = performance.now();
 // Utility functions
 let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k);
 
@@ -180,7 +181,7 @@ let repository = (() => {
     repo[`stdlib-${pluralize(type)}`] = {
       match:
         "\\b(?!\\d+)((?i:" +
-        toRegExp(groupList).source +
+        regexGen(groupList).source +
         "|\\d+)\\p{Pc}*)*\\g<1>\\b",
       name: `support.${type}.ruko`,
     };
@@ -208,7 +209,8 @@ let unicodeWords = [
     assignedUnicodeChars.flatMap(char =>
       unicodeName(char)
         .normalize("NFD")
-        .replace(/[\W--[\-\s]]/gv, "")
+        .replace(/-/g, " ")
+        .replace(/[\W--\s]/gv, "")
         .toLowerCase()
         .split(" "),
     ),
@@ -219,9 +221,8 @@ let unicodeWords = [
 grammar.repository["stdlib-unicode-names"] = {
   match:
     "\\b(?!\\d+)((?i:" +
-    toRegExp(unicodeWords).source +
+    regexGen(unicodeWords).source +
     "|\\d+)\\p{Pc}*)*\\g<1>\\b",
-
   name: "support.constant.character.unicode.ruko",
 };
 grammar.patterns.push({include: "#stdlib-unicode-names"});
@@ -232,7 +233,7 @@ let htmlEntities = readFileSync(
   "utf8",
 ).match(/(?<=&)\w+(?=;)/g);
 grammar.repository["stdlib-html-entities"] = {
-  match: `\\b(${toRegExp(htmlEntities).source})\\b`,
+  match: `\\b(${regexGen(htmlEntities).source})\\b`,
   name: "support.constant.character.html.ruko",
 };
 grammar.patterns.push({include: "#stdlib-html-entities"});
@@ -246,7 +247,7 @@ let aglfn = readFileSync(
   .filter(line => !line.startsWith("#") && line.trim() != "")
   .map(line => line.split(";")[0].trim());
 grammar.repository["stdlib-adobe-glyph-list"] = {
-  match: `\\b(${toRegExp(aglfn).source})\\b`,
+  match: `\\b(${regexGen(aglfn).source})\\b`,
   name: "support.constant.character.adobe.ruko",
 };
 grammar.patterns.push({include: "#stdlib-adobe-glyph-list"});
@@ -268,7 +269,7 @@ grammar.repository["stdlib-color-names"] = {
             .toLowerCase()
             .split(" "),
         ),
-      x => toRegExp([...new Set(x.filter(word => /\D+/.test(word)))]).source,
+      x => regexGen([...new Set(x.filter(word => /\D+/.test(word)))]).source,
     ) +
     ")\\b",
   name: "support.constant.color.ruko",
@@ -280,10 +281,8 @@ grammar = parse(
   stringify(grammar, (key, value) => {
     switch (typeof value) {
       case "object":
-        delete value.key ||
-          delete value.comment ||
-          delete value.define ||
-          delete value.library;
+        for (let k of ["key", "comment", "define", "library"])
+          if (value && k in value) delete value[k];
         break;
     }
     return value;
@@ -298,4 +297,9 @@ grammar = stringify(sortKeys(grammar), null, 2);
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
   grammar,
+);
+
+let end = performance.now();
+console.log(
+  `Standard library updated in ${((end - start) / 1000).toFixed(2)} seconds.`,
 );

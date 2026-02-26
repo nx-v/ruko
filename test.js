@@ -1,12 +1,54 @@
-import {optimize} from "oniguruma-parser/optimizer";
-import genex from "genex";
-import toRegex from "./to-regex.js";
+import {toRegExp} from "oniguruma-to-es";
+let r = String.raw;
 
-let {raw} = String;
-
-let pattern = raw`(?x)(foo|bar|baz|qux|quux|corge|grault|garply|waldo|fred|plugh|xyzzy|thud)`;
-
-pattern = genex(optimize(pattern).pattern).generate();
-pattern = toRegex(pattern).source;
-
-console.log(pattern);
+console.log(
+  toRegExp(
+    r`(?x)
+      ( # from
+          \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01]) # decimal escape
+        | \\u\h{1,4} | \\U\h{1,8} # hex escape
+        | \\b0*(?:[01]|1[01]{1,19}|10000[01]{16}) # binary escape
+        | \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]) # ternary escape
+        | \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}) # quaternary escape
+        | \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]) # senary escape
+        | \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}) # octal escape
+        | \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7]) # duodecimal escape
+        | \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4}) # hexadecimal escape
+        | \\[cC][@-_] # control character
+        | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
+        | \\(?:[abefprntv[^a-zA-Z]]) # any escape character
+        | [^\-\\\[\]] # any unescaped character
+      )
+        \s*(>?->?)\s* # range
+      ( # to
+          \\0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01]) # decimal escape
+        | \\u\h{1,4} | \\U\h{1,8} # hex escape
+        | \\b0*(?:[01]|1[01]{1,19}|10000[01]{16}) # binary escape
+        | \\t0*(?:[012]|[12][012]{1,11}|1[012]{12}|200[01][012]{9}|20020[012]{8}|20021[01][012]{7}|2002120[012]{6}|20021210[01][012]{4}|2002121020[012]{3}|20021210210[012]{2}|200212102110[01]) # ternary escape
+        | \\q0*(?:[0-3]|[123][0-3]{1,9}|100[0-3]{8}) # quaternary escape
+        | \\s0*(?:[0-5]|[1-5][0-5]{1,6}|[12][0-5]{7}|3[0-4][0-5]{6}|35[0-4][0-5]{5}|3550[0-5]{4}|3551[012][0-5]{3}|35513[0-4][0-5]{2}|355135[012][0-5]|3551353[01]) # senary escape
+        | \\o0*(?:[0-7]|[1-7][0-7]{1,5}|[123][0-7]{6}|4[01][0-7]{5}) # octal escape
+        | \\z0*(?i:[ab\d]|[1-b][ab\d]{1,4}|[123][ab\d]{5}|4[0-4][ab\d]{4}|45[0-7][ab\d]{3}|458[0-7][ab\d]{2}|4588\d[ab\d]|4588a[0-7]) # duodecimal escape
+        | \\x0*(?i:\h|[1-f]\h{1,4}|10\h{4}) # hexadecimal escape
+        | \\[cC][@-_] # control character
+        | \\&{(?:[^\\{}]|\\.)+} # Unicode named character
+        | \\(?:[abefprntv[^a-zA-Z]]) # any escape character
+        | [^\-\\\[\]] # any unescaped character
+      ) (?:
+          \s*(:)\s*
+        ( # by
+          [+-]? (?# sign) (?:
+              \d+ # decimal
+            | 0o[0-7]+ # octal
+            | 0b[01]+ # binary
+            | 0t[012] # ternary
+            | 0q[0-3]+ # quaternary
+            | 0s[0-5]+ # senary
+            | 0z(?i:[\dab]+) # duodecimal
+            | 0x\h+ # hexadecimal
+          )
+        )
+      )?
+`,
+  ),
+);
