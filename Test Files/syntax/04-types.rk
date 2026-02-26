@@ -1,0 +1,164 @@
+\* ============================================================
+   04 — TYPE SYSTEM & TYPE EXPRESSIONS
+   Corresponds to: ruko.tmLanguage.yaml lines 871–1480
+   Primitive types, composite types, generics, type operators,
+   type keywords, and type-level computation.
+   ============================================================ *\
+
+// ----- Primitive scalar types -----
+let a: i8   = 127
+let b: i16  = 32767
+let c: i32  = 2_147_483_647
+let d: i64  = 9_223_372_036_854_775_807
+let e: i128 = 170_141_183_460_469_231_731_687_303_715_884_105_727
+
+let f: u8   = 255
+let g: u16  = 65535
+let h: u32  = 4_294_967_295
+let i: u64  = 18_446_744_073_709_551_615
+let j: u128 = 340_282_366_920_938_463_463_374_607_431_768_211_455
+
+let k: f32  = 3.14
+let l: f64  = 3.141592653589793
+let m: f128 = 3.14159265358979323846264338327950288
+
+let n: bool = true
+let o: char = 'A'
+let p: str  = "hello"
+let q: void = void
+
+// Short aliases
+let r: int   = 42    // platform int (usually i64)
+let s: uint  = 42    // platform uint
+let t: float = 1.0   // platform float (usually f64)
+let u: byte  = 0xAB  // u8 alias
+let v: word  = 0     // u16 alias
+let w: dword = 0     // u32 alias
+let x: qword = 0     // u64 alias
+
+// ----- Optional and Result -----
+let opt: int?    = null       // optional (nullable) int
+let res: int!    = 42         // result (failable) int
+let both: int?!  = null       // optional result
+
+// ----- Pointer and reference types -----
+let ptr: *i32          = null
+let mutPtr: *mut i32   = &mut someInt
+let constPtr: *const i32 = &someInt
+let ref_: &i32         = &someInt
+let mutRef: &mut i32   = &mut someInt
+let ptrPtr: **i32      = null   // pointer to pointer
+
+// ----- Array types -----
+let arr1: []int          = [1, 2, 3]        // dynamic array / slice
+let arr2: [3]int         = [1, 2, 3]        // fixed-size array (N=3)
+let arr3: [][]int        = [[1,2],[3,4]]    // 2-D array
+let arr4: [4][4]f32      = /* ... */ undef  // 4×4 matrix
+
+// ----- Tuple types -----
+let tup1: (int, str)           = (1, "a")
+let tup2: (int, str, f64)      = (1, "a", 3.14)
+let tup3: (i32, (bool, char))  = (0, (true, 'x'))  // nested
+
+// ----- Dictionary / map types -----
+let dict1: {str: int} = {"a": 1}
+let dict2: {int: []str} = {1: ["x", "y"]}
+
+// ----- Union types -----
+let val: int | str = 42        // value is int OR str
+let multi: int | str | bool = true
+let nullable: str | null = null
+
+// ----- Generic types -----
+let v1: Vec<int>         = Vec!(1, 2, 3)
+let v2: Map<str, int>    = Map!()
+let v3: Set<f64>         = Set!(3.14, 2.71)
+let v4: Option<int>      = Some(42)
+let v5: Result<int, str> = Okay(0)
+let v6: Pair<int, str>   = Pair(1, "x")
+
+// ----- Function types -----
+let fn1: func(int, int): int    = |a, b| a + b
+let fn2: proc(str): void        = |s| print(s)
+let fn3: func(): bool            = || true
+let fn4: async func(str): str    = async |s| s ++ "!"
+
+// ----- Type aliases -----
+type Coord = (f64, f64)
+type Transform<T> = func(T): T
+type Callback = proc(str): void
+type Matrix4 = [4][4]f32
+type NodeRef = *Node
+
+// ----- Type parameters (generics) -----
+func max<T>(T a, T b): T { if a > b: a else: b }
+class Stack<T> { /* ... */ }
+struct Pair2<A, B> { A first; B second }
+
+// Type parameter with constraint
+func sum<T: Numeric>([]T xs): T { xs.fold(T.zero, |+|) }
+func eq<T: Eq & Hash>(T a, T b): bool { a == b }
+
+// Inferred type parameter
+func identity<T>(T x) = x
+let result = identity(42)   // T inferred as int
+
+// ----- Type operators (prefix) -----
+// *T    — pointer to T
+// &T    — reference to T
+// %T    — percent / private
+// @T    — decorator type
+// ^T    — borrow
+// !T    — result / unwrap
+// ~T    — bitwise complement type
+// ?T    — optional
+// \T   — lifetime annotated
+// -T    — negated type
+// +T    — additive type
+// $T    — variable type
+// #T    — meta type
+// ..T   — spread / variadic
+
+// ----- Type operators (infix) -----
+type And  = A & B          // intersection
+type Or   = A | B          // union
+type Plus = A + B          // sum type
+type Xor  = A ^ B          // exclusive or
+type Sub  = A - B          // difference
+type Sub2 = A <: B         // subtype constraint (A extends B)
+type Sup  = A :> B         // supertype constraint
+type Eq   = A =: B         // type equality
+type Neq  = A =! B         // type inequality
+type Impl = A :: B         // A implements B
+type Of   = A : B          // A of kind B (HKT)
+type Pipe = A +> B         // pipe type
+type Back = A <+ B         // reverse pipe type
+
+// ----- Type keywords -----
+type Ext      = ext SomeBase       // extension / inheritance type
+type Of2      = of Container       // element type of
+type Impl2    = impl SomeTrait     // implementation proof
+type ForT     = a for &!a is str   // universal quantifier
+type Infer    = infer U            // type inference hole
+
+// typeof, valueof, fieldof, nameof, sizeof, keyof, addrof, etc.
+let sz  = sizeof(i32)              // size of type at compile time
+let nm  = nameof(MyClass)          // "MyClass" as string
+let k2  = keyof({a: int, b: str})  // "a" | "b"
+let pt  = typeof(42)               // i32 type object
+let ao  = addrof(someVar)          // address as usize
+let ao2 = ptrof(someVar)           // pointer to someVar
+let id  = idof(MyClass)            // runtime type id
+
+// ----- `is`, `has`, `can` type checks -----
+if x is int: print("int!")
+if x is not str: print("not a string")
+if x has .length: print("has length")
+if x can .serialize: x.serialize()
+
+// ----- Type brackets -----
+// Square brackets in types for fixed-size arrays
+let m2: [3][3]f64 = [[1,0,0],[0,1,0],[0,0,1]]
+
+// Angle brackets for generics
+let h2: Map<str, Vec<int>> = Map!()

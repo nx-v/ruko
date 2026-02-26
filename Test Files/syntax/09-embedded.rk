@@ -1,0 +1,69 @@
+\* ============================================================
+   09 — EMBEDDED EXPRESSIONS
+   Corresponds to: ruko.tmLanguage.yaml lines 2081–2204
+   Interpolation (#{}), template arguments (@arg),
+   and format specifiers (%fmt) inside strings.
+   ============================================================ *\
+
+// ----- Basic interpolation --- #name and #{expr} -----
+let user = "Alice"
+let age  = 30
+let msg1 = #"User: #user"
+let msg2 = #"Age:  #age"
+let msg3 = #"User #user is #age years old"
+let msg4 = #"2 + 2 = #{2 + 2}"
+let msg5 = #"max = #Math.max(a, b)"
+
+// Arbitrary expressions in #{}
+let arr = [1, 2, 3]
+let msg6  = #"sum = #{arr.reduce(+)}"
+let msg7  = #"sorted = #{arr.sort().join(", ")}"
+let msg8  = #"cond = #{if flag: "yes" else: "no"}"
+let msg9  = #"nested = #{#"inner: #user"}"
+
+// ----- Template arguments (@arg) inside @-strings -----
+// @arg is replaced by caller-supplied values
+let tmpl1 = @"Hello, @name!"
+let tmpl2 = @"INSERT INTO @table (id, val) VALUES (@id, @val)"
+let tmpl3 = @"FROM @`schema`.@table WHERE @cond"
+
+// Calling a template string as a tagged function:
+let result1 = greet@"@name"{ name: "Bob" }
+let result2 = `query`@"SELECT @cols FROM @tbl"{ cols: "*", tbl: "users" }
+
+// ----- Format specifiers --- %fmt inside #-strings -----
+// Format: #{expr %specifier}
+// Common specifiers:
+let pi = 3.14159265
+let f1 = #%"pi = #pi%f:(0.2)"       // fixed-point, 2 decimals → "3.14"
+let f2 = #%"pi = #pi%f:(10.4)"      // width 10, 4 decimals
+let f3 = #%"pi = #pi%f:(-10.4)"     // left-aligned
+let f4 = #%"pi = #pi%f:(+0.3)"      // force sign
+let f5 = #%"x  = #{255}%x"          // hex with 0x prefix → "0xff"
+let f6 = #%"x  = #{255}%x08"        // zero-padded hex
+let f7 = #%"b  = #{0b1010}%b"       // binary
+let f8 = #%"o  = #{0o17}%o"         // octal
+let f9 = #%"e  = #{1234.5}%e"       // scientific notation
+let f10 = #%"g = #{0.000123}%g"     // shortest form
+let f11 = #%"s = #{"hello"}%s10"    // string, width 10
+let f12 = #%"d = #{42}%d05"         // decimal, zero-padded
+let f13 = #%"p = #ptr%p"            // pointer address
+let f14 = #%"c = #{65}%c"           // character
+
+// Combined format flags
+let f15 = #"#{n %+010.3f}" // sign, zero-pad, width, precision
+
+// ----- Embedded argument / splice syntax -----
+// #( ... ) — splice a sub-expression result
+let spliced = #"#result: #{computeValue(x, y)}"
+
+// ----- Embedded formatting tokens -----
+// %d %i %u %f %e %g %x %X %o %b %c %s %p %n %q — printf-style
+let q1 = #"quoted = #{s %q}"    // %q = debug/quoted form
+
+// ----- Nested interpolation -----
+let outer = #"outer: #{#"inner: #{1 + 1}"}"
+
+// ----- Verbatim / escape of # and @ -----
+let lit1 = #"literal hash: \#"       // \# = literal #
+let lit2 = @"literal at: \@"         // \@ = literal @

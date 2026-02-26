@@ -1,0 +1,73 @@
+\* ============================================================
+   05 — LITERALS & CONSTANTS
+   Corresponds to: ruko.tmLanguage.yaml lines 1481–1544
+   Boolean, null-like, and other compile-time constants.
+   (Numeric literals are in 06-numbers.rk)
+   ============================================================ *\
+
+// ----- Boolean literals -----
+let yes: bool = true
+let no:  bool = false
+
+// ----- Null-like -----
+let nothing: str?   = null    // null — absence of value
+let bad: f64        = nan     // not-a-number
+let nowhere: *int   = null    // null pointer
+let empty: []int    = []      // empty array (not null, but zero-length)
+let und              = undef  // undefined (uninitialized region)
+let inf: f64        = infty   // positive infinity
+let negInf: f64     = -infty  // negative infinity
+
+// ----- Void -----
+proc doNothing() { void }     // void as return or expression
+
+// ----- Self-referential constants -----
+class Foo {
+  proc bar() {
+    let s = this     // `this`  — current instance (C++/Java style)
+    let s2 = self    // `self`  — same, Rust/Swift style
+    let s3 = #       // `#`     — Ruko self-reference alias
+    let p = super    // `super` — parent class instance
+    let c = ctor     // `ctor`  — constructor function
+    let d = dtor     // `dtor`  — destructor function
+    let pr = proto   // `proto` — prototype object
+  }
+}
+
+// ----- Context variables -----
+func sum([]int xs): int {
+  xs.fold(0, |acc, it| acc + it)  // `it` — implicit iteration variable
+}
+
+// ----- Index variables -----
+let first  = arr[_0]    // _0  — first element
+let second = arr[_1]    // _1  — second element
+let last   = arr[_-1]   // _-1 — last element
+
+// ----- Argument list -----
+func variadic() {
+  let all = args          // `args` — all call arguments as array
+}
+
+// ----- Wildcard -----
+let (a, _, c) = (1, 2, 3)  // `_` — discard / don't-care
+
+// ----- Option / result constructors -----
+let s1: Option<int>       = Some(42)
+let s2: Option<int>       = None
+let r1: Result<int, str>  = Okay(0)
+let r2: Result<int, str>  = Valid(0)
+let r3: Result<int, str>  = Error("oops")
+let r4: Option<[]int>     = Empty
+
+// ----- Decorator syntax -----
+@deprecated("use newFunc instead")
+func oldFunc() { }
+
+@id("my-component")
+@version(2)
+@by("Alice")
+compo MyComp { }
+
+@override()
+func str toString() { "MyClass" }

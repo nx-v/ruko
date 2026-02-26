@@ -1,0 +1,132 @@
+\* ============================================================
+   14 — PERCENT LITERALS
+   Corresponds to: ruko.tmLanguage.yaml lines 3976–4325
+   Color, path-drawing, timestamp, URL, base64, word-array,
+   file-path, and embedded script literal forms.
+   ============================================================ *\
+
+// ----- RGB / RGBA colors -----
+let c1 = %rgb(255, 128, 0)       // orange
+let c2 = %rgba(255, 128, 0, 0.5) // semi-transparent orange
+let c3 = %rgb(100%, 50%, 0%)       // percentage form
+let c4 = %rgba(100%, 50%, 0%, 0.8)
+
+// ----- CMYK colors -----
+let c5 = %cmyk(0, 50, 100, 0)     // orange in CMYK
+let c6 = %cmyka(0, 50, 100, 0, 1.0)
+
+// ----- HSL / HSV / OKLCH colors -----
+let c7  = %hsl(30, 100%, 50%)     // orange as HSL
+let c8  = %hsla(30, 100%, 50%, 0.5)
+let c9  = %hsv(30, 100%, 100%)
+let c10 = %hcl(30, 100, 50)       // HCL
+let c11 = %oklch(0.7, 0.18, 30)   // OKLCH
+let c12 = %oklab(0.7, 0.12, 0.05) // OKLAB
+
+// ----- Hex colors -----
+let c13 = %#FF8000          // 6-digit hex
+let c14 = %#FF8000FF        // 8-digit hex with alpha
+let c15 = %#F80               // 3-digit hex
+let c16 = %#F80F              // 4-digit hex with alpha
+
+// ----- LAB colors -----
+let c17 = %lab(50, 30, -20)
+let c18 = %lab(70, -10, 40, 0.9)
+
+// ----- Canvas path drawing  %draw(...) -----
+let path1 = %draw(M 10 10, L 100 10, L 100 100, Z)
+let path2 = %draw(
+  M 50 10,
+  A 40 40 0 1 0 50.001 10,
+  Z
+)
+let path3 = %draw(M 0 0, C 10 20, 30 20, 40 0)  // cubic bezier
+
+// ----- Timestamps  %time'...' -----
+let t1 = %time'2026-02-26'
+let t2 = %time'2026-02-26T14:30:00'
+let t3 = %time'2026-02-26T14:30:00Z'
+let t4 = %time'2026-02-26T14:30:00+07:00'
+let t5 = %time'14:30:00'
+let t6 = %time'P1Y2M3DT4H5M6S'     // ISO 8601 duration
+
+// ----- URLs  %url"..." -----
+let u1 = %url"https://example.com"
+let u2 = %url"https://api.example.com/v2/users?page=1&limit=20"
+let u3 = %url"ftp://files.example.com/data.csv"
+let u4 = %url"mailto:user@example.com"
+let u5 = %url"file:///C:/Users/Admin/file.txt"
+
+// ----- Base64  %b64"..." -----
+let b1 = %b64"SGVsbG8sIFdvcmxkIQ=="
+let b2 = %b64"aGVsbG8="
+let b3 = %b64'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+// ----- Word arrays  %words(...) -----
+// Splits a space-separated literal into a string array at compile time
+let w1 = %words( foo bar baz )         // ["foo", "bar", "baz"]
+let w2 = %words( red green blue )
+let w3 = %words( Monday Tuesday Wednesday Thursday Friday )
+
+// ----- File paths  %file"..." -----
+let f1 = %file"assets/logo.png"
+let f2 = %file"C:/Users/Admin/data.json"
+let f3 = %file"../config/settings.toml"
+
+// ----- Embedded script literal blocks (%lang ... lang%) -----
+// See also: 15-script-blocks.rk for the block form.
+// The percent-literal form uses matching delimiters:
+
+%latex
+  \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+latex%
+
+%sql
+  SELECT u.name, COUNT(o.id) AS num_orders
+  FROM users u
+  LEFT JOIN orders o ON o.user_id = u.id
+  WHERE u.active = 1
+  GROUP BY u.id
+  ORDER BY num_orders DESC
+sql%
+
+%re
+  (?x)
+  (?P<year>  \d{4} ) -
+  (?P<month> \d{2} ) -
+  (?P<day>   \d{2} )
+re%
+
+%js
+  const greet = (name) => `Hello, ${name}!`
+  export default greet
+js%
+
+%rs
+  pub fn add(a: i32, b: i32) -> i32 { a + b }
+rs%
+
+%py
+  def fib(n):
+    return n if n <= 1 else fib(n-1) + fib(n-2)
+py%
+
+%cpp
+  template<typename T>
+  T clamp(T v, T lo, T hi) {
+    return v < lo ? lo : v > hi ? hi : v;
+  }
+cpp%
+
+%glsl
+  void main() {
+    gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0);
+  }
+glsl%
+
+%wgsl
+  @fragment
+  fn fsMain() -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0, 0.5, 0.0, 1.0);
+  }
+wgsl%

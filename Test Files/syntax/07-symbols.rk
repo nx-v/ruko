@@ -1,0 +1,65 @@
+\* ============================================================
+   07 — SYMBOL LITERALS
+   Corresponds to: ruko.tmLanguage.yaml lines 1868–1907
+   Symbols are compile-time interned string/atom values,
+   prefixed with a colon. Similar to Ruby symbols or Elixir atoms.
+   ============================================================ *\
+
+// ----- Basic symbols -----
+let s1 = :ok
+let s2 = :error
+let s3 = :pending
+let s4 = :blue
+let s5 = :red
+let s6 = :none
+
+// ----- Symbols in expressions -----
+let color = :green
+let status: :ok | :error | :pending = :ok
+
+// ----- Symbols as map keys -----
+let config = {(:host): "localhost", (:port): 8080, (:debug): false}
+
+// ----- Symbols as function arguments -----
+style button {
+  background color: :blue
+  border style: :solid
+  display: :flex
+  text align: :center
+  cursor: :pointer
+}
+
+// CSS-like symbol values in style blocks
+style card {
+  position: :relative
+  overflow: :hidden
+  flex direction: :column
+  align items: :center
+  justify content: :space-between
+  box sizing: :border-box
+  visibility: :visible
+  pointer events: :none
+}
+
+// ----- Symbols with string notation -----
+// Symbols can be quoted to allow arbitrary characters:
+let sym1 = :"hello world"    // symbol with space
+let sym2 = :'any chars!'     // single-quoted symbol
+
+// ----- Symbols in pattern matching -----
+match result {
+  | is :ok: print("success")
+  | is :error: print("failure")
+}
+
+// ----- Symbol type -----
+// The type of a symbol literal is its singleton type
+let x: :ok = :ok
+let y: :blue | :red | :green = :blue
+
+// ----- Symbols vs strings -----
+// :foo  — compile-time atom, compared by identity (fast, no alloc)
+// "foo" — runtime string, heap-allocated
+let sym = :hello     // symbol
+let str = "hello"    // string
+// sym != str (different types)

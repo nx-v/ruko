@@ -1,0 +1,288 @@
+\* ============================================================
+   17 — JSDOC ANNOTATIONS
+   Corresponds to: ruko.tmLanguage.yaml lines 5205–5379
+   All @tag annotations valid inside /** ... */ doc-blocks.
+   ============================================================ *\
+
+// ----- @param variations -----
+
+/**
+ * @param name - description (simple)
+ */
+func f1(str name) {}
+
+/**
+ * @param {string} name - with type annotation
+ */
+func f2(str name) {}
+
+/**
+ * @param [optionalParam] - optional parameter
+ */
+func f3(str? opt) {}
+
+/**
+ * @param {string} [optionalWithType] - optional with type
+ */
+func f4(str? opt) {}
+
+/**
+ * @param {string} [param="default"] - optional with default
+ */
+func f5(str param = "default") {}
+
+/**
+ * @param {...string} rest - rest parameters
+ */
+func f6(str ..rest) {}
+
+// ----- @returns / @return -----
+
+/**
+ * @returns The computed value
+ */
+func f7(): int { 0 }
+
+/**
+ * @returns {number} The computed value with type
+ */
+func f8(): int { 0 }
+
+/**
+ * @return {Promise<string>} Also accepted (singular)
+ */
+func f9(): Promise<str> { resolve("ok") }
+
+// ----- @type, @typedef, @property -----
+
+/**
+ * @type {string}
+ */
+let userName: str = "Alice"
+
+/**
+ * @typedef {Object} Config
+ * @property {string} host - the hostname
+ * @property {number} port - the port number
+ * @property {boolean} [ssl] - optional TLS flag
+ */
+type Config = {
+  host: str,
+  port: int,
+  ssl: bool?,
+}
+
+// ----- @class, @constructor, @interface -----
+
+/**
+ * @class Rectangle
+ * @description A 2D rectangle.
+ */
+class Rectangle {
+
+  /**
+   * @constructor
+   * @param {number} w - width
+   * @param {number} h - height
+   */
+  func new(f64 w, f64 h) {
+    self.w = w
+    self.h = h
+  }
+
+  /**
+   * @returns {number} The area
+   */
+  func area(): f64 { self.w * self.h }
+}
+
+/**
+ * @interface Drawable
+ */
+inter Drawable {
+  func draw(): void
+}
+
+// ----- @enum -----
+
+/**
+ * @enum {string}
+ */
+enum Direction {
+  :north, :south, :east, :west
+}
+
+// ----- @event, @fires -----
+
+/**
+ * @event click
+ * @type {MouseEvent}
+ */
+
+/**
+ * @fires click - emitted when the button is pressed
+ */
+func onButtonPress() {}
+
+// ----- @augments / @extends, @implements -----
+
+/**
+ * @class Dog
+ * @augments Animal
+ */
+class Dog extends Animal {}
+
+/**
+ * @class Cat
+ * @extends Animal
+ * @implements Drawable
+ */
+class Cat extends Animal impl Drawable {
+  func draw(): void {}
+}
+
+// ----- @memberof, @inner -----
+
+/**
+ * @memberof Utils
+ */
+func clamp(int val, int lo, int hi): int { min(max(val, lo), hi) }
+
+/**
+ * @memberof Outer~
+ * @inner
+ */
+
+// ----- @module, @namespace -----
+
+/**
+ * @module MathUtils
+ * Utility functions for math operations.
+ */
+module MathUtils {
+
+  /**
+   * @namespace Trigonometry
+   */
+  space Trigonometry {
+
+    /**
+     * @constant {number} PI
+     */
+    const PI: f64 = 3.14159265358979323846
+  }
+}
+
+// ----- @throws / @exception -----
+
+/**
+ * @throws {RangeError} When n is negative
+ * @throws {TypeError} When n is not a number
+ */
+func sqrt(f64 n): f64 {
+  if n < 0: raise RangeError("n must be non-negative")
+  n ** 0.5
+}
+
+// ----- @example -----
+
+/**
+ * Computes the factorial of n.
+ * @param {number} n - non-negative integer
+ * @returns {number} n!
+ * @example
+ * factorial(0)  // 1
+ * factorial(5)  // 120
+ */
+func factorial(int n): int {
+  if n == 0: 1
+  else: n * factorial(n - 1)
+}
+
+// ----- @deprecated, @since, @version -----
+
+/**
+ * @deprecated Use `newFn()` instead
+ * @since 1.0.0
+ */
+func oldFn() {}
+
+/**
+ * @version 2.0.0
+ */
+module API {}
+
+// ----- @see, @link, @tutorial -----
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API
+ * @see {@link OtherClass#method} for the related method
+ * @tutorial getting-started
+ */
+func seeExample() {}
+
+// Using inline @link:
+/// Calls {@link formatDate} to format the output.
+func printDate() {}
+
+// ----- @author, @license -----
+
+/**
+ * @author Jane Doe <jane@example.com>
+ * @license MIT
+ */
+module MyLib {}
+
+// ----- @override, @abstract, @access -----
+
+/**
+ * @override
+ */
+func toString(): str { "Object" }
+
+/**
+ * @abstract
+ */
+func render(): void {}   // must be overridden
+
+/**
+ * @access private
+ */
+func internalHelper() {}
+
+/**
+ * @access public
+ */
+func publicMethod() {}
+
+/**
+ * @access protected
+ */
+func protectedLogic() {}
+
+// ----- @readonly, @default -----
+
+/**
+ * @readonly
+ * @default 0
+ */
+val counter: int = 0
+
+// ----- Class#method / Class.staticMethod syntax in references -----
+
+/// See {@link Point#dist} for distance calculation.
+/// See {@link MathUtils.clamp} for the clamping static.
+/// See {@link Rectangle~_privateHelper} for the inner helper.
+func refExamples() {}
+
+// ----- JSDoc type expressions -----
+
+/**
+ * @param {string|number} id - accepts string or number
+ * @param {Array<string>} tags - generic array type
+ * @param {?boolean} flag - nullable boolean
+ * @param {!boolean} required - non-nullable boolean
+ * @param {function(string, number): boolean} predicate - function type
+ * @param {{x: number, y: number}} point - inline object type
+ */
+func complex(str|int id, []str tags, bool? flag, bool required, fn predicate, point: {x: int, y: int}) {}

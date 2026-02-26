@@ -1,0 +1,171 @@
+\* ============================================================
+   12 — XML / JSX SYNTAX
+   Corresponds to: ruko.tmLanguage.yaml lines 3015–3301
+   All JSX/XML tag forms, attributes, components, fragments,
+   spread, event, class, id, directive, and ref attributes.
+   ============================================================ *\
+
+// ----- Basic HTML tags -----
+let el1 = <div>Hello</div>
+let el2 = <p>Paragraph</p>
+let el3 = <span>Inline</span>
+let el4 = <input/>
+let el5 = <br/>
+let el6 = <img src="photo.jpg" alt="A photo"/>
+
+// ----- Self-closing tags -----
+let sc1 = <hr/>
+let sc2 = <link rel="stylesheet" href="style.css"/>
+let sc3 = <meta charset="UTF-8"/>
+
+// ----- Component tags (PascalCase) -----
+let c1 = <Button>Click me</Button>
+let c2 = <Modal title="Alert"> <p>Body</p> </Modal>
+let c3 = <DataTable rows=data columns=cols/>
+
+// ----- Fragment -----
+let frag = <>
+  <h1>Title</h1>
+  <p>Body</p>
+</>
+
+// ----- Expression tags -----
+// Dynamic tag name from expression
+let tagName = "div"
+let e1 = <(tagName)> content </> // round bracket: expression
+let e2 = <[tagList[0]]> a </> // square bracket: array access
+let e3 = <{getTag()}> b </> // curly bracket: function call
+
+// ----- Attributes -----
+// Standard value attribute
+<div class="container" id="main" style={color: :red}/>
+
+// Attribute with expression value
+<Component
+  value=count
+  label=#"Item #index"
+  callback=(|e| handleClick(e))
+/>
+
+// ----- Attribute sigils -----
+// :event  — event listener
+<button :click=(|e| handleClick(e))>Click</button>
+<input :change=(|e| setValue(e.target.value))/>
+<form :submit=(|e| { e.preventDefault(); doSubmit() })/>
+<div :mouseover=(|e| onHover(e)) :mouseout=(|e| onLeave(e))/>
+
+// .class  — conditional class binding
+<div .active=isActive .error=hasError .hidden=!visible/>
+<p .highlight .bold> "Styled" </p> // bare .class = always applied
+
+// #id     — dynamic id binding
+<div #mainContainer/>
+<section #(sectionId)/>
+
+// @directive — custom directive
+<div @tooltip="help text"/>
+<input @validate=(|v| v.length > 0)/>
+<div @animate:fade/>
+<img @lazy-load/>
+
+// &ref    — component / DOM reference
+<div &containerRef/>
+<Canvas &canvasEl/>
+<input &inputEl type="text"/>
+
+// *spread — spread object as attributes
+let props = {class: "foo", id: "bar"}
+<div *props/>
+<Component {..baseProps, extra: true}/>
+
+// |bind   — two-way binding
+<input |value=myVar/>
+<Select |selected=currentOption/>
+
+// %private — private attribute
+<div %data=internalState/>
+
+// ~key    — reconciliation key
+<li ~key=item.id> item.name </li>
+
+// ^ prefix attr — parent/ancestor reference in selectors
+<div ^hover=onParentHover/>
+
+// ? conditional attribute
+<input ?disabled=isLoading/>
+<button ?hidden/>
+
+// ----- Mixed attributes -----
+<Button
+  .primary
+  .large=isLarge
+  :click=handleClick
+  &btnRef
+  ?disabled=loading
+  *extraProps
+>
+  "Submit"
+</Button>
+
+// ----- Nested JSX / children -----
+<ul>
+  <for let=item in=items>
+    <li ~key=item.id> item.name </li>
+  </for>
+  <if cond>
+    <li> "Conditional item" </li>
+  <elif anotherCond/>
+    <li> "Another" </li>
+  <else/>
+    <li> "Default" </li>
+  </if>
+</ul>
+
+// ----- JSX control tags -----
+<for let=i in=(0 ..< 10)>
+  <span> i </span>
+</for>
+
+<while(count < 5)>
+  <div> "Loop body" </div>
+</while>
+
+<if (user != null)>
+  <Profile user=user/>
+<elif guest/>
+  <GuestView/>
+<else/>
+  <LoginPrompt/>
+</if>
+
+<switch (status)>
+  <case "loading">
+    <Spinner/>
+  </case>
+  <case "error">
+    <ErrorMessage/>
+  </case>
+  <def>
+    <Content/>
+  </def>
+</>
+
+// ----- XML entities -----
+let amp  = \* &amp; *\    // &
+let lt   = \* &lt; *\     // <
+let gt   = \* &gt; *\     // >
+let quot = \* &quot; *\    // "
+let apos = \* &apos; *\    // '
+let nbsp = \* &nbsp; *\    // non-breaking space
+let num  = \* &#65; *\    // decimal entity → A
+let hex2 = \* &#x41; *\   // hex entity → A
+
+// ----- Inline style on tag -----
+<div style={background: :blue; color: :white; padding: "1rem"}/>
+
+// ----- JSX expression children -----
+<div>
+  { items.map(|item| <span> item </span>) }
+  { if show: <Modal/> }
+  { count > 0 ? <Badge n=count/> : <> </> }
+</div>

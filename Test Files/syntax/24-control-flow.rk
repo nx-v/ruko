@@ -1,0 +1,299 @@
+\* ============================================================
+   24 — CONTROL FLOW
+   Corresponds to: ruko.tmLanguage.yaml lines 8096–8358
+   if/elif/else, for/while/loop, match/switch/case,
+   try/catch/throw, when/guard, with/do, return/yield/await.
+   ============================================================ *\
+
+// ============================================================
+// IF / ELIF / ELSE
+// ============================================================
+
+// Block form
+if x > 0 {
+  print("positive")
+} elif x < 0 {
+  print("negative")
+} else {
+  print("zero")
+}
+
+// Colon form (single expression)
+if x > 0: print("positive")
+elif x < 0: print("negative")
+else print("zero")
+
+// if not
+if not done { retry() }
+if not (a > 0 and b > 0) { fail() }
+
+// if as expression
+let abs = if x >= 0: x else -x
+let label = if score >= 90: "A" elif score >= 80: "B" else "C"
+
+// ============================================================
+// FOR LOOPS
+// ============================================================
+
+// for in (iterate over sequence)
+for item in list { process(item) }
+for x in 0 ..< 10 { print(x) }
+for ch in "hello" { print(ch) }
+
+// for of (iterate over key-value / entries)
+for key of map { print(key) }
+for (k, v) of map.entries() { print(#"#k = #v") }
+
+// for as (bind iteration variable with alias)
+for entry as prev in log { print(#"#entry after #prev") }
+
+// for ever (infinite loop)
+for ever {
+  let msg = channel.receive()
+  if msg == :stop: break
+  handle(msg)
+}
+
+// for each (collection shorthand)
+for each item in items { render(item) }
+
+// for await (async iteration)
+for await chunk in stream { process(chunk) }
+
+// while
+mut n = 10
+while n > 0 {
+  print(n)
+  n -= 1
+}
+
+// while not
+while not done { tick() }
+
+// loop (infinite, exit via break)
+loop {
+  let input = readLine()
+  if input == "quit": break
+  handle(input)
+}
+
+// Labelled loops
+{
+  outer: for i in 0 ..< 5 {
+    inner: for j in 0 ..< 5 {
+        if i == j: skip inner       // continue inner loop
+        if i + j > 6: break outer   // break outer loop
+    }
+  }
+}
+
+// ============================================================
+// MATCH / SWITCH
+// ============================================================
+
+// match
+match value {
+  | 0: print("zero")
+  | 1: print("one")
+  | n if n < 0: print("negative")
+  | n: print(#"other: #n")
+  | else print("unreachable")
+}
+
+// match with type guards
+match val {
+  | is int: print("integer")
+  | is str: print("string")
+  | has .name: print("has name field")
+  | can .serialize: print("serializable")
+  | else print("unknown")
+}
+
+// match with destructuring
+match pair {
+  | (0, 0): print("origin")
+  | (x, 0): print(#"on x-axis at #x")
+  | (0, y): print(#"on y-axis at #y")
+  | (x, y): print(#"(#x, #y)")
+}
+
+// match with as alias
+match result {
+  | Okay(v) as ok: print(#"success: #v")
+  | Error(e) as err: print(#"failure: #e")
+}
+
+// switch (similar to match, more C-like feel)
+switch statusCode {
+  | 200: "OK"
+  | 404: "Not Found"
+  | 500: "Server Error"
+  | else "Unknown"
+}
+
+// ============================================================
+// TRY / CATCH / THROW / RAISE / FINAL
+// ============================================================
+
+// try block
+try {
+  let data = parse(input)
+  process(data)
+} catch {
+  | is ParseError as e: print(#"Parse error: #e.msg")
+  | is NetworkError: retry()
+  | e: print(#"Unknown: #e")
+} final {
+  cleanup()
+}
+
+// try expression (returns a Result)
+let parsed: Config! = try parse(rawJson)
+
+// throw / raise
+throw RuntimeError("unexpected null")
+raise ValueError("out of range")
+
+// try with in/of/as
+try connection as c {
+  c.query("SELECT 1")
+}
+
+// error expression (sugar for catch-all)
+let safe_val = doThing() error |e| defaultValue
+
+// ============================================================
+// WHEN / GUARD (signal & reactive conditions)
+// ============================================================
+
+when signal {
+  print("signal fired")
+}
+
+when not busy {
+  processQueue()
+}
+
+// guard (Ruko's version of Swift guard)
+guard user != null else return
+guard user.age >= 18 else raise UnauthorizedError("Too young")
+guard let Ok(cfg) = Config.load() else |e| { log(e); return }
+
+// ============================================================
+// WITH / DO (resource scoping)
+// ============================================================
+
+with open("file.txt") as f {
+  let content = f.readAll()
+  process(content)
+}
+
+with {
+  let db   = Database.connect(url)
+  let lock = Mutex.lock()
+} {
+  db.query("INSERT ...")
+}
+
+do {
+  let tmp = heavyComputation()
+  use(tmp)
+}
+
+// ============================================================
+// RETURN / YIELD / AWAIT
+// ============================================================
+
+func getEven([]int xs): []int {
+  return xs.filter(|x| x % 2 == 0)
+}
+
+func add5(int n): int = n + 5   // expression body, implicit return
+
+iter count_up(int start): iter<int> {
+  mut i = start
+  loop {
+    yield i
+    i += 1
+  }
+}
+
+async func loadUser(int id): Promise<User> {
+  let resp = await http.get(#"/users/#id")
+  await resp.json()
+}
+
+// yield* (delegate to sub-iterator)
+iter all_items(): iter<int> {
+  yield* firstBatch()
+  yield* secondBatch()
+}
+
+// ============================================================
+// BREAK / SKIP (continue) / REDO / GOTO / DEFER
+// ============================================================
+
+for i in 0 ..< 100 {
+  if i % 2 == 0: skip    // continue
+  if i > 50: break
+  if errors > 3: redo    // restart iteration
+  process(i)
+}
+
+// goto (structured — only within a scope)
+goto cleanup
+// ...
+cleanup: releaseResources()
+
+// retry (re-enters a labelled block or loop)
+fetch_data:
+try {
+  let data = fetch(url)
+  use(data)
+} catch is NetworkError {
+  if retries < 3 {
+    retries += 1
+    retry fetch_data
+  }
+  raise
+}
+
+// defer (run at end of enclosing scope)
+defer closeFile(f)
+defer {
+  log("scope exited")
+  cleanup()
+}
+
+// ============================================================
+// RINQ QUERY EXPRESSIONS
+// ============================================================
+
+let active_admins =
+  from users
+  where user.active and user.role == :admin
+  select {id: user.id, name: user.name}
+  order by user.name asc
+
+let summary =
+  from orders
+  join users on orders.user_id == users.id
+  where orders.total > 100
+  group by users.country
+  having count(*) > 5
+  select {country: users.country, num_orders: count(*), avg_total: avg(orders.total)}
+  order by num_orders desc
+  limit 20 offset 0
+
+let first_item =
+  from list
+  where item > 0
+  select item
+  |> first()
+
+let page_results =
+  from db.products
+  where p.price < 100
+  select p
+  take 10
+  drop 20

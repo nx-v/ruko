@@ -1,0 +1,68 @@
+\* ============================================================
+   03 — PREPROCESSOR DIRECTIVES
+   Corresponds to: ruko.tmLanguage.yaml lines 762–870
+   C-preprocessor-style directives, prefixed with `%`.
+   Processed before the main compiler pass.
+   ============================================================ *\
+
+// ----- Inclusion -----
+%include "utils.rk"
+%include <std/math.rk>
+
+// ----- Macro definitions -----
+%define MAX_SIZE 1024
+%define PI 3.14159265358979
+%define SQUARE(x) ((x) * (x))
+%define CLAMP(v, lo, hi) (v < lo ? lo : v > hi ? hi : v)
+
+// Undefine a macro
+%undef MAX_SIZE
+
+// ----- Conditional compilation -----
+%ifdef DEBUG
+  %define LOG(msg) print(msg)
+%else
+  %define LOG(msg) // no-op
+%endif
+
+%ifndef RELEASE
+  %warning "Building in non-release mode"
+%endif
+
+%if VERSION >= 2
+  // use new API
+%elif VERSION == 1
+  // use old API
+%else
+  %error "Unsupported version"
+%endif
+
+// ----- Pragmas -----
+%pragma once                  // include guard
+%pragma optimize on
+%pragma optimize off
+%pragma pack(1)               // struct packing
+%pragma region "My Region"
+// ... code ...
+%pragma endregion
+
+// ----- Assertion / debug -----
+%assert sizeof(int) == 4
+%check VERSION > 0
+%debug print("debug info")
+
+// ----- Evaluation -----
+%eval 2 + 2           // evaluates at compile time
+%expr MAX_SIZE * 2    // expands to an expression
+%exec buildStep()     // runs at build time
+
+// ----- Module directives -----
+%import { alpha, beta } from "lib"
+%export { myFunc, MyClass }
+%extern "C" { /* C ABI bindings */ }
+%intern myPrivateThing
+
+// ----- Miscellaneous -----
+%once                         // file-level include guard (shorthand)
+%warning "This API is deprecated"
+%error "Do not compile on 32-bit targets"

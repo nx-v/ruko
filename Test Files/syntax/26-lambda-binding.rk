@@ -1,0 +1,173 @@
+\* ============================================================
+   26 — LAMBDA SYNTAX & BINDING
+   Corresponds to: ruko.tmLanguage.yaml lines 8456–8569
+   Full lambda/closure syntax, parameter forms, return types,
+   and lambda use as expressions, arguments, and values.
+   ============================================================ *\
+
+// ============================================================
+// BASIC LAMBDA FORMS
+// ============================================================
+
+// No-arg
+let zero  = |()| 0
+let unit2 = |()| {}
+let noop  = |()| ()
+
+// Single positional arg
+let double = |x| x * 2
+let negate = |b| !b
+let id     = |x| x
+
+// Multiple positional args
+let add    = |a, b| a + b
+let max_fn = |a, b| if a > b: a else: b
+let clampL = |v, lo, hi| min(max(v, lo), hi)
+
+// ============================================================
+// TYPE-ANNOTATED LAMBDA PARAMS
+// ============================================================
+
+// Rust-style colon annotations
+let add_typed  = |a: int, b: int| a + b
+let str_len    = |s: str| s.length
+
+// C-style prefix types
+let mul_typed  = |int a, int b| a * b
+let stringify  = |f64 n| n.toString()
+
+// Mixed
+let hypo = |f64 a, b: f64| (a ** 2.0 + b ** 2.0) ** 0.5
+
+// ============================================================
+// RETURN TYPE ANNOTATION
+// ============================================================
+
+// Postfix :|Type| on the parameter list
+let safe_sqrt = |x: f64|: f64 {
+  if x < 0.0: 0.0 else: x.sqrt()
+}
+
+let classify = |n: int|: str {
+  if n < 0: "negative"
+  elif n == 0: "zero"
+  else: "positive"
+}
+
+// Prefix return type (before the |params|)
+let fast_add  = int |a: int, b: int| a + b
+let make_pair2 = (int, int)|a: int, b: int| (a, b)
+
+// ============================================================
+// MODIFIER-PREFIXED LAMBDAS
+// ============================================================
+
+let async_fetch = async |url: str| await http.get(url)
+let pure_square = pure |x: f64| x ** 2.0
+let safe_div    = safe |a: int, b: int| {
+  if b == 0: null else: a / b
+}
+
+// ============================================================
+// DESTRUCTURING IN LAMBDA PARAMS
+// ============================================================
+
+// Object destructuring
+let get_name    = |{name}| name
+let get_coords  = |{x, y}| (x, y)
+let get_alias   = |{name: alias}| alias
+let full_person = |{name, age, title = "Mx."}| #"#title #name (#age)"
+
+// Tuple destructuring
+let fst_lambda  = |(a, b)| a
+let snd_lambda  = |(a, b)| b
+let sum_pair    = |(a, b)| a + b
+let swap_lambda = |(a, b)| (b, a)
+
+// Array destructuring
+let head_lambda = |[h, ..t]| h
+let first2_lambda = |[a, b, ..h]| (a, b)
+let cons_lambda  = |[h, ..t]| (h, t)
+
+// Nested
+let nested_lambda = |({name}, [first_tag, ..tags])| #"#name: #first_tag"
+
+// ============================================================
+// DEFAULT VALUES IN LAMBDA PARAMS
+// ============================================================
+
+let greet_lambda = |name: str, title: str = "Friend"| #"Hello, #title #name!"
+let repeat_n     = |str s, int n = 3| (1..n).map(|_| s).join()
+let log2_fn      = |str msg, str level = "INFO"| print(#"[#level] #msg")
+
+// ============================================================
+// REST PARAMS IN LAMBDAS
+// ============================================================
+
+let sum_all  = |*xs| xs.fold(0, |a, b| a + b)
+let cat_all  = |*ss| ss.join(" ")
+let log_all  = |str level, *str messages| messages.each(|m| print(#"[#level] #m"))
+
+// ============================================================
+// LAMBDAS AS VALUES
+// ============================================================
+
+// Stored in variable
+let double2: fn(int): int = |x| x * 2
+
+// In a collection
+let fns: []fn(int): int = [|x| x, |x| x * 2, |x| x * x]
+
+// Returned from function
+func make_adder(int n): fn(int): int { |x| x + n }
+let add10 = make_adder(10)
+let r10 = add10(5)     // 15
+
+// Passed as argument
+let doubled = [1, 2, 3].map(|x| x * 2)
+let evens   = [1,2,3,4,5].filter(|x| x % 2 == 0)
+let total   = [1, 2, 3, 4].fold(0, |acc, x| acc + x)
+
+// ============================================================
+// LAMBDAS AS TRAILING ARGUMENTS
+// ============================================================
+
+// (no parentheses needed — last arg is a lambda)
+let r = map(list) |x| x * 2
+let e = filter([1,2,3,4]) |x| x > 2
+let f2 = reduce(arr, 0) |acc, x| acc + x
+let sorted2 = sort_by(items) |a, b| a.name <=> b.name
+
+// ============================================================
+// IMMEDIATELY INVOKED LAMBDA (IIFE)
+// ============================================================
+
+let val4 = (|x| x * x)(7)           // 49
+let val5 = (|a, b| a + b)(3, 4)      // 7
+
+// Block IIFE
+let init_result = (|| {
+  let a = complex_init()
+  let b = another_init()
+  combine(a, b)
+})()
+
+// ============================================================
+// RECURSIVE LAMBDA (via rec)
+// ============================================================
+
+let rec fib_lambda = |n: int|: int {
+  if n <= 1: n else: fib_lambda(n-1) + fib_lambda(n-2)
+}
+
+// ============================================================
+// CURRIED LAMBDAS
+// ============================================================
+
+let curried_add = |a: int| |b: int| a + b
+let add5_lambda = curried_add(5)
+let r11 = add5_lambda(3)          // 8
+
+let compose_fn = |f: fn(int): int| |g: fn(int): int| |x: int| f(g(x))
+let double_then_add1 = compose_fn(|x| x + 1)(|x| x * 2)
+let r12 = double_then_add1(4)     // 9

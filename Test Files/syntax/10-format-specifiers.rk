@@ -1,0 +1,78 @@
+\* ============================================================
+   10 — FORMAT & FLAG SPECIFIERS
+   Corresponds to: ruko.tmLanguage.yaml lines 2205–2294
+   A mini-language for describing format strings and option flags,
+   used with print, format, regex flags, and similar constructs.
+   ============================================================ *\
+
+// ----- Printf-style format specifiers -----
+// Used inside #{ expr %spec } interpolation or format() calls.
+
+// Integer specifiers
+format("%d", 42)          // decimal integer
+format("%i", -42)         // integer (signed)
+format("%u", 42u)         // unsigned integer
+format("%o", 0o755)       // octal
+format("%x", 0xFF)        // hex lowercase
+format("%X", 0xFF)        // hex uppercase
+format("%b", 0b1010)      // binary
+format("%c", 65)          // character
+
+// Floating-point specifiers
+format("%f",  3.14)       // fixed-point
+format("%e",  3.14)       // scientific (e notation)
+format("%E",  3.14)       // scientific (E notation)
+format("%g",  3.14)       // shortest of %f/%e
+format("%G",  3.14)       // shortest of %f/%E
+
+// String / pointer specifiers
+format("%s",  "hello")    // string
+format("%p",  ptr)        // pointer address
+format("%q",  val)        // debug / quoted
+format("%n",  val)        // name of value (nameof)
+
+// ----- Format flags -----
+// Flags precede the width/precision in the specifier:
+// -   left-justify
+// +   force sign (+ or -)
+// (space) space before positive numbers
+// 0   zero-pad
+// #   alternate form (0x prefix for hex, 0 for octal, etc.)
+// '   locale-aware thousands separator
+// *   width/precision taken from argument
+
+format("%-10d",   42)     // left-justified, width 10
+format("%+.3f",   3.14)   // forced sign, 3 decimal places
+format("% d",     42)     // space before positive
+format("%010d",   42)     // zero-padded width 10
+format("%#x",     255)    // hex with 0x prefix
+format("%'d",     1000000)// thousands separator → 1,000,000
+format("%*d",     10, 42) // width from argument
+
+// ----- Regex flags -----
+// Used after the closing / of a regex literal: /pattern/flags
+let r1 = /hello/g          // g — global (find all)
+let r2 = /hello/i          // i — case-insensitive
+let r3 = /hello/m          // m — multiline (^ and $ per line)
+let r4 = /hello/s          // s — dotall (. matches \n)
+let r5 = /hello/u          // u — unicode mode
+let r6 = /hello/x          // x — extended (ignore whitespace, allow comments)
+let r7 = /hello/gi         // combined: global + case-insensitive
+let r8 = /hello/gims       // combined: global + case-insensitive + multiline + dotall
+let r9 = /hello/v          // v — unicode sets (ES2024)
+let r10 = /hello/d         // d — indices (hasIndices)
+let r11 = /hello/y         // y — sticky mode
+
+// Extended mode with comments (/x flag)
+let re_x = (/(?x)
+  \d{4}   // year
+  [-/]    // separator
+  \d{2}   // month
+  [-/]    // separator
+  \d{2}   // day
+/).test x
+
+// ----- Format width & precision -----
+// width.precision
+format("%8.2f",  3.14)    // width 8, 2 decimals
+format("%-8.4s", "hello") // left-justified, max 4 chars of string

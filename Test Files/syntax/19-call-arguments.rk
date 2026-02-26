@@ -1,0 +1,158 @@
+\* ============================================================
+   19 — CALL ARGUMENTS & BINDING PARAMETERS
+   Corresponds to: ruko.tmLanguage.yaml lines 5886–6041
+   Named arguments, binding parameters in signatures,
+   lambda parameters, call parameters, and default values.
+   ============================================================ *\
+
+// ----- Positional arguments -----
+f(1, 2, 3)
+g("hello", true, null)
+
+// ----- Named arguments (key: value) -----
+connect(host: "localhost", port: 5432)
+animate(from: 0, to: 100, duration: 300ms)
+Box.new(width: 200, height: 100, depth: 50)
+
+// Mixed positional + named
+slice(arr, start: 2, end: 10)
+log :info, msg: "System started", time: now()
+
+// ----- Spread arguments -----
+print(*args)                       // spread array as positional args
+merge(**obj1, **obj2)              // spread object as named args
+f(a, *rest)                        // positional + spread
+g(x: 1, **opts)                    // named + spread
+
+// ----- Function signature parameters -----
+// C-style prefix type annotation
+func add(int a, int b): int { a + b }
+
+// Rust-style colon annotation
+func sub(a: int, b: int): int { a - b }
+
+// Mixed forms (unusual but valid)
+func mul(int a, b: int): int { a * b }
+
+// ----- Optional parameters with ? -----
+func greet(str name, str? title): str {
+  if title != null: #"#title #name"
+  else: name
+}
+
+// ----- Default value parameters -----
+func connect(str host, int port = 5432, bool ssl = false): Connection {
+  Connection.new(host, port, ssl)
+}
+
+func repeat(str s, int n = 3): str {
+  (1..n).map(|_| s).join()
+}
+
+// ----- Rest parameters (variadic) -----
+func sum([]int ..nums): int {
+  nums.fold(0, |acc, x| acc + x)
+}
+
+func log(str level, []str ..messages): void {
+  messages.each(|m| print(#"[#level] #m"))
+}
+
+// Named rest
+func record(str name, []int ..values): void {
+  print(#"#{name}: #values")
+}
+
+// ----- Generic type parameters in signatures -----
+func map<T, U>([]T xs, fn(T): U f): []U {
+  xs.map(f)
+}
+
+func identity<T>(T x): T { x }
+
+func zip<A, B>([]A as_, []B bs): [](A, B) {
+  as_.zip(bs)
+}
+
+// ----- Constrained type parameters -----
+func sort<T: Ord>([]T xs): []T { xs.sorted() }
+func clamp<T: Ord + Copy>(T v, T lo, T hi): T {
+  if v < lo: lo
+  elif v > hi: hi
+  else: v
+}
+
+// ----- Lambda parameters in signatures -----
+func applyTwice<T>(fn(T): T f, T x): T { f(f(x)) }
+func filter<T>([]T xs, fn(T): bool pred): []T { xs.filter(pred) }
+func fold<T, U>([]T xs, U init, fn(U, T): U f): U { xs.fold(init, f) }
+
+// ----- Binding parameters (destructuring in signature) -----
+func swapPair({first: a, second: b}) { (b, a) }
+func sumPair((int a, int b)): int { a + b }
+func headTail([h, ..t]) { (h, t) }
+
+// ----- Lambda parameter forms -----
+
+// No-arg lambda
+let zero = || 0
+let unit = || {}
+
+// Single positional arg
+let double = |x| x * 2
+let negate = |b| !b
+
+// Typed args (Rust-style)
+let add2 = |a: int, b: int| a + b
+
+// Typed args (C-style)
+let mul2 = |int a, int b| a * b
+
+// With return type
+let safe_div = |a: f64, b: f64|: f64 {
+  if b == 0: 0.0
+  else: a / b
+}
+
+// Return type prefix style
+let safe_div2 = f64 |a: f64, b: f64| {
+  if b == 0: 0.0
+  else: a / b
+}
+
+// Destructuring lambda params — object
+let getName = |{name}| name
+let getXY   = |{x, y}| (x, y)
+let getAlias = |{name: alias}| alias
+
+// Destructuring lambda params — tuple
+let fst = |(a, b)| a
+let snd = |(a, b)| b
+let sum3 = |(a, b, c)| a + b + c
+
+// Destructuring lambda params — array
+let head  = |[h, .._]| h
+let first2 = |[a, b, .._]| (a, b)
+let last  = |[.._, l]| l
+
+// Rest in lambda
+let sumAll = |..xs| xs.fold(0, |a, b| a + b)
+
+// Default value in lambda
+let greetL = |name: str, title: str = "Mx."| #"#title #name"
+
+// ----- Named binding parameters in calls -----
+// (binding-parameters: when a named key binds to a local)
+let {x, y} = point
+let {width: w, height: h} = rect
+let (r, g, b) = colorTuple
+let [first, ..rest2] = numbers
+
+// ----- as keyword in parameter/binding -----
+func foo(as: a): void {}        // `as` used as identifier via escape
+let node as parent = getParent()
+
+// ----- Type-annotated destructuring -----
+let {x: int, y: int} = pixel
+let (a: f64, b: f64, c: f64) = triangle
+let [head2: str, ..tail: []str] = words
