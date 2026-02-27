@@ -208,31 +208,31 @@ Note that this does not import anything from the original YAML file, so any patt
 rely on dynamic generation using JavaScript (e.g. using genex) will not work in the Shiki 
 grammar unless they are pre-generated and hardcoded into the YAML file.
 */
-// grammar = parse(grammar, (key, value) => {
-//   if (
-//     ["begin", "end", "match", "while"].includes(key) &&
-//     typeof value == "string"
-//   )
-//     try {
-//       return RegExp(toRegExp(value).source);
-//     } catch {
-//       try {
-//         return optimize(value).pattern;
-//       } catch {
-//         return value;
-//       }
-//     }
-//   return value;
-// });
-// writeFileSync(
-//   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
-//   await prettier.format(
-//     "export default " +
-//       jsesc(grammar, {
-//         compact: false,
-//         quotes: "double",
-//       }) +
-//       ";",
-//     {parser: "babel", singleQuote: false, trailingComma: "all", tabWidth: 2},
-//   ),
-// );
+grammar = parse(grammar, (key, value) => {
+  if (
+    ["begin", "end", "match", "while"].includes(key) &&
+    typeof value == "string"
+  )
+    try {
+      return RegExp(toRegExp(value).source);
+    } catch {
+      try {
+        return optimize(value).pattern;
+      } catch {
+        return value;
+      }
+    }
+  return value;
+});
+writeFileSync(
+  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
+  await prettier.format(
+    "export default " +
+      jsesc(grammar, {
+        compact: false,
+        quotes: "double",
+      }) +
+      ";",
+    {parser: "babel", singleQuote: false, trailingComma: "all", tabWidth: 2},
+  ),
+);
