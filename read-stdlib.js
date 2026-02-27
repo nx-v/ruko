@@ -24,7 +24,7 @@ let libraries = stdlibFiles.map(
   path => path.match(/(?<=types[\\/])(.+?)(?=__|[-.\\/]|\.ts$)/)[1],
 );
 
-// install 20 libraries at a time
+// install 12 libraries at a time
 console.log(
   "npm install -g " +
     chunk([...new Set(libraries)], 12)

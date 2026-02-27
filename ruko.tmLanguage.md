@@ -4,7 +4,7 @@ scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
-# Last updated: February 26, 2026
+# Last updated: February 27, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -2189,10 +2189,14 @@ repository:
           3: &parameter-variable
             name: variable.parameter.ruko
             patterns:
-              - include: "#constants"
-              - include: "#stdlib-variables"
-              - include: "#stdlib-constants"
-              - include: "#stdlib-properties"
+              - match: (?<!`)\b[\p{L}\p{Nl}\p{Pc}]\w*\b(?!`)
+                captures:
+                  0:
+                    patterns:
+                      - include: "#constants"
+                      - include: "#stdlib-variables"
+                      - include: "#stdlib-constants"
+                      - include: "#stdlib-properties"
           4: *type-operators
       - name: meta.embedded.placeholder.ruko
         begin: (\@{)\s*
@@ -2302,7 +2306,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#?[(\[{] | [)\]}] # opening or closing bracket
+          | \#?[(\[{] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
@@ -2313,7 +2317,7 @@ repository:
             \s
         ) \s*
       ) \s*
-      (?=/[^/*\s]) # a slash followed by something that can't start a comment or be part of an operator
+      (?=/[^/*=\s]) # a slash followed by something that can't start a comment or be part of an operator
     end: $|
     name: meta.regexp.ruko
     patterns:
@@ -3023,7 +3027,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#?[(\[{] | [)\]}] # opening or closing bracket
+          | \#?[(\[{] # opening bracket
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # operator
           | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             (?:
@@ -3105,6 +3109,16 @@ repository:
           - match: (?<=</)(>)
             name: punctuation.definition.tag.ruko
           - include: "#illegal"
+      - comment: Fragment tags like <> ... </>.
+        contentName: meta.xml.ruko
+        begin: (<)(?=>)
+        <<: *bracket-tag-content
+        patterns:
+          - include: "#tag-attributes"
+          - include: "#tag-termination"
+          - match: (?<=</)(>)
+            name: punctuation.definition.tag.ruko
+          - include: "#illegal"
       - comment: Standard tags like <div>.
         contentName: meta.xml.ruko
         begin: |-
@@ -3116,7 +3130,7 @@ repository:
               (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
             )*
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-          )?
+          )
           (?=[,;'"()\[\]{}/>\s])
         end: \s*(?:(?<=</)(\2)?(>)|(/>)|((?<=</).*?)(>))\s*
         beginCaptures:
@@ -3253,7 +3267,11 @@ repository:
           - include: "#numbers"
           - *qualified-name-separators
       - *attribute-identifier
-      - include: "#operators"
+      - include: "#accessor-operators"
+      - include: "#special-operators"
+      - include: "#interfix-operators"
+      - include: "#postfix-operators"
+      - include: "#prefix-operators"
 
   spread-attribute:
     comment: Spread ..attribute
@@ -3989,11 +4007,7 @@ repository:
 
   glob-syntax:
     patterns:
-      - match: (\*)(\*)
-        captures:
-          1: {name: keyword.operator.quantifier.ruko}
-          2: {name: keyword.operator.quantifier.ruko}
-      - match: \?
+      - match: \*\*?|\?
         name: keyword.operator.quantifier.ruko
       - begin: (\{)
         end: (\})
@@ -4046,12 +4060,18 @@ repository:
         match: ([^\n\\/:"<>\|]+?)(\.)([^\n?\\/:"<>\|]+)?
         captures:
           1:
-            name: variable.language.filename.ruko
+            name: variable.language.file-name.ruko
             patterns: [{include: "#glob-syntax"}]
           2: {name: punctuation.type.ruko}
           3:
             name: support.type.extension.ruko
             patterns: [{include: "#glob-syntax"}]
+      - comment: drive letters on Windows
+        match: \b([a-zA-Z])(:)(?=[\\/])
+        captures:
+          1: {name: entity.name.drive.ruko}
+          2: {name: punctuation.separator.directory.ruko}
+      - include: "#comments"
       - include: "#embedded"
       - include: "#space"
       - include: "#illegal"
@@ -4078,6 +4098,19 @@ repository:
         name: keyword.operator.sign.ruko
       - match: T
         name: keyword.operator.timestamp.ruko
+      - comment: ISO 8601 combined date and time formats (P[n]Y[n]M[n]DT[n]H[n]M[n])
+        match: (P)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T)?(\d+H)?(\d+M)?(\d+S)?
+        captures:
+          1: {name: keyword.operator.duration.ruko}
+          2: {name: constant.other.duration.year.ruko}
+          3: {name: constant.other.duration.month.ruko}
+          4: {name: constant.other.duration.week.ruko}
+          5: {name: constant.other.duration.day.ruko}
+          6: {name: keyword.operator.duration.ruko}
+          7: {name: constant.other.duration.hour.ruko}
+          8: {name: constant.other.duration.minute.ruko}
+          9: {name: constant.other.duration.second.ruko}
+      - include: "#comments"
       - include: "#embedded"
       - include: "#space"
       - include: "#illegal"
@@ -4097,10 +4130,11 @@ repository:
         name: keyword.operator.path.ruko
       - match: '[-+](?=\d)'
         name: keyword.operator.sign.ruko
-      - include: "#embedded"
       - include: "#punctuation"
       - include: "#numbers"
       - include: "#constants"
+      - include: "#comments"
+      - include: "#embedded"
       - include: "#space"
       - include: "#illegal"
 
@@ -4123,6 +4157,10 @@ repository:
           1: {name: constant.other.url.scheme.ruko}
           2: {name: string.quoted.url.ruko}
       - match: '(www)(\.[^\s)]+)'
+        captures:
+          1: {name: constant.other.url.scheme.ruko}
+          2: {name: string.quoted.url.ruko}
+      - match: '(?i)(mailto:)?([^\s"]+@([a-zA-Z\d-]+\.)+[a-zA-Z]{2,})'
         captures:
           1: {name: constant.other.url.scheme.ruko}
           2: {name: string.quoted.url.ruko}
@@ -4204,17 +4242,17 @@ repository:
               (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
               (?=\s*\))
             captures:
-              1: {name: constant.other.color.red-value.rgb.css}
+              1: {name: constant.other.color.red.rgb.css}
               2: {name: punctuation.separator.comma.css}
-              3: {name: constant.other.color.green-value.rgb.css}
+              3: {name: constant.other.color.green.rgb.css}
               4: {name: punctuation.separator.comma.css}
-              5: {name: constant.other.color.blue-value.rgb.css}
+              5: {name: constant.other.color.blue.rgb.css}
               6: {name: punctuation.separator.comma.css}
-              7: {name: constant.other.color.alpha-value.rgb.css}
+              7: {name: constant.other.color.alpha.rgb.css}
           - include: $self
       - comment: CMYK color values
-        name: meta.literal.color.rgb.ruko
-        begin: \s*(%)(rgba?)\s*(\()\s*
+        name: meta.literal.color.cmyk.ruko
+        begin: \s*(%)(cmyka?)\s*(\()\s*
         beginCaptures:
           1: {name: punctuation.definition.directive.css}
           2: {name: support.function.misc.css}
@@ -4229,22 +4267,114 @@ repository:
               (?:\s*(,)\s*(0|0?\.\d+|1|1\.0+)?)? # optional alpha
               (?=\s*\))
             captures:
-              1: {name: constant.other.color.cyan-value.cmyk.css}
+              1: {name: constant.other.color.cyan.cmyk.css}
               2: {name: punctuation.separator.comma.css}
-              3: {name: constant.other.color.magenta-value.cmyk.css}
+              3: {name: constant.other.color.magenta.cmyk.css}
               4: {name: punctuation.separator.comma.css}
-              5: {name: constant.other.color.yellow-value.cmyk.css}
+              5: {name: constant.other.color.yellow.cmyk.css}
               6: {name: punctuation.separator.comma.css}
-              7: {name: constant.other.color.black-value.cmyk.css}
+              7: {name: constant.other.color.black.cmyk.css}
               8: {name: punctuation.separator.comma.css}
-              9: {name: constant.other.color.alpha-value.cmyk.css}
+              9: {name: constant.other.color.alpha.cmyk.css}
           - include: $self
         end: \s*(\))\s*
         endCaptures:
           1: {name: punctuation.definition.parameters.css}
-      - comment: HSL/HSV/OKLCH color values
+      - comment: HSL/HSV color values
         name: meta.literal.color.hsl.ruko
-        begin: \s*(%)((?:ok)h(?:s[lv]|cl)a?)\s*(\()\s*
+        begin: \s*(%)((?:ok)?hs[lv])a?\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x) (?<=\(\s*)
+              ([+-]?)(\d+(?:\.\d+)?)(deg|g?rad|turn)?\s*(,)?\s* # H
+              ([+-]?)(\d+(?:\.\d+)?%?)\s*(,)?\s* # S
+              ([+-]?)(\d+(?:\.\d+)?%?) # L/V/C
+              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.hue.hsl.css}
+              2: {name: constant.other.color.hue.hsl.css}
+              3: {name: keyword.other.unit.angle.css}
+              4: {name: punctuation.separator.comma.css}
+              5: {name: constant.other.color.saturation.hsl.css}
+              6: {name: constant.other.color.saturation.hsl.css}
+              7: {name: punctuation.separator.comma.css}
+              8: {name: constant.other.color.lightness.hsl.css}
+              9: {name: constant.other.color.lightness.hsl.css}
+              10: {name: punctuation.separator.comma.css}
+              11: {name: constant.other.color.alpha.hsl.css}
+          - include: $self
+      - comment: LAB color values
+        name: meta.literal.color.lab.ruko
+        begin: \s*(%)((?:ok)?laba?)\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x) (?<=\(\s*)
+              ([+-]?)(\d+(?:\.\d+)?)\s*(,)\s* # L*
+              ([+-]?)(\d+(?:\.\d+)?)\s*(,)\s* # a*
+              ([+-]?)(\d+(?:\.\d+)?) # b*
+              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.lightness.lab.css}
+              2: {name: constant.other.color.lightness.lab.css}
+              3: {name: punctuation.separator.comma.css}
+              4: {name: constant.other.color.a.lab.css}
+              5: {name: constant.other.color.a.lab.css}
+              6: {name: punctuation.separator.comma.css}
+              7: {name: constant.other.color.b.lab.css}
+              8: {name: constant.other.color.b.lab.css}
+              9: {name: punctuation.separator.comma.css}
+              10: {name: constant.other.color.alpha.lab.css}
+          - include: $self
+      - comment: LCH color values
+        name: meta.literal.color.lch.ruko
+        begin: \s*(%)((?:ok)?lcha?)\s*(\()\s*
+        beginCaptures:
+          1: {name: punctuation.definition.directive.css}
+          2: {name: support.function.misc.css}
+          3: {name: punctuation.definition.parameters.css}
+        end: \s*(\))\s*
+        endCaptures:
+          1: {name: punctuation.definition.parameters.css}
+        patterns:
+          - match: |-
+              (?x) (?<=\(\s*)
+              ([+-]?)(\d+(?:\.\d+)?)\s*(,)\s* # L*
+              ([+-]?)(\d+(?:\.\d+)?)\s*(,)\s* # C*
+              ([+-]?)(\d+(?:\.\d+)?)(deg|g?rad|turn)? # H
+              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
+              (?=\s*\))
+            captures:
+              1: {name: constant.other.color.lightness.lch.css}
+              2: {name: constant.other.color.lightness.lch.css}
+              3: {name: punctuation.separator.comma.css}
+              4: {name: constant.other.color.chroma.lch.css}
+              5: {name: constant.other.color.chroma.lch.css}
+              6: {name: punctuation.separator.comma.css}
+              7: {name: constant.other.color.hue.lch.css}
+              8: {name: constant.other.color.hue.lch.css}
+              9: {name: keyword.other.unit.angle.css}
+              10: {name: punctuation.separator.comma.css}
+              11: {name: constant.other.color.alpha.lch.css}
+          - include: $self
+      - comment: HCL color values
+        name: meta.literal.color.hcl.ruko
+        begin: \s*(%)((?:ok)?hcla?)\s*(\()\s*
         beginCaptures:
           1: {name: punctuation.definition.directive.css}
           2: {name: support.function.misc.css}
@@ -4256,51 +4386,22 @@ repository:
           - match: |-
               (?x) (?<=\(\s*)
               ([+-]?)(\d+(?:\.\d+)?)(deg|g?rad|turn)?\s*(,)\s* # H
-              ([+-]?)(\d+(?:\.\d+)?%?)\s*(,)\s* # S
-              ([+-]?)(\d+(?:\.\d+)?%?) # L/V/C
+              ([+-]?)(\d+(?:\.\d+)?%?)\s*(,)\s* # C
+              ([+-]?)(\d+(?:\.\d+)?%?) # L
               (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
               (?=\s*\))
             captures:
-              1: {name: constant.other.color.hue-sign.hsl.css}
-              2: {name: constant.other.color.hue-value.hsl.css}
+              1: {name: constant.other.color.hue.hcl.css}
+              2: {name: constant.other.color.hue.hcl.css}
               3: {name: keyword.other.unit.angle.css}
               4: {name: punctuation.separator.comma.css}
-              5: {name: constant.other.color.saturation-sign.hsl.css}
-              6: {name: constant.other.color.saturation-value.hsl.css}
+              5: {name: constant.other.color.chroma.hcl.css}
+              6: {name: constant.other.color.chroma.hcl.css}
               7: {name: punctuation.separator.comma.css}
-              8: {name: constant.other.color.lightness-value.hsl.css}
-              9: {name: punctuation.separator.comma.css}
-              10: {name: constant.other.color.alpha-value.hsl.css}
-          - include: $self
-      - comment: LAB color values
-        name: meta.literal.color.lab.ruko
-        begin: \s*(%)(lab)\s*(\()\s*
-        beginCaptures:
-          1: {name: punctuation.definition.directive.css}
-          2: {name: support.function.misc.css}
-          3: {name: punctuation.definition.parameters.css}
-        end: \s*(\))\s*
-        endCaptures:
-          1: {name: punctuation.definition.parameters.css}
-        patterns:
-          - match: |-
-              (?x) (?<=\(\s*)
-              ([+-]?)(\d+(\.\d+)?)\s*(,)\s* # L*
-              ([+-]?)(\d+(\.\d+)?)\s*(,)\s* # a*
-              ([+-]?)(\d+(\.\d+)?) # b*
-              (?:\s*(,\s*)(0|0?\.\d+|1|1\.0+)?)? # optional alpha
-              (?=\s*\))
-            captures:
-              1: {name: constant.other.color.lightness-sign.lab.css}
-              2: {name: constant.other.color.lightness-value.lab.css}
-              4: {name: punctuation.separator.comma.css}
-              5: {name: constant.other.color.a-sign.lab.css}
-              6: {name: constant.other.color.a-value.lab.css}
-              8: {name: punctuation.separator.comma.css}
-              9: {name: constant.other.color.b-sign.lab.css}
-              10: {name: constant.other.color.b-value.lab.css}
-              12: {name: punctuation.separator.comma.css}
-              13: {name: constant.other.color.alpha-value.lab.css}
+              8: {name: constant.other.color.luma.hcl.css}
+              9: {name: constant.other.color.luma.hcl.css}
+              10: {name: punctuation.separator.comma.css}
+              11: {name: constant.other.color.alpha.hcl.css}
           - include: $self
       - comment: Hex color values
         name: meta.literal.color.hex.ruko
@@ -4313,16 +4414,16 @@ repository:
             patterns:
               - match: (\h{2})(\h{2})(\h{2})(\h{2})?
                 captures:
-                  1: {name: constant.other.color.red-value.hex.css}
-                  2: {name: constant.other.color.green-value.hex.css}
-                  3: {name: constant.other.color.blue-value.hex.css}
-                  4: {name: constant.other.color.alpha-value.hex.css}
+                  1: {name: constant.other.color.red.hex.css}
+                  2: {name: constant.other.color.green.hex.css}
+                  3: {name: constant.other.color.blue.hex.css}
+                  4: {name: constant.other.color.alpha.hex.css}
               - match: (\h)(\h)(\h)(\h)?
                 captures:
-                  1: {name: constant.other.color.red-value.hex.css}
-                  2: {name: constant.other.color.green-value.hex.css}
-                  3: {name: constant.other.color.blue-value.hex.css}
-                  4: {name: constant.other.color.alpha-value.hex.css}
+                  1: {name: constant.other.color.red.hex.css}
+                  2: {name: constant.other.color.green.hex.css}
+                  3: {name: constant.other.color.blue.hex.css}
+                  4: {name: constant.other.color.alpha.hex.css}
 
   # Script blocks
 
@@ -5418,7 +5519,8 @@ repository:
                   ^ # start of line
                 | [,;] # terminator / separator
                 | ['"`)\]}\w\s][\\:] # postfix colon or backslash
-                | \#?[(\[{] | [)\]}] # opening or closing bracket
+                | \#?[(\[{] # opening bracket
+                | \S[>/] # end of lambda, XML or regexp literal
                 | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
                 | (?:
                     (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -5499,7 +5601,8 @@ repository:
               ^ # start of line
             | [,;] # terminator / separator
             | ['"`)\]}\w\s][\\:] # postfix colon or backslash
-            | \#?[(\[{] | [)\]}] # opening or closing bracket
+            | \#?[(\[{] # opening bracket
+            | \S[>/] # end of lambda, XML or regexp literal
             | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
             | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -5551,6 +5654,7 @@ repository:
           \s+ \\ # infix function operator
           [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+        | \s* </[>\w] # XML closing tag
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -5563,7 +5667,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -5578,6 +5682,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -5716,7 +5821,8 @@ repository:
               ^ # start of line
             | [,;] # terminator / separator
             | ['"`)\]}\w\s][\\:] # postfix colon or backslash
-            | \#?[(\[{] | [)\]}] # opening or closing bracket
+            | \#?[(\[{] # opening bracket
+            | \S[>/] # end of lambda, XML or regexp literal
             | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
             | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -5775,6 +5881,7 @@ repository:
           )
           (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
+        | \s* </[>\w] # XML closing tag
       )
       (?=
             (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -5787,7 +5894,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -5802,6 +5909,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -6120,7 +6228,8 @@ repository:
               ^ # start of line
             | [,;] # terminator / separator
             | ['"`)\]}\w\s][\\:] # postfix colon or backslash
-            | \#?[(\[{] | [)\]}] # opening or closing bracket
+            | \#?[(\[{] # opening bracket
+            | \S[>/] # end of lambda, XML or regexp literal
             | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
             | (?:
                 (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -6143,6 +6252,18 @@ repository:
             ) \s+
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
+      )
+      (?!
+        (?!
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository.keywords.match
+        )
+        (?:
+          (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+          (?:[?!:]:|[?!]?\.|[?!-]>)=? # accessor
+        )*
+        (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+        \s*
       )
 
       (
@@ -6196,6 +6317,7 @@ repository:
           \s+ \\ # infix function operator
           [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+        | \s* </[>\w] # XML closing tag
       )
       (?=
         (?: # identifier
@@ -6215,7 +6337,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -6230,6 +6352,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -6640,6 +6763,7 @@ repository:
           \s+ \\ # infix function operator
           [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+        | \s* </[>\w] # XML closing tag
       )
       (?=
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
@@ -6649,7 +6773,7 @@ repository:
           | \b\d # numbers
           | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
           | \#?[(\[] # opening brackets
-          | /[^/*\s] # regexp literal
+          | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -6664,6 +6788,7 @@ repository:
                 \s*
               )+
             )
+          | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             (?: # identifier
               (?!
@@ -7067,7 +7192,7 @@ repository:
                   ^ # start of line
                 | [,;] # terminator / separator
                 | ['"`)\]}\w\s][\\:] # postfix colon or backslash
-                | \#?[(\[{] | [)\]}] # opening or closing bracket
+                | \#?[(\[{] # opening bracket
                 | ['"`)\]}>\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s*\|\s* # end of lambda literal
                 | (?:
                     (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
@@ -7114,6 +7239,7 @@ repository:
               \s+ \\ # infix function operator
               [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
               (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
+            | \s* </[>\w] # XML closing tag
           )
           (?=
                 (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -7126,7 +7252,7 @@ repository:
               | \b\d # numbers
               | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
               | \#?[(\[] # opening brackets
-              | /[^/*\s] # regexp literal
+              | /[^/*=\s] # regexp literal
               | \\[\\*](?:\s|$) # markdown literal
               | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
               | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]] # prefix operators except slashes
@@ -7141,6 +7267,7 @@ repository:
                     \s*
                   )+
                 )
+              | \| (?: \#?[(\[{] | $ ) # lambda literal without parameters
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
                 (?: # identifier
                   (?!
@@ -7238,7 +7365,7 @@ repository:
         (?:
           ^ # start of line
           | [,;] # terminator / separator
-          | \#?[(\[{] | [)\]}] # opening or closing bracket
+          | \#?[(\[{] # opening bracket
           | (?:
             (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
             #this.repository.define.repository.keywords.match
@@ -7359,7 +7486,7 @@ repository:
               | [,;] # terminator / separator
               | ['"`)\]}\w\s][\\:] # postfix colon or backslash
               | > # closing generic
-              | \#?[(\[{] | [)\]}] # opening or closing bracket
+              | \#?[(\[{] # opening bracket
               | (?:^|[,;'"()\[\]{}\s]) # beside a delimiter or space
                 \b
                   (?:va[rl]|let|mut|const) # declaration keywords
@@ -7793,7 +7920,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#?[(\[{] | [)\]}] # opening or closing bracket
+          | \#?[(\[{] # opening bracket
         ) \s*
       ) \s*
 
@@ -7820,7 +7947,7 @@ repository:
         (?:
             ^ # beginning of line
           | [,;] # separator
-          | \#?[(\[{] | [)\]}] # opening or closing bracket
+          | \#?[(\[{] # opening bracket
         ) \s*
       ) \s*
 
@@ -7907,7 +8034,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
@@ -7980,7 +8109,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
         name: meta.function.declaration.ruko
         captures:
@@ -8002,7 +8133,7 @@ repository:
               ^ # start of line
               | [,;] # terminator / separator
               | ['"`)\]}\w\s][\\:] # postfix colon or backslash
-              | \#?[(\[{] | [)\]}] # opening or closing bracket
+              | \#?[(\[{] # opening bracket
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ \s # operator
             ) \s*
           ) \s*
@@ -8029,7 +8160,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         beginCaptures:
           1: *prefix-type-annotation
           2: {name: punctuation.definition.function.ruko}
@@ -8058,7 +8191,9 @@ repository:
               )
               \s*
             )+
-          ))
+          ) | \#?[(\[{] # opening bracket
+            | $ # end of line
+          )
         beginCaptures:
           1: {name: punctuation.definition.function.ruko}
         end: (?<=['"`)\]}\w][\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]*)(\|)(?!\|)
@@ -8398,7 +8533,9 @@ repository:
                   )
                   \s*
                 )+
-              ))
+              ) | \#?[(\[{] # opening bracket
+                | $ # end of line
+              )
             )
           )
         captures:
@@ -8709,7 +8846,7 @@ repository:
       - include: "#round-brackets"
 
   accessor-operators:
-    match: (?<=^|['"`>)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=['"`<(\[{\w])
+    match: (?<=^|['"`>/|\\)\]}\w\s])((?:[?!]?\.|[?!:]:|[?!-]>)=?)(?=['"`<(\[{\w])
     name: keyword.operator.accessor.ruko
     captures:
       1:

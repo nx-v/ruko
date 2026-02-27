@@ -158,7 +158,7 @@ atomic let flag = false
 // ----- Function behaviour modifiers -----
 pure func int square(int n) { n * n }
 async func loadFile(str path): str { await readFile(path) }
-rec func int fib(int n) { if n <= 1: n else: fib(n-1) + fib(n-2) }
+rec func int fib(int n) { if n <= 1: n else fib(n-1) + fib(n-2) }
 gen func int* range(int n) { for let i in 0 ..< n: yield i }
 inline func int inc(int n) { n + 1 }
 unsafe func void poke(*mut u8 p, u8 v) { *p = v }
@@ -347,7 +347,7 @@ type Matrix4 = [4][4]f32
 type NodeRef = *Node
 
 // ----- Type parameters (generics) -----
-func max<T>(T a, T b): T { if a > b: a else: b }
+func max<T>(T a, T b): T { if a > b: a else b }
 class Stack<T> { /* ... */ }
 struct Pair2<A, B> { A first; B second }
 
@@ -808,7 +808,7 @@ let msg5 = #"max = #Math.max(a, b)"
 let arr = [1, 2, 3]
 let msg6  = #"sum = #{arr.reduce(+)}"
 let msg7  = #"sorted = #{arr.sort().join(", ")}"
-let msg8  = #"cond = #{if flag: "yes" else: "no"}"
+let msg8  = #"cond = #{if flag: "yes" else "no"}"
 let msg9  = #"nested = #{#"inner: #user"}"
 
 // ----- Template arguments (@arg) inside @-strings -----
@@ -1028,7 +1028,7 @@ let lb_neg  = /(?<!Mr\. )\w+/    // negative lookbehind
 let vllb = /(?<=\w+)\s/
 
 // ----- Conditional groups -----
-let cond1 = /(?(1)a|b)/          // if group 1 matched: a else: b
+let cond1 = /(?(1)a|b)/          // if group 1 matched: a else b
 let cond2 = /(?(<name>)yes|no)/  // named conditional
 
 // ----- Branch reset group -----
@@ -1236,9 +1236,11 @@ let hex2 = \* &#x41; *\   // hex entity → A
 
 // ----- JSX expression children -----
 <div>
-  { items.map(|item| <span> item </span>) }
-  { if show: <Modal/> }
-  { count > 0 ? <Badge n=count/> : <> </> }
+  items.map(|item| <span> item </span>)
+   |> filter(|el| el.props.active)
+   |> map(|el| <strong> el </strong>)
+  if willShow: <Modal/> 
+  count > 0 ? <Badge n=count/> : <> </>
 </div>
 
 \* ============================================================
@@ -1260,39 +1262,26 @@ let hex2 = \* &#x41; *\   // hex entity → A
 \\ ###### Heading 6
 
 \\ Regular paragraph text here.
-
 \\ **bold text**  *italic text*  ***bold italic***
-
 \\ ~~strikethrough~~   ++underline++   ==highlight==
-
 \\ ||spoiler text||
-
 \\ ^superscript^   ~subscript~
-
 \\ `inline code`
-
 \\ {inline code block, alternative syntax}
-
 \\ $inline math expression$
-
 \\ ---  (horizontal rule)
-
 \\ - Unordered list item
 \\ - Another item
 \\ + Ordered list item 1
 \\ + Ordered list item 2
 \\ : Term definition
-
 \\ > Blockquote line
 \\ >> Nested blockquote
-
 \\ [Link text](https://example.com)
 \\ ![Alt text](image.png)
 \\ [^footnote reference]
 \\ [@citation key]
-
 \\ !(span .class #id style=color:red) Styled span text
-
 \\ !{color: :red; font weight: :bold} Inline style span
 
 \* `============================================================`
@@ -1422,7 +1411,7 @@ let c18 = %lab(70, -10, 40, 0.9)
 let path1 = %draw(M 10 10, L 100 10, L 100 100, Z)
 let path2 = %draw(
   M 50 10,
-  A 40 40 0 1 0 50.001 10,
+  A 40 40 0 1 0 50.001 10, // arc with radius 40, large-arc-flag=1, sweep-flag=0, back to start
   Z
 )
 let path3 = %draw(M 0 0, C 10 20, 30 20, 40 0)  // cubic bezier
@@ -2146,7 +2135,7 @@ func sqrt(f64 n): f64 {
  */
 func factorial(int n): int {
   if n == 0: 1
-  else: n * factorial(n - 1)
+  else n * factorial(n - 1)
 }
 
 // ----- @deprecated, @since, @version -----
@@ -2373,12 +2362,12 @@ let r49: []int = fromJson(raw)    // T = []int inferred from binding
 
 // ----- Named + positional mix -----
 let r50 = lerp(a, b, t: 0.5)
-let r51 = slice(arr, start: 2, end: 8, step: 1)
+let r51 = slice(arr, start: 2, `end`: 8, step: 1)
 
 // ----- Macro / quote calls -----
 let q1 = quote { 1 + 1 }
 let q2 = macro! do_thing
-let e1 = eval! #{expr}
+let e1 = eval! expr
 
 // ----- Inline IIFE-style -----
 let r52 = (|x| x * x)(7)       // = 49
@@ -2400,14 +2389,14 @@ animate(from: 0, to: 100, duration: 300ms)
 Box.new(width: 200, height: 100, depth: 50)
 
 // Mixed positional + named
-slice(arr, start: 2, end: 10)
-log :info, msg: "System started", time: now()
+slice(arr, start: 2, `end`: 10)
+log{:info, msg: "System started", time: now()}
 
 // ----- Spread arguments -----
-print(*args)                       // spread array as positional args
-merge(**obj1, **obj2)              // spread object as named args
-f(a, *rest)                        // positional + spread
-g(x: 1, **opts)                    // named + spread
+print(..args)                       // spread array as positional args
+merge(..obj1, ..obj2)              // spread object as named args
+f(a, ..rest)                        // positional + spread
+g(x: 1, ..opts)                    // named + spread
 
 // ----- Function signature parameters -----
 // C-style prefix type annotation
@@ -2422,7 +2411,7 @@ func mul(int a, b: int): int { a * b }
 // ----- Optional parameters with ? -----
 func greet(str name, str? title): str {
   if title != null: #"#title #name"
-  else: name
+  else name
 }
 
 // ----- Default value parameters -----
@@ -2464,7 +2453,7 @@ func sort<T: Ord>([]T xs): []T { xs.sorted() }
 func clamp<T: Ord + Copy>(T v, T lo, T hi): T {
   if v < lo: lo
   elif v > hi: hi
-  else: v
+  else v
 }
 
 // ----- Lambda parameters in signatures -----
@@ -2496,13 +2485,13 @@ let mul2 = |int a, int b| a * b
 // With return type
 let safe_div = |a: f64, b: f64|: f64 {
   if b == 0: 0.0
-  else: a / b
+  else a / b
 }
 
 // Return type prefix style
 let safe_div2 = f64 |a: f64, b: f64| {
   if b == 0: 0.0
-  else: a / b
+  else a / b
 }
 
 // Destructuring lambda params — object
@@ -2945,7 +2934,7 @@ final val done: bool = true // cannot be overridden
 // ============================================================
 // \a, \b — named lifetimes (backslash prefix)
 func longest(\a str s1, \a str s2): \a str {
-  if s1.len() >= s2.len(): s1 else: s2
+  if s1.len() >= s2.len(): s1 else s2
 }
 
 // ============================================================
@@ -2953,7 +2942,7 @@ func longest(\a str s1, \a str s2): \a str {
 // ============================================================
 async  func fetchData(): Promise<str>    { await http.get(url) }
 pure   func add2(int a, int b): int      { a + b }
-safe   func safeDiv(int a, int b): int?  { if b == 0: null else: a / b }
+safe   func safeDiv(int a, int b): int?  { if b == 0: null else a / b }
 unsafe func rawMemCopy(ptr src, ptr dst): void {}
 gen    func* counter3(int start): iter<int> { yield start; yield start + 1 }
 iter   func* range2(int lo, int hi): iter<int> {
@@ -3048,7 +3037,7 @@ space Utils {
 // Realm (compile-time execution context)
 realm Compile {
   func constFibonacci(int n): int {
-    if n <= 1: n else: constFibonacci(n-1) + constFibonacci(n-2)
+    if n <= 1: n else constFibonacci(n-1) + constFibonacci(n-2)
   }
 }
 
@@ -3303,7 +3292,7 @@ func sort2<T: Ord>([]T xs): []T { xs.sorted() }
 func clamp2<T: Ord + Copy>(T v, T lo, T hi): T {
   if v < lo: lo
   elif v > hi: hi
-  else: v
+  else v
 }
 
 // Multiple constraints
@@ -3876,7 +3865,7 @@ let id     = |x| x
 
 // Multiple positional args
 let add    = |a, b| a + b
-let max_fn = |a, b| if a > b: a else: b
+let max_fn = |a, b| if a > b: a else b
 let clampL = |v, lo, hi| min(max(v, lo), hi)
 
 // ============================================================
@@ -3900,13 +3889,13 @@ let hypo = |f64 a, b: f64| (a ** 2.0 + b ** 2.0) ** 0.5
 
 // Postfix :|Type| on the parameter list
 let safe_sqrt = |x: f64|: f64 {
-  if x < 0.0: 0.0 else: x.sqrt()
+  if x < 0.0: 0.0 else x.sqrt()
 }
 
 let classify = |n: int|: str {
   if n < 0: "negative"
   elif n == 0: "zero"
-  else: "positive"
+  else "positive"
 }
 
 // Prefix return type (before the |params|)
@@ -3920,7 +3909,7 @@ let make_pair2 = (int, int)|a: int, b: int| (a, b)
 let async_fetch = async |url: str| await http.get(url)
 let pure_square = pure |x: f64| x ** 2.0
 let safe_div    = safe |a: int, b: int| {
-  if b == 0: null else: a / b
+  if b == 0: null else a / b
 }
 
 // ============================================================
@@ -4012,7 +4001,7 @@ let init_result = (|| {
 // ============================================================
 
 let rec fib_lambda = |n: int|: int {
-  if n <= 1: n else: fib_lambda(n-1) + fib_lambda(n-2)
+  if n <= 1: n else fib_lambda(n-1) + fib_lambda(n-2)
 }
 
 // ============================================================
@@ -4422,7 +4411,7 @@ let rec = {name: "Alice", age: 30}
 match n {
   | 0: "zero"
   | 1: "one"
-  | else: "many"
+  | else "many"
 }
 
 // Binding pattern
@@ -4528,7 +4517,7 @@ let pairs: Vec<(str, int)> = Vec.new()
 let nested2: Map<str, Vec<int>> = Map.new()
 
 // Type constraints
-func max_of<T: Ord>(T a, T b): T { if a > b: a else: b }
+func max_of<T: Ord>(T a, T b): T { if a > b: a else b }
 func print_all<T: Display + Clone>([]T xs): void { xs.each(print) }
 
 // Comparison operators (not generic angle brackets)
@@ -5182,8 +5171,8 @@ let l3 = <dl> <dt>"Term"</dt> <dd>"Definition"</dd> </dl>
 let tbl = <table>
   <caption> "Data" </caption>
   <colgroup> <col/> </colgroup>
-  <thead> <tr> <th>"Name"</th><th>"Value"</th> </tr> </thead>
-  <tbody> <tr> <td>"Foo"</td><td>"42"</td> </tr> </tbody>
+  <thead> <tr> <th>"Name"</th> <th>"Value"</th> </tr> </thead>
+  <tbody> <tr> <td>"Foo"</td> <td>"42"</td> </tr> </tbody>
   <tfoot> <tr> <td colspan="2"> "Total: 42" </td> </tr> </tfoot>
 </table>
 
