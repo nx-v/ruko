@@ -2590,7 +2590,7 @@ class Circle {
     2.0 * Math.PI * #radius       // via # shorthand
   }
 
-  func copy(): Circle {
+  func `copy`(): Circle {
     Circle.new(this.radius)       // via this
   }
 }
@@ -2749,7 +2749,7 @@ let lxor2  = a xor b
 // ----- Similarity -----
 let sml  = a ~= b     // similar / fuzzy equal
 let smr  = a =~ b     // regex match
-let nsm  = a !=~ b    // not regex match
+let nsm  = a !~ b    // not regex match
 
 // ----- Null-coalescing -----
 let nc1 = val ?? default_val       // null coalesce
@@ -2781,8 +2781,8 @@ let a2 = obj?.field         // optional-access
 let a3 = obj!.field         // force-access
 let a4 = obj::member        // scope-resolution
 let a5 = ptr->field         // pointer deref access
-let a6 = ptr?->field        // optional pointer deref
-let a7 = ptr!->field        // force pointer deref
+let a6 = ptr?>field         // optional pointer deref
+let a7 = ptr!>field         // force pointer deref
 
 // ----- Assignment -----
 x = 10
@@ -2805,6 +2805,7 @@ let p4 = g <+ x              // applicative pipe left
 let p5 = x *> h              // monadic pipe right
 let p6 = h <* x              // monadic pipe left
 let p7 = x $> i              // fmap pipe
+let p8 = i <$ x              // reverse fmap pipe
 
 // ----- Application operators -----
 let ap1 = f $ x              // function application (Haskell-style)
@@ -2850,8 +2851,8 @@ let tc8 = fieldof MyStruct   // fields of struct
 let tc9 = keyof MyMap        // key type of map
 
 // ----- Custom operator declarations -----
-left oper infix  (+-) 6
-right oper infix  (><) 5
+left oper infix (+-) 6
+right oper infix (><) 5
 oper prefix (¬)
 oper postfix (‼)
 
@@ -3635,7 +3636,7 @@ defer {
 let active_admins =
   from users
   where user.active and user.role == :admin
-  select {id: user.id, name: user.name}
+  select ({id: user.id, name: user.name})
   order by user.name asc;
 
 let summary =
@@ -3644,7 +3645,7 @@ let summary =
   where orders.total > 100
   group by users.country
   having count(*) > 5
-  select {country: users.country, num_orders: count(*), avg_total: avg(orders.total)}
+  select ({country: users.country, num_orders: count(*), avg_total: avg(orders.total)})
   order by num_orders desc
   limit 20 offset 0;
 
@@ -3702,8 +3703,8 @@ for let {name, age} of users { print(#"#name (#age)") }
 
 // In case arm
 match event {
-  | {type: :click, target: el}: handler(el)
-  | {type: :keydown, key: k}: keyHandler(k)
+  | {`type`: :click, target: el}: handler(el)
+  | {`type`: :keydown, key: k}: keyHandler(k)
   |: ignore()
 }
 
