@@ -10,7 +10,7 @@ import {toRegExp} from "oniguruma-to-es";
 
 let {parse, stringify} = JSON;
 let {isArray} = Array;
-let {keys, values, fromEntries, entries} = Object;
+let {keys, fromEntries} = Object;
 
 let file = readFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml",
@@ -130,7 +130,7 @@ let sortKeys = obj =>
   : obj;
 
 // clone grammar object
-let grammar1 = sortKeys(grammar);
+let _this = parse(stringify(grammar));
 delete grammar.repository.define;
 
 // remove "comment" and "define" keys from all sub-objects in repository
@@ -160,7 +160,7 @@ grammar = parse(
           try {
             if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
               value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
-                let code = p2.replace(/(?<!\\)#this\./, "grammar1.");
+                let code = p2.replace(/(?<!\\)#this\./, "_this.");
                 return eval(code);
               });
             return optimize(value).pattern;

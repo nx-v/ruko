@@ -9,36 +9,40 @@
  * - Single character repetition: ['a', 'aa', 'aaa'] → /a{1,3}/
  * - Character classes: ['a', 'b', 'c'] → /[a-c]/
  * - Group repetition: ['abab', 'ababab'] → /(?:ab){2,3}/
- * - Common prefix/suffix: ['apple', 'aple'] → /ap?ple/
+ * - Common prefix/suffix factoring: ['foobar', 'foobaz'] → /fooba[rz]/
  * - Optional characters: ['color', 'colour'] → /colou?r/
  * - Unicode support with 'u' flag: ['α', 'β'] → /[α-γ]/u
  * - Alternation patterns: ['apple', 'apricot'] → /ap(?:ple|ricot)/
- * - Cartesian products: ['', 'x', 'y', 'xy'] → /(?:x)?(?:y)?/
+ * - Cartesian products: ['', 'x', 'y', 'xy'] → /x?y?/
  *
  * **Examples:**
  * ```javascript
- * toRegExp(['cat', 'bat', 'rat']) // Returns: /[cbr]at/
- * toRegExp(['foo', 'foobar']) // Returns: /foo(?:bar)?/
- * toRegExp(['ab', 'abab', 'ababab']) // Returns: /(?:ab){1,3}/
- * toRegExp(['α', 'β', 'γ'], 'u') // Returns: /[α-γ]/u
- * toRegExp(['color', 'colour']) // Returns: /colou?r/
+ * regexGen(['cat', 'bat', 'rat']) // Returns: /[cbr]at/
+ * regexGen(['foo', 'foobar']) // Returns: /foo(?:bar)?/
+ * regexGen(['ab', 'abab', 'ababab']) // Returns: /(?:ab){1,3}/
+ * regexGen(['α', 'β', 'γ'], 'u') // Returns: /[α-γ]/u
+ * regexGen(['color', 'colour']) // Returns: /colou?r/
  * ```
  *
  * @param {string[]} input - Array of strings to match. Empty arrays or arrays containing
  * only empty strings return a non-capturing group (?:).
- * @param {string} [flags=''] - RegExp flags to apply. Supports only the u flag for Unicode.
+ * @param {string} [flags=''] - RegExp flags to apply. Supports only the `u` flag for Unicode.
  * Other flags are ignored.
  * @returns {RegExp} An optimized regular expression that matches any input string.
  * Returns /(?:)/ for empty or invalid input.
  *
  * @throws {TypeError} If input is not an array or contains non-string elements.
  *
- * Inspired by `regexgen` by Devon Govett, licensed under the MIT License.
+ * Inspired by `regexgen` by Devon Govett, Licensed under the MIT License.
  */
 
 export default function regexGen(input, flags = "") {
+  let {round, min, floor} = Math;
+  let {fromCharCode, fromCodePoint} = String;
+  let {isArray} = Array;
+
   // Escape a string for use in a regular expression, handling Unicode properly.
-  let hex = code => code.toString(16).toUpperCase();
+  let hex = (code, pad = 5) => code.toString(16).padStart(pad, 0).toUpperCase();
   let escapeRegExp = (string, flags = "") => {
     let isUnicode = /u/.test(flags);
     return string
@@ -46,7 +50,7 @@ export default function regexGen(input, flags = "") {
       .replace(/\\[ftnrv]/g, match => `\\${match[1]}`) // preserve common escapes
       .replace(
         /[\x00-\x1f\x7f-\xff]/g,
-        match => `\\x${hex(match.charCodeAt(0)).padStart(2, 0)}`,
+        match => `\\x${hex(match.charCodeAt(0), 2)}`,
       )
       .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
         if (match.length == 2) {
@@ -54,11 +58,11 @@ export default function regexGen(input, flags = "") {
             return `\\u{${hex(match.codePointAt(0))}}`;
           } else {
             let [high, low] = [0, 1].map(i => match.charCodeAt(i));
-            return `\\u${hex(high).padStart(4, 0)}\\u${hex(low).padStart(4, 0)}`;
+            return `\\u${hex(high, 4)}\\u${hex(low, 4)}`;
           }
         }
         let code = match.charCodeAt(0);
-        return `\\u${hex(code).padStart(4, 0)}`;
+        return `\\u${hex(code, 4)}`;
       });
   };
 
@@ -70,7 +74,7 @@ export default function regexGen(input, flags = "") {
       .replace(/\\[ftnrv]/g, match => `\\${match[1]}`) // preserve common escapes
       .replace(
         /[\x00-\x1f\x7f-\xff]/g,
-        match => `\\x${hex(match.charCodeAt(0)).padStart(2, 0)}`,
+        match => `\\x${hex(match.charCodeAt(0), 2)}`,
       )
       .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
         if (match.length == 2) {
@@ -78,11 +82,11 @@ export default function regexGen(input, flags = "") {
             return `\\u{${hex(match.codePointAt(0))}}`;
           } else {
             let [high, low] = [0, 1].map(i => match.charCodeAt(i));
-            return `\\u${hex(high).padStart(4, 0)}\\u${hex(low).padStart(4, 0)}`;
+            return `\\u${hex(high, 4)}\\u${hex(low, 4)}`;
           }
         }
         let code = match.charCodeAt(0);
-        return `\\u${hex(code).padStart(4, 0)}`;
+        return `\\u${hex(code, 4)}`;
       });
   };
 
@@ -142,7 +146,7 @@ export default function regexGen(input, flags = "") {
     if (!strings.includes("")) return false;
     let nonEmpty = strings.filter(s => s);
     if (nonEmpty.length == 0) return false;
-    let minLen = Math.min(...nonEmpty.map(s => s.length));
+    let minLen = min(...nonEmpty.map(s => s.length));
     let atoms = nonEmpty.filter(s => s.length == minLen);
     let n = atoms.length;
     // Bail out early if there are too many atoms to feasibly check (2^n would be huge)
@@ -198,13 +202,13 @@ export default function regexGen(input, flags = "") {
     // \xNN
     let m;
     if ((m = p.match(/^\\x([\dA-Fa-f]{2})$/)))
-      return String.fromCharCode(parseInt(m[1], 16));
+      return fromCharCode(parseInt(m[1], 16));
     // \uNNNN
     if ((m = p.match(/^\\u([\dA-Fa-f]{4})$/)))
-      return String.fromCharCode(parseInt(m[1], 16));
+      return fromCharCode(parseInt(m[1], 16));
     // \u{N+} (unicode mode)
     if ((m = p.match(/^\\u\{([\dA-Fa-f]+)\}$/)))
-      return String.fromCodePoint(parseInt(m[1], 16));
+      return fromCodePoint(parseInt(m[1], 16));
     // \<special> (escaped metacharacter)
     if (p.length == 2 && p[0] == "\\") return p[1];
     return null;
@@ -215,37 +219,38 @@ export default function regexGen(input, flags = "") {
   // Returns the condensed pattern string, or null if not applicable.
   let condenseAlternationParts = (parts, flags) => {
     if (parts.length < 2) return null;
-    let pfx = findCommonPrefix(parts);
-    let sfx = findCommonSuffix(parts);
-    let minLen = Math.min(...parts.map(p => p.length));
-    if (pfx.length + sfx.length > minLen)
-      sfx = sfx.slice(pfx.length + sfx.length - minLen);
+    let prefix = findCommonPrefix(parts);
+    let suffix = findCommonSuffix(parts);
+    let minLen = min(...parts.map(p => p.length));
+    if (prefix.length + suffix.length > minLen)
+      suffix = suffix.slice(prefix.length + suffix.length - minLen);
     // Guard: prefix must not end mid-escape sequence
-    if (/\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(pfx))
+    if (/\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(prefix))
       return null;
     let middles = parts.map(p =>
-      sfx.length > 0 ?
-        p.slice(pfx.length, p.length - sfx.length)
-      : p.slice(pfx.length),
+      suffix.length > 0 ?
+        p.slice(prefix.length, p.length - suffix.length)
+      : p.slice(prefix.length),
     );
     // Need at least 2 distinct middles and all must be single literal chars
     if (new Set(middles).size < 2) return null;
     let chars = middles.map(m => getSingleCharFromPattern(m));
     if (!chars.every(c => c != null)) return null;
-    return pfx + makeCharClass(chars, flags) + sfx;
+    return prefix + makeCharClass(chars, flags) + suffix;
   };
 
   // Main function to build the regex pattern from the array of strings
   let buildPattern = (strings, flags = "") => {
     // Check if pattern is atomic (matches exactly one literal character, char class, or non-capturing group)
     let isAtomic = pattern => {
-      if (pattern.length == 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern))
+      if (
+        (pattern.length == 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern)) ||
+        (/\\u\{[\dA-Fa-f]+\}/.test(pattern) && !/\|/.test(pattern)) ||
+        /^\\u[\dA-Fa-f]{4}$/.test(pattern) ||
+        /^\\.$/.test(pattern) ||
+        /^\[[^\]]+\]$/.test(pattern)
+      )
         return true;
-      if (/\\u\{[\dA-Fa-f]+\}/.test(pattern) && !/\|/.test(pattern))
-        return true;
-      if (/^\\u[\dA-Fa-f]{4}$/.test(pattern)) return true;
-      if (/^\\.$/.test(pattern)) return true;
-      if (/^\[[^\]]+\]$/.test(pattern)) return true;
       // Check for a balanced (?:...) or (?:...)? group
       if (/^\((?:\?:)?/.test(pattern)) {
         let open = 0;
@@ -273,21 +278,18 @@ export default function regexGen(input, flags = "") {
 
     if (strings.length == 1) {
       let s = strings[0];
-      if (s.length > 0) {
-        for (let len = 1; len <= Math.floor(s.length / 2); len++) {
+      if (s.length > 0)
+        for (let len = 1; len <= floor(s.length / 2); len++)
           if (s.length % len == 0) {
             let sub = s.slice(0, len);
             let rep = s.length / len;
-            if (s == sub.repeat(rep)) {
-              if (len == 1) {
-                return `${escapeRegExp(sub, flags)}{${rep}}`;
-              } else {
-                return `(?:${escapeRegExp(sub, flags)}){${rep}}`;
-              }
-            }
+            if (s == sub.repeat(rep) && rep > 1)
+              return (
+                (len == 1 ?
+                  escapeRegExp(sub, flags)
+                : `(?:${escapeRegExp(sub, flags)})`) + `{${rep}}`
+              );
           }
-        }
-      }
 
       return escapeRegExp(s, flags);
     }
@@ -443,7 +445,7 @@ export default function regexGen(input, flags = "") {
     // suffix-first) and also a proportional split, then keep whichever produces the
     // shorter final pattern.  We compute a "candidate" here and let the rest of this
     // function run; the alternative is evaluated in an inner helper below.
-    let minLen = Math.min(...strings.map(s => s.length));
+    let minLen = min(...strings.map(s => s.length));
     let prefixOrig = prefix;
     let suffixOrig = suffix;
     if (prefix.length + suffix.length > minLen) {
@@ -451,7 +453,7 @@ export default function regexGen(input, flags = "") {
 
       // Proportional split: give each side a share of the cut proportional to its length.
       // This is fairer for symmetric cases (e.g. same-length prefix and suffix).
-      let prefixCut = Math.round(
+      let prefixCut = round(
         overlap * (prefix.length / (prefix.length + suffix.length)),
       );
       let suffixCut = overlap - prefixCut;
@@ -465,13 +467,14 @@ export default function regexGen(input, flags = "") {
 
     if (prefix || suffix) {
       // Helper: build a candidate pattern given a specific prefix/suffix split.
-      let buildWithSplit = (pfx, sfx) => {
+      let buildWithSplit = (prefix, suffix) => {
         let mid = strings.map(s =>
-          s.slice(pfx.length, s.length - sfx.length || undefined),
+          s.slice(prefix.length, s.length - suffix.length || null),
         );
         let mp = buildPattern(mid, flags);
-        if (/\|/.test(mp) && (pfx || sfx) && !isAtomic(mp)) mp = `(?:${mp})`;
-        return escapeRegExp(pfx, flags) + mp + escapeRegExp(sfx, flags);
+        if (/\|/.test(mp) && (prefix || suffix) && !isAtomic(mp))
+          mp = `(?:${mp})`;
+        return escapeRegExp(prefix, flags) + mp + escapeRegExp(suffix, flags);
       };
 
       let middlePattern = buildPattern(middle, flags);
@@ -482,7 +485,7 @@ export default function regexGen(input, flags = "") {
         middlePattern.startsWith(`(?:${escapeRegExp(prefix, flags)})`)
       ) {
         let quantMatch = middlePattern.match(
-          /^\(\?:.*?\)(\{\d+(?:,\d*)?|[*+?])$/,
+          /^\(\?:.*?\)(\{\d+(?:,\d*)?\}|[*+?])$/,
         );
         if (quantMatch) {
           let quant = quantMatch[1];
@@ -491,10 +494,11 @@ export default function regexGen(input, flags = "") {
           let newMax = reps[1] ? reps[1] + 1 : newMin;
           let newQuant =
             newMin == newMax ? `{${newMin}}` : `{${newMin},${newMax}}`;
-          return `(?:${escapeRegExp(prefix, flags)})${newQuant}${escapeRegExp(
-            suffix,
-            flags,
-          )}`;
+          return (
+            `(?:${escapeRegExp(prefix, flags)})` +
+            newQuant +
+            escapeRegExp(suffix, flags)
+          );
         }
       }
 
@@ -542,7 +546,7 @@ export default function regexGen(input, flags = "") {
           pos += len;
         }
         if (count > 3 && pos > 0) {
-          // arbitrary threshold
+          // Arbitrary threshold
           let rest = s.slice(pos);
           // If rest is small or empty, optimize
           // Return (?:sub){count}rest
@@ -579,27 +583,27 @@ export default function regexGen(input, flags = "") {
         );
         // Try to factor common text prefix from the pattern strings
         if (parts.length >= 2) {
-          let commonPfx = findCommonPrefix(parts);
+          let commonPrefix = findCommonPrefix(parts);
           // Only factor if prefix is non-empty and doesn't end mid-escape or mid-group
           // Also reject if prefix ends mid-escape: \uXX, \u{..., \xX, etc.
           let midEscape =
             /\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]{0,1})$/.test(
-              commonPfx,
+              commonPrefix,
             );
           if (
-            commonPfx.length > 0 &&
-            !/\\$/.test(commonPfx) &&
-            !/\|/.test(commonPfx) &&
+            commonPrefix.length > 0 &&
+            !/\\$/.test(commonPrefix) &&
+            !/\|/.test(commonPrefix) &&
             !midEscape
           ) {
             // Ensure prefix ends on an atomic boundary (not mid-char-class or mid-group)
             // Find largest valid prefix that closes all brackets/parens
-            let validPfx = commonPfx;
+            let validPrefix = commonPrefix;
             let open = 0;
             let inClass = false;
 
-            for (let i = 0; i < validPfx.length; i++) {
-              let c = validPfx[i];
+            for (let i = 0; i < validPrefix.length; i++) {
+              let c = validPrefix[i];
               if (c == "\\") {
                 i++;
                 continue;
@@ -619,28 +623,28 @@ export default function regexGen(input, flags = "") {
 
             if (open != 0 || inClass) {
               // Trim back to last safe position — for simplicity just skip factoring
-              validPfx = "";
+              validPrefix = "";
             }
 
-            if (validPfx.length > 0) {
-              let rests = parts.map(p => p.slice(validPfx.length));
+            if (validPrefix.length > 0) {
+              let rests = parts.map(p => p.slice(validPrefix.length));
               // If any rest starts with a quantifier, the prefix split landed mid-atom
               // (e.g. prefix "b" extracted from "b?cd" leaving rest "?cd"). Skip factoring.
-              if (rests.some(r => /^[?*+{]/.test(r))) validPfx = "";
+              if (rests.some(r => /^[?*+{]/.test(r))) validPrefix = "";
             }
 
-            if (validPfx.length > 0) {
-              let rests = parts.map(p => p.slice(validPfx.length));
+            if (validPrefix.length > 0) {
+              let rests = parts.map(p => p.slice(validPrefix.length));
               // If all rests are empty except possibly one, or if rests form a simple optional
               let nonEmpty = rests.filter(r => r != "");
               if (nonEmpty.length == 0) {
-                return validPfx;
+                return validPrefix;
               } else if (nonEmpty.length == rests.length) {
                 // All rests non-empty: form alternation of rests
                 let restAlt =
                   condenseAlternationParts(rests, flags) ?? rests.join("|");
                 let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`;
-                return validPfx + wrapped;
+                return validPrefix + wrapped;
               } else if (
                 rests.filter(r => r == "").length > 0 &&
                 nonEmpty.length == 1
@@ -648,7 +652,7 @@ export default function regexGen(input, flags = "") {
                 // One rest is empty — the other becomes optional
                 let rest = nonEmpty[0];
                 return (
-                  validPfx + (isAtomic(rest) ? rest + "?" : `(?:${rest})?`)
+                  validPrefix + (isAtomic(rest) ? rest + "?" : `(?:${rest})?`)
                 );
               } else {
                 // Mixed: some empty, some not — if non-empties condense to a char class use [x]?
@@ -658,7 +662,7 @@ export default function regexGen(input, flags = "") {
                 );
                 if (condensedNonEmpty != null) {
                   return (
-                    validPfx +
+                    validPrefix +
                     (isAtomic(condensedNonEmpty) ?
                       condensedNonEmpty + "?"
                     : `(?:${condensedNonEmpty})?`)
@@ -666,7 +670,7 @@ export default function regexGen(input, flags = "") {
                 }
                 let restAlt = rests.join("|");
                 let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`;
-                return validPfx + wrapped;
+                return validPrefix + wrapped;
               }
             }
           }
@@ -739,13 +743,13 @@ export default function regexGen(input, flags = "") {
   };
 
   // Input validation
-  if (!Array.isArray(input)) {
-    if (input == undefined) return RegExp("(?:)", flags);
+  if (!isArray(input)) {
+    if (input == null) return RegExp("(?:)", flags);
     throw TypeError("Input must be an array");
   }
   if (input.some(s => typeof s != "string"))
     throw TypeError("All elements must be strings");
-  if (!input || input.length == 0 || String(input[0]).length == 0)
+  if (!input || input.length == 0 || input.every(s => !s))
     return RegExp("(?:)", flags);
 
   // Remove duplicates, sort by code unit order

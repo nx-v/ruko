@@ -6,11 +6,12 @@ import genex from "genex";
 import {unicodeName} from "unicode-name";
 
 let {isArray, from} = Array;
-let {fromCodePoint, fromCharCode, raw} = String;
+let {fromCodePoint} = String;
 let {parse, stringify} = JSON;
-let {keys, values, fromEntries, entries, groupBy} = Object;
+let {keys, values, fromEntries, entries} = Object;
 
 let start = performance.now();
+
 // Utility functions
 let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k);
 
