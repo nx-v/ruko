@@ -37,14 +37,14 @@
  */
 
 export default function regexGen(input, flags = "") {
-  let {round, min, floor} = Math;
-  let {fromCharCode, fromCodePoint} = String;
-  let {isArray} = Array;
+  let {round, min, floor} = Math
+  let {fromCharCode, fromCodePoint} = String
+  let {isArray} = Array
 
   // Escape a string for use in a regular expression, handling Unicode properly.
-  let hex = (code, pad = 5) => code.toString(16).padStart(pad, 0).toUpperCase();
+  let hex = (code, pad = 5) => code.toString(16).padStart(pad, 0).toUpperCase()
   let escapeRegExp = (string, flags = "") => {
-    let isUnicode = /u/.test(flags);
+    let isUnicode = /u/.test(flags)
     return string
       .replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")
       .replace(/\\[ftnrv]/g, match => `\\${match[1]}`) // preserve common escapes
@@ -55,20 +55,20 @@ export default function regexGen(input, flags = "") {
       .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
         if (match.length == 2) {
           if (isUnicode) {
-            return `\\u{${hex(match.codePointAt(0))}}`;
+            return `\\u{${hex(match.codePointAt(0))}}`
           } else {
-            let [high, low] = [0, 1].map(i => match.charCodeAt(i));
-            return `\\u${hex(high, 4)}\\u${hex(low, 4)}`;
+            let [high, low] = [0, 1].map(i => match.charCodeAt(i))
+            return `\\u${hex(high, 4)}\\u${hex(low, 4)}`
           }
         }
-        let code = match.charCodeAt(0);
-        return `\\u${hex(code, 4)}`;
-      });
-  };
+        let code = match.charCodeAt(0)
+        return `\\u${hex(code, 4)}`
+      })
+  }
 
   // Escape a single character for use in a character class, handling Unicode properly.
   let escapeCharClass = (char, flags = "") => {
-    let isUnicode = /u/.test(flags);
+    let isUnicode = /u/.test(flags)
     return char
       .replace(/[\\[\]^-]/g, "\\$&")
       .replace(/\\[ftnrv]/g, match => `\\${match[1]}`) // preserve common escapes
@@ -79,265 +79,264 @@ export default function regexGen(input, flags = "") {
       .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
         if (match.length == 2) {
           if (isUnicode) {
-            return `\\u{${hex(match.codePointAt(0))}}`;
+            return `\\u{${hex(match.codePointAt(0))}}`
           } else {
-            let [high, low] = [0, 1].map(i => match.charCodeAt(i));
-            return `\\u${hex(high, 4)}\\u${hex(low, 4)}`;
+            let [high, low] = [0, 1].map(i => match.charCodeAt(i))
+            return `\\u${hex(high, 4)}\\u${hex(low, 4)}`
           }
         }
-        let code = match.charCodeAt(0);
-        return `\\u${hex(code, 4)}`;
-      });
-  };
+        let code = match.charCodeAt(0)
+        return `\\u${hex(code, 4)}`
+      })
+  }
 
   // Find common prefix of an array of strings, disregarding Unicode code point boundaries
   let findCommonPrefix = strings => {
-    if (strings.length == 0) return "";
-    let prefix = strings[0];
+    if (strings.length == 0) return ""
+    let prefix = strings[0]
     for (let s of strings.slice(1)) {
       while (!s.startsWith(prefix)) {
-        prefix = prefix.slice(0, -1);
-        if (prefix == "") break;
+        prefix = prefix.slice(0, -1)
+        if (prefix == "") break
       }
-      if (prefix == "") break;
+      if (prefix == "") break
     }
-    return prefix;
-  };
+    return prefix
+  }
 
   // Find common suffix by reversing strings and finding common prefix, then reverse back.
   // Disregards Unicode code point boundaries, but that's generally fine for suffixes.
   let findCommonSuffix = strings => {
-    let reversed = strings.map(s => s.split("").reverse().join(""));
-    let reversedPrefix = findCommonPrefix(reversed);
-    return reversedPrefix.split("").reverse().join("");
-  };
+    let reversed = strings.map(s => s.split("").reverse().join(""))
+    let reversedPrefix = findCommonPrefix(reversed)
+    return reversedPrefix.split("").reverse().join("")
+  }
 
   // Build a character class from an array of single-character strings, merging consecutive characters into ranges.
   let makeCharClass = (chars, flags = "") => {
     chars = [...new Set(chars)].sort(
       (a, b) => a.codePointAt(0) - b.codePointAt(0),
-    );
-    let result = "";
-    let i = 0;
+    )
+    let result = ""
+    let i = 0
 
     while (i < chars.length) {
-      let start = chars[i];
-      let end = start;
-      i++;
+      let start = chars[i]
+      let end = start
+      i++
       while (
-        i < chars.length &&
-        chars[i].codePointAt(0) == end.codePointAt(0) + 1
+        i < chars.length
+        && chars[i].codePointAt(0) == end.codePointAt(0) + 1
       ) {
-        end = chars[i];
-        i++;
+        end = chars[i]
+        i++
       }
       result +=
-        start == end ? escapeCharClass(start, flags)
-        : end.codePointAt(0) == start.codePointAt(0) + 1 ?
-          escapeCharClass(start, flags) + escapeCharClass(end, flags)
-        : `${escapeCharClass(start, flags)}-${escapeCharClass(end, flags)}`;
+        start == end
+          ? escapeCharClass(start, flags)
+          : end.codePointAt(0) == start.codePointAt(0) + 1
+            ? escapeCharClass(start, flags) + escapeCharClass(end, flags)
+            : `${escapeCharClass(start, flags)}-${escapeCharClass(end, flags)}`
     }
 
-    return `[${result}]`;
-  };
+    return `[${result}]`
+  }
 
   // Check if the strings form a cartesian product of a set of atoms (substrings).
   let isCartesian = strings => {
-    if (!strings.includes("")) return false;
-    let nonEmpty = strings.filter(s => s);
-    if (nonEmpty.length == 0) return false;
-    let minLen = min(...nonEmpty.map(s => s.length));
-    let atoms = nonEmpty.filter(s => s.length == minLen);
-    let n = atoms.length;
+    if (!strings.includes("")) return false
+    let nonEmpty = strings.filter(s => s)
+    if (nonEmpty.length == 0) return false
+    let minLen = min(...nonEmpty.map(s => s.length))
+    let atoms = nonEmpty.filter(s => s.length == minLen)
+    let n = atoms.length
     // Bail out early if there are too many atoms to feasibly check (2^n would be huge)
-    if (n > 20) return false;
+    if (n > 20) return false
 
     // Structural pre-pruning: every non-empty string must be expressible as an
     // ordered left-to-right concatenation of atoms (each atom used at most once).
     // This turns the worst-case O(2^n) subset generation into a linear gate:
     // if any string fails the greedy match we know the set is not cartesian.
     for (let s of nonEmpty) {
-      let pos = 0;
-      let usedAtoms = new Set();
+      let pos = 0
+      let usedAtoms = new Set()
       // Greedy: try to consume the string with atoms in a fixed sorted order.
       // We sort atoms longest-first so the greedy pass doesn't get fooled by prefixes.
-      let sortedAtoms = [...atoms].sort((a, b) => b.length - a.length);
+      let sortedAtoms = [...atoms].sort((a, b) => b.length - a.length)
       for (let atom of sortedAtoms) {
         if (s.startsWith(atom, pos)) {
-          if (usedAtoms.has(atom)) return false; // same atom used twice → not cartesian
-          usedAtoms.add(atom);
-          pos += atom.length;
+          if (usedAtoms.has(atom)) return false // same atom used twice → not cartesian
+          usedAtoms.add(atom)
+          pos += atom.length
         }
       }
-      if (pos != s.length) return false; // string has leftover characters not covered by atoms
+      if (pos != s.length) return false // string has leftover characters not covered by atoms
     }
 
-    let generated = new Set();
+    let generated = new Set()
     for (let mask = 0; mask < 1 << n; mask++) {
-      let str = "";
-      for (let i = 0; i < n; i++) if (mask & (1 << i)) str += atoms[i];
-      generated.add(str);
+      let str = ""
+      for (let i = 0; i < n; i++) if (mask & (1 << i)) str += atoms[i]
+      generated.add(str)
     }
 
-    let uniqueStrings = new Set(strings);
-    if (generated.size != uniqueStrings.size) return false;
-    for (let s of generated) if (!uniqueStrings.has(s)) return false;
+    let uniqueStrings = new Set(strings)
+    if (generated.size != uniqueStrings.size) return false
+    for (let s of generated) if (!uniqueStrings.has(s)) return false
 
     // order atoms by appearance in input
-    let inputNonEmpty = strings.filter(s => s);
-    let orderedAtoms = [];
-    let atomSet = new Set(atoms);
+    let inputNonEmpty = strings.filter(s => s)
+    let orderedAtoms = []
+    let atomSet = new Set(atoms)
     for (let s of inputNonEmpty)
-      if (atomSet.has(s) && !orderedAtoms.includes(s)) orderedAtoms.push(s);
+      if (atomSet.has(s) && !orderedAtoms.includes(s)) orderedAtoms.push(s)
 
-    return orderedAtoms;
-  };
+    return orderedAtoms
+  }
 
   // Check if a pattern string represents exactly one literal character.
   // Returns the actual character string (for use in makeCharClass), or null.
   let getSingleCharFromPattern = p => {
-    if (p.length == 0) return null;
+    if (p.length == 0) return null
     // Unescaped single non-special char
-    if (p.length == 1 && !/[|.*+?^${}()\[\]\\]/.test(p)) return p;
+    if (p.length == 1 && !/[|.*+?^${}()\[\]\\]/.test(p)) return p
     // \xNN
-    let m;
+    let m
     if ((m = p.match(/^\\x([\dA-Fa-f]{2})$/)))
-      return fromCharCode(parseInt(m[1], 16));
+      return fromCharCode(parseInt(m[1], 16))
     // \uNNNN
     if ((m = p.match(/^\\u([\dA-Fa-f]{4})$/)))
-      return fromCharCode(parseInt(m[1], 16));
+      return fromCharCode(parseInt(m[1], 16))
     // \u{N+} (unicode mode)
     if ((m = p.match(/^\\u\{([\dA-Fa-f]+)\}$/)))
-      return fromCodePoint(parseInt(m[1], 16));
+      return fromCodePoint(parseInt(m[1], 16))
     // \<special> (escaped metacharacter)
-    if (p.length == 2 && p[0] == "\\") return p[1];
-    return null;
-  };
+    if (p.length == 2 && p[0] == "\\") return p[1]
+    return null
+  }
 
   // Given an array of alternation-branch pattern strings, try to find a common prefix/suffix
   // such that the middles are all single literal characters, and condense into a char class.
   // Returns the condensed pattern string, or null if not applicable.
   let condenseAlternationParts = (parts, flags) => {
-    if (parts.length < 2) return null;
-    let prefix = findCommonPrefix(parts);
-    let suffix = findCommonSuffix(parts);
-    let minLen = min(...parts.map(p => p.length));
+    if (parts.length < 2) return null
+    let prefix = findCommonPrefix(parts)
+    let suffix = findCommonSuffix(parts)
+    let minLen = min(...parts.map(p => p.length))
     if (prefix.length + suffix.length > minLen)
-      suffix = suffix.slice(prefix.length + suffix.length - minLen);
+      suffix = suffix.slice(prefix.length + suffix.length - minLen)
     // Guard: prefix must not end mid-escape sequence
     if (/\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(prefix))
-      return null;
+      return null
     let middles = parts.map(p =>
-      suffix.length > 0 ?
-        p.slice(prefix.length, p.length - suffix.length)
-      : p.slice(prefix.length),
-    );
+      suffix.length > 0
+        ? p.slice(prefix.length, p.length - suffix.length)
+        : p.slice(prefix.length),
+    )
     // Need at least 2 distinct middles and all must be single literal chars
-    if (new Set(middles).size < 2) return null;
-    let chars = middles.map(m => getSingleCharFromPattern(m));
-    if (!chars.every(c => c != null)) return null;
-    return prefix + makeCharClass(chars, flags) + suffix;
-  };
+    if (new Set(middles).size < 2) return null
+    let chars = middles.map(m => getSingleCharFromPattern(m))
+    if (!chars.every(c => c != null)) return null
+    return prefix + makeCharClass(chars, flags) + suffix
+  }
 
   // Main function to build the regex pattern from the array of strings
   let buildPattern = (strings, flags = "") => {
     // Check if pattern is atomic (matches exactly one literal character, char class, or non-capturing group)
     let isAtomic = pattern => {
       if (
-        (pattern.length == 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern)) ||
-        (/\\u\{[\dA-Fa-f]+\}/.test(pattern) && !/\|/.test(pattern)) ||
-        /^\\u[\dA-Fa-f]{4}$/.test(pattern) ||
-        /^\\.$/.test(pattern) ||
-        /^\[[^\]]+\]$/.test(pattern)
+        (pattern.length == 1 && !/[|.*?+^$(){}\[\]\\]/.test(pattern))
+        || (/\\u\{[\dA-Fa-f]+\}/.test(pattern) && !/\|/.test(pattern))
+        || /^\\u[\dA-Fa-f]{4}$/.test(pattern)
+        || /^\\.$/.test(pattern)
+        || /^\[[^\]]+\]$/.test(pattern)
       )
-        return true;
+        return true
       // Check for a balanced (?:...) or (?:...)? group
       if (/^\((?:\?:)?/.test(pattern)) {
-        let open = 0;
+        let open = 0
         for (let i = 0; i < pattern.length; i++) {
           if (pattern[i] == "\\") {
-            i++;
-            continue;
+            i++
+            continue
           }
-          if (pattern[i] == "(") open++;
+          if (pattern[i] == "(") open++
           else if (pattern[i] == ")") {
-            open--;
+            open--
             if (open == 0) {
               // The closing paren is at i; rest is either empty or "?"
-              let rest = pattern.slice(i + 1);
-              return rest == "" || rest == "?";
+              let rest = pattern.slice(i + 1)
+              return rest == "" || rest == "?"
             }
           }
         }
       }
-      return false;
-    };
+      return false
+    }
 
     // Base cases
-    if (strings.length == 0) return "";
+    if (strings.length == 0) return ""
 
     if (strings.length == 1) {
-      let s = strings[0];
+      let s = strings[0]
       if (s.length > 0)
         for (let len = 1; len <= floor(s.length / 2); len++)
           if (s.length % len == 0) {
-            let sub = s.slice(0, len);
-            let rep = s.length / len;
+            let sub = s.slice(0, len)
+            let rep = s.length / len
             if (s == sub.repeat(rep) && rep > 1)
               return (
-                (len == 1 ?
-                  escapeRegExp(sub, flags)
-                : `(?:${escapeRegExp(sub, flags)})`) + `{${rep}}`
-              );
+                (len == 1
+                  ? escapeRegExp(sub, flags)
+                  : `(?:${escapeRegExp(sub, flags)})`) + `{${rep}}`
+              )
           }
 
-      return escapeRegExp(s, flags);
+      return escapeRegExp(s, flags)
     }
 
     // Check for cartesian products and empty string handling first
     if (strings.includes("")) {
-      let atoms = isCartesian(strings);
+      let atoms = isCartesian(strings)
       if (atoms) {
         if (atoms.length == 1) {
-          let escaped = escapeRegExp(atoms[0], flags);
-          if (atoms[0].length == 1 || isAtomic(escaped)) return escaped + "?";
-          else return `(?:${escaped})?`;
+          let escaped = escapeRegExp(atoms[0], flags)
+          if (atoms[0].length == 1 || isAtomic(escaped)) return escaped + "?"
+          else return `(?:${escaped})?`
         } else {
-          return atoms
-            .map(atom => `(?:${escapeRegExp(atom, flags)})?`)
-            .join("");
+          return atoms.map(atom => `(?:${escapeRegExp(atom, flags)})?`).join("")
         }
       }
     }
 
     // Check for repetition
     // IMPORTANT: Do not double wrap or produce suboptimal repetition for basic cases handled by other logic
-    let nonEmptyStrings = strings.filter(s => s.length > 0);
+    let nonEmptyStrings = strings.filter(s => s.length > 0)
     if (nonEmptyStrings.length > 0) {
-      let lens = nonEmptyStrings.map(s => s.length);
-      let gcd = (a, b) => (b == 0 ? a : gcd(b, a % b));
-      let g = lens.reduce((a, b) => gcd(a, b), lens[0]);
+      let lens = nonEmptyStrings.map(s => s.length)
+      let gcd = (a, b) => (b == 0 ? a : gcd(b, a % b))
+      let g = lens.reduce((a, b) => gcd(a, b), lens[0])
 
       if (g > 0) {
-        let sub = nonEmptyStrings[0].slice(0, g);
+        let sub = nonEmptyStrings[0].slice(0, g)
         if (nonEmptyStrings.every(s => s == sub.repeat(s.length / g))) {
           let reps = nonEmptyStrings
             .map(s => s.length / g)
-            .sort((a, b) => a - b);
-          let minRep = strings.includes("") ? 0 : reps[0];
-          let maxRep = reps[reps.length - 1];
+            .sort((a, b) => a - b)
+          let minRep = strings.includes("") ? 0 : reps[0]
+          let maxRep = reps[reps.length - 1]
           let quant =
-            minRep == 0 && maxRep == 1 ? "?"
-            : minRep == maxRep ? `{${minRep}}`
-            : `{${minRep},${maxRep}}`;
-          let escaped = escapeRegExp(sub, flags);
-          return (
-            g == 1 ?
-              minRep > 0 && maxRep == minRep + 1 ?
-                escaped.repeat(minRep) + escaped + "?"
+            minRep == 0 && maxRep == 1
+              ? "?"
+              : minRep == maxRep
+                ? `{${minRep}}`
+                : `{${minRep},${maxRep}}`
+          let escaped = escapeRegExp(sub, flags)
+          return g == 1
+            ? minRep > 0 && maxRep == minRep + 1
+              ? escaped.repeat(minRep) + escaped + "?"
               : escaped + quant
             : `(?:${escaped})${quant}`
-          );
         }
       }
     }
@@ -347,94 +346,93 @@ export default function regexGen(input, flags = "") {
     // and ['U','V','computed'] → '[UV]|computed'.
     // Returns a condensed pattern string, or null if no improvement is possible.
     let condensePartsAdvanced = (parts, flags) => {
-      if (parts.length < 2) return null;
+      if (parts.length < 2) return null
 
       // Step 1: group single-char pattern parts into a char class
-      let singleCharIndices = new Set();
-      let singleChars = [];
+      let singleCharIndices = new Set()
+      let singleChars = []
       for (let i = 0; i < parts.length; i++) {
-        let c = getSingleCharFromPattern(parts[i]);
+        let c = getSingleCharFromPattern(parts[i])
         if (c != null) {
-          singleCharIndices.add(i);
-          singleChars.push(c);
+          singleCharIndices.add(i)
+          singleChars.push(c)
         }
       }
 
-      let newParts;
-      let didGroup = singleChars.length >= 2;
+      let newParts
+      let didGroup = singleChars.length >= 2
       if (didGroup) {
-        let charClass = makeCharClass(singleChars, flags);
+        let charClass = makeCharClass(singleChars, flags)
         newParts = [
           charClass,
           ...parts.filter((_, i) => !singleCharIndices.has(i)),
-        ];
+        ]
       } else {
-        newParts = parts;
+        newParts = parts
       }
 
-      if (newParts.length == 1) return newParts[0];
+      if (newParts.length == 1) return newParts[0]
 
       // Step 2: factor a common atomic suffix from newParts
-      let textSuffix = findCommonSuffix(newParts);
+      let textSuffix = findCommonSuffix(newParts)
       if (
-        textSuffix.length > 0 &&
-        isAtomic(textSuffix) &&
-        !newParts.some(p =>
+        textSuffix.length > 0
+        && isAtomic(textSuffix)
+        && !newParts.some(p =>
           /\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(
             p.slice(0, p.length - textSuffix.length),
           ),
         )
       ) {
-        let rests = newParts.map(p => p.slice(0, p.length - textSuffix.length));
-        let nonEmpty = rests.filter(r => r != "");
+        let rests = newParts.map(p => p.slice(0, p.length - textSuffix.length))
+        let nonEmpty = rests.filter(r => r != "")
         if (nonEmpty.length < rests.length) {
           // Some rests empty → the suffix absorbs those branches as optional
-          let restPart;
+          let restPart
           if (nonEmpty.length == 0) {
-            restPart = "";
+            restPart = ""
           } else if (nonEmpty.length == 1) {
-            let r = nonEmpty[0];
-            restPart = isAtomic(r) ? r + "?" : `(?:${r})?`;
+            let r = nonEmpty[0]
+            restPart = isAtomic(r) ? r + "?" : `(?:${r})?`
           } else {
             let inner =
-              condenseAlternationParts(nonEmpty, flags) ?? nonEmpty.join("|");
-            restPart = isAtomic(inner) ? inner + "?" : `(?:${inner})?`;
+              condenseAlternationParts(nonEmpty, flags) ?? nonEmpty.join("|")
+            restPart = isAtomic(inner) ? inner + "?" : `(?:${inner})?`
           }
-          return restPart + textSuffix;
+          return restPart + textSuffix
         } else if (newParts.length > 1) {
           // All rests non-empty: wrap them and append the common suffix
-          let inner = condenseAlternationParts(rests, flags) ?? rests.join("|");
-          return (isAtomic(inner) ? inner : `(?:${inner})`) + textSuffix;
+          let inner = condenseAlternationParts(rests, flags) ?? rests.join("|")
+          return (isAtomic(inner) ? inner : `(?:${inner})`) + textSuffix
         }
       }
 
-      if (!didGroup) return null;
-      return condenseAlternationParts(newParts, flags) ?? newParts.join("|");
-    };
+      if (!didGroup) return null
+      return condenseAlternationParts(newParts, flags) ?? newParts.join("|")
+    }
 
     // Fallback for empty string if not handled by cartesian
     if (strings.includes("")) {
-      let nonEmpty = strings.filter(s => s);
+      let nonEmpty = strings.filter(s => s)
       if (nonEmpty.length == 0) {
-        return "(?:)";
+        return "(?:)"
       }
-      let alt = buildPattern(nonEmpty, flags);
-      return isAtomic(alt) ? alt + "?" : `(?:${alt})?`;
+      let alt = buildPattern(nonEmpty, flags)
+      return isAtomic(alt) ? alt + "?" : `(?:${alt})?`
     }
 
-    let prefix = findCommonPrefix(strings);
-    let suffix = findCommonSuffix(strings);
+    let prefix = findCommonPrefix(strings)
+    let suffix = findCommonSuffix(strings)
 
     if (/u/.test(flags)) {
       if (prefix.length > 0) {
-        let lastCode = prefix.charCodeAt(prefix.length - 1);
+        let lastCode = prefix.charCodeAt(prefix.length - 1)
         if (lastCode >= 0xd800 && lastCode <= 0xdbff)
-          prefix = prefix.slice(0, -1);
+          prefix = prefix.slice(0, -1)
       }
       if (suffix.length > 0) {
-        let firstCode = suffix.charCodeAt(0);
-        if (firstCode >= 0xdc00 && firstCode <= 0xdfff)
-          suffix = suffix.slice(1);
+        let firstCode = suffix.charCodeAt(0)
+        if (firstCode >= 0xdc00 && firstCode <= 0xdfff) suffix = suffix.slice(1)
       }
     }
 
@@ -445,115 +443,115 @@ export default function regexGen(input, flags = "") {
     // suffix-first) and also a proportional split, then keep whichever produces the
     // shorter final pattern.  We compute a "candidate" here and let the rest of this
     // function run; the alternative is evaluated in an inner helper below.
-    let minLen = min(...strings.map(s => s.length));
-    let prefixOrig = prefix;
-    let suffixOrig = suffix;
+    let minLen = min(...strings.map(s => s.length))
+    let prefixOrig = prefix
+    let suffixOrig = suffix
     if (prefix.length + suffix.length > minLen) {
-      let overlap = prefix.length + suffix.length - minLen;
+      let overlap = prefix.length + suffix.length - minLen
 
       // Proportional split: give each side a share of the cut proportional to its length.
       // This is fairer for symmetric cases (e.g. same-length prefix and suffix).
       let prefixCut = round(
         overlap * (prefix.length / (prefix.length + suffix.length)),
-      );
-      let suffixCut = overlap - prefixCut;
-      prefix = prefix.slice(0, prefix.length - prefixCut);
-      suffix = suffix.slice(suffixCut);
+      )
+      let suffixCut = overlap - prefixCut
+      prefix = prefix.slice(0, prefix.length - prefixCut)
+      suffix = suffix.slice(suffixCut)
     }
 
     let middle = strings.map(s =>
       s.slice(prefix.length, s.length - suffix.length),
-    );
+    )
 
     if (prefix || suffix) {
       // Helper: build a candidate pattern given a specific prefix/suffix split.
       let buildWithSplit = (prefix, suffix) => {
         let mid = strings.map(s =>
           s.slice(prefix.length, s.length - suffix.length || null),
-        );
-        let mp = buildPattern(mid, flags);
+        )
+        let mp = buildPattern(mid, flags)
         if (/\|/.test(mp) && (prefix || suffix) && !isAtomic(mp))
-          mp = `(?:${mp})`;
-        return escapeRegExp(prefix, flags) + mp + escapeRegExp(suffix, flags);
-      };
+          mp = `(?:${mp})`
+        return escapeRegExp(prefix, flags) + mp + escapeRegExp(suffix, flags)
+      }
 
-      let middlePattern = buildPattern(middle, flags);
+      let middlePattern = buildPattern(middle, flags)
 
       // Check if middle is a repetition of prefix
       if (
-        prefix &&
-        middlePattern.startsWith(`(?:${escapeRegExp(prefix, flags)})`)
+        prefix
+        && middlePattern.startsWith(`(?:${escapeRegExp(prefix, flags)})`)
       ) {
         let quantMatch = middlePattern.match(
           /^\(\?:.*?\)(\{\d+(?:,\d*)?\}|[*+?])$/,
-        );
+        )
         if (quantMatch) {
-          let quant = quantMatch[1];
-          let reps = quant.split(",").map(Number);
-          let newMin = reps[0] + 1;
-          let newMax = reps[1] ? reps[1] + 1 : newMin;
+          let quant = quantMatch[1]
+          let reps = quant.split(",").map(Number)
+          let newMin = reps[0] + 1
+          let newMax = reps[1] ? reps[1] + 1 : newMin
           let newQuant =
-            newMin == newMax ? `{${newMin}}` : `{${newMin},${newMax}}`;
+            newMin == newMax ? `{${newMin}}` : `{${newMin},${newMax}}`
           return (
-            `(?:${escapeRegExp(prefix, flags)})` +
-            newQuant +
-            escapeRegExp(suffix, flags)
-          );
+            `(?:${escapeRegExp(prefix, flags)})`
+            + newQuant
+            + escapeRegExp(suffix, flags)
+          )
         }
       }
 
       if (
-        /\|/.test(middlePattern) &&
-        (prefix || suffix) &&
-        !isAtomic(middlePattern)
+        /\|/.test(middlePattern)
+        && (prefix || suffix)
+        && !isAtomic(middlePattern)
       )
-        middlePattern = `(?:${middlePattern})`;
+        middlePattern = `(?:${middlePattern})`
 
       let proportionalResult =
-        escapeRegExp(prefix, flags) +
-        middlePattern +
-        escapeRegExp(suffix, flags);
+        escapeRegExp(prefix, flags)
+        + middlePattern
+        + escapeRegExp(suffix, flags)
 
       // If there was an overlap, also evaluate prefix-first and suffix-first bias and
       // return whichever candidate is shortest (ties go to proportional).
       if (prefixOrig.length + suffixOrig.length > minLen) {
-        let overlap = prefixOrig.length + suffixOrig.length - minLen;
+        let overlap = prefixOrig.length + suffixOrig.length - minLen
         let pFirst = buildWithSplit(
           prefixOrig.slice(0, prefixOrig.length - overlap),
           suffixOrig,
-        );
-        let sFirst = buildWithSplit(prefixOrig, suffixOrig.slice(overlap));
+        )
+        let sFirst = buildWithSplit(prefixOrig, suffixOrig.slice(overlap))
         let best = [proportionalResult, pFirst, sFirst].reduce((a, b) =>
           b.length < a.length ? b : a,
-        );
-        return best;
+        )
+        return best
       }
 
-      return proportionalResult;
+      return proportionalResult
     }
 
     // Check for repetition of a substring at the START of huge string
     if (strings.length == 1 && strings[0].length > 10) {
       // Simple heuristic for single string repetition
-      let s = strings[0];
+      let s = strings[0]
       for (let len = 1; len <= s.length / 2; len++) {
-        let sub = s.slice(0, len);
+        let sub = s.slice(0, len)
         // Check how many times sub repeats at start
-        let count = 0;
-        let pos = 0;
+        let count = 0
+        let pos = 0
         while (s.startsWith(sub, pos)) {
-          count++;
-          pos += len;
+          count++
+          pos += len
         }
         if (count > 3 && pos > 0) {
           // Arbitrary threshold
-          let rest = s.slice(pos);
+          let rest = s.slice(pos)
           // If rest is small or empty, optimize
           // Return (?:sub){count}rest
           return (
-            `(?:${escapeRegExp(sub, flags)}){${count}}` +
-            escapeRegExp(rest, flags)
-          );
+            `(?:${escapeRegExp(sub, flags)}){${count}}`
+            + escapeRegExp(rest, flags)
+          )
         }
       }
     }
@@ -561,200 +559,195 @@ export default function regexGen(input, flags = "") {
     // Try to group by common prefix or suffix if no global prefix/suffix found
     if (!prefix && !suffix && strings.length > 1) {
       let tryGroup = getChar => {
-        let groups = new Map();
-        let charOrder = [];
+        let groups = new Map()
+        let charOrder = []
         for (let s of strings) {
-          if (s.length == 0) continue;
-          let char = getChar(s);
-          if (!char) continue;
+          if (s.length == 0) continue
+          let char = getChar(s)
+          if (!char) continue
           if (!groups.has(char)) {
-            groups.set(char, []);
-            charOrder.push(char);
+            groups.set(char, [])
+            charOrder.push(char)
           }
-          groups.get(char).push(s);
+          groups.get(char).push(s)
         }
-        return groups.size < strings.length ? {groups, charOrder} : null;
-      };
+        return groups.size < strings.length ? {groups, charOrder} : null
+      }
 
       // Build alternation from groups, then try to factor a common textual prefix from the parts
       let buildFromGroups = (groups, charOrder) => {
-        let parts = charOrder.map(char =>
-          buildPattern(groups.get(char), flags),
-        );
+        let parts = charOrder.map(char => buildPattern(groups.get(char), flags))
         // Try to factor common text prefix from the pattern strings
         if (parts.length >= 2) {
-          let commonPrefix = findCommonPrefix(parts);
+          let commonPrefix = findCommonPrefix(parts)
           // Only factor if prefix is non-empty and doesn't end mid-escape or mid-group
           // Also reject if prefix ends mid-escape: \uXX, \u{..., \xX, etc.
           let midEscape =
             /\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]{0,1})$/.test(
               commonPrefix,
-            );
+            )
           if (
-            commonPrefix.length > 0 &&
-            !/\\$/.test(commonPrefix) &&
-            !/\|/.test(commonPrefix) &&
-            !midEscape
+            commonPrefix.length > 0
+            && !/\\$/.test(commonPrefix)
+            && !/\|/.test(commonPrefix)
+            && !midEscape
           ) {
             // Ensure prefix ends on an atomic boundary (not mid-char-class or mid-group)
             // Find largest valid prefix that closes all brackets/parens
-            let validPrefix = commonPrefix;
-            let open = 0;
-            let inClass = false;
+            let validPrefix = commonPrefix
+            let open = 0
+            let inClass = false
 
             for (let i = 0; i < validPrefix.length; i++) {
-              let c = validPrefix[i];
+              let c = validPrefix[i]
               if (c == "\\") {
-                i++;
-                continue;
+                i++
+                continue
               }
               if (c == "[") {
-                inClass = true;
-                continue;
+                inClass = true
+                continue
               }
               if (c == "]") {
-                inClass = false;
-                continue;
+                inClass = false
+                continue
               }
-              if (inClass) continue;
-              if (c == "(") open++;
-              else if (c == ")") open--;
+              if (inClass) continue
+              if (c == "(") open++
+              else if (c == ")") open--
             }
 
             if (open != 0 || inClass) {
               // Trim back to last safe position — for simplicity just skip factoring
-              validPrefix = "";
+              validPrefix = ""
             }
 
             if (validPrefix.length > 0) {
-              let rests = parts.map(p => p.slice(validPrefix.length));
+              let rests = parts.map(p => p.slice(validPrefix.length))
               // If any rest starts with a quantifier, the prefix split landed mid-atom
               // (e.g. prefix "b" extracted from "b?cd" leaving rest "?cd"). Skip factoring.
-              if (rests.some(r => /^[?*+{]/.test(r))) validPrefix = "";
+              if (rests.some(r => /^[?*+{]/.test(r))) validPrefix = ""
             }
 
             if (validPrefix.length > 0) {
-              let rests = parts.map(p => p.slice(validPrefix.length));
+              let rests = parts.map(p => p.slice(validPrefix.length))
               // If all rests are empty except possibly one, or if rests form a simple optional
-              let nonEmpty = rests.filter(r => r != "");
+              let nonEmpty = rests.filter(r => r != "")
               if (nonEmpty.length == 0) {
-                return validPrefix;
+                return validPrefix
               } else if (nonEmpty.length == rests.length) {
                 // All rests non-empty: form alternation of rests
                 let restAlt =
-                  condenseAlternationParts(rests, flags) ?? rests.join("|");
-                let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`;
-                return validPrefix + wrapped;
+                  condenseAlternationParts(rests, flags) ?? rests.join("|")
+                let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`
+                return validPrefix + wrapped
               } else if (
-                rests.filter(r => r == "").length > 0 &&
-                nonEmpty.length == 1
+                rests.filter(r => r == "").length > 0
+                && nonEmpty.length == 1
               ) {
                 // One rest is empty — the other becomes optional
-                let rest = nonEmpty[0];
+                let rest = nonEmpty[0]
                 return (
                   validPrefix + (isAtomic(rest) ? rest + "?" : `(?:${rest})?`)
-                );
+                )
               } else {
                 // Mixed: some empty, some not — if non-empties condense to a char class use [x]?
                 let condensedNonEmpty = condenseAlternationParts(
                   nonEmpty,
                   flags,
-                );
+                )
                 if (condensedNonEmpty != null) {
                   return (
-                    validPrefix +
-                    (isAtomic(condensedNonEmpty) ?
-                      condensedNonEmpty + "?"
-                    : `(?:${condensedNonEmpty})?`)
-                  );
+                    validPrefix
+                    + (isAtomic(condensedNonEmpty)
+                      ? condensedNonEmpty + "?"
+                      : `(?:${condensedNonEmpty})?`)
+                  )
                 }
-                let restAlt = rests.join("|");
-                let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`;
-                return validPrefix + wrapped;
+                let restAlt = rests.join("|")
+                let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`
+                return validPrefix + wrapped
               }
             }
           }
         }
 
         return (
-          condensePartsAdvanced(parts, flags) ??
-          condenseAlternationParts(parts, flags) ??
-          parts.join("|")
-        );
-      };
+          condensePartsAdvanced(parts, flags)
+          ?? condenseAlternationParts(parts, flags)
+          ?? parts.join("|")
+        )
+      }
 
-      let firstCharGroup = tryGroup(s => [...s][0]);
+      let firstCharGroup = tryGroup(s => [...s][0])
       let lastCharGroup = tryGroup(s => {
-        let cp = [...s];
-        return cp[cp.length - 1];
-      });
+        let cp = [...s]
+        return cp[cp.length - 1]
+      })
 
       if (firstCharGroup || lastCharGroup) {
-        let firstResult =
-          firstCharGroup ?
-            buildFromGroups(firstCharGroup.groups, firstCharGroup.charOrder)
-          : null;
-        let lastResult = null;
+        let firstResult = firstCharGroup
+          ? buildFromGroups(firstCharGroup.groups, firstCharGroup.charOrder)
+          : null
+        let lastResult = null
         if (lastCharGroup) {
           // Sort groups by descending size for better compression, ties preserve input order
           let lastOrder = [...lastCharGroup.charOrder].sort(
             (a, b) =>
-              lastCharGroup.groups.get(b).length -
-              lastCharGroup.groups.get(a).length,
-          );
-          lastResult = buildFromGroups(lastCharGroup.groups, lastOrder);
+              lastCharGroup.groups.get(b).length
+              - lastCharGroup.groups.get(a).length,
+          )
+          lastResult = buildFromGroups(lastCharGroup.groups, lastOrder)
         }
 
         if (firstResult != null && lastResult != null) {
           // Prefer fewer groups; on tie, prefer shorter result
-          let firstGroups = firstCharGroup.groups.size;
-          let lastGroups = lastCharGroup.groups.size;
-          return (
-              lastGroups < firstGroups ||
-                (lastGroups == firstGroups &&
-                  lastResult.length < firstResult.length)
-            ) ?
-              lastResult
-            : firstResult;
+          let firstGroups = firstCharGroup.groups.size
+          let lastGroups = lastCharGroup.groups.size
+          return lastGroups < firstGroups
+            || (lastGroups == firstGroups
+              && lastResult.length < firstResult.length)
+            ? lastResult
+            : firstResult
         }
-        return firstResult ?? lastResult;
+        return firstResult ?? lastResult
       }
     }
 
     // Use iterator to check code point count, not length property
     // Check if all are single characters (handling Unicode code points correctly)
     if (strings.every(s => [...s].length == 1)) {
-      let isUnicode = /u/.test(flags);
+      let isUnicode = /u/.test(flags)
       if (isUnicode || !strings.some(s => s.length > 1)) {
         return makeCharClass(
           strings.map(s => [...s][0]),
           flags,
-        );
+        )
       }
     }
 
     // Alternation
-    let escapedParts = strings.map(s => escapeRegExp(s, flags));
+    let escapedParts = strings.map(s => escapeRegExp(s, flags))
     return (
-      condensePartsAdvanced(escapedParts, flags) ??
-      condenseAlternationParts(escapedParts, flags) ??
-      escapedParts.join("|")
-    );
-  };
+      condensePartsAdvanced(escapedParts, flags)
+      ?? condenseAlternationParts(escapedParts, flags)
+      ?? escapedParts.join("|")
+    )
+  }
 
   // Input validation
   if (!isArray(input)) {
-    if (input == null) return RegExp("(?:)", flags);
-    throw TypeError("Input must be an array");
+    if (input == null) return RegExp("(?:)", flags)
+    throw TypeError("Input must be an array")
   }
   if (input.some(s => typeof s != "string"))
-    throw TypeError("All elements must be strings");
+    throw TypeError("All elements must be strings")
   if (!input || input.length == 0 || input.every(s => !s))
-    return RegExp("(?:)", flags);
+    return RegExp("(?:)", flags)
 
   // Remove duplicates, sort by code unit order
-  input = [...new Set(input)].sort();
+  input = [...new Set(input)].sort()
 
-  let pattern = buildPattern(input, flags);
-  return RegExp(pattern, flags);
+  let pattern = buildPattern(input, flags)
+  return RegExp(pattern, flags)
 }

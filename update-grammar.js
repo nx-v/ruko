@@ -1,47 +1,47 @@
-import yaml from "js-yaml";
-import jsesc from "jsesc";
-import regexGen from "./regex-gen.js";
-import genex from "genex";
-import prettier from "prettier";
-import {optimize} from "oniguruma-parser/optimizer";
-import {mirrorDir} from "./utils.js";
-import {readFileSync, writeFileSync} from "fs";
-import {toRegExp} from "oniguruma-to-es";
+import yaml from "js-yaml"
+import regexGen from "./regex-gen.js"
+import genex from "genex"
+import prettier from "prettier"
+import jsesc from "jsesc"
+import {toRegExp} from "oniguruma-to-es"
+import {optimize} from "oniguruma-parser/optimizer"
+import {mirrorDir} from "./utils.js"
+import {readFileSync, writeFileSync} from "fs"
 
-let {parse, stringify} = JSON;
-let {isArray} = Array;
-let {keys, fromEntries} = Object;
+let {parse, stringify} = JSON
+let {isArray} = Array
+let {keys, fromEntries} = Object
 
 let file = readFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml",
   "utf8",
-);
-let grammar = yaml.load(file);
+)
+let grammar = yaml.load(file)
 
 // === STRINGS ===
 grammar.repository.strings = (() => {
   let permutations = arr => {
-    if (arr.length == 0) return [[]];
-    let result = [];
+    if (arr.length == 0) return [[]]
+    let result = []
     for (let i = 0; i < arr.length; i++) {
-      let rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
-      for (let p of permutations(rest)) result.push([arr[i], ...p]);
+      let rest = [...arr.slice(0, i), ...arr.slice(i + 1)]
+      for (let p of permutations(rest)) result.push([arr[i], ...p])
     }
-    return result;
-  };
+    return result
+  }
 
   let powerSet = (arr, maxLen = arr.length) =>
     [...Array(1 << arr.length).keys()]
       .map(e => [...arr].filter((_, i) => (e >> i) & 1))
-      .filter(s => s.length <= maxLen);
+      .filter(s => s.length <= maxLen)
 
-  let escapeSym = s => s.replace(/[-/\\^$*+?.#()|[\]{}]/g, "\\$&");
+  let escapeSym = s => s.replace(/[-/\\^$*+?.#()|[\]{}]/g, "\\$&")
 
   let scope = ({quote = "'", flags = "", multi = false}) => {
-    let delimiter = quote == "'" ? "single" : "double";
-    let multiQuote = multi ? quote.repeat(3) + "+" : quote;
-    let patterns = flags.includes("$") ? [] : [{include: "#string-escapes"}];
-    let escapes = [];
+    let delimiter = quote == "'" ? "single" : "double"
+    let multiQuote = multi ? quote.repeat(3) + "+" : quote
+    let patterns = flags.includes("$") ? [] : [{include: "#string-escapes"}]
+    let escapes = []
 
     let map = {
       $: [
@@ -52,46 +52,45 @@ grammar.repository.strings = (() => {
       "%": ["format", {include: "#embedded-formatting"}],
       "@": ["template", {include: "#embedded-arguments"}],
       "#": ["interpolated", {include: "#embedded-expressions"}],
-    };
+    }
 
     if (flags.includes("$"))
-      for (let key of flags) if (key in map) escapes.push(map[key][2] || key);
+      for (let key of flags) if (key in map) escapes.push(map[key][2] || key)
 
-    let results = [];
+    let results = []
     for (let key of flags)
       if (key in map) {
         let match =
-          key != "$" ?
-            map[key][1]
-          : {
-              match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
-              name: "constant.character.escape.ruko",
-            };
-        patterns.push(match);
-        results.push(map[key][0]);
+          key != "$"
+            ? map[key][1]
+            : {
+                match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
+                name: "constant.character.escape.ruko",
+              }
+        patterns.push(match)
+        results.push(map[key][0])
       }
 
     let desc =
-      ["plain", results[0]][results.length] ||
-      new Intl.ListFormat("en").format(results);
+      ["plain", results[0]][results.length]
+      || new Intl.ListFormat("en").format(results)
 
-    let hasMulti = multi ? "multi " : "";
-    `${hasMulti}${delimiter}-quoted ${desc} string`
+    let hasMulti = multi ? "multi " : ""
+    ;`${hasMulti}${delimiter}-quoted ${desc} string`
       .trim()
-      .replace(/\s{2,}/g, ([match]) => match);
+      .replace(/\s{2,}/g, ([match]) => match)
 
     let flagCombis = permutations([...flags]).map(
       x => x.map(y => escapeSym(y) + "+").join``,
-    ).join`|`;
+    ).join`|`
 
     return {
       comment: `${hasMulti} ${delimiter}-quoted ${desc} string`
         .trim()
         .replace(/\s{2,}/g, match => match[0]),
       begin: `\\s*(${flagCombis})(${multiQuote})\\s*`,
-      contentName:
-        /@/.test(flags) ?
-          "string.template.ruko"
+      contentName: /@/.test(flags)
+        ? "string.template.ruko"
         : `string.quoted.${delimiter}.ruko`,
       end: `\\s*((\\2)(?!${quote}+))`,
       captures: {
@@ -99,39 +98,40 @@ grammar.repository.strings = (() => {
         2: {name: "punctuation.definition.string.ruko"},
       },
       patterns,
-    };
-  };
+    }
+  }
 
   let combinations = powerSet("$#%@")
     .map(x => x.join``)
-    .sort((a, b) => b.length - a.length);
+    .sort((a, b) => b.length - a.length)
 
-  let map = [];
+  let map = []
   for (let flag of combinations) {
-    map.push(scope({quote: "'", flags: flag, multi: true}));
-    map.push(scope({quote: '"', flags: flag, multi: true}));
-    map.push(scope({quote: "'", flags: flag}));
-    map.push(scope({quote: '"', flags: flag}));
+    map.push(scope({quote: "'", flags: flag, multi: true}))
+    map.push(scope({quote: '"', flags: flag, multi: true}))
+    map.push(scope({quote: "'", flags: flag}))
+    map.push(scope({quote: '"', flags: flag}))
   }
 
-  map.sort((a, b) => keys(b.patterns).length - keys(a.patterns).length);
+  map.sort((a, b) => keys(b.patterns).length - keys(a.patterns).length)
 
-  return {patterns: map};
-})();
+  return {patterns: map}
+})()
 
 let sortKeys = obj =>
-  isArray(obj) ? obj.map(sortKeys)
-  : obj && typeof obj == "object" ?
-    fromEntries(
-      keys(obj)
-        .sort((a, b) => a.localeCompare(b))
-        .map(k => [k, sortKeys(obj[k])]),
-    )
-  : obj;
+  isArray(obj)
+    ? obj.map(sortKeys)
+    : obj && typeof obj == "object"
+      ? fromEntries(
+          keys(obj)
+            .sort((a, b) => a.localeCompare(b))
+            .map(k => [k, sortKeys(obj[k])]),
+        )
+      : obj
 
 // clone grammar object
-let _this = parse(stringify(grammar));
-delete grammar.repository.define;
+let _this = parse(stringify(grammar))
+delete grammar.repository.define
 
 for (let k of ["keywords", "declaration-keywords"])
   _this.repository.define.repository[k].match = optimize(
@@ -139,7 +139,7 @@ for (let k of ["keywords", "declaration-keywords"])
   ).pattern.replace(
     /(?<=\\b\(\?:).+(?=\)\\b$)/,
     p0 => regexGen(genex(p0).generate()).source,
-  );
+  )
 
 // remove "comment" and "define" keys from all sub-objects in repository
 grammar = parse(
@@ -147,8 +147,8 @@ grammar = parse(
     switch (typeof value) {
       case "object":
         if (value.comment || value.define) {
-          delete value.comment;
-          delete value.define;
+          delete value.comment
+          delete value.define
         }
         if (/^stdlib/.test(key))
           if (value.patterns) {
@@ -157,54 +157,58 @@ grammar = parse(
                 val.match = optimize(val.match).pattern.replace(
                   /(?<=\\b\().+(?=\)\\b$)/,
                   p0 => regexGen(genex(p0).generate()).source,
-                );
-              return val;
-            });
-            return value;
+                )
+              return val
+            })
+            return value
           }
-        break;
+        break
       case "string":
         if (["begin", "end", "match", "while"].includes(key.trim()))
           try {
             if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
               value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
-                let code = p2.replace(/(?<!\\)#this\./, "_this.");
-                return eval(code);
-              });
-            return optimize(value).pattern;
+                let code = p2.replace(/(?<!\\)#this\./, "_this.")
+                return eval(code)
+              })
+            return optimize(value).pattern
           } catch (err) {
-            return value;
+            return value
           }
     }
-    return value;
+    return value
   }),
-);
+)
 
 let stdlib = parse(
   readFileSync(
     "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
     "utf8",
   ),
-);
-grammar.information_for_contributors = stdlib.information_for_contributors;
+)
+grammar.information_for_contributors = stdlib.information_for_contributors
 grammar.repository = {
   ...grammar.repository, // main grammar patterns
   ...stdlib.repository, // standard library patterns
-};
-grammar = stringify(grammar, null, 2);
+}
+grammar = await prettier.format(stringify(grammar), {
+  parser: "json",
+  tabWidth: 2,
+  bracketSpacing: false,
+})
 
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json",
   grammar,
-);
+)
 writeFileSync(
   "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json",
   grammar,
-);
+)
 mirrorDir(
   "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1",
   "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
-);
+)
 
 // compile for Shiki Misaki
 /*
@@ -218,29 +222,26 @@ grammar unless they are pre-generated and hardcoded into the YAML file.
 */
 grammar = parse(grammar, (key, value) => {
   if (
-    ["begin", "end", "match", "while"].includes(key) &&
-    typeof value == "string"
+    ["begin", "end", "match", "while"].includes(key)
+    && typeof value == "string"
   )
     try {
-      return RegExp(toRegExp(value).source);
+      return RegExp(toRegExp(value).source)
     } catch {
       try {
-        return optimize(value).pattern;
+        return optimize(value).pattern
       } catch {
-        return value;
+        return value
       }
     }
-  return value;
-});
+  return value
+})
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
   await prettier.format(
-    "export default " +
-      jsesc(grammar, {
-        compact: false,
-        quotes: "double",
-      }) +
-      ";",
+    "export default "
+      + jsesc(grammar, {compact: false, quotes: "double"})
+      + ";",
     {parser: "babel", singleQuote: false, trailingComma: "all", tabWidth: 2},
   ),
-);
+)
