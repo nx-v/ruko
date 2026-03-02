@@ -1,9 +1,9 @@
 import {globSync} from "glob";
 import {readFileSync, writeFileSync} from "fs";
-import platform from "./src/platform.tmLanguage.json" with {type: "json"};
 import regexGen from "./regex-gen.js";
 import genex from "genex";
 import {unicodeName} from "unicode-name";
+import platform from "./src/platform.tmLanguage.json" with {type: "json"};
 
 let {isArray, from} = Array;
 let {fromCodePoint} = String;

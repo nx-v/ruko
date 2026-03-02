@@ -133,6 +133,14 @@ let sortKeys = obj =>
 let _this = parse(stringify(grammar));
 delete grammar.repository.define;
 
+for (let k of ["keywords", "declaration-keywords"])
+  _this.repository.define.repository[k].match = optimize(
+    _this.repository.define.repository[k].match,
+  ).pattern.replace(
+    /(?<=\\b\(\?:).+(?=\)\\b$)/,
+    p0 => regexGen(genex(p0).generate()).source,
+  );
+
 // remove "comment" and "define" keys from all sub-objects in repository
 grammar = parse(
   stringify(grammar, (key, value) => {

@@ -3,7 +3,7 @@ scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
-# Last updated: February 28, 2026
+# Last updated: March 2, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -304,6 +304,7 @@ repository:
       - include: "#ignore-long-lines"
       - include: "#punctuation"
       - include: "#directives"
+      - include: "#typed-bindings"
       - include: "#function-expression"
       - include: "#declarations"
       - include: "#variable-declarations"
@@ -355,14 +356,6 @@ repository:
 
   define:
     repository:
-      ignore-keywords:
-        match: |-
-          (?x)
-          \b
-          (?: # ignore keywords
-            (?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin)a|dec|de|imp)l|(?:[dr]e|(?:el)?i|o|of)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema
-          ) \b
-
       keywords:
         match: |-
           (?x)
@@ -390,6 +383,18 @@ repository:
             |debug|assert|check|decl|ignore
             |use|echo|eval|exec|scope|safe|unsafe
             |begin|end
+          ) \b
+
+      declaration-keywords:
+        match: |-
+          (?x)
+          \b
+          (?: # ignore keywords
+            # declaration keywords
+            va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
           ) \b
 
       identifiers:
@@ -494,7 +499,7 @@ repository:
                 (?:
                   < # generics
                     (?>
-                        \g<t> # either recurse or match balanced generics
+                        \g<0> # either recurse or match balanced generics
                       | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                           (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
                         )\s # infix type operators with spaces
@@ -502,18 +507,6 @@ repository:
                     )*
                   >
                 )?
-
-              | (?:
-                  \| # lambdas
-                    (?>
-                        \g<t> # either recurse or match balanced lambdas
-                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                          (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                        )\s # infix type operators with spaces
-                      | [^'"`|()\[\]{}]+ # anything that isn't a delimiter
-                    )*
-                  \|
-                )
 
               | (?:
                   (?:
@@ -526,21 +519,21 @@ repository:
                 \#? # optional sharp for splice invocation
 
                 (?:
-                  \( # round brackets
+                  \#?\( # round brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \) |
-                  \[ # square brackets
+                  \#?\[ # square brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \] |
-                  { # curly brackets
+                  \#?{ # curly brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   }
@@ -663,7 +656,7 @@ repository:
                 (?:
                   < # generics
                     (?>
-                        \g<t> # either recurse or match balanced generics
+                        \g<0> # either recurse or match balanced generics
                       | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                           (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
                         )\s # infix type operators with spaces
@@ -673,18 +666,6 @@ repository:
                 )?
 
               | (?:
-                  \| # lambdas
-                    (?>
-                        \g<t> # either recurse or match balanced lambdas
-                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                          (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                        )\s # infix type operators with spaces
-                      | [^'"`|()\[\]{}]+ # anything that isn't a delimiter
-                    )*
-                  \|
-                )
-
-              | (?:
                   (?:
                     (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
                     (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
@@ -692,24 +673,22 @@ repository:
                   (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
                 )?
 
-                \#? # optional sharp for splice invocation
-
                 (?:
-                  \( # round brackets
+                  \#?\( # round brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \) |
-                  \[ # square brackets
+                  \#?\[ # square brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \] |
-                  { # curly brackets
+                  \#?{ # curly brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   }
@@ -4845,7 +4824,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -4968,6 +4947,7 @@ repository:
       (?<=(?:^|;|\#?[(\[{])\s*)
       (
         (?:
+          \s*
           (?: # key
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
 
@@ -4981,6 +4961,7 @@ repository:
               (?:
                   :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
                 | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
+                | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
                 | \b (?i: # number literals
                     (?:
@@ -5055,24 +5036,23 @@ repository:
                   )?
 
                 | (?:
-                  \#? # optional sharp for splice invocation
 
                   (?:
-                    \( # round brackets
+                    \#?\( # round brackets
                       (?>
-                          \g<1> # either recurse or match balanced brackets
+                          \g<0> # either recurse or match balanced brackets
                         | [^'"`()\[\]{}]* # anything that isn't a delimiter
                       )*
                     \) |
-                    \[ # square brackets
+                    \#?\[ # square brackets
                       (?>
-                          \g<1> # either recurse or match balanced brackets
+                          \g<0> # either recurse or match balanced brackets
                         | [^'"`()\[\]{}]* # anything that isn't a delimiter
                       )*
                     \] |
-                    { # curly brackets
+                    \#?{ # curly brackets
                       (?>
-                          \g<1> # either recurse or match balanced brackets
+                          \g<0> # either recurse or match balanced brackets
                         | [^'"`()\[\]{}]* # anything that isn't a delimiter
                       )*
                     }
@@ -5085,29 +5065,25 @@ repository:
                 | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
                 | `(?>``|[^`])+` # identifier with backticks
                 | (?:
-                  \#? # optional sharp for splice invocation
-
-                  (?:
-                    \( # round brackets
+                    \#?\( # round brackets
                       (?>
-                          \g<1> # either recurse or match balanced brackets
+                          \g<0> # either recurse or match balanced brackets
                         | [^'"`()\[\]{}]* # anything that isn't a delimiter
                       )*
                     \) |
-                    \[ # square brackets
+                    \#?\[ # square brackets
                       (?>
-                          \g<1> # either recurse or match balanced brackets
+                          \g<0> # either recurse or match balanced brackets
                         | [^'"`()\[\]{}]* # anything that isn't a delimiter
                       )*
                     \] |
-                    { # curly brackets
+                    \#?{ # curly brackets
                       (?>
-                          \g<1> # either recurse or match balanced brackets
+                          \g<0> # either recurse or match balanced brackets
                         | [^'"`()\[\]{}]* # anything that isn't a delimiter
                       )*
                     }
                   )+ # allow chaining
-                )
               )*
             )
 
@@ -5154,7 +5130,6 @@ repository:
                 [,;'"`()\[\]{}\w]
               )
           )+
-          \s*
         )+
       )
       \s*
@@ -5538,27 +5513,7 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
-          (?<!
-            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # mandatory prefix operators
-            (?: # identifier
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-              (?:
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )*
-            )
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*\s+ # optional suffix operators
-            |
-            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # optional prefix operators
-            (?: # identifier
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-              (?:
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )*
-            )
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+\s+ # mandatory suffix operators
-          )
+          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
           (
             (?!
@@ -5634,6 +5589,7 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
+      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
       (
         (?!
@@ -5649,7 +5605,7 @@ repository:
       (?:(!)|(~)|(\*))? # macro, destructor, or generator call
 
       (?!
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | # infix operator not beginning with /
@@ -5686,7 +5642,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
                 )
                 \s*
               )+
@@ -5700,7 +5656,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<6>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<6>')
               )
               \s*
             )+
@@ -5850,6 +5806,7 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
+      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
       (
         (?!
@@ -5864,7 +5821,7 @@ repository:
       )
 
       (?!
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | # infix operator not beginning with /
           \s+
@@ -5909,7 +5866,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                 )
                 \s*
               )+
@@ -5923,7 +5880,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -6001,7 +5958,7 @@ repository:
           (
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -6063,7 +6020,7 @@ repository:
           (
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -6113,7 +6070,7 @@ repository:
       (
         (?:
           (?:
-            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
           )
           \s*
         )+
@@ -6250,6 +6207,7 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
+      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
       (
         (?:
@@ -6285,7 +6243,7 @@ repository:
       )
 
       (?! 
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | # accessor or assignment
           (?:
             (?:[?!]?\.|[?!:]:|[?!-]>)=?
@@ -6334,7 +6292,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                 )
                 \s*
               )+
@@ -6348,7 +6306,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -6702,14 +6660,9 @@ repository:
       )
 
       (?=
-        \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # declaration keywords
-          va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-        )
-        \b\s*
+        \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['declaration-keywords'].match
+        \s*
       )
     captures:
       1:
@@ -6736,7 +6689,7 @@ repository:
       )
 
       (?!
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           [:>] (?:\s* (?:[,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
         | # infix operator not beginning with /
@@ -6774,7 +6727,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<2>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
               )
               \s*
             )+
@@ -7006,13 +6959,8 @@ repository:
       - match: |-
           (?x)
           \s*
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # declaration keywords
-            va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-          )\b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['declaration-keywords'].match
           \s*
         name: storage.type.$1.ruko
 
@@ -7193,6 +7141,7 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
+          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
           (
             (?!
@@ -7203,7 +7152,7 @@ repository:
           )
 
           (?!
-              \s+ \#?{ # beginning of block
+              [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
             | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
               : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
             | # infix operator not beginning with /
@@ -7240,7 +7189,7 @@ repository:
                   (?:[,;] \s*)* # optional separators
                   (?:
                     (?:
-                      #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                      #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                     )
                     \s*
                   )+
@@ -7254,7 +7203,7 @@ repository:
                     #this.repository.define.repository.keywords.match
                   )
                   (?:
-                    #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<3>')
+                    #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
                   )
                   \s*
                 )+
@@ -7357,7 +7306,7 @@ repository:
             #this.repository.define.repository.keywords.match
           )
           (?:
-            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
           )
           \s*
         )+
@@ -7376,7 +7325,7 @@ repository:
       \s*
 
       (?= # assignment
-          [?:]= (?:
+          [?:]?= (?:
               \s+ # space after assignment operator
             | [)\]}] # closing brackets
             | (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operators
@@ -7408,7 +7357,7 @@ repository:
         )
         (?:
           (?:
-            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
           )
           \s*
         )+
@@ -7479,7 +7428,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -7489,31 +7438,8 @@ repository:
           ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink|lend|steal
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository.keywords.match
           )
           ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -7968,13 +7894,7 @@ repository:
 
           \s*
           (?=
-            \b
-            (?: # declaration keywords
-              func|pro[pc]|type|class|actor|trait|enum|in?ter
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-            )
-            \b
+            #this.repository.define.repository['declaration-keywords'].match
           )
         name: meta.function.declaration.ruko
         captures:
@@ -7996,7 +7916,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -8007,7 +7927,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
               )
               \s*
             )+
@@ -8042,13 +7962,7 @@ repository:
 
           \s*
           (?=
-            \b
-            (?: # declaration keywords
-              func|pro[pc]|type|class|actor|trait|enum|in?ter
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-            )
-            \b
+            #this.repository.define.repository['declaration-keywords'].match
           )
         name: meta.function.declaration.ruko
         captures:
@@ -8071,7 +7985,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -8082,7 +7996,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
               )
               \s*
             )+
@@ -8122,7 +8036,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -8135,7 +8049,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<4>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<4>')
               )
               \s*
             )+
@@ -8169,7 +8083,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -8488,13 +8402,7 @@ repository:
                   )
                   \s*
                 )* \s*
-                \b
-                (?: # declaration keywords
-                  func|pro[pc]|type|class|actor|trait|enum|in?ter
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-                )
-                \b
+                #this.repository.define.repository['declaration-keywords'].match
               ) | ( # lambda declaration
                 (?!
                   (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -8502,7 +8410,7 @@ repository:
                 )
                 (?:
                   (?:
-                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                   )
                   \s*
                 )+
@@ -8512,7 +8420,7 @@ repository:
                 (?:[,;] \s*)* # optional separators
                 (?:
                   (?:
-                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
                   )
                   \s*
                 )+

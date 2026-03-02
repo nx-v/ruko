@@ -336,7 +336,7 @@ let v6: Pair<int, str>   = Pair(1, "x")
 // ----- Function types -----
 let fn1: func(int, int): int    = |a, b| a + b
 let fn2: proc(str): void        = |s| print(s)
-let fn3: func(): bool            = || true
+let fn3: func(): bool            = |()| true
 let fn4: async func(str): str    = async |s| s ++ "!"
 
 // ----- Type aliases -----
@@ -352,7 +352,7 @@ class Stack<T> { /* ... */ }
 struct Pair2<A, B> { A first; B second }
 
 // Type parameter with constraint
-func sum<T: Numeric>([]T xs): T { xs.fold(T.zero, |+|) }
+func sum<T: Numeric>([]T xs): T { xs.fold(T.zero, +) }
 func eq<T: Eq & Hash>(T a, T b): bool { a == b }
 
 // Inferred type parameter
@@ -2568,9 +2568,9 @@ let v1 = ptr->value               // pointer dereference
 let n1 = node->next->data         // chained pointer dereference
 
 // Optional arrow access
-let v2 = ptr?->value
+let v2 = ptr?>value
 // Force arrow access
-let v3 = ptr!->value
+let v3 = ptr!>value
 
 // ----- Scope resolution operator (::) -----
 let mod  = Module::function       // module-qualified
@@ -3970,7 +3970,7 @@ let r10 = add10(5)     // 15
 
 // Passed as argument
 let doubled = [1, 2, 3].map(|x| x * 2)
-let evens   = [1,2,3,4,5].filter(|x| x % 2 == 0)
+let evens   = [1, 2, 3, 4, 5].filter(|x| x % 2 == 0)
 let total   = [1, 2, 3, 4].fold(0, |acc, x| acc + x)
 
 // ============================================================
@@ -3979,7 +3979,7 @@ let total   = [1, 2, 3, 4].fold(0, |acc, x| acc + x)
 
 // (no parentheses needed — last arg is a lambda)
 let r = map(list) |x| x * 2
-let e = filter([1,2,3,4]) |x| x > 2
+let e = filter([1, 2, 3, 4]) |x| x > 2
 let f2 = reduce(arr, 0) |acc, x| acc + x
 let sorted2 = sort_by(items) |a, b| a.name <=> b.name
 
@@ -4502,7 +4502,7 @@ style FocusStyle [input, textarea, button] {
 
 // Splice form #[...]
 let arr4 = #[1, 2, 3]
-let arr5 = #[*existing, 4]
+let arr5 = #[..existing, 4]
 
 // ============================================================
 // ANGLE BRACKETS  < >
@@ -4562,7 +4562,7 @@ let deref2 = ptr->value
 let next   = node->next->data
 
 // Optional arrow
-let safe_v = ptr?->value
+let safe_v = ptr?>value
 
 // ============================================================
 // COMMA FORMS IN COMPLEX CONTEXTS
