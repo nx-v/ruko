@@ -4,7 +4,7 @@ scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{ include: "#core" }]
 
-# Last updated: February 28, 2026
+# Last updated: March 2, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -305,6 +305,8 @@ repository:
       - include: "#ignore-long-lines"
       - include: "#punctuation"
       - include: "#directives"
+      - include: "#literals"
+      - include: "#typed-bindings"
       - include: "#function-expression"
       - include: "#declarations"
       - include: "#variable-declarations"
@@ -318,7 +320,6 @@ repository:
       - include: "#function-calls"
       - include: "#xml-tags"
       - include: "#angle-brackets"
-      - include: "#literals"
       - include: "#accessor-operators"
       - include: "#type-cast-operators"
       - include: "#brackets"
@@ -356,14 +357,6 @@ repository:
 
   define:
     repository:
-      ignore-keywords:
-        match: |-
-          (?x)
-          \b
-          (?: # ignore keywords
-            (?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin)a|dec|de|imp)l|(?:[dr]e|(?:el)?i|o|of)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema
-          ) \b
-
       keywords:
         match: |-
           (?x)
@@ -391,6 +384,18 @@ repository:
             |debug|assert|check|decl|ignore
             |use|echo|eval|exec|scope|safe|unsafe
             |begin|end
+          ) \b
+
+      declaration-keywords:
+        match: |-
+          (?x)
+          \b
+          (?: # ignore keywords
+            # declaration keywords
+            va[rl]|let|mut|const
+            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
+            |module|schema|struct|record|object|union|macro|space
+            |query|quote|style|script|shader|compo|temp|oper|realm
           ) \b
 
       identifiers:
@@ -495,7 +500,7 @@ repository:
                 (?:
                   < # generics
                     (?>
-                        \g<t> # either recurse or match balanced generics
+                        \g<0> # either recurse or match balanced generics
                       | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                           (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
                         )\s # infix type operators with spaces
@@ -503,18 +508,6 @@ repository:
                     )*
                   >
                 )?
-
-              | (?:
-                  \| # lambdas
-                    (?>
-                        \g<t> # either recurse or match balanced lambdas
-                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                          (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                        )\s # infix type operators with spaces
-                      | [^'"`|()\[\]{}]+ # anything that isn't a delimiter
-                    )*
-                  \|
-                )
 
               | (?:
                   (?:
@@ -527,21 +520,21 @@ repository:
                 \#? # optional sharp for splice invocation
 
                 (?:
-                  \( # round brackets
+                  \#?\( # round brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \) |
-                  \[ # square brackets
+                  \#?\[ # square brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \] |
-                  { # curly brackets
+                  \#?{ # curly brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   }
@@ -664,7 +657,7 @@ repository:
                 (?:
                   < # generics
                     (?>
-                        \g<t> # either recurse or match balanced generics
+                        \g<0> # either recurse or match balanced generics
                       | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
                           (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
                         )\s # infix type operators with spaces
@@ -674,18 +667,6 @@ repository:
                 )?
 
               | (?:
-                  \| # lambdas
-                    (?>
-                        \g<t> # either recurse or match balanced lambdas
-                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                          (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                        )\s # infix type operators with spaces
-                      | [^'"`|()\[\]{}]+ # anything that isn't a delimiter
-                    )*
-                  \|
-                )
-
-              | (?:
                   (?:
                     (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
                     (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
@@ -693,24 +674,22 @@ repository:
                   (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
                 )?
 
-                \#? # optional sharp for splice invocation
-
                 (?:
-                  \( # round brackets
+                  \#?\( # round brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \) |
-                  \[ # square brackets
+                  \#?\[ # square brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   \] |
-                  { # curly brackets
+                  \#?{ # curly brackets
                     (?>
-                        \g<t> # either recurse or match balanced brackets
+                        \g<0> # either recurse or match balanced brackets
                       | [^'"`()\[\]{}]* # anything that isn't a delimiter
                     )*
                   }
@@ -1488,7 +1467,6 @@ repository:
       - include: "#markdown"
       - include: "#regexps"
       - include: "#strings"
-      - include: "#strings-bracketed"
       - include: "#symbols"
       - include: "#numbers"
       - include: "#symbols"
@@ -1548,324 +1526,124 @@ repository:
 
   numbers:
     patterns:
-      - applyEndPatternLast: true
-        comment: arbitrary base numbers (\d+b prefix)
-        name: constant.numeric.arbitrary-base.ruko
-        begin: |-
+      - comment: arbitrary base numbers (\d+b prefix)
+        match: |-
           (?xi)\b
-            ((?!0)\d+)(b) # base prefix
-            (\p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})?) # digits
-        end: $|
-        captures:
+          ([1-9]\d*b) \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
+          (?: (\.)    \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
+              (\/)    \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
+          (?: (\\?e) ([+-]?) \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+        captures: &number-captures
+          0: { name: constant.numeric.arbitrary-base.ruko }
           1: { name: storage.type.numeric.ruko }
-          2: { name: storage.type.numeric.base.ruko }
-          3: { name: constant.numeric.arbitrary-base.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              (\p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})?) | # fractional digits
-              (/) # rational delimiter
-              (\p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})?) # denominator
-            name: constant.numeric.arbitrary-base.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.arbitrary-base.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.arbitrary-base.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              (\p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.arbitrary-base.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: binary (0b prefix)
-        name: constant.numeric.binary.ruko
-        begin: |-
-          (?xi)\b(0b) # prefix
-            ([01](?:[01\p{Pc}]*[01])?) # binary digits
-        end: $|
+          2: { name: punctuation.separator.decimal.ruko }
+          3: { name: punctuation.separator.rational.ruko }
+          4: { name: keyword.operator.expression.exponent.ruko }
+          5: { name: keyword.operator.sign.exponent.ruko }
+          6: { name: keyword.operator.expression.byte-shift.ruko }
+          7: { name: keyword.operator.sign.byte-shift.ruko }
+      - comment: binary (0b prefix)
+        match: |-
+          (?xi)\b
+          (0b) [01](?:_?[01])*
+          (?: (\.)    [01](?:_?[01])* | # decimal point
+              (\/)    [01](?:_?[01])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.binary.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              ([01](?:[01\p{Pc}]*[01])?) | # fractional digits
-              (/) # rational delimiter
-              ([01](?:[01\p{Pc}]*[01])?) # denominator
-            name: constant.numeric.binary.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.binary.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.binary.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([01](?:[01\p{Pc}]*[01])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.binary.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: ternary (0t prefix)
-        name: constant.numeric.ternary.ruko
-        begin: |-
-          (?xi)\b(0t) # prefix
-            ([0-2](?:[0-2\p{Pc}]*[0-2])?) # ternary digits
-        end: $|
+          0: { name: constant.numeric.binary.ruko }
+          1: { name: storage.type.numeric.binary.ruko }
+          <<: *number-captures
+      - comment: ternary (0t prefix)
+        match: |-
+          (?xi)\b
+          (0t) [0-2](?:_?[0-2])*
+          (?: (\.)    [0-2](?:_?[0-2])* | # decimal point
+              (\/)    [0-2](?:_?[0-2])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.ternary.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              ([0-2](?:[0-2\p{Pc}]*[0-2])?) | # fractional digits
-              (/) # rational delimiter
-              ([0-2](?:[0-2\p{Pc}]*[0-2])?) # denominator
-            name: constant.numeric.ternary.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.ternary.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.ternary.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([0-2](?:[0-2\p{Pc}]*[0-2])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.ternary.exponent.ruko }
-          - match: |-
-              (?xi)(/) # rational delimiter
-              ([0-2](?:[0-2\p{Pc}]*[0-2])?) # denominator
-            captures:
-              1: { name: punctuation.separator.rational.ruko }
-              2: { name: constant.numeric.ternary.denominator.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: quaternary (0q prefix)
-        name: constant.numeric.quaternary.ruko
-        begin: |-
-          (?xi)\b(0q) # prefix
-            ([0-3](?:[0-3\p{Pc}]*[0-3])?) # quaternary digits
-        end: $|
+          0: { name: constant.numeric.ternary.ruko }
+          1: { name: storage.type.numeric.ternary.ruko }
+          <<: *number-captures
+      - comment: quarternary (0q prefix)
+        match: |-
+          (?xi)\b
+          (0q) [0-3](?:_?[0-3])*
+          (?: (\.)    [0-3](?:_?[0-3])* | # decimal point
+              (\/)    [0-3](?:_?[0-3])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.quaternary.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              ([0-3](?:[0-3\p{Pc}]*[0-3])?) | # fractional digits
-              (/) # rational delimiter
-              ([0-3](?:[0-3\p{Pc}]*[0-3])?) # denominator
-            name: constant.numeric.quaternary.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.quaternary.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.quaternary.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([0-3](?:[0-3\p{Pc}]*[0-3])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.quaternary.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: senary (0s prefix)
-        name: constant.numeric.senary.ruko
-        begin: |-
-          (?xi)\b(0s) # prefix
-            ([0-5](?:[0-5\p{Pc}]*[0-5])?) # senary digits
-        end: $|
+          0: { name: constant.numeric.quarternary.ruko }
+          1: { name: storage.type.numeric.quarternary.ruko }
+          <<: *number-captures
+      - comment: senary (0s prefix)
+        match: |-
+          (?xi)\b
+          (0s) [0-5](?:_?[0-5])*
+          (?: (\.)    [0-5](?:_?[0-5])* | # decimal point
+              (\/)    [0-5](?:_?[0-5])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.senary.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              ([0-5](?:[0-5\p{Pc}]*[0-5])?) | # fractional digits
-              (/) # rational delimiter
-              ([0-5](?:[0-5\p{Pc}]*[0-5])?) # denominator
-            name: constant.numeric.senary.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.senary.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.senary.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([0-5](?:[0-5\p{Pc}]*[0-5])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.senary.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: octal (0o prefix)
-        name: constant.numeric.octal.ruko
-        begin: |-
-          (?xi)\b(0o) # prefix
-            ([0-7](?:[0-7\p{Pc}]*[0-7])?) # octal digits
-        end: $|
+          0: { name: constant.numeric.senary.ruko }
+          1: { name: storage.type.numeric.senary.ruko }
+          <<: *number-captures
+      - comment: octal (0o prefix)
+        match: |-
+          (?xi)\b
+          (0o) [0-7](?:_?[0-7])*
+          (?: (\.)    [0-7](?:_?[0-7])* | # decimal point
+              (\/)    [0-7](?:_?[0-7])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.octal.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              ([0-7](?:[0-7\p{Pc}]*[0-7])?) | # fractional digits
-              (/) # rational delimiter
-              ([0-7](?:[0-7\p{Pc}]*[0-7])?) # denominator
-            name: constant.numeric.octal.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.octal.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.octal.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([0-7](?:[0-7\p{Pc}]*[0-7])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.octal.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: duodecimal (0z prefix)
-        name: constant.numeric.duodecimal.ruko
-        begin: |-
-          (?xi)\b(0z) # prefix
-            ([\dab](?:[\dab\p{Pc}]*[\dab])?) # duodecimal digits
-        end: $|
+          0: { name: constant.numeric.octal.ruko }
+          1: { name: storage.type.numeric.octal.ruko }
+          <<: *number-captures
+      - comment: duodecimal (0d prefix)
+        match: |-
+          (?xi)\b
+          (0d) [0-9](?:_?[0-9])*
+          (?: (\.)    [0-9](?:_?[0-9])* | # decimal point
+              (\/)    [0-9](?:_?[0-9])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.duodecimal.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              ([\dab](?:[\dab\p{Pc}]*[\dab])?) | # fractional digits
-              (/) # rational delimiter
-              ([\dab](?:[\dab\p{Pc}]*[\dab])?) # denominator
-            name: constant.numeric.duodecimal.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.duodecimal.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.duodecimal.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              ([\dab](?:[\dab\p{Pc}]*[\dab])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.duodecimal.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: hexadecimal (0x prefix)
-        name: constant.numeric.hexadecimal.ruko
-        begin: |-
-          (?xi)\b(0x) # prefix
-            (\h(?:[\h_]*[\h])?) # hexadecimal digits
-        end: $|
+          0: { name: constant.numeric.decimal.ruko }
+          1: { name: storage.type.numeric.decimal.ruko }
+          <<: *number-captures
+      - comment: hexadecimal (0x prefix)
+        match: |-
+          (?xi)\b
+          (0x) [0-9a-f](?:_?[0-9a-f])*
+          (?: (\.)    [0-9a-f](?:_?[0-9a-f])* | # decimal point
+              (\/)    [0-9a-f](?:_?[0-9a-f])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: storage.type.numeric.ruko }
-          2: { name: constant.numeric.hexadecimal.digits.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              (\h(?:[\h_]*[\h])?) | # fractional digits
-              (/) # rational delimiter
-              (\h(?:[\h_]*[\h])?) # denominator
-            name: constant.numeric.hexadecimal.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.hexadecimal.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.hexadecimal.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              (\h(?:[\h_]*[\h])?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.hexadecimal.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
-      - applyEndPatternLast: true
-        comment: decimal (no prefix)
-        name: constant.numeric.decimal.ruko
-        begin: |-
-          (?xi)\b(?:) # no prefix
-            (\d(?:[\d_]*\d)?) # integer part
-        end: $|
+          0: { name: constant.numeric.hexadecimal.ruko }
+          1: { name: storage.type.numeric.hexadecimal.ruko }
+          <<: *number-captures
+      - comment: decimal (no prefix)
+        match: |-
+          (?xi)\b
+          (0|[1-9](?:_?[0-9])*)
+          (?: (\.)    [0-9](?:_?[0-9])* | # decimal point
+              (\/)    [0-9](?:_?[0-9])* )? # fractional part
+          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
+              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
         captures:
-          1: { name: constant.numeric.decimal.integer.ruko }
-        patterns:
-          - match: |-
-              (?x)
-              (\.) # decimal delimiter
-              (\d(?:[\d_]*\d)?) | # fractional part
-              (/) # rational delimiter
-              (\d(?:[\d_]*\d)?) # denominator
-            name: constant.numeric.decimal.fraction.ruko
-            captures:
-              1: { name: punctuation.separator.decimal.ruko }
-              2: { name: constant.numeric.decimal.fraction.ruko }
-              3: { name: punctuation.separator.rational.ruko }
-              4: { name: constant.numeric.decimal.denominator.ruko }
-          - match: |-
-              (?xi)(\\?e) # exponent delimiter
-              ([+-])? # sign
-              (\d(?:[\d_]*\d)?) # exponent
-            captures:
-              1: { name: keyword.operator.expression.exponent.ruko }
-              2: { name: keyword.operator.sign.exponent.ruko }
-              3: { name: constant.numeric.decimal.exponent.ruko }
-          - include: "#byte-shift-suffix"
-          - include: "#unit-suffix"
+          0: { name: constant.numeric.decimal.ruko }
+          1: { name: constant.numeric.decimal.ruko }
+          <<: *number-captures
+      - include: "#unit-suffix"
 
   unit-suffix:
-    match: (?<=['")\]}\w])(?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)
+    match: (?<=['"\w])(?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)
     name: keyword.other.unit.ruko
-
-  byte-shift-suffix:
-    match: |-
-      (?xi)(\\?p) # power of two
-      ([+-])? # sign
-      ([\d_]+) # exponent
-    captures:
-      1: { name: keyword.operator.expression.exponent.ruko }
-      2: { name: keyword.operator.sign.exponent.ruko }
-      3: { name: constant.numeric.decimal.exponent.ruko }
 
   # Symbols
 
@@ -4016,6 +3794,7 @@ repository:
       - include: "#urls"
       - include: "#word-arrays"
       - include: "#file-paths"
+      - include: "#strings-bracketed"
       - include: "#script-literals"
 
   glob-syntax:
@@ -4846,7 +4625,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -4969,193 +4748,8 @@ repository:
       (?<=(?:^|;|\#?[(\[{])\s*)
       (
         (?:
-          (?: # key
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-
-            (?:
-              (?:
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-              )*
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-
-              (?:
-                  :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
-                | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
-
-                | \b (?i: # number literals
-                    (?:
-                      [1-9]\d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
-                      (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
-                          /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
-                      (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0b [01](?:[01\p{Pc}]*[01])? # binary
-                      (?: \. [01](?:[01\p{Pc}]*[01])? | # decimal point
-                          /  [01](?:[01\p{Pc}]*[01])? )? # fractional part
-                      (?: \\?e [+-]? [01](?:[01\p{Pc}]*[01])? | # binary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0t [0-2](?:[0-2\p{Pc}]*[0-2])? # ternary
-                      (?: \. [0-2](?:[0-2\p{Pc}]*[0-2])? | # decimal point
-                          /  [0-2](?:[0-2\p{Pc}]*[0-2])? )? # fractional part
-                      (?: \\?e [+-]? [0-2](?:[0-2\p{Pc}]*[0-2])? | # ternary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0q [0-3](?:[0-3\p{Pc}]*[0-3])? # quaternary
-                      (?: \. [0-3](?:[0-3\p{Pc}]*[0-3])? | # decimal point
-                          /  [0-3](?:[0-3\p{Pc}]*[0-3])? )? # fractional part
-                      (?: \\?e [+-]? [0-3](?:[0-3\p{Pc}]*[0-3])? | # quaternary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0s [0-5](?:[0-5\p{Pc}]*[0-5])? # senary
-                      (?: \. [0-5](?:[0-5\p{Pc}]*[0-5])? | # decimal point
-                          /  [0-5](?:[0-5\p{Pc}]*[0-5])? )? # fractional part
-                      (?: \\?e [+-]? [0-5](?:[0-5\p{Pc}]*[0-5])? | # senary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0o [0-7](?:[0-7\p{Pc}]*[0-7])? # octal
-                      (?: \. [0-7](?:[0-7\p{Pc}]*[0-7])? | # decimal point
-                          /  [0-7](?:[0-7\p{Pc}]*[0-7])? )? # fractional part
-                      (?: \\?e [+-]? [0-7](?:[0-7\p{Pc}]*[0-7])? | # octal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0z [\dab](?:[\dab\p{Pc}]*[\dab])? # duodecimal
-                      (?: \. [\dab](?:[\dab\p{Pc}]*[\dab])? | # decimal point
-                          /  [\dab](?:[\dab\p{Pc}]*[\dab])? )? # fractional part
-                      (?: \\?e [+-]? [\dab](?:[\dab\p{Pc}]*[\dab])? | # duodecimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0x \h(?:[\h\p{Pc}]*\h)? # hexadecimal
-                      (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
-                          /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
-                      (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # hexadecimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      \d(?:[\d\p{Pc}]*\d)? # decimal
-                      (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
-                          /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
-                      (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    )
-                ) (?:
-                    (?: # unit suffix
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)? # last identifier
-                  )?
-
-                | (?:
-                  \#? # optional sharp for splice invocation
-
-                  (?:
-                    \( # round brackets
-                      (?>
-                          \g<1> # either recurse or match balanced brackets
-                        | [^'"`()\[\]{}]* # anything that isn't a delimiter
-                      )*
-                    \) |
-                    \[ # square brackets
-                      (?>
-                          \g<1> # either recurse or match balanced brackets
-                        | [^'"`()\[\]{}]* # anything that isn't a delimiter
-                      )*
-                    \] |
-                    { # curly brackets
-                      (?>
-                          \g<1> # either recurse or match balanced brackets
-                        | [^'"`()\[\]{}]* # anything that isn't a delimiter
-                      )*
-                    }
-                  )+ # allow chaining
-                )
-              )*
-
-              | (?:
-                  :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
-                | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
-                | `(?>``|[^`])+` # identifier with backticks
-                | (?:
-                  \#? # optional sharp for splice invocation
-
-                  (?:
-                    \( # round brackets
-                      (?>
-                          \g<1> # either recurse or match balanced brackets
-                        | [^'"`()\[\]{}]* # anything that isn't a delimiter
-                      )*
-                    \) |
-                    \[ # square brackets
-                      (?>
-                          \g<1> # either recurse or match balanced brackets
-                        | [^'"`()\[\]{}]* # anything that isn't a delimiter
-                      )*
-                    \] |
-                    { # curly brackets
-                      (?>
-                          \g<1> # either recurse or match balanced brackets
-                        | [^'"`()\[\]{}]* # anything that isn't a delimiter
-                      )*
-                    }
-                  )+ # allow chaining
-                )
-              )*
-            )
-
-            (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
-
-            | # infix type operator with spaces on both sides
-              (?<=
-                [,;'"`()\[\]{}\w]
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
-              )
-              \s+
-              (?!
-                [?:]?= \s # disallow type annotations in declarations and bindings
-              )
-              (?:
-                [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                (?:[\p{P}\p{S}]*
-                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                )?
-              )
-              \s+
-              (?=
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                [,;'"`()\[\]{}\w]
-              )
-            | # interfix type operator with no spaces on either side
-              (?<=
-                [,;'"`()\[\]{}\w]
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+\s)? # postfix type operators
-              )
-              (?!
-                [?:]?= # disallow type annotations in declarations and bindings
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                [,;'"`()\[\]{}\w]
-              )
-              (?:
-                [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
-                (?:[\p{P}\p{S}]*
-                  [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]+
-                )?
-              )
-              (?=
-                (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
-                [,;'"`()\[\]{}\w]
-              )
-          )+
           \s*
+          #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
         )+
       )
       \s*
@@ -5539,27 +5133,7 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
-          (?<!
-            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+ # mandatory prefix operators
-            (?: # identifier
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-              (?:
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )*
-            )
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]*\s+ # optional suffix operators
-            |
-            \s*[\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # optional prefix operators
-            (?: # identifier
-              (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-              (?:
-                (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-              )*
-            )
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+\s+ # mandatory suffix operators
-          )
+          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
           (
             (?!
@@ -5635,6 +5209,7 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
+      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
       (
         (?!
@@ -5650,7 +5225,7 @@ repository:
       (?:(!)|(~)|(\*))? # macro, destructor, or generator call
 
       (?!
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | # infix operator not beginning with /
@@ -5687,7 +5262,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
                 )
                 \s*
               )+
@@ -5701,7 +5276,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<6>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<6>')
               )
               \s*
             )+
@@ -5851,6 +5426,7 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
+      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
       (
         (?!
@@ -5865,7 +5441,7 @@ repository:
       )
 
       (?!
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | # infix operator not beginning with /
           \s+
@@ -5910,7 +5486,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                 )
                 \s*
               )+
@@ -5924,7 +5500,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -6002,7 +5578,7 @@ repository:
           (
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -6064,7 +5640,7 @@ repository:
           (
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -6114,7 +5690,7 @@ repository:
       (
         (?:
           (?:
-            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
           )
           \s*
         )+
@@ -6251,6 +5827,7 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
+      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
       (
         (?:
@@ -6286,7 +5863,7 @@ repository:
       )
 
       (?! 
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | # accessor or assignment
           (?:
             (?:[?!]?\.|[?!:]:|[?!-]>)=?
@@ -6335,7 +5912,7 @@ repository:
               (?:[,;] \s*)* # optional separators
               (?:
                 (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                 )
                 \s*
               )+
@@ -6349,7 +5926,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -6703,14 +6280,9 @@ repository:
       )
 
       (?=
-        \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-        (?: # declaration keywords
-          va[rl]|let|mut|const
-          |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-          |module|schema|struct|record|object|union|macro|space
-          |query|quote|style|script|shader|compo|temp|oper|realm
-        )
-        \b\s*
+        \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+        #this.repository.define.repository['declaration-keywords'].match
+        \s*
       )
     captures:
       1:
@@ -6737,7 +6309,7 @@ repository:
       )
 
       (?!
-          \s+ \#?{ # beginning of block
+          [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
           [:>] (?:\s* (?:[,;'"`)\]}\w\s] | \#?[(\[{]) | $) # postfix colon or delimiter
         | # infix operator not beginning with /
@@ -6775,7 +6347,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<2>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
               )
               \s*
             )+
@@ -7007,13 +6579,8 @@ repository:
       - match: |-
           (?x)
           \s*
-          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-          (?: # declaration keywords
-            va[rl]|let|mut|const
-            |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-            |module|schema|struct|record|object|union|macro|space
-            |query|quote|style|script|shader|compo|temp|oper|realm
-          )\b
+          (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+          #this.repository.define.repository['declaration-keywords'].match
           \s*
         name: storage.type.$1.ruko
 
@@ -7193,6 +6760,7 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
+          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
 
           (
             (?!
@@ -7203,7 +6771,7 @@ repository:
           )
 
           (?!
-              \s+ \#?{ # beginning of block
+              [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
             | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* # prefix operators except slashes
               : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
             | # infix operator not beginning with /
@@ -7240,7 +6808,7 @@ repository:
                   (?:[,;] \s*)* # optional separators
                   (?:
                     (?:
-                      #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                      #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                     )
                     \s*
                   )+
@@ -7254,7 +6822,7 @@ repository:
                     #this.repository.define.repository.keywords.match
                   )
                   (?:
-                    #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<3>')
+                    #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
                   )
                   \s*
                 )+
@@ -7357,7 +6925,7 @@ repository:
             #this.repository.define.repository.keywords.match
           )
           (?:
-            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
           )
           \s*
         )+
@@ -7376,7 +6944,7 @@ repository:
       \s*
 
       (?= # assignment
-          [?:]= (?:
+          [?:]?= (?:
               \s+ # space after assignment operator
             | [)\]}] # closing brackets
             | (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operators
@@ -7386,7 +6954,7 @@ repository:
         | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
           (?: # ignore keywords
             # wordlike operators
-            [io]n|of|to|by
+            [io]n|of|to|by|as
           ) \b
       )
     name: meta.binding.typed.ruko
@@ -7408,7 +6976,7 @@ repository:
         )
         (?:
           (?:
-            #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+            #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
           )
           \s*
         )+
@@ -7433,11 +7001,17 @@ repository:
           $ | [,;] # end of declaration
         | :\s # type annotation after identifier
         | [)\]}] # closing brackets
-        | \s(?:[?:]?=(?:\s|$)|\#{) # type annotation before initialization or block
+        | [?:]?= (?: # assignment operator
+              \s+ # space after assignment operator
+            | [)\]}] # closing brackets
+            | (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operators
+              [,;'"`()\[\]{}\w]
+            | $ # end of declaration
+          )
         | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
           (?: # ignore keywords
             # wordlike operators
-            [io]n|of|to|by
+            [io]n|of|to|by|as
           ) \b
       )
 
@@ -7479,7 +7053,7 @@ repository:
                 #this.repository.define.repository.keywords.match
               )
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -7489,31 +7063,8 @@ repository:
           ((?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)*) # prefix argument operator
 
           (?!
-            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
-            (?: # ignore keywords
-              # wordlike operators
-              [io]n|out|inout|off?|[ai]s|to|[iou]nto|by|has|can|del
-              |ref|not|n?and|x?n?or|(?:co)?n?imply|[gs]et|new|old
-
-              # declaration keywords
-              |va[rl]|let|mut|const
-              |func|pro[pc]|type|class|actor|trait|enum|in?ter|impl
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-
-              # control flow keywords
-              |if|elif|else|[tw]hen|guard|with
-              |for|while|loop|break|skip|redo
-              |try|retry|switch|[cm]atch|case|def|throw
-              |return|yield|await|goto|pass|defer|race|join
-              |raise|error|final|copy|move|drop|sink|lend|steal
-              |[gd]o|from|where|use|show|hide
-
-              # miscellaneous keywords
-              |debug|assert|check|decl|ignore
-              |use|echo|eval|exec|scope|safe|unsafe
-              |begin|end
-            ) \b
+            (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+            #this.repository.define.repository.keywords.match
           )
           ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # identifier
 
@@ -7528,7 +7079,7 @@ repository:
             | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
               (?: # ignore keywords
                 # wordlike operators
-                [io]n|of|to|by
+                [io]n|of|to|by|as
               ) \b
           )
         captures:
@@ -7968,13 +7519,7 @@ repository:
 
           \s*
           (?=
-            \b
-            (?: # declaration keywords
-              func|pro[pc]|type|class|actor|trait|enum|in?ter
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-            )
-            \b
+            #this.repository.define.repository['declaration-keywords'].match
           )
         name: meta.function.declaration.ruko
         captures:
@@ -7996,7 +7541,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -8007,7 +7552,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
               )
               \s*
             )+
@@ -8042,13 +7587,7 @@ repository:
 
           \s*
           (?=
-            \b
-            (?: # declaration keywords
-              func|pro[pc]|type|class|actor|trait|enum|in?ter
-              |module|schema|struct|record|object|union|macro|space
-              |query|quote|style|script|shader|compo|temp|oper|realm
-            )
-            \b
+            #this.repository.define.repository['declaration-keywords'].match
           )
         name: meta.function.declaration.ruko
         captures:
@@ -8071,7 +7610,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -8082,7 +7621,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<5>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
               )
               \s*
             )+
@@ -8122,7 +7661,7 @@ repository:
             )
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<t>').join('<1>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<1>')
               )
               \s*
             )+
@@ -8135,7 +7674,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<4>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<4>')
               )
               \s*
             )+
@@ -8169,7 +7708,7 @@ repository:
             (?:[,;] \s*)* # optional separators
             (?:
               (?:
-                #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
               )
               \s*
             )+
@@ -8488,13 +8027,7 @@ repository:
                   )
                   \s*
                 )* \s*
-                \b
-                (?: # declaration keywords
-                  func|pro[pc]|type|class|actor|trait|enum|in?ter
-                  |module|schema|struct|record|object|union|macro|space
-                  |query|quote|style|script|shader|compo|temp|oper|realm
-                )
-                \b
+                #this.repository.define.repository['declaration-keywords'].match
               ) | ( # lambda declaration
                 (?!
                   (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -8502,7 +8035,7 @@ repository:
                 )
                 (?:
                   (?:
-                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<2>')
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
                   )
                   \s*
                 )+
@@ -8512,7 +8045,7 @@ repository:
                 (?:[,;] \s*)* # optional separators
                 (?:
                   (?:
-                    #this.repository.define.repository['prefix-type-annotation'].match.split('<t>').join('<3>')
+                    #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<3>')
                   )
                   \s*
                 )+
@@ -9207,6 +8740,8 @@ repository:
           - include: "#selector-method-calls"
           - include: "#punctuation"
           - include: "#directives"
+          - include: "#literals"
+          - include: "#typed-bindings"
           - include: "#function-expression"
           - include: "#declarations"
           - include: "#variable-declarations"
@@ -9217,11 +8752,11 @@ repository:
           - include: "#comments"
           - include: "#type-signature"
           - include: "#lambdas"
-          - include: "#selector-function-calls"
+          - include: "#function-calls"
           - include: "#xml-tags"
           - include: "#angle-brackets"
-          - include: "#literals"
           - include: "#accessor-operators"
+          - include: "#type-cast-operators"
           - include: "#brackets"
           - include: "#operators"
           - include: "#variables"
