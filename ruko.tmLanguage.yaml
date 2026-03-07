@@ -419,69 +419,27 @@ repository:
               | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
               | \b (?i: # number literals
-                    (?:
-                      [1-9]\d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
-                      (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
-                          /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
-                      (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0b [01](?:[01\p{Pc}]*[01])? # binary
-                      (?: \. [01](?:[01\p{Pc}]*[01])? | # decimal point
-                          /  [01](?:[01\p{Pc}]*[01])? )? # fractional part
-                      (?: \\?e [+-]? [01](?:[01\p{Pc}]*[01])? | # binary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0t [0-2](?:[0-2\p{Pc}]*[0-2])? # ternary
-                      (?: \. [0-2](?:[0-2\p{Pc}]*[0-2])? | # decimal point
-                          /  [0-2](?:[0-2\p{Pc}]*[0-2])? )? # fractional part
-                      (?: \\?e [+-]? [0-2](?:[0-2\p{Pc}]*[0-2])? | # ternary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0q [0-3](?:[0-3\p{Pc}]*[0-3])? # quaternary
-                      (?: \. [0-3](?:[0-3\p{Pc}]*[0-3])? | # decimal point
-                          /  [0-3](?:[0-3\p{Pc}]*[0-3])? )? # fractional part
-                      (?: \\?e [+-]? [0-3](?:[0-3\p{Pc}]*[0-3])? | # quaternary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0s [0-5](?:[0-5\p{Pc}]*[0-5])? # senary
-                      (?: \. [0-5](?:[0-5\p{Pc}]*[0-5])? | # decimal point
-                          /  [0-5](?:[0-5\p{Pc}]*[0-5])? )? # fractional part
-                      (?: \\?e [+-]? [0-5](?:[0-5\p{Pc}]*[0-5])? | # senary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0o [0-7](?:[0-7\p{Pc}]*[0-7])? # octal
-                      (?: \. [0-7](?:[0-7\p{Pc}]*[0-7])? | # decimal point
-                          /  [0-7](?:[0-7\p{Pc}]*[0-7])? )? # fractional part
-                      (?: \\?e [+-]? [0-7](?:[0-7\p{Pc}]*[0-7])? | # octal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0z [\dab](?:[\dab\p{Pc}]*[\dab])? # duodecimal
-                      (?: \. [\dab](?:[\dab\p{Pc}]*[\dab])? | # decimal point
-                          /  [\dab](?:[\dab\p{Pc}]*[\dab])? )? # fractional part
-                      (?: \\?e [+-]? [\dab](?:[\dab\p{Pc}]*[\dab])? | # duodecimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0x \h(?:[\h\p{Pc}]*\h)? # hexadecimal
-                      (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
-                          /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
-                      (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # hexadecimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      \d(?:[\d\p{Pc}]*\d)? # decimal
-                      (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
-                          /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
-                      (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    )
+                  (?:
+                    \d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
+                    (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
+                        /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
+                    (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
+                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+                  ) |
+                  (?:
+                    0[btqsozx] \h(?:[\h\p{Pc}]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
+                    (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
+                        /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
+                    (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # exponent
+                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+                  ) |
+                  (?:
+                    \d(?:[\d\p{Pc}]*\d)? # decimal
+                    (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
+                        /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
+                    (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
+                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+                  )
                 ) (?:
                     (?: # unit suffix
                       (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
@@ -576,69 +534,27 @@ repository:
               | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
               | \b (?i: # number literals
-                    (?:
-                      [1-9]\d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
-                      (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
-                          /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
-                      (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0b [01](?:[01\p{Pc}]*[01])? # binary
-                      (?: \. [01](?:[01\p{Pc}]*[01])? | # decimal point
-                          /  [01](?:[01\p{Pc}]*[01])? )? # fractional part
-                      (?: \\?e [+-]? [01](?:[01\p{Pc}]*[01])? | # binary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0t [0-2](?:[0-2\p{Pc}]*[0-2])? # ternary
-                      (?: \. [0-2](?:[0-2\p{Pc}]*[0-2])? | # decimal point
-                          /  [0-2](?:[0-2\p{Pc}]*[0-2])? )? # fractional part
-                      (?: \\?e [+-]? [0-2](?:[0-2\p{Pc}]*[0-2])? | # ternary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0q [0-3](?:[0-3\p{Pc}]*[0-3])? # quaternary
-                      (?: \. [0-3](?:[0-3\p{Pc}]*[0-3])? | # decimal point
-                          /  [0-3](?:[0-3\p{Pc}]*[0-3])? )? # fractional part
-                      (?: \\?e [+-]? [0-3](?:[0-3\p{Pc}]*[0-3])? | # quaternary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0s [0-5](?:[0-5\p{Pc}]*[0-5])? # senary
-                      (?: \. [0-5](?:[0-5\p{Pc}]*[0-5])? | # decimal point
-                          /  [0-5](?:[0-5\p{Pc}]*[0-5])? )? # fractional part
-                      (?: \\?e [+-]? [0-5](?:[0-5\p{Pc}]*[0-5])? | # senary exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0o [0-7](?:[0-7\p{Pc}]*[0-7])? # octal
-                      (?: \. [0-7](?:[0-7\p{Pc}]*[0-7])? | # decimal point
-                          /  [0-7](?:[0-7\p{Pc}]*[0-7])? )? # fractional part
-                      (?: \\?e [+-]? [0-7](?:[0-7\p{Pc}]*[0-7])? | # octal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0z [\dab](?:[\dab\p{Pc}]*[\dab])? # duodecimal
-                      (?: \. [\dab](?:[\dab\p{Pc}]*[\dab])? | # decimal point
-                          /  [\dab](?:[\dab\p{Pc}]*[\dab])? )? # fractional part
-                      (?: \\?e [+-]? [\dab](?:[\dab\p{Pc}]*[\dab])? | # duodecimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      0x \h(?:[\h\p{Pc}]*\h)? # hexadecimal
-                      (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
-                          /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
-                      (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # hexadecimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    ) |
-                    (?:
-                      \d(?:[\d\p{Pc}]*\d)? # decimal
-                      (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
-                          /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
-                      (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
-                          \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                    )
+                  (?:
+                    \d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
+                    (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
+                        /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
+                    (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
+                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+                  ) |
+                  (?:
+                    0[btqsozx] \h(?:[\h\p{Pc}]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
+                    (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
+                        /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
+                    (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # exponent
+                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+                  ) |
+                  (?:
+                    \d(?:[\d\p{Pc}]*\d)? # decimal
+                    (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
+                        /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
+                    (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
+                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+                  )
                 ) (?:
                     (?: # unit suffix
                       (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier

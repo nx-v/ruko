@@ -53,14 +53,13 @@ export default function regexGen(input, flags = "") {
         match => `\\x${hex(match.charCodeAt(0), 2)}`,
       )
       .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
-        if (match.length == 2) {
-          if (isUnicode) {
-            return `\\u{${hex(match.codePointAt(0))}}`
-          } else {
+        if (match.length == 2)
+          if (isUnicode) return `\\u{${hex(match.codePointAt(0))}}`
+          else {
             let [high, low] = [0, 1].map(i => match.charCodeAt(i))
             return `\\u${hex(high, 4)}\\u${hex(low, 4)}`
           }
-        }
+
         let code = match.charCodeAt(0)
         return `\\u${hex(code, 4)}`
       })
@@ -77,14 +76,13 @@ export default function regexGen(input, flags = "") {
         match => `\\x${hex(match.charCodeAt(0), 2)}`,
       )
       .replace(/(?:[\ud800-\udbff][\udc00-\udfff])|[\u0100-\uffff]/g, match => {
-        if (match.length == 2) {
-          if (isUnicode) {
-            return `\\u{${hex(match.codePointAt(0))}}`
-          } else {
+        if (match.length == 2)
+          if (isUnicode) return `\\u{${hex(match.codePointAt(0))}}`
+          else {
             let [high, low] = [0, 1].map(i => match.charCodeAt(i))
             return `\\u${hex(high, 4)}\\u${hex(low, 4)}`
           }
-        }
+
         let code = match.charCodeAt(0)
         return `\\u${hex(code, 4)}`
       })
@@ -163,13 +161,13 @@ export default function regexGen(input, flags = "") {
       // Greedy: try to consume the string with atoms in a fixed sorted order.
       // We sort atoms longest-first so the greedy pass doesn't get fooled by prefixes.
       let sortedAtoms = [...atoms].sort((a, b) => b.length - a.length)
-      for (let atom of sortedAtoms) {
+      for (let atom of sortedAtoms)
         if (s.startsWith(atom, pos)) {
           if (usedAtoms.has(atom)) return false // same atom used twice → not cartesian
           usedAtoms.add(atom)
           pos += atom.length
         }
-      }
+
       if (pos != s.length) return false // string has leftover characters not covered by atoms
     }
 
@@ -303,9 +301,8 @@ export default function regexGen(input, flags = "") {
           let escaped = escapeRegExp(atoms[0], flags)
           if (atoms[0].length == 1 || isAtomic(escaped)) return escaped + "?"
           else return `(?:${escaped})?`
-        } else {
+        } else
           return atoms.map(atom => `(?:${escapeRegExp(atom, flags)})?`).join("")
-        }
       }
     }
 
@@ -345,7 +342,7 @@ export default function regexGen(input, flags = "") {
     // Handles cases like ['1','2','3','4','bservable[1-4]'] → '(?:bservable)?[1-4]'
     // and ['U','V','computed'] → '[UV]|computed'.
     // Returns a condensed pattern string, or null if no improvement is possible.
-    let condensePartsAdvanced = (parts, flags) => {
+    let condenseParts = (parts, flags) => {
       if (parts.length < 2) return null
 
       // Step 1: group single-char pattern parts into a char class
@@ -367,9 +364,7 @@ export default function regexGen(input, flags = "") {
           charClass,
           ...parts.filter((_, i) => !singleCharIndices.has(i)),
         ]
-      } else {
-        newParts = parts
-      }
+      } else newParts = parts
 
       if (newParts.length == 1) return newParts[0]
 
@@ -600,27 +595,28 @@ export default function regexGen(input, flags = "") {
 
             for (let i = 0; i < validPrefix.length; i++) {
               let c = validPrefix[i]
-              if (c == "\\") {
-                i++
-                continue
+              switch (c) {
+                case "\\":
+                  i++
+                  continue
+                case "[":
+                  inClass = true
+                  continue
+                case "]":
+                  inClass = false
+                  continue
+                case "(":
+                  if (!inClass) open++
+                  break
+                case ")":
+                  if (!inClass) open--
+                  break
               }
-              if (c == "[") {
-                inClass = true
-                continue
-              }
-              if (c == "]") {
-                inClass = false
-                continue
-              }
-              if (inClass) continue
-              if (c == "(") open++
-              else if (c == ")") open--
             }
 
-            if (open != 0 || inClass) {
+            if (open != 0 || inClass)
               // Trim back to last safe position — for simplicity just skip factoring
               validPrefix = ""
-            }
 
             if (validPrefix.length > 0) {
               let rests = parts.map(p => p.slice(validPrefix.length))
@@ -656,14 +652,14 @@ export default function regexGen(input, flags = "") {
                   nonEmpty,
                   flags,
                 )
-                if (condensedNonEmpty != null) {
+                if (condensedNonEmpty != null)
                   return (
                     validPrefix
                     + (isAtomic(condensedNonEmpty)
                       ? condensedNonEmpty + "?"
                       : `(?:${condensedNonEmpty})?`)
                   )
-                }
+
                 let restAlt = rests.join("|")
                 let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`
                 return validPrefix + wrapped
@@ -673,17 +669,14 @@ export default function regexGen(input, flags = "") {
         }
 
         return (
-          condensePartsAdvanced(parts, flags)
+          condenseParts(parts, flags)
           ?? condenseAlternationParts(parts, flags)
           ?? parts.join("|")
         )
       }
 
       let firstCharGroup = tryGroup(s => [...s][0])
-      let lastCharGroup = tryGroup(s => {
-        let cp = [...s]
-        return cp[cp.length - 1]
-      })
+      let lastCharGroup = tryGroup(s => [...s].at(-1))
 
       if (firstCharGroup || lastCharGroup) {
         let firstResult = firstCharGroup
@@ -718,18 +711,17 @@ export default function regexGen(input, flags = "") {
     // Check if all are single characters (handling Unicode code points correctly)
     if (strings.every(s => [...s].length == 1)) {
       let isUnicode = /u/.test(flags)
-      if (isUnicode || !strings.some(s => s.length > 1)) {
+      if (isUnicode || !strings.some(s => s.length > 1))
         return makeCharClass(
           strings.map(s => [...s][0]),
           flags,
         )
-      }
     }
 
     // Alternation
     let escapedParts = strings.map(s => escapeRegExp(s, flags))
     return (
-      condensePartsAdvanced(escapedParts, flags)
+      condenseParts(escapedParts, flags)
       ?? condenseAlternationParts(escapedParts, flags)
       ?? escapedParts.join("|")
     )

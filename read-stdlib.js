@@ -15,7 +15,7 @@ let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .reverse()
 let chunk = (array, chunkSize) =>
   array.reduce((result, item, index) => {
-    if (index % chunkSize === 0) result.push([])
+    if (index % chunkSize == 0) result.push([])
     result[result.length - 1].push(item)
     return result
   }, [])
