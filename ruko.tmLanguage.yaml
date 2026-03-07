@@ -407,7 +407,7 @@ repository:
             | ((?>`(?:``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # camel or snake case
           )
 
-      operators:
+      binary-operators:
         match: |-
           (?x)
           (?:
@@ -431,8 +431,8 @@ repository:
             | ( ~[=!]|[=!]~ ) # similarity
             | ( \?\?\??|¿¿¿? ) # null-coalescing
             | ( !!!?|¡¡¡? ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
+            | ( [?¿]:? ) # conditional
+            | ( [!¡]:? ) # ternary
             | ( \$|:?:?: ) # macro
             | ( [?:]?= ) # assignment
             | ( ==?>|<== ) # fat arrow
@@ -5935,7 +5935,7 @@ repository:
         begin: |-
           (?x)
           (?<=^|[,;\\(\[{\s])
-          #this.repository.define.repository.operators.match
+          #this.repository.define.repository['binary-operators'].match
           (?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
         beginCaptures: &infix-operator-captures
           1: {name: keyword.operator.assignment.augmented.ruko}
@@ -5978,7 +5978,7 @@ repository:
         match: |-
           (?x)
           (?<=^|[,;\\(\[{\s])
-          #this.repository.define.repository.operators.match
+          #this.repository.define.repository['binary-operators'].match
           (?=$|[\\)\]}\s])
         captures: *infix-operator-captures
 
@@ -5987,7 +5987,7 @@ repository:
     match: |-
       (?x)
       (?<=['"`)\]}\w])
-      #this.repository.define.repository.operators.match
+      #this.repository.define.repository['binary-operators'].match
       (?=['"`\w]|\#?[(\[{])
     captures:
       <<: *infix-operator-captures
