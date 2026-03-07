@@ -407,6 +407,52 @@ repository:
             | ((?>`(?:``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # camel or snake case
           )
 
+      operators:
+        match: |-
+          (?x)
+          (?:
+              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+            | ( \?[.:>] ) # optional
+            | ( ![.:>] ) # mandatory
+            | ( (?:\.|::|->) ) # accessors
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡|°° ) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡°] ) # bitwise
+            | ( <<[<>]?|[<>]?>> ) # bitwise shift
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( [|+*$]>|<[|+*$] ) # pipeline
+            | ( <[|+*$]>|[$#] ) # application
+            | ( <\+|\+>|[.·] ) # composition
+            | ( [<>][:!]|[:!][<>] ) # class
+            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+            | ( [<>]=?|<=?> ) # relational
+            | ( \.\.+|··+ ) # dots
+            | ( [!=]==? ) # comparison
+            | ( ~[=!]|[=!]~ ) # similarity
+            | ( \?\?\??|¿¿¿? ) # null-coalescing
+            | ( !!!?|¡¡¡? ) # coalescing
+            | ( \?:?|¿: ) # conditional
+            | ( !:?|¡: ) # ternary
+            | ( \$|:?:?: ) # macro
+            | ( [?:]?= ) # assignment
+            | ( ==?>|<== ) # fat arrow
+            | ( --?>|<--? ) # skinny arrow
+            | ( ~~?>|<~~? ) # wavy arrow
+            | ( \p{Sm}+ ) # math symbols
+            | ( \p{Sc}+ ) # currency symbols
+            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[!-ÿ&&[\p{S}\p{P}]]*
+                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                )?
+              )
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              )
+          )
+
       prefix-type-annotation-no-infix:
         match: |-
           (?x)
@@ -661,7 +707,7 @@ repository:
     comment: "These are just straight-up copied from C/C++ but with % instead of #"
     patterns:
       - applyEndPatternLast: true
-        begin: ^\s*(%)(if|else|elif|end|ifdef|ifndef)\b
+        begin: ^\s*(%)(if|else|end|ifn?def|elifn?def|endif)\b
         end: $
         name: meta.directive.ruko
         captures:
@@ -5048,7 +5094,16 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
-          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+          (?<! # prevent matching
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+            | \#[(\[{] # the first identifier after an infix operator
+              \s* (?:
+                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) \s+
+          )
 
           (
             (?!
@@ -5124,7 +5179,16 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
-      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+      (?<! # prevent matching
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+        | \#[(\[{] # the first identifier after an infix operator
+          \s* (?:
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          ) \s+
+      )
 
       (
         (?!
@@ -5327,7 +5391,16 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
-      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+      (?<! # prevent matching
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+        | \#[(\[{] # the first identifier after an infix operator
+          \s* (?:
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          ) \s+
+      )
 
       (
         (?!
@@ -5717,7 +5790,16 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
-      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+      (?<! # prevent matching
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+        | \#[(\[{] # the first identifier after an infix operator
+          \s* (?:
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          ) \s+
+      )
 
       (
         (?:
@@ -5752,7 +5834,7 @@ repository:
         )+ # allow chaining
       )
 
-      (?! 
+      (?!
           [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | # accessor or assignment
           (?:
@@ -5853,48 +5935,7 @@ repository:
         begin: |-
           (?x)
           (?<=^|[,;\\(\[{\s])
-          (?:
-              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-            | ( \?[.:>] ) # optional
-            | ( ![.:>] ) # mandatory
-            | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡|°° ) # logical
-            | ( [&|^§¦¤«»‹›~¬†‡°] ) # bitwise
-            | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|××|÷÷|±±|%% ) # string
-            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-            | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$#] ) # application
-            | ( <\+|\+>|[.·] ) # composition
-            | ( [<>][:!]|[:!][<>] ) # class
-            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-            | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|··+ ) # dots
-            | ( [!=]==? ) # comparison
-            | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|¿¿¿? ) # null-coalescing
-            | ( !!!?|¡¡¡? ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
-            | ( \$|:?:?: ) # macro
-            | ( [?:]?= ) # assignment
-            | ( ==?>|<== ) # fat arrow
-            | ( --?>|<--? ) # skinny arrow
-            | ( ~~?>|<~~? ) # wavy arrow
-            | ( \p{Sm}+ ) # math symbols
-            | ( \p{Sc}+ ) # currency symbols
-            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[!-ÿ&&[\p{S}\p{P}]]*
-                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-                )?
-              )
-            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-                (?:[\p{P}\p{S}]*
-                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                )?
-              )
-          )
+          #this.repository.define.repository.operators.match
           (?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
         beginCaptures: &infix-operator-captures
           1: {name: keyword.operator.assignment.augmented.ruko}
@@ -5937,48 +5978,7 @@ repository:
         match: |-
           (?x)
           (?<=^|[,;\\(\[{\s])
-          (?:
-              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-            | ( \?[.:>] ) # optional
-            | ( ![.:>] ) # mandatory
-            | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡|°° ) # logical
-            | ( [&|^§¦¤«»‹›~¬†‡°] ) # bitwise
-            | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|××|÷÷|±±|%% ) # string
-            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-            | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$#] ) # application
-            | ( <\+|\+>|[.·] ) # composition
-            | ( [<>][:!]|[:!][<>] ) # class
-            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-            | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|··+ ) # dots
-            | ( [!=]==? ) # comparison
-            | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|¿¿¿? ) # null-coalescing
-            | ( !!!?|¡¡¡? ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
-            | ( \$|:?:?: ) # macro
-            | ( [?:]?= ) # assignment
-            | ( ==?>|<== ) # fat arrow
-            | ( --?>|<--? ) # skinny arrow
-            | ( ~~?>|<~~? ) # wavy arrow
-            | ( \p{Sm}+ ) # math symbols
-            | ( \p{Sc}+ ) # currency symbols
-            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[!-ÿ&&[\p{S}\p{P}]]*
-                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-                )?
-              )
-            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-                (?:[\p{P}\p{S}]*
-                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                )?
-              )
-          )
+          #this.repository.define.repository.operators.match
           (?=$|[\\)\]}\s])
         captures: *infix-operator-captures
 
@@ -5987,48 +5987,7 @@ repository:
     match: |-
       (?x)
       (?<=['"`)\]}\w])
-      (?:
-          ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-        | ( \?[.:>] ) # optional
-        | ( ![.:>] ) # mandatory
-        | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡|°° ) # logical
-        | ( [&|^§¦¤«»‹›~¬†‡°] ) # bitwise
-        | ( <<[<>]?|[<>]?>> ) # bitwise shift
-        | ( \+\+|--|××|÷÷|±±|%% ) # string
-        | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-        | ( [|+*$]>|<[|+*$] ) # pipeline
-        | ( <[|+*$]>|[$#] ) # application
-        | ( <\+|\+>|[.·] ) # composition
-        | ( [<>][:!]|[:!][<>] ) # class
-        | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-        | ( [<>]=?|<=?> ) # relational
-        | ( \.\.+|··+ ) # dots
-        | ( [!=]==? ) # comparison
-        | ( ~[=!]|[=!]~ ) # similarity
-        | ( \?\?\??|¿¿¿? ) # null-coalescing
-        | ( !!!?|¡¡¡? ) # coalescing
-        | ( \?:?|¿: ) # conditional
-        | ( !:?|¡: ) # ternary
-        | ( \$|:?:?: ) # macro
-        | ( [?:]?= ) # assignment
-        | ( ==?>|<== ) # fat arrow
-        | ( --?>|<--? ) # skinny arrow
-        | ( ~~?>|<~~? ) # wavy arrow
-        | ( \p{Sm}+ ) # math symbols
-        | ( \p{Sc}+ ) # currency symbols
-        | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-        | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-            (?:[!-ÿ&&[\p{S}\p{P}]]*
-              [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-            )?
-          )
-        | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-            (?:[\p{P}\p{S}]*
-              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-            )?
-          )
-      )
+      #this.repository.define.repository.operators.match
       (?=['"`\w]|\#?[(\[{])
     captures:
       <<: *infix-operator-captures
@@ -6637,7 +6596,16 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
-          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+          (?<! # prevent matching
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+            | \#[(\[{] # the first identifier after an infix operator
+              \s* (?:
+                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) \s+
+          )
 
           (
             (?!
