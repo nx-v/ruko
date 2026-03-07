@@ -92,10 +92,14 @@ grammar.repository.strings = (() => {
       contentName: /@/.test(flags)
         ? "string.template.ruko"
         : `string.quoted.${delimiter}.ruko`,
-      end: `\\s*((\\2)(?!${quote}+))`,
-      captures: {
+      end: `\\s*(\\2(?!${quote}+))((?>\`(?>\`\`|[^\`])+\`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))?\\s*`,
+      beginCaptures: {
         1: {name: "storage.type.string.ruko"},
         2: {name: "punctuation.definition.string.ruko"},
+      },
+      endCaptures: {
+        1: {name: "punctuation.definition.string.ruko"},
+        2: {name: "keyword.other.unit.ruko"},
       },
       patterns,
     }
@@ -246,5 +250,4 @@ writeFileSync(
       semi: false,
     },
   ),
-
 )

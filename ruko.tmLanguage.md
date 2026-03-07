@@ -408,6 +408,52 @@ repository:
             | ((?>`(?:``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)) # camel or snake case
           )
 
+      binary-operators:
+        match: |-
+          (?x)
+          (?:
+              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
+            | ( \?[.:>] ) # optional
+            | ( ![.:>] ) # mandatory
+            | ( (?:\.|::|->) ) # accessors
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡|°° ) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡°] ) # bitwise
+            | ( <<[<>]?|[<>]?>> ) # bitwise shift
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( [|+*$]>|<[|+*$] ) # pipeline
+            | ( <[|+*$]>|[$#] ) # application
+            | ( <\+|\+>|[.·] ) # composition
+            | ( [<>][:!]|[:!][<>] ) # class
+            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
+            | ( [<>]=?|<=?> ) # relational
+            | ( \.\.+|··+ ) # dots
+            | ( [!=]==? ) # comparison
+            | ( ~[=!]|[=!]~ ) # similarity
+            | ( \?\?\??|¿¿¿? ) # null-coalescing
+            | ( !!!?|¡¡¡? ) # coalescing
+            | ( [?¿]:? ) # conditional
+            | ( [!¡]:? ) # ternary
+            | ( \$|:?:?: ) # macro
+            | ( [?:]?= ) # assignment
+            | ( ==?>|<== ) # fat arrow
+            | ( --?>|<--? ) # skinny arrow
+            | ( ~~?>|<~~? ) # wavy arrow
+            | ( \p{Sm}+ ) # math symbols
+            | ( \p{Sc}+ ) # currency symbols
+            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
+            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[!-ÿ&&[\p{S}\p{P}]]*
+                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+                )?
+              )
+            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              )
+          )
+
       prefix-type-annotation-no-infix:
         match: |-
           (?x)
@@ -415,47 +461,44 @@ repository:
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
 
             (?:
-                :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
-              | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
-              | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
-
-              | \b (?i: # number literals
-                  (?:
-                    \d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
-                    (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
-                        /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
-                    (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
-                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    0[btqsozx] \h(?:[\h\p{Pc}]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
-                    (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
-                        /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
-                    (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # exponent
-                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    \d(?:[\d\p{Pc}]*\d)? # decimal
-                    (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
-                        /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
-                    (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
-                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                  )
-                ) (?:
-                    (?: # unit suffix
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)? # last identifier
-                  )?
+                :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
               | (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                    :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
+                  | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
+                  | \b (?i: # number literals
+                      (?:
+                        \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
+                        (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
+                            /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
+                        (?: :?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
+                        (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
+                            /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
+                        (?: :?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        \d(?:[\p{Pc}\d]*\d)? # decimal
+                        (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
+                            /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
+                        (?: :?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      )
+                   )
+                )
+                (?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)? # unit suffix
 
-                (?:
+              | (?:
+                  (?:
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                  )*
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                ) (?:
                   < # generics
                     (?>
                         \g<0> # either recurse or match balanced generics
@@ -468,16 +511,6 @@ repository:
                 )?
 
               | (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                )?
-
-                \#? # optional sharp for splice invocation
-
-                (?:
                   \#?\( # round brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
@@ -530,46 +563,44 @@ repository:
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
 
             (?:
-                :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
-              | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
-              | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
-
-              | \b (?i: # number literals
-                  (?:
-                    \d*b \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
-                    (?: \. \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
-                        /  \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
-                    (?: \\?e [+-]? \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
-                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    0[btqsozx] \h(?:[\h\p{Pc}]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
-                    (?: \. \h(?:[\h\p{Pc}]*\h)? | # decimal point
-                        /  \h(?:[\h\p{Pc}]*\h)? )? # fractional part
-                    (?: \\?e [+-]? \h(?:[\h\p{Pc}]*\h)? | # exponent
-                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    \d(?:[\d\p{Pc}]*\d)? # decimal
-                    (?: \. \d(?:[\d\p{Pc}]*\d)? | # decimal point
-                        /  \d(?:[\d\p{Pc}]*\d)? )? # fractional part
-                    (?: \\?e [+-]? \d(?:[\d\p{Pc}]*\d)? | # decimal exponent
-                        \\?p [+-]? \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
-                  )
-                ) (?:
-                    (?: # unit suffix
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)? # last identifier
-                  )?
+                :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
               | (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                    :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
+                  | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
+                  | \b (?i: # number literals
+                      (?:
+                        \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
+                        (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
+                            /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
+                        (?: :?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
+                        (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
+                            /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
+                        (?: :?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        \d(?:[\p{Pc}\d]*\d)? # decimal
+                        (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
+                            /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
+                        (?: :?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      )
+                   )
+                )
+                (?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)? # unit suffix
 
+              | (?:
+                  (?:
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                  )*
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                )
                 (?:
                   < # generics
                     (?>
@@ -583,14 +614,6 @@ repository:
                 )?
 
               | (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                )?
-
-                (?:
                   \#?\( # round brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
@@ -662,7 +685,7 @@ repository:
     comment: "These are just straight-up copied from C/C++ but with % instead of #"
     patterns:
       - applyEndPatternLast: true
-        begin: ^\s*(%)(if|else|elif|end|ifdef|ifndef)\b
+        begin: ^\s*(%)(if|else|end|ifn?def|elifn?def|endif)\b
         end: $
         name: meta.directive.ruko
         captures:
@@ -1444,12 +1467,13 @@ repository:
     patterns:
       - comment: arbitrary base numbers (\d+b prefix)
         match: |-
-          (?xi)\b
-          ([1-9]\d*b) \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? # arbitrary base (Nb...)
-          (?: (\.)    \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # decimal point
-              (\/)    \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? )? # fractional part
-          (?: (\\?e) ([+-]?) \p{alnum}(?:[\p{alnum}\p{Pc}]*\p{alnum})? | # base exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          ([1-9]\d*b) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
+          (?: (\.)    \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? |  # decimal point
+              (\/)    \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
+          (?: (:?e) ([+-]?) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures: &number-captures
           0: {name: constant.numeric.arbitrary-base.ruko}
           1: {name: storage.type.numeric.ruko}
@@ -1459,107 +1483,111 @@ repository:
           5: {name: keyword.operator.sign.exponent.ruko}
           6: {name: keyword.operator.expression.byte-shift.ruko}
           7: {name: keyword.operator.sign.byte-shift.ruko}
+          8: {name: keyword.other.unit.ruko}
       - comment: binary (0b prefix)
         match: |-
-          (?xi)\b
-          (0b) [01](?:_?[01])*
-          (?: (\.)    [01](?:_?[01])* | # decimal point
-              (\/)    [01](?:_?[01])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0b) [01](?:[\p{Pc}01]*[01])*
+          (?: (\.)   [01](?:[\p{Pc}01]*[01])* |  # decimal point
+              (\/)   [01](?:[\p{Pc}01]*[01])* )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.binary.ruko}
           1: {name: storage.type.numeric.binary.ruko}
           <<: *number-captures
       - comment: ternary (0t prefix)
         match: |-
-          (?xi)\b
-          (0t) [0-2](?:_?[0-2])*
-          (?: (\.)    [0-2](?:_?[0-2])* | # decimal point
-              (\/)    [0-2](?:_?[0-2])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0t) [0-2](?:[\p{Pc}0-2])*
+          (?: (\.)   [0-2](?:[\p{Pc}0-2]*[0-2])? |  # decimal point
+              (\/)   [0-2](?:[\p{Pc}0-2]*[0-2])? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.ternary.ruko}
           1: {name: storage.type.numeric.ternary.ruko}
           <<: *number-captures
       - comment: quarternary (0q prefix)
         match: |-
-          (?xi)\b
-          (0q) [0-3](?:_?[0-3])*
-          (?: (\.)    [0-3](?:_?[0-3])* | # decimal point
-              (\/)    [0-3](?:_?[0-3])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0q) [0-3](?:[\p{Pc}0-3])*
+          (?: (\.)   [0-3](?:[\p{Pc}0-3]*[0-3])? |  # decimal point
+              (\/)   [0-3](?:[\p{Pc}0-3]*[0-3])? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.quarternary.ruko}
           1: {name: storage.type.numeric.quarternary.ruko}
           <<: *number-captures
       - comment: senary (0s prefix)
         match: |-
-          (?xi)\b
-          (0s) [0-5](?:_?[0-5])*
-          (?: (\.)    [0-5](?:_?[0-5])* | # decimal point
-              (\/)    [0-5](?:_?[0-5])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0s) [0-5](?:[\p{Pc}0-5])*
+          (?: (\.)   [0-5](?:[\p{Pc}0-5]*[0-5])? |  # decimal point
+              (\/)   [0-5](?:[\p{Pc}0-5]*[0-5])? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.senary.ruko}
           1: {name: storage.type.numeric.senary.ruko}
           <<: *number-captures
       - comment: octal (0o prefix)
         match: |-
-          (?xi)\b
-          (0o) [0-7](?:_?[0-7])*
-          (?: (\.)    [0-7](?:_?[0-7])* | # decimal point
-              (\/)    [0-7](?:_?[0-7])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0o) [0-7](?:[\p{Pc}0-7])*
+          (?: (\.)   [0-7](?:[\p{Pc}0-7]*[0-7])? |  # decimal point
+              (\/)   [0-7](?:[\p{Pc}0-7]*[0-7])? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.octal.ruko}
           1: {name: storage.type.numeric.octal.ruko}
           <<: *number-captures
       - comment: duodecimal (0d prefix)
         match: |-
-          (?xi)\b
-          (0d) [0-9](?:_?[0-9])*
-          (?: (\.)    [0-9](?:_?[0-9])* | # decimal point
-              (\/)    [0-9](?:_?[0-9])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0d) \d(?:_?\d)*
+          (?: (\.)   \d(?:[\p{Pc}\d]*\d)? |  # decimal point
+              (\/)   \d(?:[\p{Pc}\d]*\d)? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.decimal.ruko}
           1: {name: storage.type.numeric.decimal.ruko}
           <<: *number-captures
       - comment: hexadecimal (0x prefix)
         match: |-
-          (?xi)\b
-          (0x) [0-9a-f](?:_?[0-9a-f])*
-          (?: (\.)    [0-9a-f](?:_?[0-9a-f])* | # decimal point
-              (\/)    [0-9a-f](?:_?[0-9a-f])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0x) \h(?:[\p{Pc}0-9a-f])*
+          (?: (\.)   \h(?:[\p{Pc}\h])? |  # decimal point
+              (\/)   \h(?:[\p{Pc}\h])? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.hexadecimal.ruko}
           1: {name: storage.type.numeric.hexadecimal.ruko}
           <<: *number-captures
       - comment: decimal (no prefix)
         match: |-
-          (?xi)\b
-          (0|[1-9](?:_?[0-9])*)
-          (?: (\.)    [0-9](?:_?[0-9])* | # decimal point
-              (\/)    [0-9](?:_?[0-9])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\d\p{Pc}]*\d)? | # exponent
-              (\\?p) ([+-]?) \d(?:[\d\p{Pc}]*\d)? )? # byte shift exponent
+          (?xi)\s*\b
+          (0|[1-9](?:_?\d)*)
+          (?: (\.)    \d(?:[\p{Pc}\d]*\d)? |  # decimal point
+              (\/)    \d(?:[\p{Pc}\d]*\d)? )? # fractional part
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.decimal.ruko}
           1: {name: constant.numeric.decimal.ruko}
           <<: *number-captures
-      - include: "#unit-suffix"
-
-  unit-suffix:
-    match: (?<=['"\w])(?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)
-    name: keyword.other.unit.ruko
 
   # Symbols
 
@@ -5049,7 +5077,16 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
-          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+          (?<! # prevent matching
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+            | \#[(\[{] # the first identifier after an infix operator
+              \s* (?:
+                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) \s+
+          )
 
           (
             (?!
@@ -5064,7 +5101,7 @@ repository:
           )
 
           (?=
-              \s+ (?:<[|+*$]>?|[.·°$]) (\s+|$) # infix operator
+              \s+ (?:<[|+*$]>?|[.·$]) (\s+|$) # infix operator
             | (?:<[|+*$]>?|[·°]) # interfix operator
           )
         captures:
@@ -5076,7 +5113,7 @@ repository:
         match: |-
           (?x)
           (?<=
-              (?:^|\s+) (?:<?[|+*$]>|[.·°#]) \s+ # infix operator
+              (?:^|\s+) (?:<?[|+*$]>|[.·#]) \s+ # infix operator
             | (?:<?[|+*$]>|[·°]) # interfix operator
           )
           \b
@@ -5125,7 +5162,16 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
-      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+      (?<! # prevent matching
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+        | \#[(\[{] # the first identifier after an infix operator
+          \s* (?:
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          ) \s+
+      )
 
       (
         (?!
@@ -5160,42 +5206,31 @@ repository:
           \\(?![\\*](?:\s|$)) # infix function call
       )
       (?=
-            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~*] \#?[({] # macro, destructor and generator calls
-          | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-        (?:
-            :?[@#$%]*['"] # strings and symbols
-          | \b\d # numbers
-          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
-          | \#?[(\[] # opening brackets
-          | /[^/*=\s] # regexp literal
-          | \\[\\*](?:\s|$) # markdown literal
-          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-          | \| (?: \#?[(\[{] | $) # lambda literal without parameters
-          | \| ( # start of lambda literal
-              (?:[,;] \s*)* # optional separators
-              (?:
-                (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<5>')
-                )
-                \s*
-              )+
-            )
-          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-            \#?[(\[{] \s* # literal or opening bracket
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-          | (
-              (?!
+          (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+        | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+        | [!~*] \#?[({] # macro, destructor and generator calls
+        | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
+        | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+          (?:\| (?:[,;] \s*)*)? # optional lambda literal separator
+          (?:
+              :?[@#$%]*['"] # strings and symbols
+            | /[^/*=\s] # regexp literal
+            | \\[\\*](?:\s|$) # markdown literal
+            | \#?[(\[{] # opening brackets
+            | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+            | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+              \#?[(\[{] \s* # literal or opening bracket
+              [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
+            | (?!
                 (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
                 #this.repository.define.repository.keywords.match
               )
-              (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<6>')
-              )
-              \s*
-            )+
+              (
+                (?:
+                  #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<5>')
+                )
+                \s*
+              )+
         )
       )
     captures:
@@ -5205,9 +5240,6 @@ repository:
       2: {name: keyword.operator.macro.ruko}
       3: {name: keyword.operator.destructor.ruko}
       4: {name: keyword.generator.asterisk.ruko}
-      5:
-        name: meta.function.arguments.ruko
-        patterns: [{include: $self}]
 
   function-calls:
     patterns:
@@ -5342,7 +5374,16 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
-      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+      (?<! # prevent matching
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+        | \#[(\[{] # the first identifier after an infix operator
+          \s* (?:
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          ) \s+
+      )
 
       (
         (?!
@@ -5384,42 +5425,31 @@ repository:
           \\(?![\\*](?:\s|$)) # infix function call
       )
       (?=
-            (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
-          | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
-          | [!~*] \#?[({] # macro, destructor and generator calls
-          | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
-          | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-        (?:
-            :?[@#$%]*['"] # strings and symbols
-          | \b\d # numbers
-          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
-          | \#?[(\[] # opening brackets
-          | /[^/*=\s] # regexp literal
-          | \\[\\*](?:\s|$) # markdown literal
-          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-          | \| (?: \#?[(\[{] | $) # lambda literal without parameters
-          | \| ( # start of lambda literal
-              (?:[,;] \s*)* # optional separators
-              (?:
-                (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
-                )
-                \s*
-              )+
-            )
-          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-            \#?[(\[{] \s* # literal or opening bracket
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-          | (
-              (?!
+          (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
+        | (?:(?:[?!]|[?!:]:|[?!-]>)=?)? <[\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]* (?:['"`\w]|\#?[(\[{]) # generics
+        | [!~*] \#?[({] # macro, destructor and generator calls
+        | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
+        | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
+          (?:\| (?:[,;] \s*)*)? # optional lambda literal separator
+          (?:
+              :?[@#$%]*['"] # strings and symbols
+            | /[^/*=\s] # regexp literal
+            | \\[\\*](?:\s|$) # markdown literal
+            | \#?[(\[{] # opening brackets
+            | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+            | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+              \#?[(\[{] \s* # literal or opening bracket
+              [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
+            | (?!
                 (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
                 #this.repository.define.repository.keywords.match
               )
-              (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
-              )
-              \s*
-            )+
+              (
+                (?:
+                  #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
+                )
+                \s*
+              )+
         )
       )
     captures:
@@ -5485,7 +5515,7 @@ repository:
           (?x) (?<=
             (?:
               ^ # start of line
-              | (?:^ | [^|]) \| # open pipe
+              | (?:^|[^|]) \| # open pipe
               | \#?[(\[{] # open bracket
               | [,;] # separator
             ) \s*
@@ -5547,7 +5577,7 @@ repository:
           (?x) (?<=
             (?:
               ^ # start of line
-              | (?:^ | [^|]) \| # open pipe
+              | (?:^|[^|]) \| # open pipe
               | \#?[(\[{] # open bracket
               | [,;] # separator
             ) \s*
@@ -5597,7 +5627,7 @@ repository:
       (?x) (?<=
         (?:
           ^ # start of line
-          | (?:^ | [^|]) \| # open pipe
+          | (?:^|[^|]) \| # open pipe
           | \#?[(\[{] # open bracket
           | [,;] # separator
         ) \s*
@@ -5743,7 +5773,16 @@ repository:
         )
         (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
       )
-      (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+      (?<! # prevent matching
+        (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+        | \#[(\[{] # the first identifier after an infix operator
+          \s* (?:
+            [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+            (?:[\p{P}\p{S}]*
+              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+            )?
+          ) \s+
+      )
 
       (
         (?:
@@ -5778,7 +5817,7 @@ repository:
         )+ # allow chaining
       )
 
-      (?! 
+      (?!
           [\p{p}\p{s}&&[^,;'"`()\[\]{}\p{pc}]]* \s+ \#?{ # beginning of block
         | # accessor or assignment
           (?:
@@ -5817,32 +5856,20 @@ repository:
           \s+ # space before literal
         (?:
             :?[@#$%]*['"] # strings and symbols
-          | \b\d # numbers
-          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
-          | \#?[(\[] # opening brackets
           | /[^/*=\s] # regexp literal
           | \\[\\*](?:\s|$) # markdown literal
+          | \#?[(\[{] # opening brackets
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-          | \| (?: \#?[(\[{] | $) # lambda literal without parameters
-          | \| ( # start of lambda literal
-              (?:[,;] \s*)* # optional separators
-              (?:
-                (?:
-                  #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
-                )
-                \s*
-              )+
-            )
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
             \#?[(\[{] \s* # literal or opening bracket
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-          | (
-              (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
-                #this.repository.define.repository.keywords.match
-              )
+          | (?!
+              (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+              #this.repository.define.repository.keywords.match
+            )
+            (
               (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
+                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
               )
               \s*
             )+
@@ -5891,48 +5918,7 @@ repository:
         begin: |-
           (?x)
           (?<=^|[,;\\(\[{\s])
-          (?:
-              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-            | ( \?[.:>] ) # optional
-            | ( ![.:>] ) # mandatory
-            | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
-            | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
-            | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|××|÷÷|±±|%% ) # string
-            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-            | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$#] ) # application
-            | ( <\+|\+>|[.·°] ) # composition
-            | ( [<>][:!]|[:!][<>] ) # class
-            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-            | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|··+|°°+ ) # dots
-            | ( [!=]==? ) # comparison
-            | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|¿¿ ) # null-coalescing
-            | ( !!!?|¡¡ ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
-            | ( \$|:?:?: ) # macro
-            | ( [?:]?= ) # assignment
-            | ( ==?>|<== ) # fat arrow
-            | ( --?>|<--? ) # skinny arrow
-            | ( ~~?>|<~~? ) # wavy arrow
-            | ( \p{Sm}+ ) # math symbols
-            | ( \p{Sc}+ ) # currency symbols
-            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[!-ÿ&&[\p{S}\p{P}]]*
-                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-                )?
-              )
-            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-                (?:[\p{P}\p{S}]*
-                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                )?
-              )
-          )
+          #this.repository.define.repository['binary-operators'].match
           (?=\s*$|\s+/[/*](?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+))
         beginCaptures: &infix-operator-captures
           1: {name: keyword.operator.assignment.augmented.ruko}
@@ -5975,48 +5961,7 @@ repository:
         match: |-
           (?x)
           (?<=^|[,;\\(\[{\s])
-          (?:
-              ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-            | ( \?[.:>] ) # optional
-            | ( ![.:>] ) # mandatory
-            | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
-            | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
-            | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|××|÷÷|±±|%% ) # string
-            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-            | ( [|+*$]>|<[|+*$] ) # pipeline
-            | ( <[|+*$]>|[$#] ) # application
-            | ( <\+|\+>|[.·°] ) # composition
-            | ( [<>][:!]|[:!][<>] ) # class
-            | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-            | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|··+|°°+ ) # dots
-            | ( [!=]==? ) # comparison
-            | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|¿¿ ) # null-coalescing
-            | ( !!!?|¡¡ ) # coalescing
-            | ( \?:?|¿: ) # conditional
-            | ( !:?|¡: ) # ternary
-            | ( \$|:?:?: ) # macro
-            | ( [?:]?= ) # assignment
-            | ( ==?>|<== ) # fat arrow
-            | ( --?>|<--? ) # skinny arrow
-            | ( ~~?>|<~~? ) # wavy arrow
-            | ( \p{Sm}+ ) # math symbols
-            | ( \p{Sc}+ ) # currency symbols
-            | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[!-ÿ&&[\p{S}\p{P}]]*
-                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-                )?
-              )
-            | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-                (?:[\p{P}\p{S}]*
-                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                )?
-              )
-          )
+          #this.repository.define.repository['binary-operators'].match
           (?=$|[\\)\]}\s])
         captures: *infix-operator-captures
 
@@ -6025,48 +5970,7 @@ repository:
     match: |-
       (?x)
       (?<=['"`)\]}\w])
-      (?:
-          ( [\p{P}\p{S}&&[^~<=>.,:;!?''"`()\[\]{}\p{Pc}]][\p{P}\p{S}&&[^,;''"`()\[\]{}\p{Pc}]]*= ) # compound assignment
-        | ( \?[.:>] ) # optional
-        | ( ![.:>] ) # mandatory
-        | ( (?:\.|::|->) ) # accessors
-        | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡) # logical
-        | ( [&|^§¦¤«»‹›~¬†‡] ) # bitwise
-        | ( <<[<>]?|[<>]?>> ) # bitwise shift
-        | ( \+\+|--|××|÷÷|±±|%% ) # string
-        | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
-        | ( [|+*$]>|<[|+*$] ) # pipeline
-        | ( <[|+*$]>|[$#] ) # application
-        | ( <\+|\+>|[.·°] ) # composition
-        | ( [<>][:!]|[:!][<>] ) # class
-        | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
-        | ( [<>]=?|<=?> ) # relational
-        | ( \.\.+|··+|°°+ ) # dots
-        | ( [!=]==? ) # comparison
-        | ( ~[=!]|[=!]~ ) # similarity
-        | ( \?\?\??|¿¿ ) # null-coalescing
-        | ( !!!?|¡¡ ) # coalescing
-        | ( \?:?|¿: ) # conditional
-        | ( !:?|¡: ) # ternary
-        | ( \$|:?:?: ) # macro
-        | ( [?:]?= ) # assignment
-        | ( ==?>|<== ) # fat arrow
-        | ( --?>|<--? ) # skinny arrow
-        | ( ~~?>|<~~? ) # wavy arrow
-        | ( \p{Sm}+ ) # math symbols
-        | ( \p{Sc}+ ) # currency symbols
-        | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-        | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-            (?:[!-ÿ&&[\p{S}\p{P}]]*
-              [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
-            )?
-          )
-        | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
-            (?:[\p{P}\p{S}]*
-              [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-            )?
-          )
-      )
+      #this.repository.define.repository['binary-operators'].match
       (?=['"`\w]|\#?[(\[{])
     captures:
       <<: *infix-operator-captures
@@ -6246,27 +6150,26 @@ repository:
       (?=
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
           | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-        (?:
-            :?[@#$%]*['"] # strings and symbols
-          | \b\d # numbers
-          | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
-          | \#?[(\[] # opening brackets
-          | /[^/*=\s] # regexp literal
-          | \\[\\*](?:\s|$) # markdown literal
-          | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-          | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-            \#?[(\[{] \s* # literal or opening bracket
-            [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-          | (
-              (?!
-                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
-                #this.repository.define.repository.keywords.match
-              )
-              (?:
-                #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
-              )
-              \s*
-            )+
+            (?:\| (?:[,;] \s*)*)? # optional lambda literal separator
+            (?:
+                :?[@#$%]*['"] # strings and symbols
+              | /[^/*=\s] # regexp literal
+              | \\[\\*](?:\s|$) # markdown literal
+              | \#?[(\[{] # opening brackets
+              | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+                \#?[(\[{] \s* # literal or opening bracket
+                [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
+              | (?!
+                  (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                  #this.repository.define.repository.keywords.match
+                )
+                (
+                  (?:
+                  #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
+                  )
+                  \s*
+                )+
         )
       )
     captures:
@@ -6676,7 +6579,16 @@ repository:
             )
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix operator except slashes
           )
-          (?<!(?:[?!]?\.|[?!:]:|[?!-]>)=?) # prevent matching accessors as function names
+          (?<! # prevent matching
+            (?:[?!]?\.|[?!:]:|[?!-]>)=? # the last identifier of a qualified name or a function call
+            | \#[(\[{] # the first identifier after an infix operator
+              \s* (?:
+                [\p{P}\p{S}&&[^,;'"`/\\()\[\]{}\p{Pc}]]+
+                (?:[\p{P}\p{S}]*
+                  [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                )?
+              ) \s+
+          )
 
           (
             (?!
@@ -6711,37 +6623,26 @@ repository:
               | [!~*] \#?[({] # macro, destructor and generator calls
               | (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
               | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-            (?:
-                :?[@#$%]*['"] # strings and symbols
-              | \b\d # numbers
-              | :(?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # symbols
-              | \#?[(\[] # opening brackets
-              | /[^/*=\s] # regexp literal
-              | \\[\\*](?:\s|$) # markdown literal
-              | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
-              | \| (?: \#?[(\[{] | $) # lambda literal without parameters
-              | \| ( # start of lambda literal
-                  (?:[,;] \s*)* # optional separators
-                  (?:
-                    (?:
-                      #this.repository.define.repository['prefix-type-annotation'].match.split('<0>').join('<2>')
+                (?:\| (?:[,;] \s*)*)? # optional lambda literal separator
+                (?:
+                    :?[@#$%]*['"] # strings and symbols
+                  | /[^/*=\s] # regexp literal
+                  | \\[\\*](?:\s|$) # markdown literal
+                  | \#?[(\[{] # opening brackets
+                  | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
+                  | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
+                    \#?[(\[{] \s* # literal or opening bracket
+                    [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
+                  | (?!
+                      (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                      #this.repository.define.repository.keywords.match
                     )
-                    \s*
-                  )+
-                )
-              | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-                \#?[(\[{] \s* # literal or opening bracket
-                [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-              | (
-                  (?!
-                    (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
-                    #this.repository.define.repository.keywords.match
-                  )
-                  (?:
-                    #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<3>')
-                  )
-                  \s*
-                )+
+                    (
+                      (?:
+                      #this.repository.define.repository['prefix-type-annotation-no-infix'].match.split('<0>').join('<2>')
+                      )
+                      \s*
+                    )+
             )
           )
         name: keyword.control.validate.ruko
@@ -8668,7 +8569,7 @@ repository:
           - include: "#comments"
           - include: "#type-signature"
           - include: "#lambdas"
-          - include: "#function-calls"
+          - include: "#selector-function-calls"
           - include: "#xml-tags"
           - include: "#angle-brackets"
           - include: "#accessor-operators"

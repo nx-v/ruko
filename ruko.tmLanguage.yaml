@@ -460,47 +460,44 @@ repository:
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
 
             (?:
-                :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
-              | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
-              | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
-
-              | \b (?i: # number literals
-                  (?:
-                    \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
-                    (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
-                        /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
-                    (?: \\?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
-                        \\?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
-                    (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
-                        /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
-                    (?: \\?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
-                        \\?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    (?:0d)? \d(?:[\p{Pc}\d]*\d)? # decimal
-                    (?: \.  \d(?:[\p{Pc}\d]*\d)? | # decimal point
-                        /   \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-                    (?: \\?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
-                        \\?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-                  )
-                ) (?:
-                    (?: # unit suffix
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)? # last identifier
-                  )?
+                :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
               | (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                    :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
+                  | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
+                  | \b (?i: # number literals
+                      (?:
+                        \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
+                        (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
+                            /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
+                        (?: :?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
+                        (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
+                            /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
+                        (?: :?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        \d(?:[\p{Pc}\d]*\d)? # decimal
+                        (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
+                            /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
+                        (?: :?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      )
+                   )
+                )
+                (?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)? # unit suffix
 
-                (?:
+              | (?:
+                  (?:
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                  )*
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                ) (?:
                   < # generics
                     (?>
                         \g<0> # either recurse or match balanced generics
@@ -513,16 +510,6 @@ repository:
                 )?
 
               | (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                )?
-
-                \#? # optional sharp for splice invocation
-
-                (?:
                   \#?\( # round brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
@@ -575,46 +562,44 @@ repository:
             (?:[\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]|\.\.)* # prefix type operators
 
             (?:
-                :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
-              | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
-              | :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
-
-              | \b (?i: # number literals
-                  (?:
-                    \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
-                    (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
-                        /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
-                    (?: \\?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
-                        \\?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
-                    (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
-                        /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
-                    (?: \\?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
-                        \\?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-                  ) |
-                  (?:
-                    \d(?:[\p{Pc}\d]*\d)? # decimal
-                    (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
-                        /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-                    (?: \\?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
-                        \\?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-                  )
-                ) (?:
-                    (?: # unit suffix
-                      (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                      (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                    )*
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)? # last identifier
-                  )?
+                :(?>`(?>``|[^`])+`|\b[\w&&[^\d\p{No}]][\p{Pd}\w]*\b) # symbol literals
 
               | (?:
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                  (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                )*
-                (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                    :?[@#%]*'(?>\\.|[^\\'])*'|:?[@#$%]*'(?>''|[^'])*' # single quoted string literals
+                  | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
+                  | \b (?i: # number literals
+                      (?:
+                        \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
+                        (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
+                            /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
+                        (?: :?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
+                        (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
+                            /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
+                        (?: :?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      ) |
+                      (?:
+                        \d(?:[\p{Pc}\d]*\d)? # decimal
+                        (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
+                            /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
+                        (?: :?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
+                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                      )
+                   )
+                )
+                (?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)? # unit suffix
 
+              | (?:
+                  (?:
+                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
+                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
+                  )*
+                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
+                )
                 (?:
                   < # generics
                     (?>
@@ -628,14 +613,6 @@ repository:
                 )?
 
               | (?:
-                  (?:
-                    (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # identifier
-                    (?:(?:[?!]?\.|[?!:]:|[?!-]>)=?) # accessor
-                  )*
-                  (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b) # last identifier
-                )?
-
-                (?:
                   \#?\( # round brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
@@ -1489,13 +1466,13 @@ repository:
     patterns:
       - comment: arbitrary base numbers (\d+b prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           ([1-9]\d*b) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
           (?: (\.)    \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? |  # decimal point
               (\/)    \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
-          (?: (\\?e) ([+-]?) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures: &number-captures
           0: {name: constant.numeric.arbitrary-base.ruko}
           1: {name: storage.type.numeric.ruko}
@@ -1508,104 +1485,104 @@ repository:
           8: {name: keyword.other.unit.ruko}
       - comment: binary (0b prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0b) [01](?:[\p{Pc}01]*[01])*
           (?: (\.)   [01](?:[\p{Pc}01]*[01])* |  # decimal point
               (\/)   [01](?:[\p{Pc}01]*[01])* )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.binary.ruko}
           1: {name: storage.type.numeric.binary.ruko}
           <<: *number-captures
       - comment: ternary (0t prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0t) [0-2](?:[\p{Pc}0-2])*
           (?: (\.)   [0-2](?:[\p{Pc}0-2]*[0-2])? |  # decimal point
               (\/)   [0-2](?:[\p{Pc}0-2]*[0-2])? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.ternary.ruko}
           1: {name: storage.type.numeric.ternary.ruko}
           <<: *number-captures
       - comment: quarternary (0q prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0q) [0-3](?:[\p{Pc}0-3])*
           (?: (\.)   [0-3](?:[\p{Pc}0-3]*[0-3])? |  # decimal point
               (\/)   [0-3](?:[\p{Pc}0-3]*[0-3])? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.quarternary.ruko}
           1: {name: storage.type.numeric.quarternary.ruko}
           <<: *number-captures
       - comment: senary (0s prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0s) [0-5](?:[\p{Pc}0-5])*
           (?: (\.)   [0-5](?:[\p{Pc}0-5]*[0-5])? |  # decimal point
               (\/)   [0-5](?:[\p{Pc}0-5]*[0-5])? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.senary.ruko}
           1: {name: storage.type.numeric.senary.ruko}
           <<: *number-captures
       - comment: octal (0o prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0o) [0-7](?:[\p{Pc}0-7])*
           (?: (\.)   [0-7](?:[\p{Pc}0-7]*[0-7])? |  # decimal point
               (\/)   [0-7](?:[\p{Pc}0-7]*[0-7])? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.octal.ruko}
           1: {name: storage.type.numeric.octal.ruko}
           <<: *number-captures
       - comment: duodecimal (0d prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0d) \d(?:_?\d)*
           (?: (\.)   \d(?:[\p{Pc}\d]*\d)? |  # decimal point
               (\/)   \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.decimal.ruko}
           1: {name: storage.type.numeric.decimal.ruko}
           <<: *number-captures
       - comment: hexadecimal (0x prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0x) \h(?:[\p{Pc}0-9a-f])*
           (?: (\.)   \h(?:[\p{Pc}\h])? |  # decimal point
               (\/)   \h(?:[\p{Pc}\h])? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.hexadecimal.ruko}
           1: {name: storage.type.numeric.hexadecimal.ruko}
           <<: *number-captures
       - comment: decimal (no prefix)
         match: |-
-          (?xi)\b
+          (?xi)\s*\b
           (0|[1-9](?:_?\d)*)
           (?: (\.)    \d(?:[\p{Pc}\d]*\d)? |  # decimal point
               (\/)    \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-          (?: (\\?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (\\?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))? # unit suffix
+          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
+              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
         captures:
           0: {name: constant.numeric.decimal.ruko}
           1: {name: constant.numeric.decimal.ruko}
