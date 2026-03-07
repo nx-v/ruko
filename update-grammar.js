@@ -236,7 +236,15 @@ grammar = parse(grammar, (key, value) => {
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
   await prettier.format(
-    "export default " + jsesc(grammar, {compact: true, quotes: "double"}) + ";",
-    {parser: "babel", singleQuote: false, trailingComma: "all", tabWidth: 2},
+    "export default " + jsesc(grammar, {compact: true, quotes: "double"}),
+    {
+      parser: "babel",
+      singleQuote: false,
+      trailingComma: "all",
+      tabWidth: 2,
+      bracketSpacing: false,
+      semi: false,
+    },
   ),
+
 )
