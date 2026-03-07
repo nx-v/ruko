@@ -146,8 +146,7 @@ grammar = parse(
   stringify(grammar, (key, value) => {
     switch (typeof value) {
       case "object":
-        if (["comment", "define"].includes(key))
-          for (let k of ["comment", "define"]) delete value[k]
+        for (let k of ["comment", "define"]) delete value[k]
         if (/^stdlib/.test(key))
           if (value.patterns) {
             value.patterns = value.patterns.map(val => {
@@ -237,9 +236,7 @@ grammar = parse(grammar, (key, value) => {
 writeFileSync(
   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
   await prettier.format(
-    "export default "
-      + jsesc(grammar, {compact: true, quotes: "double"})
-      + ";",
+    "export default " + jsesc(grammar, {compact: true, quotes: "double"}) + ";",
     {parser: "babel", singleQuote: false, trailingComma: "all", tabWidth: 2},
   ),
 )
