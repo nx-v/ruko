@@ -17,23 +17,22 @@ let start = performance.now()
 let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k)
 
 let sortKeys = obj =>
-  isArray(obj)
-    ? obj.map(sortKeys)
-    : obj && typeof obj == "object"
-      ? fromEntries(
-          keys(obj)
-            .sort((a, b) => a.localeCompare(b))
-            .map(k => [k, sortKeys(obj[k])]),
-        )
-      : obj
+  isArray(obj) ? obj.map(sortKeys)
+  : obj && typeof obj == "object" ?
+    fromEntries(
+      keys(obj)
+        .sort((a, b) => a.localeCompare(b))
+        .map(k => [k, sortKeys(obj[k])]),
+    )
+  : obj
 
 let pluralize = word => {
   word = word.toLowerCase().trim()
-  return /(?:[sxz]|[cs]h)$/.test(word)
-    ? word + "es"
-    : /y$/.test(word)
-      ? word.slice(0, -1) + "ies"
-      : word + "s"
+  return (
+    /(?:[sxz]|[cs]h)$/.test(word) ? word + "es"
+    : /y$/.test(word) ? word.slice(0, -1) + "ies"
+    : word + "s"
+  )
 }
 
 // Conventions are divided into validators and splitters.
@@ -97,10 +96,9 @@ let traversePlatform = node => {
         if (pattern.captures)
           pattern.name = pattern.captures[2]?.name || pattern.name
         let name = (
-          /^invalid\./.test(pattern.name)
-            ? pattern.name.replace(/^.+(?=support)/, "")
-            : pattern.name
-        ).replace(/\.c$/, ".ruko")
+          /^invalid\./.test(pattern.name) ?
+            pattern.name.replace(/^.+(?=support)/, "")
+          : pattern.name).replace(/\.c$/, ".ruko")
         let key = name.split(".")[1]
         let symbols = genex(pattern.match.replace(/^\\b|\\b$/g, "")).generate()
         symbolSet[key] = symbolSet[key].union(new Set(symbols))

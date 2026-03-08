@@ -42,12 +42,11 @@ export const mirrorDir = (source, destination) => {
 }
 
 export const sortKeys = obj =>
-  isArray(obj)
-    ? obj.map(sortKeys)
-    : obj && typeof obj == "object"
-      ? fromEntries(
-          keys(obj)
-            .sort((a, b) => a.localeCompare(b))
-            .map(k => [k, sortKeys(obj[k])]),
-        )
-      : obj
+  isArray(obj) ? obj.map(sortKeys)
+  : obj && typeof obj == "object" ?
+    fromEntries(
+      keys(obj)
+        .sort((a, b) => a.localeCompare(b))
+        .map(k => [k, sortKeys(obj[k])]),
+    )
+  : obj

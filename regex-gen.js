@@ -130,11 +130,10 @@ export default function regexGen(input, flags = "") {
         i++
       }
       result +=
-        start == end
-          ? escapeCharClass(start, flags)
-          : end.codePointAt(0) == start.codePointAt(0) + 1
-            ? escapeCharClass(start, flags) + escapeCharClass(end, flags)
-            : `${escapeCharClass(start, flags)}-${escapeCharClass(end, flags)}`
+        start == end ? escapeCharClass(start, flags)
+        : end.codePointAt(0) == start.codePointAt(0) + 1 ?
+          escapeCharClass(start, flags) + escapeCharClass(end, flags)
+        : `${escapeCharClass(start, flags)}-${escapeCharClass(end, flags)}`
     }
 
     return `[${result}]`
@@ -227,9 +226,9 @@ export default function regexGen(input, flags = "") {
     if (/\\(?:u\{[\dA-Fa-f]*|u[\dA-Fa-f]{0,3}|x[\dA-Fa-f]?)$/.test(prefix))
       return null
     let middles = parts.map(p =>
-      suffix.length > 0
-        ? p.slice(prefix.length, p.length - suffix.length)
-        : p.slice(prefix.length),
+      suffix.length > 0 ?
+        p.slice(prefix.length, p.length - suffix.length)
+      : p.slice(prefix.length),
     )
     // Need at least 2 distinct middles and all must be single literal chars
     if (new Set(middles).size < 2) return null
@@ -284,9 +283,9 @@ export default function regexGen(input, flags = "") {
             let rep = s.length / len
             if (s == sub.repeat(rep) && rep > 1)
               return (
-                (len == 1
-                  ? escapeRegExp(sub, flags)
-                  : `(?:${escapeRegExp(sub, flags)})`) + `{${rep}}`
+                (len == 1 ?
+                  escapeRegExp(sub, flags)
+                : `(?:${escapeRegExp(sub, flags)})`) + `{${rep}}`
               )
           }
 
@@ -323,17 +322,17 @@ export default function regexGen(input, flags = "") {
           let minRep = strings.includes("") ? 0 : reps[0]
           let maxRep = reps[reps.length - 1]
           let quant =
-            minRep == 0 && maxRep == 1
-              ? "?"
-              : minRep == maxRep
-                ? `{${minRep}}`
-                : `{${minRep},${maxRep}}`
+            minRep == 0 && maxRep == 1 ? "?"
+            : minRep == maxRep ? `{${minRep}}`
+            : `{${minRep},${maxRep}}`
           let escaped = escapeRegExp(sub, flags)
-          return g == 1
-            ? minRep > 0 && maxRep == minRep + 1
-              ? escaped.repeat(minRep) + escaped + "?"
+          return (
+            g == 1 ?
+              minRep > 0 && maxRep == minRep + 1 ?
+                escaped.repeat(minRep) + escaped + "?"
               : escaped + quant
             : `(?:${escaped})${quant}`
+          )
         }
       }
     }
@@ -655,9 +654,9 @@ export default function regexGen(input, flags = "") {
                 if (condensedNonEmpty != null)
                   return (
                     validPrefix
-                    + (isAtomic(condensedNonEmpty)
-                      ? condensedNonEmpty + "?"
-                      : `(?:${condensedNonEmpty})?`)
+                    + (isAtomic(condensedNonEmpty) ?
+                      condensedNonEmpty + "?"
+                    : `(?:${condensedNonEmpty})?`)
                   )
 
                 let restAlt = rests.join("|")
@@ -679,8 +678,9 @@ export default function regexGen(input, flags = "") {
       let lastCharGroup = tryGroup(s => [...s].at(-1))
 
       if (firstCharGroup || lastCharGroup) {
-        let firstResult = firstCharGroup
-          ? buildFromGroups(firstCharGroup.groups, firstCharGroup.charOrder)
+        let firstResult =
+          firstCharGroup ?
+            buildFromGroups(firstCharGroup.groups, firstCharGroup.charOrder)
           : null
         let lastResult = null
         if (lastCharGroup) {
@@ -697,10 +697,12 @@ export default function regexGen(input, flags = "") {
           // Prefer fewer groups; on tie, prefer shorter result
           let firstGroups = firstCharGroup.groups.size
           let lastGroups = lastCharGroup.groups.size
-          return lastGroups < firstGroups
-            || (lastGroups == firstGroups
-              && lastResult.length < firstResult.length)
-            ? lastResult
+          return (
+              lastGroups < firstGroups
+                || (lastGroups == firstGroups
+                  && lastResult.length < firstResult.length)
+            ) ?
+              lastResult
             : firstResult
         }
         return firstResult ?? lastResult

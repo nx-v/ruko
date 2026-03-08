@@ -61,12 +61,12 @@ grammar.repository.strings = (() => {
     for (let key of flags)
       if (key in map) {
         let match =
-          key != "$"
-            ? map[key][1]
-            : {
-                match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
-                name: "constant.character.escape.ruko",
-              }
+          key != "$" ?
+            map[key][1]
+          : {
+              match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
+              name: "constant.character.escape.ruko",
+            }
         patterns.push(match)
         results.push(map[key][0])
       }
@@ -89,8 +89,9 @@ grammar.repository.strings = (() => {
         .trim()
         .replace(/\s{2,}/g, match => match[0]),
       begin: `\\s*(${flagCombis})(${multiQuote})\\s*`,
-      contentName: /@/.test(flags)
-        ? "string.template.ruko"
+      contentName:
+        /@/.test(flags) ?
+          "string.template.ruko"
         : `string.quoted.${delimiter}.ruko`,
       end: `\\s*(\\2(?!${quote}+))((?>\`(?>\`\`|[^\`])+\`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))?\\s*`,
       beginCaptures: {
@@ -123,15 +124,14 @@ grammar.repository.strings = (() => {
 })()
 
 let sortKeys = obj =>
-  isArray(obj)
-    ? obj.map(sortKeys)
-    : obj && typeof obj == "object"
-      ? fromEntries(
-          keys(obj)
-            .sort((a, b) => a.localeCompare(b))
-            .map(k => [k, sortKeys(obj[k])]),
-        )
-      : obj
+  isArray(obj) ? obj.map(sortKeys)
+  : obj && typeof obj == "object" ?
+    fromEntries(
+      keys(obj)
+        .sort((a, b) => a.localeCompare(b))
+        .map(k => [k, sortKeys(obj[k])]),
+    )
+  : obj
 
 // clone grammar object
 let _this = parse(stringify(grammar))
@@ -221,33 +221,33 @@ Note that this does not import anything from the original YAML file, so any patt
 rely on dynamic generation using JavaScript (e.g. using genex) will not work in the Shiki 
 grammar unless they are pre-generated and hardcoded into the YAML file.
 */
-grammar = parse(grammar, (key, value) => {
-  if (
-    ["begin", "end", "match", "while"].includes(key)
-    && typeof value == "string"
-  )
-    try {
-      return RegExp(toRegExp(value).source)
-    } catch {
-      try {
-        return optimize(value).pattern
-      } catch {
-        return value
-      }
-    }
-  return value
-})
-writeFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
-  await prettier.format(
-    "export default " + jsesc(grammar, {compact: true, quotes: "double"}),
-    {
-      parser: "babel",
-      singleQuote: false,
-      trailingComma: "all",
-      tabWidth: 2,
-      bracketSpacing: false,
-      semi: false,
-    },
-  ),
-)
+// grammar = parse(grammar, (key, value) => {
+//   if (
+//     ["begin", "end", "match", "while"].includes(key)
+//     && typeof value == "string"
+//   )
+//     try {
+//       return RegExp(toRegExp(value).source)
+//     } catch {
+//       try {
+//         return optimize(value).pattern
+//       } catch {
+//         return value
+//       }
+//     }
+//   return value
+// })
+// writeFileSync(
+//   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
+//   await prettier.format(
+//     "export default " + jsesc(grammar, {compact: true, quotes: "double"}),
+//     {
+//       parser: "babel",
+//       singleQuote: false,
+//       trailingComma: "all",
+//       tabWidth: 2,
+//       bracketSpacing: false,
+//       semi: false,
+//     },
+//   ),
+// )
