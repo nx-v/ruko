@@ -3,7 +3,7 @@ scopeName: source.rk
 fileTypes: [ruko, rk]
 patterns: [{include: "#core"}]
 
-# Last updated: March 2, 2026
+# Last updated: March 11, 2026
 # This file is entirely maintained by NexoVolta (nx-v) for the Ruko programming
 # language. If you want to contribute, please open an issue or a pull request
 # on the official GitHub repository:
@@ -513,19 +513,19 @@ repository:
                   \#?\( # round brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
-                      | [^'"`()\[\]{}]* # anything that isn't a delimiter
+                      | [^'"`()\[\]{}]* # or match non-delimiter characters
                     )*
                   \) |
                   \#?\[ # square brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
-                      | [^'"`()\[\]{}]* # anything that isn't a delimiter
+                      | [^'"`()\[\]{}]* # or match non-delimiter characters
                     )*
                   \] |
                   \#?{ # curly brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
-                      | [^'"`()\[\]{}]* # anything that isn't a delimiter
+                      | [^'"`()\[\]{}]* # or match non-delimiter characters
                     )*
                   }
                 )+ # allow chaining
@@ -616,19 +616,19 @@ repository:
                   \#?\( # round brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
-                      | [^'"`()\[\]{}]* # anything that isn't a delimiter
+                      | [^'"`()\[\]{}]* # or match non-delimiter characters
                     )*
                   \) |
                   \#?\[ # square brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
-                      | [^'"`()\[\]{}]* # anything that isn't a delimiter
+                      | [^'"`()\[\]{}]* # or match non-delimiter characters
                     )*
                   \] |
                   \#?{ # curly brackets
                     (?>
                         \g<0> # either recurse or match balanced brackets
-                      | [^'"`()\[\]{}]* # anything that isn't a delimiter
+                      | [^'"`()\[\]{}]* # or match non-delimiter characters
                     )*
                   }
                 )+ # allow chaining
@@ -5204,7 +5204,7 @@ repository:
           (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
         | \s* </[>\w] # XML closing tag
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-          \\(?![\\*](?:\s|$)) # infix function call
+          \\(?![\\*](?:$|\s)) # infix function call
       )
       (?=
           (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -5216,11 +5216,10 @@ repository:
           (?:
               :?[@#$%]*['"] # strings and symbols
             | /[^/*=\s] # regexp literal
-            | \\[\\*](?:\s|$) # markdown literal
-            | \#?[(\[{] # opening brackets
+            | \\[\\*](?:$|\s) # markdown literal
             | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
             | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-              \#?[(\[{] \s* # literal or opening bracket
+              \#?[(\[{] # literal or opening bracket
               [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
             | (?!
                 (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -5423,7 +5422,7 @@ repository:
           : (?:\s*(?:[,;'"`)\]}\w\s]|\#?[(\[{])|$) # postfix colon or delimiter
         | \s* </[>\w] # XML closing tag
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-          \\(?![\\*](?:\s|$)) # infix function call
+          \\(?![\\*](?:$|\s)) # infix function call
       )
       (?=
           (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -5435,11 +5434,10 @@ repository:
           (?:
               :?[@#$%]*['"] # strings and symbols
             | /[^/*=\s] # regexp literal
-            | \\[\\*](?:\s|$) # markdown literal
-            | \#?[(\[{] # opening brackets
+            | \\[\\*](?:$|\s) # markdown literal
             | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
             | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-              \#?[(\[{] \s* # literal or opening bracket
+              \#?[(\[{] # literal or opening bracket
               [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
             | (?!
                 (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -5840,7 +5838,7 @@ repository:
           (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
         | \s* </[>\w] # XML closing tag
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-          \\(?![\\*](?:\s|$)) # infix function call
+          \\(?![\\*](?:$|\s)) # infix function call
       )
       (?=
         (?: # identifier
@@ -5858,11 +5856,10 @@ repository:
         (?:
             :?[@#$%]*['"] # strings and symbols
           | /[^/*=\s] # regexp literal
-          | \\[\\*](?:\s|$) # markdown literal
-          | \#?[(\[{] # opening brackets
+          | \\[\\*](?:$|\s) # markdown literal
           | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
           | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-            \#?[(\[{] \s* # literal or opening bracket
+            \#?[(\[{] # literal or opening bracket
             [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
           | (?!
               (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -6146,7 +6143,7 @@ repository:
           (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
         | \s* </[>\w] # XML closing tag
         | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-          \\(?![\\*](?:\s|$)) # infix function call
+          \\(?![\\*](?:$|\s)) # infix function call
       )
       (?=
             (?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b)?[@#$%]*['"] # tagged string literals
@@ -6155,11 +6152,10 @@ repository:
             (?:
                 :?[@#$%]*['"] # strings and symbols
               | /[^/*=\s] # regexp literal
-              | \\[\\*](?:\s|$) # markdown literal
-              | \#?[(\[{] # opening brackets
+              | \\[\\*](?:$|\s) # markdown literal
               | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
               | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-                \#?[(\[{] \s* # literal or opening bracket
+                \#?[(\[{] # literal or opening bracket
                 [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
               | (?!
                   (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -6616,7 +6612,7 @@ repository:
               (?:['"`\w] | \#?[(\[{]) # literal or opening bracket
             | \s* </[>\w] # XML closing tag
             | [\p{P}\p{S}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]* \s+ # optional postfix operator
-              \\(?![\\*](?:\s|$)) # infix function call
+              \\(?![\\*](?:$|\s)) # infix function call
           )
           (?=
                 (?:(?:[?!]|[?!:]:|[?!-]>)=?)? \#?[({] # C-style function call
@@ -6628,11 +6624,10 @@ repository:
                 (?:
                     :?[@#$%]*['"] # strings and symbols
                   | /[^/*=\s] # regexp literal
-                  | \\[\\*](?:\s|$) # markdown literal
-                  | \#?[(\[{] # opening brackets
+                  | \\[\\*](?:$|\s) # markdown literal
                   | <(?:[`(\[{\p{L}\p{Nl}\p{Pc}]|>(?![\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]+)) # XML literals or splice operators
                   | [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # prefix operators
-                    \#?[(\[{] \s* # literal or opening bracket
+                    \#?[(\[{] # literal or opening bracket
                     [\p{P}\p{S}&&[^,;'"`()\[\]{}\p{Pc}]]* # more prefix operators
                   | (?!
                       (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
@@ -6893,7 +6888,7 @@ repository:
               $ | [,;] # end of declaration
             | :\s # type annotation after identifier
             | [)\]}] # closing brackets
-            | \s(?:[?:]?=(?:\s|$)|\#{) # type annotation before initialization or block
+            | \s(?:[?:]?=(?:$|\s)|\#{) # type annotation before initialization or block
             | (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b
               (?: # ignore keywords
                 # wordlike operators

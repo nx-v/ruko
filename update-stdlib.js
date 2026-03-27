@@ -1,10 +1,10 @@
-import regexGen from "./regex-gen.js"
-import genex from "genex"
-import platform from "./src/platform.tmLanguage.json" with {type: "json"}
-import prettier from "prettier"
-import {readFileSync, writeFileSync} from "fs"
-import {globSync} from "glob"
-import {unicodeName} from "unicode-name"
+import regexGen from './regex-gen.js'
+import genex from 'genex'
+import platform from './src/platform.tmLanguage.json' with {type: 'json'}
+import prettier from 'prettier'
+import {readFileSync, writeFileSync} from 'fs'
+import {globSync} from 'glob'
+import {unicodeName} from 'unicode-name'
 
 let {isArray, from} = Array
 let {fromCodePoint} = String
@@ -18,7 +18,7 @@ let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k)
 
 let sortKeys = obj =>
   isArray(obj) ? obj.map(sortKeys)
-  : obj && typeof obj == "object" ?
+  : obj && typeof obj == 'object' ?
     fromEntries(
       keys(obj)
         .sort((a, b) => a.localeCompare(b))
@@ -27,11 +27,11 @@ let sortKeys = obj =>
   : obj
 
 let pluralize = word => {
-  word = word.toLowerCase().trim()
+  let newWord = word.toLowerCase().trim()
   return (
-    /(?:[sxz]|[cs]h)$/.test(word) ? word + "es"
-    : /y$/.test(word) ? word.slice(0, -1) + "ies"
-    : word + "s"
+    /(?:[sxz]|[cs]h)$/.test(newWord) ? newWord + 'es'
+    : /y$/.test(newWord) ? newWord.slice(0, -1) + 'ies'
+    : newWord + 's'
   )
 }
 
@@ -64,25 +64,25 @@ let conventions = {
 }
 
 let symbolSet = [
-  "class",
-  "interface",
-  "enum",
-  "namespace",
-  "module",
-  "function",
-  "type",
-  "variable",
-  "constant",
-  "property",
+  'class',
+  'interface',
+  'enum',
+  'namespace',
+  'module',
+  'function',
+  'type',
+  'variable',
+  'constant',
+  'property',
 ].reduce((result, key) => ((result[key] = new Set()), result), {})
 
 // === GODOT ENGINE STANDARD LIBRARY ===
 let gdScriptClasses = parse(
   readFileSync(
-    "C:/Users/Admin/Dropbox/Ruko Language/gdscript-classes.json",
-    "utf8",
+    'C:/Users/Admin/Dropbox/Ruko Language/gdscript-classes.json',
+    'utf8',
   ),
-  "utf8",
+  'utf8',
 )
 values(gdScriptClasses).forEach(
   symbols => (symbolSet.class = symbolSet.class.union(new Set(symbols))),
@@ -97,10 +97,10 @@ let traversePlatform = node => {
           pattern.name = pattern.captures[2]?.name || pattern.name
         let name = (
           /^invalid\./.test(pattern.name) ?
-            pattern.name.replace(/^.+(?=support)/, "")
-          : pattern.name).replace(/\.c$/, ".ruko")
-        let key = name.split(".")[1]
-        let symbols = genex(pattern.match.replace(/^\\b|\\b$/g, "")).generate()
+            pattern.name.replace(/^.+(?=support)/, '')
+          : pattern.name).replace(/\.c$/, '.ruko')
+        let key = name.split('.')[1]
+        let symbols = genex(pattern.match.replace(/^\\b|\\b$/g, '')).generate()
         symbolSet[key] = symbolSet[key].union(new Set(symbols))
       }
       pattern.patterns && traversePlatform(pattern)
@@ -109,13 +109,13 @@ let traversePlatform = node => {
 traversePlatform(platform)
 
 // === NODE.JS STANDARD LIBRARY ===
-let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts"
+let stdlibDir = 'C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts'
 let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .filter(path => !/\/node_modules\//.test(path))
   .reverse()
 
 stdlibFiles.forEach(path => {
-  let content = readFileSync(path, "utf8")
+  let content = readFileSync(path, 'utf8')
 
   let patterns = {
     class: /\bclass\b\s+\b([a-zA-Z_]\w*)\b/gm, // classes
@@ -160,15 +160,15 @@ let repository = (() => {
         // keep them together as "xml http request" instead of "x m l http request"
         // and "uint 16" instead of "uint 1 6"
         let words = splitter(symbol)
-          .map(word => word.normalize("NFD").toLowerCase())
-          .join(" ")
+          .map(word => word.normalize('NFD').toLowerCase())
+          .join(' ')
           .replace(/\b((?:[a-z]\b\s*){2,}|(?:\d\b\s*){2,})\b/g, match =>
-            match.replace(/\s/g, ""),
+            match.replace(/\s/g, ''),
           )
-          .replace(/\d+/g, "")
-          .replace(/\s+/g, " ")
+          .replace(/\d+/g, '')
+          .replace(/\s+/g, ' ')
           .trim()
-          .split(" ") // then split them back into individual words
+          .split(' ') // then split them back into individual words
 
         groups = groups.union(new Set(words))
       }
@@ -182,9 +182,9 @@ let repository = (() => {
 
     repo[`stdlib-${pluralize(type)}`] = {
       match:
-        "\\b(?!\\d+)((?i:"
+        '\\b(?!\\d+)((?i:'
         + regexGen(groupList).source
-        + "|\\d+)\\p{Pc}*)*\\g<1>\\b",
+        + '|\\d+)\\p{Pc}*)*\\g<1>\\b',
       name: `support.${type}.ruko`,
     }
   }
@@ -195,9 +195,9 @@ let repository = (() => {
 // === STDLIB GRAMMAR ===
 let grammar = sortKeys({
   comment:
-    "This file was generated using data from https://github.com/DefinitelyTyped/DefinitelyTyped",
-  name: "Ruko Standard Library",
-  scopeName: "source.rk.std",
+    'This file was generated using data from https://github.com/DefinitelyTyped/DefinitelyTyped',
+  name: 'Ruko Standard Library',
+  scopeName: 'source.rk.std',
   patterns: keys(repository).map(key => ({include: `#${key}`})),
   repository,
 })
@@ -210,80 +210,80 @@ let unicodeWords = [
   ...new Set(
     assignedUnicodeChars.flatMap(char =>
       unicodeName(char)
-        .normalize("NFD")
-        .replace(/-/g, " ")
-        .replace(/[\W--\s]/gv, "")
+        .normalize('NFD')
+        .replace(/-/g, ' ')
+        .replace(/[\W--\s]/gv, '')
         .toLowerCase()
-        .split(" "),
+        .split(' '),
     ),
   ),
 ]
   .filter(word => word.length >= 2 && !/\d/.test(word))
   .sort((a, b) => a.length - b.length)
-grammar.repository["stdlib-unicode-names"] = {
+grammar.repository['stdlib-unicode-names'] = {
   match:
-    "\\b(?!\\d+)((?i:"
+    '\\b(?!\\d+)((?i:'
     + regexGen(unicodeWords).source
-    + "|\\d+)\\p{Pc}*)*\\g<1>\\b",
-  name: "support.constant.character.unicode.ruko",
+    + '|\\d+)\\p{Pc}*)*\\g<1>\\b',
+  name: 'support.constant.character.unicode.ruko',
 }
-grammar.patterns.push({include: "#stdlib-unicode-names"})
+grammar.patterns.push({include: '#stdlib-unicode-names'})
 
 // === HTML CHARACTER ENTITY REFERENCES ===
 let htmlEntities = readFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/html-entities.txt",
-  "utf8",
+  'C:/Users/Admin/Dropbox/Ruko Language/html-entities.txt',
+  'utf8',
 ).match(/(?<=&)\w+(?=;)/g)
-grammar.repository["stdlib-html-entities"] = {
+grammar.repository['stdlib-html-entities'] = {
   match: `\\b(${regexGen(htmlEntities).source})\\b`,
-  name: "support.constant.character.html.ruko",
+  name: 'support.constant.character.html.ruko',
 }
-grammar.patterns.push({include: "#stdlib-html-entities"})
+grammar.patterns.push({include: '#stdlib-html-entities'})
 
 // === ADOBE GLYPH LIST ===
 let aglfn = readFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/aglfn.txt",
-  "utf8",
+  'C:/Users/Admin/Dropbox/Ruko Language/aglfn.txt',
+  'utf8',
 )
-  .split("\n")
-  .filter(line => !line.startsWith("#") && line.trim() != "")
-  .map(line => line.split(";")[0].trim())
-grammar.repository["stdlib-adobe-glyph-list"] = {
+  .split('\n')
+  .filter(line => !line.startsWith('#') && line.trim() != '')
+  .map(line => line.split(';')[0].trim())
+grammar.repository['stdlib-adobe-glyph-list'] = {
   match: `\\b(${regexGen(aglfn).source})\\b`,
-  name: "support.constant.character.adobe.ruko",
+  name: 'support.constant.character.adobe.ruko',
 }
-grammar.patterns.push({include: "#stdlib-adobe-glyph-list"})
+grammar.patterns.push({include: '#stdlib-adobe-glyph-list'})
 
 // === COLOR NAMES ===
-import {colornames} from "color-name-list"
+import {colornames} from 'color-name-list'
 // Group by first letter to avoid creating a single huge regex pattern,
 // which can be inefficient to match against.
-grammar.repository["stdlib-color-names"] = {
+grammar.repository['stdlib-color-names'] = {
   match:
-    "\\b("
+    '\\b('
     + pipe(
       colornames,
       x =>
         x.flatMap(({name}) =>
           name
-            .normalize("NFD")
-            .replace(/[\W--\s]/gv, "")
+            .normalize('NFD')
+            .replace(/[\W--\s]/gv, '')
             .toLowerCase()
-            .split(" "),
+            .split(' '),
         ),
       x => regexGen([...new Set(x.filter(word => /\D+/.test(word)))]).source,
     )
-    + ")\\b",
-  name: "support.constant.color.ruko",
+    + ')\\b',
+  name: 'support.constant.color.ruko',
 }
-grammar.patterns.push({include: "#stdlib-color-names"})
+grammar.patterns.push({include: '#stdlib-color-names'})
 
 // Remove "comment" and "define" keys from all sub-objects in repository
 grammar = parse(
   stringify(grammar, (key, value) => {
     switch (typeof value) {
-      case "object":
-        for (let k of ["key", "comment", "define", "library"])
+      case 'object':
+        for (let k of ['key', 'comment', 'define', 'library'])
           if (value && k in value) delete value[k]
         break
     }
@@ -292,16 +292,16 @@ grammar = parse(
 )
 
 grammar.information_for_contributors = [
-  "This file is generated from ruko.stdlib.tmLanguage.yaml using update-stdlib.js.",
-  "To make changes to the standard library patterns, edit ruko.stdlib.tmLanguage.yaml and run update-stdlib.js.",
+  'This file is generated from ruko.stdlib.tmLanguage.yaml using update-stdlib.js.',
+  'To make changes to the standard library patterns, edit ruko.stdlib.tmLanguage.yaml and run update-stdlib.js.',
 ]
 grammar = await prettier.format(stringify(sortKeys(grammar)), {
-  parser: "json",
+  parser: 'json',
   tabWidth: 2,
   bracketSpacing: false,
 })
 writeFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
+  'C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json',
   grammar,
 )
 

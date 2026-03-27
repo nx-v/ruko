@@ -36,17 +36,17 @@
  * Inspired by `regexgen` by Devon Govett, Licensed under the MIT License.
  */
 
-export default function regexGen(input, flags = "") {
+export default function regexGen(input, flags = '') {
   let {round, min, floor} = Math
   let {fromCharCode, fromCodePoint} = String
   let {isArray} = Array
 
   // Escape a string for use in a regular expression, handling Unicode properly.
   let hex = (code, pad = 5) => code.toString(16).padStart(pad, 0).toUpperCase()
-  let escapeRegExp = (string, flags = "") => {
+  let escapeRegExp = (string, flags = '') => {
     let isUnicode = /u/.test(flags)
     return string
-      .replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")
+      .replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
       .replace(/\\[ftnrv]/g, match => `\\${match[1]}`) // preserve common escapes
       .replace(
         /[\x00-\x1f\x7f-\xff]/g,
@@ -66,10 +66,10 @@ export default function regexGen(input, flags = "") {
   }
 
   // Escape a single character for use in a character class, handling Unicode properly.
-  let escapeCharClass = (char, flags = "") => {
+  let escapeCharClass = (char, flags = '') => {
     let isUnicode = /u/.test(flags)
     return char
-      .replace(/[\\[\]^-]/g, "\\$&")
+      .replace(/[\\[\]^-]/g, '\\$&')
       .replace(/\\[ftnrv]/g, match => `\\${match[1]}`) // preserve common escapes
       .replace(
         /[\x00-\x1f\x7f-\xff]/g,
@@ -90,14 +90,14 @@ export default function regexGen(input, flags = "") {
 
   // Find common prefix of an array of strings, disregarding Unicode code point boundaries
   let findCommonPrefix = strings => {
-    if (strings.length == 0) return ""
+    if (strings.length == 0) return ''
     let prefix = strings[0]
     for (let s of strings.slice(1)) {
       while (!s.startsWith(prefix)) {
         prefix = prefix.slice(0, -1)
-        if (prefix == "") break
+        if (prefix == '') break
       }
-      if (prefix == "") break
+      if (prefix == '') break
     }
     return prefix
   }
@@ -105,17 +105,17 @@ export default function regexGen(input, flags = "") {
   // Find common suffix by reversing strings and finding common prefix, then reverse back.
   // Disregards Unicode code point boundaries, but that's generally fine for suffixes.
   let findCommonSuffix = strings => {
-    let reversed = strings.map(s => s.split("").reverse().join(""))
+    let reversed = strings.map(s => s.split('').reverse().join(''))
     let reversedPrefix = findCommonPrefix(reversed)
-    return reversedPrefix.split("").reverse().join("")
+    return reversedPrefix.split('').reverse().join('')
   }
 
   // Build a character class from an array of single-character strings, merging consecutive characters into ranges.
-  let makeCharClass = (chars, flags = "") => {
+  let makeCharClass = (chars, flags = '') => {
     chars = [...new Set(chars)].sort(
       (a, b) => a.codePointAt(0) - b.codePointAt(0),
     )
-    let result = ""
+    let result = ''
     let i = 0
 
     while (i < chars.length) {
@@ -141,7 +141,7 @@ export default function regexGen(input, flags = "") {
 
   // Check if the strings form a cartesian product of a set of atoms (substrings).
   let isCartesian = strings => {
-    if (!strings.includes("")) return false
+    if (!strings.includes('')) return false
     let nonEmpty = strings.filter(s => s)
     if (nonEmpty.length == 0) return false
     let minLen = min(...nonEmpty.map(s => s.length))
@@ -172,7 +172,7 @@ export default function regexGen(input, flags = "") {
 
     let generated = new Set()
     for (let mask = 0; mask < 1 << n; mask++) {
-      let str = ""
+      let str = ''
       for (let i = 0; i < n; i++) if (mask & (1 << i)) str += atoms[i]
       generated.add(str)
     }
@@ -208,7 +208,7 @@ export default function regexGen(input, flags = "") {
     if ((m = p.match(/^\\u\{([\dA-Fa-f]+)\}$/)))
       return fromCodePoint(parseInt(m[1], 16))
     // \<special> (escaped metacharacter)
-    if (p.length == 2 && p[0] == "\\") return p[1]
+    if (p.length == 2 && p[0] == '\\') return p[1]
     return null
   }
 
@@ -238,7 +238,7 @@ export default function regexGen(input, flags = "") {
   }
 
   // Main function to build the regex pattern from the array of strings
-  let buildPattern = (strings, flags = "") => {
+  let buildPattern = (strings, flags = '') => {
     // Check if pattern is atomic (matches exactly one literal character, char class, or non-capturing group)
     let isAtomic = pattern => {
       if (
@@ -253,17 +253,17 @@ export default function regexGen(input, flags = "") {
       if (/^\((?:\?:)?/.test(pattern)) {
         let open = 0
         for (let i = 0; i < pattern.length; i++) {
-          if (pattern[i] == "\\") {
+          if (pattern[i] == '\\') {
             i++
             continue
           }
-          if (pattern[i] == "(") open++
-          else if (pattern[i] == ")") {
+          if (pattern[i] == '(') open++
+          else if (pattern[i] == ')') {
             open--
             if (open == 0) {
               // The closing paren is at i; rest is either empty or "?"
               let rest = pattern.slice(i + 1)
-              return rest == "" || rest == "?"
+              return rest == '' || rest == '?'
             }
           }
         }
@@ -272,7 +272,7 @@ export default function regexGen(input, flags = "") {
     }
 
     // Base cases
-    if (strings.length == 0) return ""
+    if (strings.length == 0) return ''
 
     if (strings.length == 1) {
       let s = strings[0]
@@ -293,15 +293,15 @@ export default function regexGen(input, flags = "") {
     }
 
     // Check for cartesian products and empty string handling first
-    if (strings.includes("")) {
+    if (strings.includes('')) {
       let atoms = isCartesian(strings)
       if (atoms) {
         if (atoms.length == 1) {
           let escaped = escapeRegExp(atoms[0], flags)
-          if (atoms[0].length == 1 || isAtomic(escaped)) return escaped + "?"
+          if (atoms[0].length == 1 || isAtomic(escaped)) return escaped + '?'
           else return `(?:${escaped})?`
         } else
-          return atoms.map(atom => `(?:${escapeRegExp(atom, flags)})?`).join("")
+          return atoms.map(atom => `(?:${escapeRegExp(atom, flags)})?`).join('')
       }
     }
 
@@ -319,17 +319,17 @@ export default function regexGen(input, flags = "") {
           let reps = nonEmptyStrings
             .map(s => s.length / g)
             .sort((a, b) => a - b)
-          let minRep = strings.includes("") ? 0 : reps[0]
+          let minRep = strings.includes('') ? 0 : reps[0]
           let maxRep = reps[reps.length - 1]
           let quant =
-            minRep == 0 && maxRep == 1 ? "?"
+            minRep == 0 && maxRep == 1 ? '?'
             : minRep == maxRep ? `{${minRep}}`
             : `{${minRep},${maxRep}}`
           let escaped = escapeRegExp(sub, flags)
           return (
             g == 1 ?
               minRep > 0 && maxRep == minRep + 1 ?
-                escaped.repeat(minRep) + escaped + "?"
+                escaped.repeat(minRep) + escaped + '?'
               : escaped + quant
             : `(?:${escaped})${quant}`
           )
@@ -379,40 +379,40 @@ export default function regexGen(input, flags = "") {
         )
       ) {
         let rests = newParts.map(p => p.slice(0, p.length - textSuffix.length))
-        let nonEmpty = rests.filter(r => r != "")
+        let nonEmpty = rests.filter(r => r != '')
         if (nonEmpty.length < rests.length) {
           // Some rests empty → the suffix absorbs those branches as optional
           let restPart
           if (nonEmpty.length == 0) {
-            restPart = ""
+            restPart = ''
           } else if (nonEmpty.length == 1) {
             let r = nonEmpty[0]
-            restPart = isAtomic(r) ? r + "?" : `(?:${r})?`
+            restPart = isAtomic(r) ? r + '?' : `(?:${r})?`
           } else {
             let inner =
-              condenseAlternationParts(nonEmpty, flags) ?? nonEmpty.join("|")
-            restPart = isAtomic(inner) ? inner + "?" : `(?:${inner})?`
+              condenseAlternationParts(nonEmpty, flags) ?? nonEmpty.join('|')
+            restPart = isAtomic(inner) ? inner + '?' : `(?:${inner})?`
           }
           return restPart + textSuffix
         } else if (newParts.length > 1) {
           // All rests non-empty: wrap them and append the common suffix
-          let inner = condenseAlternationParts(rests, flags) ?? rests.join("|")
+          let inner = condenseAlternationParts(rests, flags) ?? rests.join('|')
           return (isAtomic(inner) ? inner : `(?:${inner})`) + textSuffix
         }
       }
 
       if (!didGroup) return null
-      return condenseAlternationParts(newParts, flags) ?? newParts.join("|")
+      return condenseAlternationParts(newParts, flags) ?? newParts.join('|')
     }
 
     // Fallback for empty string if not handled by cartesian
-    if (strings.includes("")) {
+    if (strings.includes('')) {
       let nonEmpty = strings.filter(s => s)
       if (nonEmpty.length == 0) {
-        return "(?:)"
+        return '(?:)'
       }
       let alt = buildPattern(nonEmpty, flags)
-      return isAtomic(alt) ? alt + "?" : `(?:${alt})?`
+      return isAtomic(alt) ? alt + '?' : `(?:${alt})?`
     }
 
     let prefix = findCommonPrefix(strings)
@@ -481,7 +481,7 @@ export default function regexGen(input, flags = "") {
         )
         if (quantMatch) {
           let quant = quantMatch[1]
-          let reps = quant.split(",").map(Number)
+          let reps = quant.split(',').map(Number)
           let newMin = reps[0] + 1
           let newMax = reps[1] ? reps[1] + 1 : newMin
           let newQuant =
@@ -595,19 +595,19 @@ export default function regexGen(input, flags = "") {
             for (let i = 0; i < validPrefix.length; i++) {
               let c = validPrefix[i]
               switch (c) {
-                case "\\":
+                case '\\':
                   i++
                   continue
-                case "[":
+                case '[':
                   inClass = true
                   continue
-                case "]":
+                case ']':
                   inClass = false
                   continue
-                case "(":
+                case '(':
                   if (!inClass) open++
                   break
-                case ")":
+                case ')':
                   if (!inClass) open--
                   break
               }
@@ -615,35 +615,35 @@ export default function regexGen(input, flags = "") {
 
             if (open != 0 || inClass)
               // Trim back to last safe position — for simplicity just skip factoring
-              validPrefix = ""
+              validPrefix = ''
 
             if (validPrefix.length > 0) {
               let rests = parts.map(p => p.slice(validPrefix.length))
               // If any rest starts with a quantifier, the prefix split landed mid-atom
               // (e.g. prefix "b" extracted from "b?cd" leaving rest "?cd"). Skip factoring.
-              if (rests.some(r => /^[?*+{]/.test(r))) validPrefix = ""
+              if (rests.some(r => /^[?*+{]/.test(r))) validPrefix = ''
             }
 
             if (validPrefix.length > 0) {
               let rests = parts.map(p => p.slice(validPrefix.length))
               // If all rests are empty except possibly one, or if rests form a simple optional
-              let nonEmpty = rests.filter(r => r != "")
+              let nonEmpty = rests.filter(r => r != '')
               if (nonEmpty.length == 0) {
                 return validPrefix
               } else if (nonEmpty.length == rests.length) {
                 // All rests non-empty: form alternation of rests
                 let restAlt =
-                  condenseAlternationParts(rests, flags) ?? rests.join("|")
+                  condenseAlternationParts(rests, flags) ?? rests.join('|')
                 let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`
                 return validPrefix + wrapped
               } else if (
-                rests.filter(r => r == "").length > 0
+                rests.filter(r => r == '').length > 0
                 && nonEmpty.length == 1
               ) {
                 // One rest is empty — the other becomes optional
                 let rest = nonEmpty[0]
                 return (
-                  validPrefix + (isAtomic(rest) ? rest + "?" : `(?:${rest})?`)
+                  validPrefix + (isAtomic(rest) ? rest + '?' : `(?:${rest})?`)
                 )
               } else {
                 // Mixed: some empty, some not — if non-empties condense to a char class use [x]?
@@ -655,11 +655,11 @@ export default function regexGen(input, flags = "") {
                   return (
                     validPrefix
                     + (isAtomic(condensedNonEmpty) ?
-                      condensedNonEmpty + "?"
+                      condensedNonEmpty + '?'
                     : `(?:${condensedNonEmpty})?`)
                   )
 
-                let restAlt = rests.join("|")
+                let restAlt = rests.join('|')
                 let wrapped = isAtomic(restAlt) ? restAlt : `(?:${restAlt})`
                 return validPrefix + wrapped
               }
@@ -670,7 +670,7 @@ export default function regexGen(input, flags = "") {
         return (
           condenseParts(parts, flags)
           ?? condenseAlternationParts(parts, flags)
-          ?? parts.join("|")
+          ?? parts.join('|')
         )
       }
 
@@ -725,19 +725,19 @@ export default function regexGen(input, flags = "") {
     return (
       condenseParts(escapedParts, flags)
       ?? condenseAlternationParts(escapedParts, flags)
-      ?? escapedParts.join("|")
+      ?? escapedParts.join('|')
     )
   }
 
   // Input validation
   if (!isArray(input)) {
-    if (input == null) return RegExp("(?:)", flags)
-    throw TypeError("Input must be an array")
+    if (input == null) return RegExp('(?:)', flags)
+    throw TypeError('Input must be an array')
   }
-  if (input.some(s => typeof s != "string"))
-    throw TypeError("All elements must be strings")
+  if (input.some(s => typeof s != 'string'))
+    throw TypeError('All elements must be strings')
   if (!input || input.length == 0 || input.every(s => !s))
-    return RegExp("(?:)", flags)
+    return RegExp('(?:)', flags)
 
   // Remove duplicates, sort by code unit order
   input = [...new Set(input)].sort()

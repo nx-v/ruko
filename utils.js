@@ -7,7 +7,7 @@ import {
   copyFileSync,
   rmSync,
   rmdirSync,
-} from "fs"
+} from 'fs'
 
 let {parse, stringify} = JSON
 let {isArray} = Array
@@ -43,7 +43,7 @@ export const mirrorDir = (source, destination) => {
 
 export const sortKeys = obj =>
   isArray(obj) ? obj.map(sortKeys)
-  : obj && typeof obj == "object" ?
+  : obj && typeof obj == 'object' ?
     fromEntries(
       keys(obj)
         .sort((a, b) => a.localeCompare(b))

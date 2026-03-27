@@ -1,20 +1,20 @@
-import yaml from "js-yaml"
-import regexGen from "./regex-gen.js"
-import genex from "genex"
-import prettier from "prettier"
-import jsesc from "jsesc"
-import {toRegExp} from "oniguruma-to-es"
-import {optimize} from "oniguruma-parser/optimizer"
-import {mirrorDir} from "./utils.js"
-import {readFileSync, writeFileSync} from "fs"
+import yaml from 'js-yaml'
+import regexGen from './regex-gen.js'
+import genex from 'genex'
+import prettier from 'prettier'
+import jsesc from 'jsesc'
+import {toRegExp} from 'oniguruma-to-es'
+import {optimize} from 'oniguruma-parser/optimizer'
+import {mirrorDir} from './utils.js'
+import {readFileSync, writeFileSync} from 'fs'
 
 let {parse, stringify} = JSON
 let {isArray} = Array
 let {keys, fromEntries} = Object
 
 let file = readFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml",
-  "utf8",
+  'C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.yaml',
+  'utf8',
 )
 let grammar = yaml.load(file)
 
@@ -35,78 +35,76 @@ grammar.repository.strings = (() => {
       .map(e => [...arr].filter((_, i) => (e >> i) & 1))
       .filter(s => s.length <= maxLen)
 
-  let escapeSym = s => s.replace(/[-/\\^$*+?.#()|[\]{}]/g, "\\$&")
+  let escapeSym = s => s.replace(/[-/\\^$*+?.#()|[\]{}]/g, '\\$&')
 
-  let scope = ({quote = "'", flags = "", multi = false}) => {
-    let delimiter = quote == "'" ? "single" : "double"
-    let multiQuote = multi ? quote.repeat(3) + "+" : quote
-    let patterns = flags.includes("$") ? [] : [{include: "#string-escapes"}]
+  let scope = ({quote = "'", flags = '', multi = false}) => {
+    let delimiter = quote == "'" ? 'single' : 'double'
+    let multiQuote = multi ? quote.repeat(3) + '+' : quote
+    let patterns = flags.includes('$') ? [] : [{include: '#string-escapes'}]
     let escapes = []
 
     let map = {
       $: [
-        "verbatim",
-        {match: escapes, name: "constant.character.escape.ruko"},
+        'verbatim',
+        {match: escapes, name: 'constant.character.escape.ruko'},
         quote,
       ],
-      "%": ["format", {include: "#embedded-formatting"}],
-      "@": ["template", {include: "#embedded-arguments"}],
-      "#": ["interpolated", {include: "#embedded-expressions"}],
+      '%': ['format', {include: '#embedded-formatting'}],
+      '@': ['template', {include: '#embedded-arguments'}],
+      '#': ['interpolated', {include: '#embedded-expressions'}],
     }
 
-    if (flags.includes("$"))
+    if (flags.includes('$'))
       for (let key of flags) if (key in map) escapes.push(map[key][2] || key)
 
     let results = []
     for (let key of flags)
       if (key in map) {
         let match =
-          key != "$" ?
+          key != '$' ?
             map[key][1]
           : {
               match: escapes.map(x => escapeSym(x).repeat(2)).join`|`,
-              name: "constant.character.escape.ruko",
+              name: 'constant.character.escape.ruko',
             }
         patterns.push(match)
         results.push(map[key][0])
       }
 
     let desc =
-      ["plain", results[0]][results.length]
-      || new Intl.ListFormat("en").format(results)
+      ['plain', results[0]][results.length]
+      || new Intl.ListFormat('en').format(results)
 
-    let hasMulti = multi ? "multi " : ""
-    ;`${hasMulti}${delimiter}-quoted ${desc} string`
+    let hasMulti = multi ? 'multi ' : ''
+    let comment = `${hasMulti} ${delimiter}-quoted ${desc} string`
       .trim()
-      .replace(/\s{2,}/g, ([match]) => match)
+      .replace(/\s{2,}/g, match => match[0])
 
     let flagCombis = permutations([...flags]).map(
-      x => x.map(y => escapeSym(y) + "+").join``,
+      x => x.map(y => escapeSym(y) + '+').join``,
     ).join`|`
 
     return {
-      comment: `${hasMulti} ${delimiter}-quoted ${desc} string`
-        .trim()
-        .replace(/\s{2,}/g, match => match[0]),
+      comment,
       begin: `\\s*(${flagCombis})(${multiQuote})\\s*`,
       contentName:
         /@/.test(flags) ?
-          "string.template.ruko"
+          'string.template.ruko'
         : `string.quoted.${delimiter}.ruko`,
       end: `\\s*(\\2(?!${quote}+))((?>\`(?>\`\`|[^\`])+\`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))?\\s*`,
       beginCaptures: {
-        1: {name: "storage.type.string.ruko"},
-        2: {name: "punctuation.definition.string.ruko"},
+        1: {name: 'storage.type.string.ruko'},
+        2: {name: 'punctuation.definition.string.ruko'},
       },
       endCaptures: {
-        1: {name: "punctuation.definition.string.ruko"},
-        2: {name: "keyword.other.unit.ruko"},
+        1: {name: 'punctuation.definition.string.ruko'},
+        2: {name: 'keyword.other.unit.ruko'},
       },
       patterns,
     }
   }
 
-  let combinations = powerSet("$#%@")
+  let combinations = powerSet('$#%@')
     .map(x => x.join``)
     .sort((a, b) => b.length - a.length)
 
@@ -125,7 +123,7 @@ grammar.repository.strings = (() => {
 
 let sortKeys = obj =>
   isArray(obj) ? obj.map(sortKeys)
-  : obj && typeof obj == "object" ?
+  : obj && typeof obj == 'object' ?
     fromEntries(
       keys(obj)
         .sort((a, b) => a.localeCompare(b))
@@ -137,7 +135,7 @@ let sortKeys = obj =>
 let _this = parse(stringify(grammar))
 delete grammar.repository.define
 
-for (let k of ["keywords", "declaration-keywords"])
+for (let k of ['keywords', 'declaration-keywords'])
   _this.repository.define.repository[k].match = optimize(
     _this.repository.define.repository[k].match,
   ).pattern.replace(
@@ -149,8 +147,8 @@ for (let k of ["keywords", "declaration-keywords"])
 grammar = parse(
   stringify(grammar, (key, value) => {
     switch (typeof value) {
-      case "object":
-        for (let k of ["comment", "define"]) delete value[k]
+      case 'object':
+        for (let k of ['comment', 'define']) delete value[k]
         if (/^stdlib/.test(key))
           if (value.patterns) {
             value.patterns = value.patterns.map(val => {
@@ -164,12 +162,12 @@ grammar = parse(
             return value
           }
         break
-      case "string":
-        if (["begin", "end", "match", "while"].includes(key.trim()))
+      case 'string':
+        if (['begin', 'end', 'match', 'while'].includes(key.trim()))
           try {
             if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
               value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
-                let code = p2.replace(/(?<!\\)#this\./, "_this.")
+                let code = p2.replace(/(?<!\\)#this\./, '_this.')
                 return eval(code)
               })
             return optimize(value).pattern
@@ -183,8 +181,8 @@ grammar = parse(
 
 let stdlib = parse(
   readFileSync(
-    "C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json",
-    "utf8",
+    'C:/Users/Admin/Dropbox/Ruko Language/ruko-stdlib.tmLanguage.json',
+    'utf8',
   ),
 )
 grammar.information_for_contributors = stdlib.information_for_contributors
@@ -193,22 +191,22 @@ grammar.repository = {
   ...stdlib.repository, // standard library patterns
 }
 grammar = await prettier.format(stringify(grammar), {
-  parser: "json",
+  parser: 'json',
   tabWidth: 2,
   bracketSpacing: false,
 })
 
 writeFileSync(
-  "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json",
+  'C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.json',
   grammar,
 )
 writeFileSync(
-  "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json",
+  'C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1/syntaxes/ruko.tmLanguage.json',
   grammar,
 )
 mirrorDir(
-  "C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1",
-  "C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1",
+  'C:/Users/Admin/Ruko/nexovolta.ruko-language-support-0.0.1',
+  'C:/Users/Admin/.vscode/extensions/nexovolta.ruko-language-support-0.0.1',
 )
 
 // compile for Shiki Misaki
@@ -221,33 +219,33 @@ Note that this does not import anything from the original YAML file, so any patt
 rely on dynamic generation using JavaScript (e.g. using genex) will not work in the Shiki 
 grammar unless they are pre-generated and hardcoded into the YAML file.
 */
-// grammar = parse(grammar, (key, value) => {
-//   if (
-//     ["begin", "end", "match", "while"].includes(key)
-//     && typeof value == "string"
-//   )
-//     try {
-//       return RegExp(toRegExp(value).source)
-//     } catch {
-//       try {
-//         return optimize(value).pattern
-//       } catch {
-//         return value
-//       }
-//     }
-//   return value
-// })
-// writeFileSync(
-//   "C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js",
-//   await prettier.format(
-//     "export default " + jsesc(grammar, {compact: true, quotes: "double"}),
-//     {
-//       parser: "babel",
-//       singleQuote: false,
-//       trailingComma: "all",
-//       tabWidth: 2,
-//       bracketSpacing: false,
-//       semi: false,
-//     },
-//   ),
-// )
+grammar = parse(grammar, (key, value) => {
+  if (
+    ['begin', 'end', 'match', 'while'].includes(key)
+    && typeof value == 'string'
+  )
+    try {
+      return RegExp(toRegExp(value).source)
+    } catch {
+      try {
+        return optimize(value).pattern
+      } catch {
+        return value
+      }
+    }
+  return value
+})
+writeFileSync(
+  'C:/Users/Admin/Dropbox/Ruko Language/ruko.tmLanguage.js',
+  await prettier.format(
+    'export default ' + jsesc(grammar, {compact: true, quotes: 'double'}),
+    {
+      parser: 'babel',
+      singleQuote: false,
+      trailingComma: 'all',
+      tabWidth: 2,
+      bracketSpacing: false,
+      semi: false,
+    },
+  ),
+)

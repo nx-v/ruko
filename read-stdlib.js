@@ -1,15 +1,15 @@
-import {globSync} from "glob"
-import {readFileSync, writeFileSync} from "fs"
-import platform from "./src/platform.tmLanguage.json" with {type: "json"}
-import toRegExp from "./to-regex.js"
-import genex from "genex"
+import {globSync} from 'glob'
+import {readFileSync, writeFileSync} from 'fs'
+import platform from './src/platform.tmLanguage.json' with {type: 'json'}
+import toRegExp from './to-regex.js'
+import genex from 'genex'
 
 let {isArray} = Array
 let {raw} = String
 let {parse, stringify} = JSON
 let {keys, values, fromEntries, entries, groupBy} = Object
 
-let stdlibDir = "C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts"
+let stdlibDir = 'C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts'
 let stdlibFiles = globSync(stdlibDir, {absolute: true})
   .filter(path => !/\/node_modules\//.test(path))
   .reverse()
@@ -26,8 +26,8 @@ let libraries = stdlibFiles.map(
 
 // install 12 libraries at a time
 console.log(
-  "npm install -g "
+  'npm install -g '
     + chunk([...new Set(libraries)], 12)
-      .map(group => group.join(" "))
-      .join("\nnpm install -g "),
+      .map(group => group.join(' '))
+      .join('\nnpm install -g '),
 ) // install missing libraries with npm

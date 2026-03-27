@@ -8,14 +8,14 @@ let getMaxDigit = base => {
 let toBaseString = (num, base) => {
   if (base == 10) return String(num)
   let result = num.toString(base)
-  return num < 0 ? "-" + result.slice(1) : result
+  return num < 0 ? '-' + result.slice(1) : result
 }
 
 let parseBase = (str, base) => parseInt(str, base)
 
 let isNumber = v =>
-  (typeof v == "number" && v - v == 0)
-  || (typeof v == "string" && Number.isFinite(+v) && v.trim() != "")
+  (typeof v == 'number' && v - v == 0)
+  || (typeof v == 'string' && Number.isFinite(+v) && v.trim() != '')
 
 let splitToPatterns = (min, max, tok, options) => {
   let ranges = splitToRanges(min, max, tok.base)
@@ -31,7 +31,7 @@ let splitToPatterns = (min, max, tok, options) => {
       toBaseString(max, base),
       options,
     )
-    let zeros = ""
+    let zeros = ''
 
     if (!tok.isPadded && prev && prev.pattern == obj.pattern) {
       if (prev.count.length > 1) prev.count.pop()
@@ -60,11 +60,11 @@ let filterPatterns = (arr, comparison, prefix, intersection, options) => {
     let {string} = ele
 
     // only push if _both_ are negative...
-    if (!intersection && !contains(comparison, "string", string))
+    if (!intersection && !contains(comparison, 'string', string))
       result.push(prefix + string)
 
     // or _both_ are positive
-    if (intersection && contains(comparison, "string", string))
+    if (intersection && contains(comparison, 'string', string))
       result.push(prefix + string)
   }
   return result
@@ -96,16 +96,16 @@ let countZeros = (integer, zeros, base = 10) =>
   integer - (integer % Math.pow(base, zeros))
 
 let toQuantifier = digits => {
-  let [start = 0, stop = ""] = digits
-  if (stop || start > 1) return `{${start + (stop ? "," + stop : "")}}`
-  return ""
+  let [start = 0, stop = ''] = digits
+  if (stop || start > 1) return `{${start + (stop ? ',' + stop : '')}}`
+  return ''
 }
 
 let toCharacterClass = (a, b, options) => {
   // Helper to get numeric value of a digit character
   let charToNum = c => {
-    if (c >= "0" && c <= "9") return c.charCodeAt(0) - 48
-    if (c >= "a" && c <= "z") return c.charCodeAt(0) - 97 + 10
+    if (c >= '0' && c <= '9') return c.charCodeAt(0) - 48
+    if (c >= 'a' && c <= 'z') return c.charCodeAt(0) - 97 + 10
     return 0
   }
 
@@ -128,12 +128,12 @@ let toCharacterClass = (a, b, options) => {
       let letterB = String.fromCharCode(97 + letterEnd - 10)
       parts.push(letterA == letterB ? letterA : `${letterA}-${letterB}`)
     }
-    return `[${parts.join("")}]`
+    return `[${parts.join('')}]`
   } else {
     let aCode = a.charCodeAt(0)
     let bCode = b.charCodeAt(0)
     let isConsecutive = bCode - aCode == diff
-    return `[${a}${isConsecutive && diff > 1 ? "-" : ""}${b}]`
+    return `[${a}${isConsecutive && diff > 1 ? '-' : ''}${b}]`
   }
 }
 
@@ -147,11 +147,11 @@ let padZeros = (value, tok, options) => {
 
   switch (diff) {
     case 0:
-      return ""
+      return ''
     case 1:
-      return relax ? "0?" : "0"
+      return relax ? '0?' : '0'
     case 2:
-      return relax ? "0{0,2}" : "00"
+      return relax ? '0{0,2}' : '00'
     default:
       return relax ? `0{0,${diff}}` : `0{${diff}}`
   }
@@ -159,17 +159,17 @@ let padZeros = (value, tok, options) => {
 
 let toRegexRange = (min, max, options) => {
   if (isNumber(min) == false)
-    throw TypeError("toRegexRange: expected the first argument to be a number")
+    throw TypeError('toRegexRange: expected the first argument to be a number')
 
   if (max == void 0 || min == max) return String(min)
 
   if (isNumber(max) == false)
     throw TypeError(
-      "toRegexRange: expected the second argument to be a number.",
+      'toRegexRange: expected the second argument to be a number.',
     )
 
   let opts = {relaxZeros: true, base: 10, ...options}
-  if (typeof opts.strictZeros == "boolean")
+  if (typeof opts.strictZeros == 'boolean')
     opts.relaxZeros = opts.strictZeros == false
 
   let base = Math.max(2, Math.min(36, Math.floor(opts.base)))
@@ -179,7 +179,7 @@ let toRegexRange = (min, max, options) => {
   let capture = String(opts.capture)
   let wrap = String(opts.wrap)
   let cacheKey =
-    min + ":" + max + "=" + relax + shorthand + capture + wrap + base
+    min + ':' + max + '=' + relax + shorthand + capture + wrap + base
 
   if (toRegexRange.cache.hasOwnProperty(cacheKey))
     return toRegexRange.cache[cacheKey].result
@@ -188,7 +188,7 @@ let toRegexRange = (min, max, options) => {
   let b = Math.max(min, max)
 
   if (Math.abs(a - b) == 1) {
-    let result = min + "|" + max
+    let result = min + '|' + max
     if (opts.capture) return `(${result})`
     if (opts.wrap == false) return result
     return `(?:${result})`
@@ -227,30 +227,30 @@ let toRegexRange = (min, max, options) => {
 let tokenizePattern = pattern => {
   let tokens = []
   for (let i = 0; i < pattern.length; ) {
-    if (pattern[i] === "[") {
-      let j = pattern.indexOf("]", i)
+    if (pattern[i] === '[') {
+      let j = pattern.indexOf(']', i)
       let tok = pattern.slice(i, j + 1)
       i = j + 1
-      if (i < pattern.length && pattern[i] === "{") {
-        let k = pattern.indexOf("}", i)
+      if (i < pattern.length && pattern[i] === '{') {
+        let k = pattern.indexOf('}', i)
         tok += pattern.slice(i, k + 1)
         i = k + 1
       }
       tokens.push(tok)
-    } else if (pattern[i] === "\\") {
+    } else if (pattern[i] === '\\') {
       let tok = pattern.slice(i, i + 2)
       i += 2
-      if (i < pattern.length && pattern[i] === "{") {
-        let k = pattern.indexOf("}", i)
+      if (i < pattern.length && pattern[i] === '{') {
+        let k = pattern.indexOf('}', i)
         tok += pattern.slice(i, k + 1)
         i = k + 1
       }
       tokens.push(tok)
     } else {
       let tok = pattern[i++]
-      if (i < pattern.length && pattern[i] === "?") tok += pattern[i++]
-      else if (i < pattern.length && pattern[i] === "{") {
-        let k = pattern.indexOf("}", i)
+      if (i < pattern.length && pattern[i] === '?') tok += pattern[i++]
+      else if (i < pattern.length && pattern[i] === '{') {
+        let k = pattern.indexOf('}', i)
         tok += pattern.slice(i, k + 1)
         i = k + 1
       }
@@ -262,13 +262,13 @@ let tokenizePattern = pattern => {
 
 let isAtomicRegex = str => {
   if (str.length <= 1) return true
-  if (str[0] === "\\" && str.length === 2) return true
-  if (str[0] === "[") return str.indexOf("]") === str.length - 1
-  if (str.startsWith("(?:")) {
+  if (str[0] === '\\' && str.length === 2) return true
+  if (str[0] === '[') return str.indexOf(']') === str.length - 1
+  if (str.startsWith('(?:')) {
     let depth = 0
     for (let i = 0; i < str.length; i++) {
-      if (str[i] === "(") depth++
-      else if (str[i] === ")") depth--
+      if (str[i] === '(') depth++
+      else if (str[i] === ')') depth--
       if (depth === 0) return i === str.length - 1
     }
   }
@@ -276,15 +276,15 @@ let isAtomicRegex = str => {
 }
 
 let makeGroupOptional = str => {
-  if (!str) return ""
-  return isAtomicRegex(str) ? str + "?" : "(?:" + str + ")?"
+  if (!str) return ''
+  return isAtomicRegex(str) ? str + '?' : '(?:' + str + ')?'
 }
 
 let factorToAlts = arrays => {
   let deduped = [],
     seen = new Set()
   for (let arr of arrays) {
-    let key = arr.join("\0")
+    let key = arr.join('\0')
     if (!seen.has(key)) {
       seen.add(key)
       deduped.push(arr)
@@ -292,7 +292,7 @@ let factorToAlts = arrays => {
   }
   arrays = deduped
   if (!arrays.length) return []
-  if (arrays.length === 1) return [arrays[0].join("")]
+  if (arrays.length === 1) return [arrays[0].join('')]
 
   let pLen = 0
   outer: while (pLen < arrays[0].length) {
@@ -301,7 +301,7 @@ let factorToAlts = arrays => {
       if (pLen >= arrays[i].length || arrays[i][pLen] !== tok) break outer
     pLen++
   }
-  let prefix = arrays[0].slice(0, pLen).join("")
+  let prefix = arrays[0].slice(0, pLen).join('')
   let tails = arrays.map(a => a.slice(pLen))
   let hasEmpty = tails.some(t => !t.length)
   let nonEmpty = tails.filter(t => t.length)
@@ -323,7 +323,7 @@ let factorToAlts = arrays => {
   for (let tok of order) {
     let rests = groups.get(tok)
     if (rests.length === 1) {
-      contAlts.push(tok + rests[0].join(""))
+      contAlts.push(tok + rests[0].join(''))
       continue
     }
     let subAlts = factorToAlts(rests)
@@ -333,7 +333,7 @@ let factorToAlts = arrays => {
     let groupedPart =
       subAlts.length === 1 ?
         tok + subAlts[0]
-      : tok + "(?:" + subAlts.join("|") + ")"
+      : tok + '(?:' + subAlts.join('|') + ')'
     if (groupedPart.length <= expandedCost) {
       contAlts.push(groupedPart)
     } else {
@@ -354,8 +354,8 @@ let factorToAlts = arrays => {
     if (contAlts.length === 1) {
       body = hasEmpty ? makeGroupOptional(contAlts[0]) : contAlts[0]
     } else {
-      let joined = "(?:" + contAlts.join("|") + ")"
-      body = hasEmpty ? joined + "?" : joined
+      let joined = '(?:' + contAlts.join('|') + ')'
+      body = hasEmpty ? joined + '?' : joined
     }
     let grouped = [prefix + body]
     if (grouped[0].length <= expandedLen) return grouped
@@ -366,16 +366,16 @@ let factorToAlts = arrays => {
 }
 
 function factorPatterns(patterns) {
-  if (!patterns.length) return ""
+  if (!patterns.length) return ''
   if (patterns.length === 1) return patterns[0]
   let tokenized = patterns.map(tokenizePattern)
-  return factorToAlts(tokenized).join("|")
+  return factorToAlts(tokenized).join('|')
 }
 
 function collatePatterns(neg, pos, options) {
-  let onlyNegative = filterPatterns(neg, pos, "-", false, options) || []
-  let onlyPositive = filterPatterns(pos, neg, "", false, options) || []
-  let intersected = filterPatterns(neg, pos, "-?", true, options) || []
+  let onlyNegative = filterPatterns(neg, pos, '-', false, options) || []
+  let onlyPositive = filterPatterns(pos, neg, '', false, options) || []
+  let intersected = filterPatterns(neg, pos, '-?', true, options) || []
   let subpatterns = onlyNegative.concat(intersected).concat(onlyPositive)
   return factorPatterns(subpatterns)
 }
@@ -422,24 +422,24 @@ function rangeToPattern(start, stop, options) {
   let maxDigit = getMaxDigit(base)
   let zipped = zip(start, stop)
   let digits = zipped.length
-  let pattern = ""
+  let pattern = ''
   let count = 0
 
   for (let i = 0; i < digits; i++) {
     let [startDigit, stopDigit] = zipped[i]
 
     if (startDigit == stopDigit) pattern += startDigit
-    else if (startDigit != "0" || stopDigit != maxDigit)
+    else if (startDigit != '0' || stopDigit != maxDigit)
       pattern += toCharacterClass(startDigit, stopDigit, options)
     else count++
   }
 
   if (count)
     pattern +=
-      options.shorthand && base == 10 ? "\\d"
+      options.shorthand && base == 10 ? '\\d'
       : base <= 10 ? `[0-${maxDigit}]`
-      : options.shorthand && maxDigit == "9" ? "\\d"
-      : `[${options.shorthand ? "\\d" : "0-9"}a-${maxDigit}]`
+      : options.shorthand && maxDigit == '9' ? '\\d'
+      : `[${options.shorthand ? '\\d' : '0-9'}a-${maxDigit}]`
 
   return {pattern, count: [count], digits}
 }
